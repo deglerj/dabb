@@ -1,0 +1,20 @@
+- "dabb" is an implementation of the card game "Binokel" aka "Benogl" in the Swabian dialect
+- Wikipedia article for the card game in English: https://en.wikipedia.org/wiki/Binokel
+- Wikipedia article for the card game in German: https://de.wikipedia.org/wiki/Binokel
+- Additional site with rules: https://www.schwaebisch-schwaetza.de/binokel-spielregeln.php
+- Additional site with rules: https://www.spielregeln24.de/binokel-spielregeln-anleitung/
+- There are many different variations of the rules. If you're unsure, ask me, I'm an expert for the game.
+- Always use the rule variants that don't use the "7" cards
+- The game should be playable on Android and as a web app
+- The game should be implemented either entirely in TypeScript or entirely in Kotlin
+- The game should support 2, 3 or 4 players. AI player are not supported yet, may be added later.
+- The game should not require the user to sign up. Instead it should generate human-readable session codes users can use to join a game.
+- State management
+    - For each game session a list of all actions performed by either players (e.g. playing a card) or the game master (e.g. distributing cards to players) is kept
+    - This list is used to
+        - Persist games in the database
+        - "Replay" actions performed in the game, to determine its current state (e.g. if a player re-joins a session and has lost the client-side state)
+        - If clients have to use pull instead of push communication (should be preffered), the can send the ID of the last action they've seen, and the server will send them a list of all actions performed since
+    - Clients must only get a list of events relevant to them, otherwise they could see "secret" information about other players' card, allowing them to cheat
+- There are no freely available images for playing cards. You'll have to create some that are legally distinct, but still familiar enough.
+- The game should be in German, an English translation may be added later.

@@ -1,0 +1,67 @@
+/**
+ * REST API types
+ */
+
+import type { PlayerCount, PlayerIndex, Team } from './game';
+
+// Session creation
+export interface CreateSessionRequest {
+  playerCount: PlayerCount;
+  targetScore?: number;
+  nickname: string;
+}
+
+export interface CreateSessionResponse {
+  sessionCode: string;
+  sessionId: string;
+  playerId: string;
+  secretId: string;
+  playerIndex: PlayerIndex;
+}
+
+// Join session
+export interface JoinSessionRequest {
+  nickname: string;
+}
+
+export interface JoinSessionResponse {
+  sessionId: string;
+  playerId: string;
+  secretId: string;
+  playerIndex: PlayerIndex;
+  team?: Team;
+}
+
+// Reconnect
+export interface ReconnectRequest {
+  secretId: string;
+}
+
+export interface ReconnectResponse {
+  playerId: string;
+  playerIndex: PlayerIndex;
+  lastEventSequence: number;
+}
+
+// Session info
+export interface SessionInfoResponse {
+  sessionId: string;
+  sessionCode: string;
+  playerCount: PlayerCount;
+  status: 'waiting' | 'active' | 'finished';
+  targetScore: number;
+  players: Array<{
+    nickname: string;
+    playerIndex: PlayerIndex;
+    team?: Team;
+    connected: boolean;
+  }>;
+  createdAt: string;
+}
+
+// Error response
+export interface ApiError {
+  error: string;
+  code: string;
+  details?: Record<string, unknown>;
+}
