@@ -24,35 +24,49 @@ interface SessionInfo {
 }
 
 export default function App() {
-  const { credentials, setCredentials, clearCredentials, loading: credentialsLoading } = useSessionCredentials();
+  const {
+    credentials,
+    setCredentials,
+    clearCredentials,
+    loading: credentialsLoading,
+  } = useSessionCredentials();
   const [screen, setScreen] = useState<AppScreen>('loading');
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
-  const [players, setPlayers] = useState<Map<PlayerIndex, { nickname: string; connected: boolean }>>(new Map());
+  const [players, setPlayers] = useState<
+    Map<PlayerIndex, { nickname: string; connected: boolean }>
+  >(new Map());
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
   const [apiLoading, setApiLoading] = useState(false);
 
-  const { state, applyEvents, reset: resetGameState } = useGameState({
+  const {
+    state,
+    applyEvents,
+    reset: resetGameState,
+  } = useGameState({
     playerCount: sessionInfo?.playerCount || 4,
     playerIndex: sessionInfo?.playerIndex || 0,
   });
 
-  const handleEvents = useCallback((events: GameEvent[]) => {
-    applyEvents(events);
+  const handleEvents = useCallback(
+    (events: GameEvent[]) => {
+      applyEvents(events);
 
-    // Check if game started
-    const gameStarted = events.some(e => e.type === 'GAME_STARTED');
-    if (gameStarted) {
-      setScreen('game');
-    }
-  }, [applyEvents]);
+      // Check if game started
+      const gameStarted = events.some((e) => e.type === 'GAME_STARTED');
+      if (gameStarted) {
+        setScreen('game');
+      }
+    },
+    [applyEvents]
+  );
 
   const handlePlayerJoined = useCallback((playerIndex: number, nickname: string) => {
-    setPlayers(prev => {
+    setPlayers((prev) => {
       const updated = new Map(prev);
       updated.set(playerIndex as PlayerIndex, { nickname, connected: true });
       return updated;
     });
-    setNicknames(prev => {
+    setNicknames((prev) => {
       const updated = new Map(prev);
       updated.set(playerIndex as PlayerIndex, nickname);
       return updated;
@@ -60,7 +74,7 @@ export default function App() {
   }, []);
 
   const handlePlayerLeft = useCallback((playerIndex: number) => {
-    setPlayers(prev => {
+    setPlayers((prev) => {
       const updated = new Map(prev);
       const player = updated.get(playerIndex as PlayerIndex);
       if (player) {
@@ -71,7 +85,7 @@ export default function App() {
   }, []);
 
   const handlePlayerReconnected = useCallback((playerIndex: number) => {
-    setPlayers(prev => {
+    setPlayers((prev) => {
       const updated = new Map(prev);
       const player = updated.get(playerIndex as PlayerIndex);
       if (player) {
@@ -81,7 +95,11 @@ export default function App() {
     });
   }, []);
 
-  const { socket: _socket, connected: _connected, emit } = useSocket({
+  const {
+    socket: _socket,
+    connected: _connected,
+    emit,
+  } = useSocket({
     serverUrl: SERVER_URL,
     sessionId: sessionInfo?.sessionId || '',
     secretId: credentials?.secretId || '',
@@ -111,7 +129,9 @@ export default function App() {
         body: JSON.stringify({ playerCount }),
       });
 
-      if (!response.ok) {throw new Error('Failed to create game');}
+      if (!response.ok) {
+        throw new Error('Failed to create game');
+      }
 
       const { sessionId, code } = await response.json();
 
@@ -122,7 +142,9 @@ export default function App() {
         body: JSON.stringify({ nickname }),
       });
 
-      if (!joinResponse.ok) {throw new Error('Failed to join game');}
+      if (!joinResponse.ok) {
+        throw new Error('Failed to join game');
+      }
 
       const { secretId, playerIndex } = await joinResponse.json();
 
@@ -152,7 +174,9 @@ export default function App() {
     try {
       // Get session info
       const infoResponse = await fetch(`${SERVER_URL}/sessions/${sessionCode}`);
-      if (!infoResponse.ok) {throw new Error('Game not found');}
+      if (!infoResponse.ok) {
+        throw new Error('Game not found');
+      }
 
       const { playerCount } = await infoResponse.json();
 
@@ -163,7 +187,9 @@ export default function App() {
         body: JSON.stringify({ nickname }),
       });
 
-      if (!joinResponse.ok) {throw new Error('Failed to join game');}
+      if (!joinResponse.ok) {
+        throw new Error('Failed to join game');
+      }
 
       const { secretId, playerIndex, sessionId } = await joinResponse.json();
 

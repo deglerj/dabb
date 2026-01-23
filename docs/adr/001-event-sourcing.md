@@ -7,6 +7,7 @@ Accepted
 ## Context
 
 We need to manage game state for a multiplayer card game where:
+
 - Multiple players interact simultaneously
 - Players can disconnect and reconnect
 - Game state must be consistent across all clients
@@ -24,6 +25,7 @@ We will use **Event Sourcing** to manage game state:
 ## Consequences
 
 ### Positive
+
 - **Reliability**: State can always be reconstructed from events
 - **Debugging**: Complete history of what happened
 - **Reconnection**: Players can sync by replaying missed events
@@ -31,6 +33,7 @@ We will use **Event Sourcing** to manage game state:
 - **Anti-cheat**: Events can be filtered per player
 
 ### Negative
+
 - **Complexity**: More complex than simple state mutations
 - **Storage**: Events accumulate over time
 - **Performance**: State must be computed, not just read

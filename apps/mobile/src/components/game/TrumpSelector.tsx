@@ -30,7 +30,7 @@ function TrumpSelector({ onSelect }: TrumpSelectorProps) {
     <View style={styles.container}>
       <Text style={styles.title}>Trumpf wählen</Text>
       <View style={styles.suitGrid}>
-        {SUITS.map(suit => (
+        {SUITS.map((suit) => (
           <TouchableOpacity
             key={suit}
             style={[styles.suitButton, { backgroundColor: SUIT_COLORS[suit] }]}

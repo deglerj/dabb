@@ -9,7 +9,7 @@
 # Optional:
 #   - POSTGRES_PASSWORD: If using the included postgres service
 
-version: "3.9"
+version: '3.9'
 
 services:
   postgres:
@@ -23,7 +23,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dabb -d dabb"]
+      test: ['CMD-SHELL', 'pg_isready -U dabb -d dabb']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,9 +47,9 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://dabb:${POSTGRES_PASSWORD}@postgres:5432/dabb}
       CLIENT_URL: ${CLIENT_URL:?CLIENT_URL is required}
     ports:
-      - "3000:3000"
+      - '3000:3000'
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/health']
       interval: 30s
       timeout: 3s
       retries: 3
@@ -59,10 +59,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1"
+          cpus: '1'
           memory: 512M
         reservations:
-          cpus: "0.25"
+          cpus: '0.25'
           memory: 128M
 
   web:
@@ -77,9 +77,9 @@ services:
     depends_on:
       - server
     ports:
-      - "8080:8080"
+      - '8080:8080'
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8080/']
       interval: 30s
       timeout: 3s
       retries: 3
@@ -88,10 +88,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: '0.5'
           memory: 128M
         reservations:
-          cpus: "0.1"
+          cpus: '0.1'
           memory: 32M
 
 networks:

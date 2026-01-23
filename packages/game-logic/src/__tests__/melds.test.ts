@@ -11,14 +11,10 @@ function card(suit: Suit, rank: Card['rank'], copy: 0 | 1 = 0): Card {
 describe('Meld Detection', () => {
   describe('Paar (King + Ober of same suit)', () => {
     it('detects a single Paar', () => {
-      const hand = [
-        card('herz', 'koenig'),
-        card('herz', 'ober'),
-        card('kreuz', 'ass'),
-      ];
+      const hand = [card('herz', 'koenig'), card('herz', 'ober'), card('kreuz', 'ass')];
 
       const melds = detectMelds(hand, 'kreuz');
-      const paar = melds.find(m => m.type === 'paar');
+      const paar = melds.find((m) => m.type === 'paar');
 
       expect(paar).toBeDefined();
       expect(paar?.points).toBe(20);
@@ -26,13 +22,10 @@ describe('Meld Detection', () => {
     });
 
     it('detects trump Paar with bonus points', () => {
-      const hand = [
-        card('herz', 'koenig'),
-        card('herz', 'ober'),
-      ];
+      const hand = [card('herz', 'koenig'), card('herz', 'ober')];
 
       const melds = detectMelds(hand, 'herz');
-      const paar = melds.find(m => m.type === 'paar');
+      const paar = melds.find((m) => m.type === 'paar');
 
       expect(paar).toBeDefined();
       expect(paar?.points).toBe(40); // 20 base + 20 trump bonus
@@ -47,7 +40,7 @@ describe('Meld Detection', () => {
       ];
 
       const melds = detectMelds(hand, 'kreuz');
-      const paare = melds.filter(m => m.type === 'paar');
+      const paare = melds.filter((m) => m.type === 'paar');
 
       expect(paare).toHaveLength(2);
     });
@@ -64,7 +57,7 @@ describe('Meld Detection', () => {
       ];
 
       const melds = detectMelds(hand, 'herz');
-      const familie = melds.find(m => m.type === 'familie');
+      const familie = melds.find((m) => m.type === 'familie');
 
       expect(familie).toBeDefined();
       expect(familie?.points).toBe(100);
@@ -81,7 +74,7 @@ describe('Meld Detection', () => {
       ];
 
       const melds = detectMelds(hand, 'herz');
-      const familie = melds.find(m => m.type === 'familie');
+      const familie = melds.find((m) => m.type === 'familie');
 
       expect(familie).toBeDefined();
       expect(familie?.points).toBe(150); // 100 + 50 trump bonus
@@ -97,7 +90,7 @@ describe('Meld Detection', () => {
       ];
 
       const melds = detectMelds(hand, 'herz');
-      const paare = melds.filter(m => m.type === 'paar' && m.suit === 'schippe');
+      const paare = melds.filter((m) => m.type === 'paar' && m.suit === 'schippe');
 
       expect(paare).toHaveLength(0);
     });
@@ -105,13 +98,10 @@ describe('Meld Detection', () => {
 
   describe('Binokel (Ober Schippe + Buabe Bollen)', () => {
     it('detects single Binokel', () => {
-      const hand = [
-        card('schippe', 'ober'),
-        card('bollen', 'buabe'),
-      ];
+      const hand = [card('schippe', 'ober'), card('bollen', 'buabe')];
 
       const melds = detectMelds(hand, 'herz');
-      const binokel = melds.find(m => m.type === 'binokel');
+      const binokel = melds.find((m) => m.type === 'binokel');
 
       expect(binokel).toBeDefined();
       expect(binokel?.points).toBe(40);
@@ -126,7 +116,7 @@ describe('Meld Detection', () => {
       ];
 
       const melds = detectMelds(hand, 'herz');
-      const doppelBinokel = melds.find(m => m.type === 'doppel-binokel');
+      const doppelBinokel = melds.find((m) => m.type === 'doppel-binokel');
 
       expect(doppelBinokel).toBeDefined();
       expect(doppelBinokel?.points).toBe(300);
@@ -141,8 +131,8 @@ describe('Meld Detection', () => {
       ];
 
       const melds = detectMelds(hand, 'herz');
-      const singleBinokel = melds.find(m => m.type === 'binokel');
-      const doppelBinokel = melds.find(m => m.type === 'doppel-binokel');
+      const singleBinokel = melds.find((m) => m.type === 'binokel');
+      const doppelBinokel = melds.find((m) => m.type === 'doppel-binokel');
 
       expect(singleBinokel).toBeUndefined();
       expect(doppelBinokel).toBeDefined();
@@ -159,7 +149,7 @@ describe('Meld Detection', () => {
       ];
 
       const melds = detectMelds(hand, 'herz');
-      const vierAss = melds.find(m => m.type === 'vier-ass');
+      const vierAss = melds.find((m) => m.type === 'vier-ass');
 
       expect(vierAss).toBeDefined();
       expect(vierAss?.points).toBe(100);
@@ -174,7 +164,7 @@ describe('Meld Detection', () => {
       ];
 
       const melds = detectMelds(hand, 'herz');
-      const vierUnter = melds.find(m => m.type === 'vier-unter');
+      const vierUnter = melds.find((m) => m.type === 'vier-unter');
 
       expect(vierUnter).toBeDefined();
       expect(vierUnter?.points).toBe(40);
@@ -193,7 +183,7 @@ describe('Meld Detection', () => {
       ];
 
       const melds = detectMelds(hand, 'herz');
-      const achtAss = melds.find(m => m.type === 'acht-ass');
+      const achtAss = melds.find((m) => m.type === 'acht-ass');
 
       expect(achtAss).toBeDefined();
       expect(achtAss?.points).toBe(1000);

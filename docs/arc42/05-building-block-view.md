@@ -41,15 +41,15 @@ logic --> types
 
 ### Package Overview
 
-| Package | Purpose |
-|---------|---------|
-| `@dabb/shared-types` | TypeScript types shared across all apps |
-| `@dabb/game-logic` | Core game rules, state reducer, meld detection |
-| `@dabb/ui-shared` | React hooks for socket and state management |
-| `@dabb/card-assets` | SVG card graphics and utilities |
-| `@dabb/web` | React web application |
-| `@dabb/mobile` | React Native mobile application |
-| `@dabb/server` | Express + Socket.IO backend |
+| Package              | Purpose                                        |
+| -------------------- | ---------------------------------------------- |
+| `@dabb/shared-types` | TypeScript types shared across all apps        |
+| `@dabb/game-logic`   | Core game rules, state reducer, meld detection |
+| `@dabb/ui-shared`    | React hooks for socket and state management    |
+| `@dabb/card-assets`  | SVG card graphics and utilities                |
+| `@dabb/web`          | React web application                          |
+| `@dabb/mobile`       | React Native mobile application                |
+| `@dabb/server`       | Express + Socket.IO backend                    |
 
 ## 5.2 Level 2: Packages
 
@@ -102,18 +102,14 @@ src/
 The game state is managed through an event-sourcing reducer:
 
 ```typescript
-function gameReducer(
-  state: GameState,
-  event: GameEvent,
-  playerIndex: PlayerIndex
-): GameState {
+function gameReducer(state: GameState, event: GameEvent, playerIndex: PlayerIndex): GameState {
   switch (event.type) {
     case 'GAME_STARTED':
-      // Initialize game state
+    // Initialize game state
     case 'CARDS_DEALT':
-      // Distribute cards to players
+    // Distribute cards to players
     case 'BID_PLACED':
-      // Update current bid
+    // Update current bid
     // ... etc
   }
 }
@@ -121,18 +117,18 @@ function gameReducer(
 
 ### Event Types
 
-| Event | Phase | Description |
-|-------|-------|-------------|
-| GAME_STARTED | dealing | Game initialized |
-| CARDS_DEALT | dealing | Cards distributed |
-| BID_PLACED | bidding | Player placed bid |
-| BID_PASSED | bidding | Player passed |
-| BIDDING_WON | bidding | Winner determined |
-| DABB_TAKEN | dabb | Winner took dabb |
-| CARDS_DISCARDED | dabb | Cards discarded |
-| TRUMP_DECLARED | trump | Trump suit set |
-| MELDS_DECLARED | melding | Melds announced |
-| CARD_PLAYED | tricks | Card played to trick |
-| TRICK_WON | tricks | Trick completed |
-| ROUND_ENDED | scoring | Round scores calculated |
-| GAME_ENDED | finished | Final winner |
+| Event           | Phase    | Description             |
+| --------------- | -------- | ----------------------- |
+| GAME_STARTED    | dealing  | Game initialized        |
+| CARDS_DEALT     | dealing  | Cards distributed       |
+| BID_PLACED      | bidding  | Player placed bid       |
+| BID_PASSED      | bidding  | Player passed           |
+| BIDDING_WON     | bidding  | Winner determined       |
+| DABB_TAKEN      | dabb     | Winner took dabb        |
+| CARDS_DISCARDED | dabb     | Cards discarded         |
+| TRUMP_DECLARED  | trump    | Trump suit set          |
+| MELDS_DECLARED  | melding  | Melds announced         |
+| CARD_PLAYED     | tricks   | Card played to trick    |
+| TRICK_WON       | tricks   | Trick completed         |
+| ROUND_ENDED     | scoring  | Round scores calculated |
+| GAME_ENDED      | finished | Final winner            |

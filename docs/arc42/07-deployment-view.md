@@ -41,6 +41,7 @@ server --> db : TCP (5432)
 **Vendor Lock-in:** None (standard Docker containers)
 
 Oracle Cloud provides generous Always Free resources:
+
 - 4 ARM vCPUs, 24GB RAM (split across up to 4 instances)
 - 200GB block storage
 - Free Kubernetes control plane
@@ -54,6 +55,7 @@ Direct Docker Compose deployment without Coolify for simpler setups.
 ### Option C: Other Cloud Providers
 
 The Docker images are portable and can be deployed to:
+
 - **Fly.io**: 3GB RAM free, good for WebSocket apps
 - **Google Cloud Run**: Scale-to-zero, pay per request
 - **Render**: 750 hours/month free
@@ -62,6 +64,7 @@ The Docker images are portable and can be deployed to:
 ## 7.3 Container Architecture
 
 ### Server Container (`dabb-server`)
+
 ```dockerfile
 FROM oven/bun:1-alpine
 # Multi-stage build with non-root user
@@ -71,6 +74,7 @@ EXPOSE 3000
 ```
 
 ### Web Container (`dabb-web`)
+
 ```dockerfile
 FROM oven/bun:1-alpine AS builder  # Build stage
 FROM nginx:alpine                   # Production stage
@@ -80,20 +84,21 @@ EXPOSE 8080
 ```
 
 ### Database
+
 - PostgreSQL 16 (Alpine)
 - Persistent volume for data
 - Internal network only (not exposed)
 
 ## 7.4 Environment Variables
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `DATABASE_URL` | Yes | PostgreSQL connection | `postgresql://user:pass@host:5432/dabb` |
-| `PORT` | No | Server port (default: 3000) | `3000` |
-| `CLIENT_URL` | Yes | Web app URL for CORS | `https://dabb.example.com` |
-| `NODE_ENV` | No | Environment | `production` |
-| `VITE_SERVER_URL` | Yes | Server URL for frontend | `https://api.dabb.example.com` |
-| `POSTGRES_PASSWORD` | Yes | Database password | `secure_random_string` |
+| Variable            | Required | Description                 | Example                                 |
+| ------------------- | -------- | --------------------------- | --------------------------------------- |
+| `DATABASE_URL`      | Yes      | PostgreSQL connection       | `postgresql://user:pass@host:5432/dabb` |
+| `PORT`              | No       | Server port (default: 3000) | `3000`                                  |
+| `CLIENT_URL`        | Yes      | Web app URL for CORS        | `https://dabb.example.com`              |
+| `NODE_ENV`          | No       | Environment                 | `production`                            |
+| `VITE_SERVER_URL`   | Yes      | Server URL for frontend     | `https://api.dabb.example.com`          |
+| `POSTGRES_PASSWORD` | Yes      | Database password           | `secure_random_string`                  |
 
 ## 7.5 CI/CD Pipeline
 
@@ -105,6 +110,7 @@ EXPOSE 8080
 ```
 
 Security scanning includes:
+
 - OSV Scanner for dependency vulnerabilities
 - Trivy for container image CVEs
 - Results uploaded to GitHub Security tab
@@ -112,6 +118,7 @@ Security scanning includes:
 ## 7.6 Deployment Commands
 
 ### Local Development
+
 ```bash
 docker compose up -d
 # Web: http://localhost:8080
@@ -119,6 +126,7 @@ docker compose up -d
 ```
 
 ### Production
+
 ```bash
 # Set environment variables
 export POSTGRES_PASSWORD=secure_password
@@ -130,6 +138,7 @@ docker compose -f docker-compose.prod.yml up -d
 ```
 
 ### Using Coolify
+
 1. Add Git repository in Coolify dashboard
 2. Configure environment variables
 3. Set build path and Dockerfile location
@@ -137,20 +146,22 @@ docker compose -f docker-compose.prod.yml up -d
 
 ## 7.7 Health Checks
 
-| Service | Endpoint | Interval | Timeout |
-|---------|----------|----------|---------|
-| Server | `GET /health` | 30s | 3s |
-| Web | `GET /` | 30s | 3s |
-| PostgreSQL | `pg_isready` | 10s | 5s |
+| Service    | Endpoint      | Interval | Timeout |
+| ---------- | ------------- | -------- | ------- |
+| Server     | `GET /health` | 30s      | 3s      |
+| Web        | `GET /`       | 30s      | 3s      |
+| PostgreSQL | `pg_isready`  | 10s      | 5s      |
 
 ## 7.8 Scaling Considerations
 
 For low-traffic (target use case):
+
 - Single instance of each service is sufficient
 - PostgreSQL connection pooling not required
 - No load balancer needed
 
 For higher traffic:
+
 - Add reverse proxy (Traefik/nginx) for SSL termination
 - Consider managed PostgreSQL (Neon, Supabase)
 - Horizontal scaling via Docker Swarm or Kubernetes
@@ -158,6 +169,7 @@ For higher traffic:
 ## 7.9 Backup Strategy
 
 ### Database Backups
+
 ```bash
 # Manual backup
 docker exec dabb-postgres pg_dump -U dabb dabb > backup.sql
@@ -171,6 +183,7 @@ Recommended: Set up automated daily backups with retention policy.
 ## 7.10 Monitoring
 
 Basic monitoring via Docker health checks. For production, consider:
+
 - Uptime monitoring (UptimeRobot, Healthchecks.io - both have free tiers)
 - Log aggregation (Loki, or simple file logging)
 - Metrics (Prometheus + Grafana if needed)

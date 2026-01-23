@@ -81,14 +81,14 @@ function groupByRank(cards: Card[]): Map<Rank, Card[]> {
 function detectBinokel(hand: Card[], config: MeldConfig): Meld[] {
   const melds: Meld[] = [];
 
-  const oberSchippe = hand.filter(c => c.suit === 'schippe' && c.rank === 'ober');
-  const buabeBollen = hand.filter(c => c.suit === 'bollen' && c.rank === 'buabe');
+  const oberSchippe = hand.filter((c) => c.suit === 'schippe' && c.rank === 'ober');
+  const buabeBollen = hand.filter((c) => c.suit === 'bollen' && c.rank === 'buabe');
 
   if (oberSchippe.length >= 2 && buabeBollen.length >= 2) {
     // Doppel-Binokel
     melds.push({
       type: 'doppel-binokel',
-      cards: [...oberSchippe.map(c => c.id), ...buabeBollen.map(c => c.id)],
+      cards: [...oberSchippe.map((c) => c.id), ...buabeBollen.map((c) => c.id)],
       points: config.basePoints['doppel-binokel'],
     });
   } else if (oberSchippe.length >= 1 && buabeBollen.length >= 1) {
@@ -106,10 +106,7 @@ function detectBinokel(hand: Card[], config: MeldConfig): Meld[] {
 /**
  * Detect four or eight of a kind (for Ass, Zehn, König, Ober, Unter)
  */
-function detectFourOfAKind(
-  byRank: Map<Rank, Card[]>,
-  config: MeldConfig
-): Meld[] {
+function detectFourOfAKind(byRank: Map<Rank, Card[]>, config: MeldConfig): Meld[] {
   const melds: Meld[] = [];
 
   const rankToMeldTypes: Record<Rank, { four: MeldType; eight: MeldType } | null> = {
@@ -123,17 +120,19 @@ function detectFourOfAKind(
 
   for (const [rank, cards] of byRank) {
     const meldTypes = rankToMeldTypes[rank];
-    if (!meldTypes) {continue;}
+    if (!meldTypes) {
+      continue;
+    }
 
     // Check for cards in all four suits
-    const suitCount = new Set(cards.map(c => c.suit)).size;
+    const suitCount = new Set(cards.map((c) => c.suit)).size;
 
     if (suitCount === 4) {
       if (cards.length === 8) {
         // Eight of a kind (both copies of all four suits)
         melds.push({
           type: meldTypes.eight,
-          cards: cards.map(c => c.id),
+          cards: cards.map((c) => c.id),
           points: config.basePoints[meldTypes.eight],
         });
       } else if (cards.length >= 4) {
@@ -149,7 +148,7 @@ function detectFourOfAKind(
         }
         melds.push({
           type: meldTypes.four,
-          cards: onePerSuit.map(c => c.id),
+          cards: onePerSuit.map((c) => c.id),
           points: config.basePoints[meldTypes.four],
         });
       }
@@ -163,11 +162,7 @@ function detectFourOfAKind(
  * Detect Familie (A-10-K-O-U of same suit)
  * Each suit can have up to two Familien (with both copies)
  */
-function detectFamilie(
-  bySuit: Map<Suit, Card[]>,
-  trump: Suit,
-  config: MeldConfig
-): Meld[] {
+function detectFamilie(bySuit: Map<Suit, Card[]>, trump: Suit, config: MeldConfig): Meld[] {
   const melds: Meld[] = [];
   const familieRanks: Rank[] = ['ass', '10', 'koenig', 'ober', 'buabe'];
 
@@ -184,29 +179,29 @@ function detectFamilie(
     // Check if we have all 5 ranks
     if (rankCounts.size === 5) {
       // Check for double Familie (both copies of all 5)
-      const hasDouble = familieRanks.every(r => (rankCounts.get(r)?.length || 0) >= 2);
+      const hasDouble = familieRanks.every((r) => (rankCounts.get(r)?.length || 0) >= 2);
 
       const isTrump = suit === trump;
       const basePoints = config.basePoints.familie;
-      const bonus = isTrump ? (config.trumpBonus.familie || 0) : 0;
+      const bonus = isTrump ? config.trumpBonus.familie || 0 : 0;
 
       if (hasDouble) {
         // Two Familien in this suit
         for (let i = 0; i < 2; i++) {
-          const familieCards = familieRanks.map(r => rankCounts.get(r)![i]);
+          const familieCards = familieRanks.map((r) => rankCounts.get(r)![i]);
           melds.push({
             type: 'familie',
-            cards: familieCards.map(c => c.id),
+            cards: familieCards.map((c) => c.id),
             points: basePoints + bonus,
             suit,
           });
         }
       } else {
         // One Familie
-        const familieCards = familieRanks.map(r => rankCounts.get(r)![0]);
+        const familieCards = familieRanks.map((r) => rankCounts.get(r)![0]);
         melds.push({
           type: 'familie',
-          cards: familieCards.map(c => c.id),
+          cards: familieCards.map((c) => c.id),
           points: basePoints + bonus,
           suit,
         });
@@ -240,18 +235,14 @@ function detectPaar(
   }
 
   for (const [suit, cards] of bySuit) {
-    const availableKoenig = cards.filter(
-      c => c.rank === 'koenig' && !usedInFamilie.has(c.id)
-    );
-    const availableOber = cards.filter(
-      c => c.rank === 'ober' && !usedInFamilie.has(c.id)
-    );
+    const availableKoenig = cards.filter((c) => c.rank === 'koenig' && !usedInFamilie.has(c.id));
+    const availableOber = cards.filter((c) => c.rank === 'ober' && !usedInFamilie.has(c.id));
 
     const paarCount = Math.min(availableKoenig.length, availableOber.length);
 
     const isTrump = suit === trump;
     const basePoints = config.basePoints.paar;
-    const bonus = isTrump ? (config.trumpBonus.paar || 0) : 0;
+    const bonus = isTrump ? config.trumpBonus.paar || 0 : 0;
 
     for (let i = 0; i < paarCount; i++) {
       melds.push({

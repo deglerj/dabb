@@ -49,7 +49,9 @@ const gameStates = new Map<string, GameState>();
 async function getGameState(sessionId: string): Promise<GameState> {
   // Check cache first
   let state = gameStates.get(sessionId);
-  if (state) {return state;}
+  if (state) {
+    return state;
+  }
 
   // Rebuild from events
   const events = await getAllEvents(sessionId);
@@ -79,7 +81,9 @@ function updateGameState(sessionId: string, event: GameEvent): GameState {
 
 export async function startGame(sessionId: string): Promise<GameEvent[]> {
   const session = await getSessionById(sessionId);
-  if (!session) {throw new Error('Session not found');}
+  if (!session) {
+    throw new Error('Session not found');
+  }
 
   const players = await getSessionPlayers(sessionId);
   if (players.length !== session.playerCount) {
@@ -93,23 +97,14 @@ export async function startGame(sessionId: string): Promise<GameEvent[]> {
 
   // Add player joined events if not already in state
   for (const player of players) {
-    events.push(createPlayerJoinedEvent(
-      ctx(),
-      player.id,
-      player.playerIndex,
-      player.nickname,
-      player.team
-    ));
+    events.push(
+      createPlayerJoinedEvent(ctx(), player.id, player.playerIndex, player.nickname, player.team)
+    );
   }
 
   // Game started event
   const dealer = 0 as PlayerIndex;
-  events.push(createGameStartedEvent(
-    ctx(),
-    session.playerCount,
-    session.targetScore,
-    dealer
-  ));
+  events.push(createGameStartedEvent(ctx(), session.playerCount, session.targetScore, dealer));
 
   // Deal cards
   const deck = shuffleDeck(createDeck());
@@ -169,10 +164,7 @@ export async function placeBid(
   return events;
 }
 
-export async function passBid(
-  sessionId: string,
-  playerIndex: PlayerIndex
-): Promise<GameEvent[]> {
+export async function passBid(sessionId: string, playerIndex: PlayerIndex): Promise<GameEvent[]> {
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'bidding') {
@@ -208,10 +200,7 @@ export async function passBid(
   return events;
 }
 
-export async function takeDabb(
-  sessionId: string,
-  playerIndex: PlayerIndex
-): Promise<GameEvent[]> {
+export async function takeDabb(sessionId: string, playerIndex: PlayerIndex): Promise<GameEvent[]> {
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'dabb') {
@@ -259,7 +248,7 @@ export async function discardCards(
   }
 
   // Verify all cards are in hand
-  const handIds = new Set(hand.map(c => c.id));
+  const handIds = new Set(hand.map((c) => c.id));
   for (const cardId of cardIds) {
     if (!handIds.has(cardId)) {
       throw new Error('Card not in hand');
@@ -367,7 +356,7 @@ export async function playCard(
   }
 
   const hand = state.hands.get(playerIndex) || [];
-  const card = hand.find(c => c.id === cardId);
+  const card = hand.find((c) => c.id === cardId);
 
   if (!card) {
     throw new Error('Card not in hand');
@@ -386,10 +375,7 @@ export async function playCard(
   // Check if trick is complete
   if (state.currentTrick.cards.length + 1 === state.playerCount) {
     const newTrick = {
-      cards: [
-        ...state.currentTrick.cards,
-        { cardId: card.id, playerIndex },
-      ],
+      cards: [...state.currentTrick.cards, { cardId: card.id, playerIndex }],
       leadSuit: state.currentTrick.leadSuit || card.suit,
       winnerIndex: null,
     };
@@ -397,9 +383,9 @@ export async function playCard(
     const winnerIdx = determineTrickWinner(newTrick, state.trump!);
     const winnerPlayerIndex = newTrick.cards[winnerIdx].playerIndex;
 
-    const trickCards = newTrick.cards.map(pc => {
+    const trickCards = newTrick.cards.map((pc) => {
       const h = state.hands.get(pc.playerIndex) || [];
-      return h.find(c => c.id === pc.cardId) || card; // fallback to current card
+      return h.find((c) => c.id === pc.cardId) || card; // fallback to current card
     });
 
     const points = calculateTrickPoints(trickCards);

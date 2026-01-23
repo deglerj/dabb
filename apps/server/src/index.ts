@@ -18,10 +18,12 @@ const httpServer = createServer(app);
 // CORS configuration
 const corsOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
 
-app.use(cors({
-  origin: corsOrigin,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: corsOrigin,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -34,17 +36,15 @@ app.get('/health', (_req, res) => {
 app.use('/sessions', sessionsRouter);
 
 // Socket.IO setup
-const io = new Server<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  SocketData
->(httpServer, {
-  cors: {
-    origin: corsOrigin,
-    credentials: true,
-  },
-});
+const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(
+  httpServer,
+  {
+    cors: {
+      origin: corsOrigin,
+      credentials: true,
+    },
+  }
+);
 
 setupSocketHandlers(io);
 

@@ -24,7 +24,7 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
   };
 
   const incrementBid = (amount: number) => {
-    setSelectedBid(prev => Math.max(prev + amount, currentBid + 10));
+    setSelectedBid((prev) => Math.max(prev + amount, currentBid + 10));
   };
 
   if (!isMyTurn) {
@@ -44,7 +44,7 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
       <View style={styles.bidSelector}>
         <TouchableOpacity
           style={styles.decrementButton}
-          onPress={() => setSelectedBid(prev => Math.max(prev - 10, currentBid + 10))}
+          onPress={() => setSelectedBid((prev) => Math.max(prev - 10, currentBid + 10))}
         >
           <Text style={styles.buttonText}>-10</Text>
         </TouchableOpacity>
@@ -52,7 +52,7 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
         <Text style={styles.selectedBid}>{selectedBid}</Text>
 
         <View style={styles.incrementButtons}>
-          {BID_INCREMENTS.map(inc => (
+          {BID_INCREMENTS.map((inc) => (
             <TouchableOpacity
               key={inc}
               style={styles.incrementButton}
@@ -65,17 +65,11 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
       </View>
 
       <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={[styles.button, styles.bidButton]}
-          onPress={handleBid}
-        >
+        <TouchableOpacity style={[styles.button, styles.bidButton]} onPress={handleBid}>
           <Text style={styles.buttonText}>Bieten</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, styles.passButton]}
-          onPress={onPass}
-        >
+        <TouchableOpacity style={[styles.button, styles.passButton]} onPress={onPass}>
           <Text style={styles.passButtonText}>Passen</Text>
         </TouchableOpacity>
       </View>

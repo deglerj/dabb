@@ -120,12 +120,15 @@ export interface TrickWonEvent extends BaseEvent {
 export interface RoundScoredEvent extends BaseEvent {
   type: 'ROUND_SCORED';
   payload: {
-    scores: Record<PlayerIndex | Team, {
-      melds: number;
-      tricks: number;
-      total: number;
-      bidMet: boolean;
-    }>;
+    scores: Record<
+      PlayerIndex | Team,
+      {
+        melds: number;
+        tricks: number;
+        total: number;
+        bidMet: boolean;
+      }
+    >;
     totalScores: Record<PlayerIndex | Team, number>;
   };
 }

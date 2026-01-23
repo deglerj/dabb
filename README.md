@@ -10,7 +10,7 @@
 [![Expo](https://img.shields.io/badge/Expo-54-000020.svg?logo=expo)](https://expo.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-*Play the traditional Swabian card game Binokel with friends online!*
+_Play the traditional Swabian card game Binokel with friends online!_
 
 [Play Now](#getting-started) | [Game Rules](#game-rules) | [Development](#development)
 
@@ -20,7 +20,7 @@
 
 ## What is Binokel?
 
-**Binokel** (also known as *Binocle*) is a traditional German card game that originated in Swabia. It combines elements of trick-taking and melding, making it a strategic and engaging game for 2-4 players.
+**Binokel** (also known as _Binocle_) is a traditional German card game that originated in Swabia. It combines elements of trick-taking and melding, making it a strategic and engaging game for 2-4 players.
 
 ### Key Features
 
@@ -41,19 +41,19 @@ Binokel is played with a **48-card deck** (two copies of each card). The goal is
 ### Cards
 
 | Rank | Name (Swabian) | Points |
-|------|----------------|--------|
-| A | Ass | 11 |
-| 10 | Zehn | 10 |
-| K | König | 4 |
-| O | Ober | 3 |
-| U | Buabe | 2 |
-| 9 | Neun | 0 |
+| ---- | -------------- | ------ |
+| A    | Ass            | 11     |
+| 10   | Zehn           | 10     |
+| K    | König          | 4      |
+| O    | Ober           | 3      |
+| U    | Buabe          | 2      |
+| 9    | Neun           | 0      |
 
 **Suits**: Kreuz (♣), Schippe (♠), Herz (♥), Bollen (♦)
 
 ### Game Phases
 
-1. **Dealing** - Cards are dealt to players and the *Dabb* (extra cards)
+1. **Dealing** - Cards are dealt to players and the _Dabb_ (extra cards)
 2. **Bidding** - Players bid for the right to name trump (starts at 150)
 3. **Dabb** - Bid winner takes the Dabb and discards cards
 4. **Trump** - Bid winner declares the trump suit
@@ -63,17 +63,17 @@ Binokel is played with a **48-card deck** (two copies of each card). The goal is
 
 ### Melds
 
-| Meld | Description | Points |
-|------|-------------|--------|
-| Paar | King + Ober of same suit | 20 (40 if trump) |
-| Familie | A-10-K-O-U of same suit | 100 (150 if trump) |
-| Binokel | Ober Schippe + Buabe Bollen | 40 |
-| Doppel-Binokel | Both Ober Schippe + both Buabe Bollen | 300 |
-| Vier Ass | All four Asses | 100 |
-| Vier Zehn | All four 10s | 100 |
-| Vier König | All four Kings | 80 |
-| Vier Ober | All four Obers | 60 |
-| Vier Buabe | All four Buaben | 40 |
+| Meld           | Description                           | Points             |
+| -------------- | ------------------------------------- | ------------------ |
+| Paar           | King + Ober of same suit              | 20 (40 if trump)   |
+| Familie        | A-10-K-O-U of same suit               | 100 (150 if trump) |
+| Binokel        | Ober Schippe + Buabe Bollen           | 40                 |
+| Doppel-Binokel | Both Ober Schippe + both Buabe Bollen | 300                |
+| Vier Ass       | All four Asses                        | 100                |
+| Vier Zehn      | All four 10s                          | 100                |
+| Vier König     | All four Kings                        | 80                 |
+| Vier Ober      | All four Obers                        | 60                 |
+| Vier Buabe     | All four Buaben                       | 40                 |
 
 ### Trick Rules
 
@@ -114,14 +114,14 @@ Visit [your-deployment-url] to play instantly in your browser!
 
 ### Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Monorepo | pnpm + Turborepo |
-| Backend | Node.js + Express + Socket.IO |
-| Database | PostgreSQL |
-| Web | React + Vite |
-| Mobile | React Native + Expo |
-| Types | TypeScript |
+| Component | Technology                    |
+| --------- | ----------------------------- |
+| Monorepo  | pnpm + Turborepo              |
+| Backend   | Node.js + Express + Socket.IO |
+| Database  | PostgreSQL                    |
+| Web       | React + Vite                  |
+| Mobile    | React Native + Expo           |
+| Types     | TypeScript                    |
 
 ### Project Structure
 
@@ -142,9 +142,11 @@ dabb/
 ### Prerequisites
 
 **For Docker/Podman development (recommended):**
+
 - Docker or Podman with compose support
 
 **For native development:**
+
 - Node.js 20+
 - pnpm 9+
 - PostgreSQL 16+
@@ -192,24 +194,25 @@ pnpm docker:start
 ```
 
 **Access points:**
+
 - Web app: http://localhost:8080
 - Server API: http://localhost:3000
 - PostgreSQL: `postgresql://dabb:dabb_dev_password@localhost:5432/dabb`
 
 **Available commands:**
 
-| Command | Description |
-|---------|-------------|
-| `./dev.sh start` | Start all services |
-| `./dev.sh stop` | Stop all services |
-| `./dev.sh restart` | Restart all services |
-| `./dev.sh logs` | Follow logs (add service name to filter) |
-| `./dev.sh status` | Show container status |
-| `./dev.sh health` | Health check all services |
+| Command                    | Description                                     |
+| -------------------------- | ----------------------------------------------- |
+| `./dev.sh start`           | Start all services                              |
+| `./dev.sh stop`            | Stop all services                               |
+| `./dev.sh restart`         | Restart all services                            |
+| `./dev.sh logs`            | Follow logs (add service name to filter)        |
+| `./dev.sh status`          | Show container status                           |
+| `./dev.sh health`          | Health check all services                       |
 | `./dev.sh shell <service>` | Open shell in container (postgres, server, web) |
-| `./dev.sh db` | Connect to PostgreSQL CLI |
-| `./dev.sh reset` | Remove all data and start fresh |
-| `./dev.sh build` | Rebuild images |
+| `./dev.sh db`              | Connect to PostgreSQL CLI                       |
+| `./dev.sh reset`           | Remove all data and start fresh                 |
+| `./dev.sh build`           | Rebuild images                                  |
 
 **Requirements:** Docker or Podman with compose support.
 
@@ -218,17 +221,20 @@ pnpm docker:start
 Create `.env` files in the respective apps:
 
 **apps/server/.env**
+
 ```env
 DATABASE_URL=postgresql://localhost:5432/dabb
 PORT=3000
 ```
 
 **apps/web/.env**
+
 ```env
 VITE_SERVER_URL=http://localhost:3000
 ```
 
 **apps/mobile/.env**
+
 ```env
 EXPO_PUBLIC_SERVER_URL=http://localhost:3000
 ```

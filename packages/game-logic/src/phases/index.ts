@@ -6,9 +6,4 @@ export {
   isBiddingComplete,
   isValidBid,
 } from './bidding';
-export {
-  calculateTrickPoints,
-  determineTrickWinner,
-  getValidPlays,
-  isValidPlay,
-} from './tricks';
+export { calculateTrickPoints, determineTrickWinner, getValidPlays, isValidPlay } from './tricks';

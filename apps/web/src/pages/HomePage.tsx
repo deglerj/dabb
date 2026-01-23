@@ -40,11 +40,14 @@ function HomePage() {
       const data = await res.json();
 
       // Store credentials
-      localStorage.setItem(`dabb-${data.sessionCode}`, JSON.stringify({
-        secretId: data.secretId,
-        playerId: data.playerId,
-        playerIndex: data.playerIndex,
-      }));
+      localStorage.setItem(
+        `dabb-${data.sessionCode}`,
+        JSON.stringify({
+          secretId: data.secretId,
+          playerId: data.playerId,
+          playerIndex: data.playerIndex,
+        })
+      );
 
       navigate(`/game/${data.sessionCode}`);
     } catch (err) {
@@ -85,11 +88,14 @@ function HomePage() {
       const data = await res.json();
 
       // Store credentials
-      localStorage.setItem(`dabb-${joinCode.trim()}`, JSON.stringify({
-        secretId: data.secretId,
-        playerId: data.playerId,
-        playerIndex: data.playerIndex,
-      }));
+      localStorage.setItem(
+        `dabb-${joinCode.trim()}`,
+        JSON.stringify({
+          secretId: data.secretId,
+          playerId: data.playerId,
+          playerIndex: data.playerIndex,
+        })
+      );
 
       navigate(`/game/${joinCode.trim()}`);
     } catch (err) {
@@ -103,13 +109,9 @@ function HomePage() {
     return (
       <div className="card" style={{ maxWidth: 400, margin: '4rem auto', textAlign: 'center' }}>
         <h1 style={{ marginBottom: '2rem' }}>Dabb</h1>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-          Binokel Online
-        </p>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Binokel Online</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <button onClick={() => setMode('create')}>
-            Neues Spiel erstellen
-          </button>
+          <button onClick={() => setMode('create')}>Neues Spiel erstellen</button>
           <button className="secondary" onClick={() => setMode('join')}>
             Spiel beitreten
           </button>
@@ -127,7 +129,7 @@ function HomePage() {
         <input
           type="text"
           value={nickname}
-          onChange={e => setNickname(e.target.value)}
+          onChange={(e) => setNickname(e.target.value)}
           placeholder="z.B. Hans"
           maxLength={20}
         />
@@ -137,7 +139,7 @@ function HomePage() {
         <div className="form-group">
           <label>Spieleranzahl</label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {([2, 3, 4] as PlayerCount[]).map(count => (
+            {([2, 3, 4] as PlayerCount[]).map((count) => (
               <button
                 key={count}
                 className={playerCount === count ? '' : 'secondary'}
@@ -157,7 +159,7 @@ function HomePage() {
           <input
             type="text"
             value={joinCode}
-            onChange={e => setJoinCode(e.target.value)}
+            onChange={(e) => setJoinCode(e.target.value)}
             placeholder="z.B. schnell-fuchs-42"
           />
         </div>

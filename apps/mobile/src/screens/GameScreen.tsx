@@ -6,13 +6,7 @@ import React, { useMemo, useCallback, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import type { GameState, PlayerIndex, Card as CardType, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
-import {
-  PlayerHand,
-  BiddingPanel,
-  TrumpSelector,
-  TrickArea,
-  ScoreBoard,
-} from '../components/game';
+import { PlayerHand, BiddingPanel, TrumpSelector, TrickArea, ScoreBoard } from '../components/game';
 
 interface GameScreenProps {
   state: GameState;
@@ -55,19 +49,22 @@ function GameScreen({
       return undefined;
     }
     const validCards = getValidPlays(myHand, state.currentTrick, state.trump);
-    return validCards.map(c => c.id);
+    return validCards.map((c) => c.id);
   }, [state.phase, isMyTurn, state.trump, myHand, state.currentTrick]);
 
-  const handleCardSelect = useCallback((cardId: string) => {
-    if (state.phase === 'tricks' && isMyTurn) {
-      if (selectedCardId === cardId) {
-        onPlayCard(cardId);
-        setSelectedCardId(null);
-      } else {
-        setSelectedCardId(cardId);
+  const handleCardSelect = useCallback(
+    (cardId: string) => {
+      if (state.phase === 'tricks' && isMyTurn) {
+        if (selectedCardId === cardId) {
+          onPlayCard(cardId);
+          setSelectedCardId(null);
+        } else {
+          setSelectedCardId(cardId);
+        }
       }
-    }
-  }, [state.phase, isMyTurn, selectedCardId, onPlayCard]);
+    },
+    [state.phase, isMyTurn, selectedCardId, onPlayCard]
+  );
 
   const renderPhaseContent = () => {
     switch (state.phase) {
@@ -132,8 +129,9 @@ function GameScreen({
         );
 
       case 'finished': {
-        const winner = Array.from(state.scores.entries())
-          .find(([, score]) => score >= state.targetScore);
+        const winner = Array.from(state.scores.entries()).find(
+          ([, score]) => score >= state.targetScore
+        );
         return (
           <View style={styles.phaseContainer}>
             <Text style={styles.winnerText}>
@@ -166,9 +164,7 @@ function GameScreen({
         )}
       </View>
 
-      <View style={styles.gameArea}>
-        {renderPhaseContent()}
-      </View>
+      <View style={styles.gameArea}>{renderPhaseContent()}</View>
 
       <View style={styles.handContainer}>
         <PlayerHand

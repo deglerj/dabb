@@ -18,10 +18,7 @@ import {
   declareMelds,
   playCard,
 } from '../services/gameService.js';
-import {
-  getPlayerBySecretId,
-  updatePlayerConnection,
-} from '../services/sessionService.js';
+import { getPlayerBySecretId, updatePlayerConnection } from '../services/sessionService.js';
 import { getEvents } from '../services/eventService.js';
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -200,7 +197,9 @@ export function setupSocketHandlers(io: GameServer) {
 
 async function broadcastEvents(_io: GameServer, sessionId: string, events: GameEvent[]) {
   const sockets = sessionSockets.get(sessionId);
-  if (!sockets) {return;}
+  if (!sockets) {
+    return;
+  }
 
   for (const socket of sockets) {
     const filteredEvents = filterEventsForPlayer(events, socket.data.playerIndex);

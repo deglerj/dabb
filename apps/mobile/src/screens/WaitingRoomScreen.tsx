@@ -31,7 +31,7 @@ function WaitingRoomScreen({
   onStartGame,
   onLeave,
 }: WaitingRoomScreenProps) {
-  const connectedPlayers = Array.from(players.values()).filter(p => p.connected).length;
+  const connectedPlayers = Array.from(players.values()).filter((p) => p.connected).length;
   const canStart = connectedPlayers === playerCount;
 
   const handleShare = async () => {
@@ -72,9 +72,7 @@ function WaitingRoomScreen({
                     player?.connected ? styles.statusOnline : styles.statusOffline,
                   ]}
                 />
-                <Text style={styles.playerName}>
-                  {player?.nickname || 'Warten auf Spieler...'}
-                </Text>
+                <Text style={styles.playerName}>{player?.nickname || 'Warten auf Spieler...'}</Text>
                 {index === 0 && <Text style={styles.hostBadge}>Host</Text>}
               </View>
             );
@@ -94,11 +92,7 @@ function WaitingRoomScreen({
       <View style={styles.actions}>
         {isHost && (
           <TouchableOpacity
-            style={[
-              styles.button,
-              styles.startButton,
-              !canStart && styles.disabledButton,
-            ]}
+            style={[styles.button, styles.startButton, !canStart && styles.disabledButton]}
             onPress={onStartGame}
             disabled={!canStart}
           >
@@ -106,10 +100,7 @@ function WaitingRoomScreen({
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity
-          style={[styles.button, styles.leaveButton]}
-          onPress={onLeave}
-        >
+        <TouchableOpacity style={[styles.button, styles.leaveButton]} onPress={onLeave}>
           <Text style={styles.leaveButtonText}>Verlassen</Text>
         </TouchableOpacity>
       </View>

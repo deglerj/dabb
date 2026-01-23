@@ -20,7 +20,9 @@ function WaitingRoomPage() {
   const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
-    if (!code) {return;}
+    if (!code) {
+      return;
+    }
 
     // Get stored credentials
     const stored = localStorage.getItem(`dabb-${code}`);
@@ -34,9 +36,9 @@ function WaitingRoomPage() {
 
     // Fetch session info
     fetch(`${API_URL}/sessions/${code}`)
-      .then(res => res.json())
-      .then(data => setSession(data))
-      .catch(err => setError(err.message));
+      .then((res) => res.json())
+      .then((data) => setSession(data))
+      .catch((err) => setError(err.message));
 
     // Connect socket
     const newSocket: GameSocket = io(API_URL, {
@@ -50,19 +52,19 @@ function WaitingRoomPage() {
     newSocket.on('player:joined', () => {
       // Refresh session info
       fetch(`${API_URL}/sessions/${code}`)
-        .then(res => res.json())
-        .then(data => setSession(data));
+        .then((res) => res.json())
+        .then((data) => setSession(data));
     });
 
     newSocket.on('player:left', () => {
       fetch(`${API_URL}/sessions/${code}`)
-        .then(res => res.json())
-        .then(data => setSession(data));
+        .then((res) => res.json())
+        .then((data) => setSession(data));
     });
 
     newSocket.on('game:events', ({ events }) => {
       // Check if game started
-      const gameStarted = events.some(e => e.type === 'GAME_STARTED');
+      const gameStarted = events.some((e) => e.type === 'GAME_STARTED');
       if (gameStarted) {
         navigate(`/game/${code}/play`);
       }
@@ -105,15 +107,17 @@ function WaitingRoomPage() {
     <div className="card" style={{ maxWidth: 500, margin: '4rem auto' }}>
       <h2>Warteraum</h2>
 
-      <div style={{
-        background: 'var(--bg-input)',
-        padding: '1rem',
-        borderRadius: '8px',
-        marginBottom: '1.5rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
+      <div
+        style={{
+          background: 'var(--bg-input)',
+          padding: '1rem',
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Spielcode</p>
           <p style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{code}</p>
@@ -124,10 +128,14 @@ function WaitingRoomPage() {
       </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
-        <h3>Spieler ({session.players.length}/{session.playerCount})</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+        <h3>
+          Spieler ({session.players.length}/{session.playerCount})
+        </h3>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}
+        >
           {Array.from({ length: session.playerCount }).map((_, i) => {
-            const player = session.players.find(p => p.playerIndex === i);
+            const player = session.players.find((p) => p.playerIndex === i);
             return (
               <div
                 key={i}
@@ -145,9 +153,7 @@ function WaitingRoomPage() {
                   {i === 0 && ' (Gastgeber)'}
                 </span>
                 {player?.connected && (
-                  <span style={{ color: 'var(--success)', fontSize: '0.75rem' }}>
-                    Verbunden
-                  </span>
+                  <span style={{ color: 'var(--success)', fontSize: '0.75rem' }}>Verbunden</span>
                 )}
               </div>
             );
@@ -158,12 +164,10 @@ function WaitingRoomPage() {
       {error && <p className="error">{error}</p>}
 
       {isHost && (
-        <button
-          onClick={handleStartGame}
-          disabled={!canStart}
-          style={{ width: '100%' }}
-        >
-          {canStart ? 'Spiel starten' : `Warte auf ${session.playerCount - session.players.length} Spieler...`}
+        <button onClick={handleStartGame} disabled={!canStart} style={{ width: '100%' }}>
+          {canStart
+            ? 'Spiel starten'
+            : `Warte auf ${session.playerCount - session.players.length} Spieler...`}
         </button>
       )}
 

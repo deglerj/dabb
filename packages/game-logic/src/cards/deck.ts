@@ -110,7 +110,9 @@ export function sortHand(cards: Card[]): Card[] {
 
   return [...cards].sort((a, b) => {
     const suitDiff = suitOrder[a.suit] - suitOrder[b.suit];
-    if (suitDiff !== 0) {return suitDiff;}
+    if (suitDiff !== 0) {
+      return suitDiff;
+    }
     return rankOrder[a.rank] - rankOrder[b.rank];
   });
 }

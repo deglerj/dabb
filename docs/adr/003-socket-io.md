@@ -7,6 +7,7 @@ Accepted
 ## Context
 
 The game requires real-time bidirectional communication between server and clients for:
+
 - Game event broadcasting
 - Player join/leave notifications
 - Reconnection handling
@@ -18,12 +19,9 @@ We will use **Socket.IO** for real-time communication.
 ### Server
 
 ```typescript
-const io = new Server<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  SocketData
->(httpServer);
+const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(
+  httpServer
+);
 ```
 
 ### Client
@@ -38,6 +36,7 @@ const socket = io(serverUrl, {
 ## Consequences
 
 ### Positive
+
 - **Mature Library**: Well-tested, large community
 - **Reconnection**: Built-in reconnection with backoff
 - **Rooms**: Easy broadcasting to game sessions
@@ -45,6 +44,7 @@ const socket = io(serverUrl, {
 - **Fallbacks**: Falls back to polling if WebSocket fails
 
 ### Negative
+
 - **Bundle Size**: Larger than raw WebSocket
 - **Protocol**: Not standard WebSocket protocol
 - **Vendor Lock-in**: Socket.IO-specific features

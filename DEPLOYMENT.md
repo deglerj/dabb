@@ -70,26 +70,29 @@ docker compose up -d
   - Options: Cloudflare Registrar, Namecheap, Porkbun, etc.
 
 - [ ] **Configure DNS records**
-  | Type | Name | Value |
-  |------|------|-------|
-  | A | @ | `<instance-public-ip>` |
-  | A | api | `<instance-public-ip>` |
-  | A | coolify | `<instance-public-ip>` |
+      | Type | Name | Value |
+      |------|------|-------|
+      | A | @ | `<instance-public-ip>` |
+      | A | api | `<instance-public-ip>` |
+      | A | coolify | `<instance-public-ip>` |
 
 ### Phase 4: Server Setup
 
 - [ ] **SSH into your instance**
+
   ```bash
   ssh ubuntu@<instance-public-ip>
   ```
 
 - [ ] **Run the setup script**
+
   ```bash
   # From your local machine, run:
   ssh ubuntu@<instance-public-ip> 'bash -s' < deploy/oracle-cloud-setup.sh
   ```
 
   Or manually:
+
   ```bash
   # Update system
   sudo apt update && sudo apt upgrade -y
@@ -145,6 +148,7 @@ docker compose up -d
 
 - [ ] **Configure environment variables**
   - Settings → Environment Variables
+
   ```
   DATABASE_URL=postgresql://dabb:<password>@<postgres-container>:5432/dabb
   CLIENT_URL=https://your-domain.com
@@ -167,12 +171,14 @@ docker compose up -d
 If not using Coolify:
 
 - [ ] **Copy files to server**
+
   ```bash
   scp docker-compose.prod.yml ubuntu@<ip>:/opt/dabb/
   scp deploy/.env.example ubuntu@<ip>:/opt/dabb/.env
   ```
 
 - [ ] **Configure environment**
+
   ```bash
   ssh ubuntu@<ip>
   cd /opt/dabb
@@ -180,6 +186,7 @@ If not using Coolify:
   ```
 
 - [ ] **Deploy**
+
   ```bash
   docker compose -f docker-compose.prod.yml up -d
   ```
@@ -201,6 +208,7 @@ If not using Coolify:
     - `https://api.your-domain.com/health` (server)
 
 - [ ] **Set up database backups**
+
   ```bash
   # Add to crontab for daily backups
   0 3 * * * docker exec dabb-postgres pg_dump -U dabb dabb | gzip > /opt/dabb/backups/dabb-$(date +\%Y\%m\%d).sql.gz
@@ -214,26 +222,28 @@ If not using Coolify:
 
 ## Environment Variables Reference
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `CLIENT_URL` | Yes | Web app URL (for CORS) |
-| `VITE_SERVER_URL` | Yes | Server URL (built into web app) |
-| `POSTGRES_PASSWORD` | Yes | Database password |
-| `PORT` | No | Server port (default: 3000) |
-| `NODE_ENV` | No | Environment (default: production) |
+| Variable            | Required | Description                       |
+| ------------------- | -------- | --------------------------------- |
+| `DATABASE_URL`      | Yes      | PostgreSQL connection string      |
+| `CLIENT_URL`        | Yes      | Web app URL (for CORS)            |
+| `VITE_SERVER_URL`   | Yes      | Server URL (built into web app)   |
+| `POSTGRES_PASSWORD` | Yes      | Database password                 |
+| `PORT`              | No       | Server port (default: 3000)       |
+| `NODE_ENV`          | No       | Environment (default: production) |
 
 ---
 
 ## Troubleshooting
 
 ### "Out of Host Capacity" error on Oracle Cloud
+
 - ARM instances are in high demand
 - Try a different availability domain
 - Try creating instance at off-peak hours (early morning)
 - Consider upgrading to Pay-As-You-Go (you still won't be charged within free limits)
 
 ### Container won't start
+
 ```bash
 # Check logs
 docker compose logs -f server
@@ -244,11 +254,13 @@ docker compose ps
 ```
 
 ### WebSocket connection fails
+
 - Ensure port 3000 is open in Oracle Cloud security list
 - Ensure iptables allows the port
 - Check `CLIENT_URL` matches the actual web app origin
 
 ### Database connection refused
+
 - Verify PostgreSQL container is running: `docker compose ps`
 - Check `DATABASE_URL` format
 - Ensure internal Docker network connectivity
@@ -268,13 +280,13 @@ docker compose ps
 
 ## Cost Summary
 
-| Resource | Cost |
-|----------|------|
-| Oracle Cloud ARM Instance | Free (Always Free) |
-| Oracle Cloud Block Storage | Free (up to 200GB) |
-| Oracle Cloud Bandwidth | Free (up to 10TB/month) |
-| Domain (optional) | ~$10-15/year |
-| **Total** | **$0 - $15/year** |
+| Resource                   | Cost                    |
+| -------------------------- | ----------------------- |
+| Oracle Cloud ARM Instance  | Free (Always Free)      |
+| Oracle Cloud Block Storage | Free (up to 200GB)      |
+| Oracle Cloud Bandwidth     | Free (up to 10TB/month) |
+| Domain (optional)          | ~$10-15/year            |
+| **Total**                  | **$0 - $15/year**       |
 
 ---
 

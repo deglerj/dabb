@@ -43,21 +43,13 @@ function Card({ card, selected = false, valid = true, onPress }: CardProps) {
 
   return (
     <TouchableOpacity
-      style={[
-        styles.card,
-        selected && styles.selectedCard,
-        !valid && styles.invalidCard,
-      ]}
+      style={[styles.card, selected && styles.selectedCard, !valid && styles.invalidCard]}
       onPress={valid ? onPress : undefined}
       disabled={!valid || !onPress}
       activeOpacity={valid && onPress ? 0.7 : 1}
     >
-      <Text style={[styles.suitSymbol, isRed && styles.redText]}>
-        {SUIT_SYMBOLS[card.suit]}
-      </Text>
-      <Text style={[styles.rankText, isRed && styles.redText]}>
-        {RANK_DISPLAY[card.rank]}
-      </Text>
+      <Text style={[styles.suitSymbol, isRed && styles.redText]}>{SUIT_SYMBOLS[card.suit]}</Text>
+      <Text style={[styles.rankText, isRed && styles.redText]}>{RANK_DISPLAY[card.rank]}</Text>
     </TouchableOpacity>
   );
 }

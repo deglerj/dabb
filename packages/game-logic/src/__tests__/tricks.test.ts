@@ -16,7 +16,7 @@ function card(suit: Suit, rank: Card['rank'], copy: 0 | 1 = 0): Card {
 // Helper to create a trick
 function createTrick(cards: { card: Card; playerIndex: 0 | 1 | 2 | 3 }[]): Trick {
   return {
-    cards: cards.map(c => ({ cardId: c.card.id, playerIndex: c.playerIndex })),
+    cards: cards.map((c) => ({ cardId: c.card.id, playerIndex: c.playerIndex })),
     leadSuit: cards[0]?.card.suit || null,
     winnerIndex: null,
   };
@@ -81,11 +81,7 @@ describe('Trick Logic', () => {
 
   describe('getValidPlays', () => {
     it('any card is valid on empty trick', () => {
-      const hand = [
-        card('herz', 'ass'),
-        card('kreuz', 'koenig'),
-        card('schippe', '9'),
-      ];
+      const hand = [card('herz', 'ass'), card('kreuz', 'koenig'), card('schippe', '9')];
       const emptyTrick: Trick = { cards: [], leadSuit: null, winnerIndex: null };
 
       const validPlays = getValidPlays(hand, emptyTrick, 'kreuz');
@@ -93,11 +89,7 @@ describe('Trick Logic', () => {
     });
 
     it('must follow suit if possible', () => {
-      const hand = [
-        card('herz', 'ass'),
-        card('herz', 'koenig'),
-        card('kreuz', '9'),
-      ];
+      const hand = [card('herz', 'ass'), card('herz', 'koenig'), card('kreuz', '9')];
       const trick = createTrick([
         { card: card('herz', '9'), playerIndex: 0 }, // Low card that both can beat
       ]);
@@ -105,17 +97,12 @@ describe('Trick Logic', () => {
       const validPlays = getValidPlays(hand, trick, 'kreuz');
 
       expect(validPlays).toHaveLength(2);
-      expect(validPlays.every(c => c.suit === 'herz')).toBe(true);
+      expect(validPlays.every((c) => c.suit === 'herz')).toBe(true);
     });
 
     it('must beat if following suit and can beat', () => {
-      const hand = [
-        card('herz', 'ass'),
-        card('herz', '9'),
-      ];
-      const trick = createTrick([
-        { card: card('herz', 'koenig'), playerIndex: 0 },
-      ]);
+      const hand = [card('herz', 'ass'), card('herz', '9')];
+      const trick = createTrick([{ card: card('herz', 'koenig'), playerIndex: 0 }]);
 
       const validPlays = getValidPlays(hand, trick, 'kreuz');
 
@@ -125,13 +112,8 @@ describe('Trick Logic', () => {
     });
 
     it('can play any of suit if cannot beat', () => {
-      const hand = [
-        card('herz', '9'),
-        card('herz', 'buabe'),
-      ];
-      const trick = createTrick([
-        { card: card('herz', 'ass'), playerIndex: 0 },
-      ]);
+      const hand = [card('herz', '9'), card('herz', 'buabe')];
+      const trick = createTrick([{ card: card('herz', 'ass'), playerIndex: 0 }]);
 
       const validPlays = getValidPlays(hand, trick, 'kreuz');
 
@@ -145,24 +127,17 @@ describe('Trick Logic', () => {
         card('kreuz', '9'), // Trump
         card('kreuz', 'buabe'), // Trump
       ];
-      const trick = createTrick([
-        { card: card('herz', 'koenig'), playerIndex: 0 },
-      ]);
+      const trick = createTrick([{ card: card('herz', 'koenig'), playerIndex: 0 }]);
 
       const validPlays = getValidPlays(hand, trick, 'kreuz');
 
       expect(validPlays).toHaveLength(2);
-      expect(validPlays.every(c => c.suit === 'kreuz')).toBe(true);
+      expect(validPlays.every((c) => c.suit === 'kreuz')).toBe(true);
     });
 
     it('any card valid if cannot follow or trump', () => {
-      const hand = [
-        card('schippe', 'ass'),
-        card('bollen', 'koenig'),
-      ];
-      const trick = createTrick([
-        { card: card('herz', 'koenig'), playerIndex: 0 },
-      ]);
+      const hand = [card('schippe', 'ass'), card('bollen', 'koenig')];
+      const trick = createTrick([{ card: card('herz', 'koenig'), playerIndex: 0 }]);
 
       const validPlays = getValidPlays(hand, trick, 'kreuz');
 
@@ -172,10 +147,7 @@ describe('Trick Logic', () => {
 
   describe('isValidPlay', () => {
     it('returns true for valid plays', () => {
-      const hand = [
-        card('herz', 'ass'),
-        card('kreuz', '9'),
-      ];
+      const hand = [card('herz', 'ass'), card('kreuz', '9')];
       const emptyTrick: Trick = { cards: [], leadSuit: null, winnerIndex: null };
 
       expect(isValidPlay(hand[0], hand, emptyTrick, 'kreuz')).toBe(true);
@@ -183,13 +155,8 @@ describe('Trick Logic', () => {
 
     it('returns false for invalid plays', () => {
       const herzAss = card('herz', 'ass');
-      const hand = [
-        herzAss,
-        card('schippe', 'koenig'),
-      ];
-      const trick = createTrick([
-        { card: card('schippe', '10'), playerIndex: 0 },
-      ]);
+      const hand = [herzAss, card('schippe', 'koenig')];
+      const trick = createTrick([{ card: card('schippe', '10'), playerIndex: 0 }]);
 
       // Must follow Schippe, so Herz Ass is invalid
       expect(isValidPlay(herzAss, hand, trick, 'kreuz')).toBe(false);

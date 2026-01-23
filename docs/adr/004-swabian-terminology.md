@@ -14,32 +14,34 @@ We will use **Swabian German terminology** for authenticity:
 
 ### Suits
 
-| English | Standard German | Swabian (Our Choice) |
-|---------|-----------------|----------------------|
-| Clubs | Kreuz/Eichel | **Kreuz** |
-| Spades | Pik/Blatt | **Schippe** |
-| Hearts | Herz | **Herz** |
-| Diamonds | Karo/Schell | **Bollen** |
+| English  | Standard German | Swabian (Our Choice) |
+| -------- | --------------- | -------------------- |
+| Clubs    | Kreuz/Eichel    | **Kreuz**            |
+| Spades   | Pik/Blatt       | **Schippe**          |
+| Hearts   | Herz            | **Herz**             |
+| Diamonds | Karo/Schell     | **Bollen**           |
 
 ### Ranks
 
-| English | Standard German | Swabian (Our Choice) |
-|---------|-----------------|----------------------|
-| Ace | Ass | **Ass** |
-| Ten | Zehn | **Zehn** |
-| King | König | **König** |
-| Over/Queen | Ober/Dame | **Ober** |
-| Under/Jack | Unter/Bube | **Buabe** |
-| Nine | Neun | **Neun** |
+| English    | Standard German | Swabian (Our Choice) |
+| ---------- | --------------- | -------------------- |
+| Ace        | Ass             | **Ass**              |
+| Ten        | Zehn            | **Zehn**             |
+| King       | König           | **König**            |
+| Over/Queen | Ober/Dame       | **Ober**             |
+| Under/Jack | Unter/Bube      | **Buabe**            |
+| Nine       | Neun            | **Neun**             |
 
 ## Consequences
 
 ### Positive
+
 - **Authenticity**: True to Swabian tradition
 - **Regional Appeal**: Familiar to Swabian players
 - **Distinction**: Sets apart from standard implementations
 
 ### Negative
+
 - **Accessibility**: May confuse non-Swabian players
 - **Translation**: Harder to internationalize
 - **Documentation**: Need to explain terms

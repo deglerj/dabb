@@ -10,12 +10,7 @@ interface BiddingPanelProps {
 function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps) {
   const minBid = getMinBid(currentBid);
 
-  const bidOptions = [
-    minBid,
-    minBid + 10,
-    minBid + 20,
-    minBid + 50,
-  ];
+  const bidOptions = [minBid, minBid + 10, minBid + 20, minBid + 50];
 
   return (
     <div className="bidding-panel">
@@ -25,12 +20,8 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
 
       {isMyTurn && (
         <>
-          {bidOptions.map(amount => (
-            <button
-              key={amount}
-              onClick={() => onBid(amount)}
-              style={{ minWidth: '60px' }}
-            >
+          {bidOptions.map((amount) => (
+            <button key={amount} onClick={() => onBid(amount)} style={{ minWidth: '60px' }}>
               {amount}
             </button>
           ))}
@@ -41,9 +32,7 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
       )}
 
       {!isMyTurn && (
-        <span style={{ color: 'var(--text-secondary)' }}>
-          Warte auf andere Spieler...
-        </span>
+        <span style={{ color: 'var(--text-secondary)' }}>Warte auf andere Spieler...</span>
       )}
     </div>
   );

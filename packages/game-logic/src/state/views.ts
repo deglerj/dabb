@@ -4,30 +4,20 @@
  * Filters game events to only show information a specific player should see.
  */
 
-import {
-  Card,
-  GameEvent,
-  PlayerIndex,
-} from '@dabb/shared-types';
+import { Card, GameEvent, PlayerIndex } from '@dabb/shared-types';
 
 /**
  * Filter events for a specific player's view
  * This ensures players can't see other players' cards
  */
-export function filterEventsForPlayer(
-  events: GameEvent[],
-  playerIndex: PlayerIndex
-): GameEvent[] {
-  return events.map(event => filterEventForPlayer(event, playerIndex));
+export function filterEventsForPlayer(events: GameEvent[], playerIndex: PlayerIndex): GameEvent[] {
+  return events.map((event) => filterEventForPlayer(event, playerIndex));
 }
 
 /**
  * Filter a single event for a player
  */
-export function filterEventForPlayer(
-  event: GameEvent,
-  playerIndex: PlayerIndex
-): GameEvent {
+export function filterEventForPlayer(event: GameEvent, playerIndex: PlayerIndex): GameEvent {
   switch (event.type) {
     case 'CARDS_DEALT':
       return filterCardsDealt(event, playerIndex);
@@ -118,12 +108,14 @@ function filterCardsDiscarded(
  * Create placeholder hidden cards
  */
 function createHiddenCards(count: number): Card[] {
-  return Array(count).fill(null).map((_, i) => ({
-    id: `hidden-${i}`,
-    suit: 'kreuz' as const,
-    rank: '9' as const,
-    copy: 0 as const,
-  }));
+  return Array(count)
+    .fill(null)
+    .map((_, i) => ({
+      id: `hidden-${i}`,
+      suit: 'kreuz' as const,
+      rank: '9' as const,
+      copy: 0 as const,
+    }));
 }
 
 /**

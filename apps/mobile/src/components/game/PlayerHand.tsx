@@ -14,14 +14,11 @@ interface PlayerHandProps {
   onCardSelect?: (cardId: string) => void;
 }
 
-function PlayerHand({
-  cards,
-  selectedCardId,
-  validCardIds,
-  onCardSelect,
-}: PlayerHandProps) {
+function PlayerHand({ cards, selectedCardId, validCardIds, onCardSelect }: PlayerHandProps) {
   const isCardValid = (cardId: string) => {
-    if (!validCardIds) {return true;}
+    if (!validCardIds) {
+      return true;
+    }
     return validCardIds.includes(cardId);
   };
 
@@ -32,10 +29,7 @@ function PlayerHand({
       contentContainerStyle={styles.container}
     >
       {cards.map((card, index) => (
-        <View
-          key={card.id}
-          style={[styles.cardWrapper, index > 0 && styles.overlappingCard]}
-        >
+        <View key={card.id} style={[styles.cardWrapper, index > 0 && styles.overlappingCard]}>
           <Card
             card={card}
             selected={selectedCardId === card.id}

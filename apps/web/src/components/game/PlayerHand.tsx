@@ -44,7 +44,7 @@ function PlayerHand({
 
   return (
     <div className="player-hand">
-      {sortedCards.map(card => (
+      {sortedCards.map((card) => (
         <Card
           key={card.id}
           card={card}

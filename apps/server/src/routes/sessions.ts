@@ -39,11 +39,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const { session, player } = await createSession(
-      playerCount,
-      targetScore,
-      nickname.trim()
-    );
+    const { session, player } = await createSession(playerCount, targetScore, nickname.trim());
 
     const response: CreateSessionResponse = {
       sessionCode: session.code,
@@ -84,7 +80,7 @@ router.get('/:code', async (req, res) => {
       playerCount: session.playerCount,
       status: session.status,
       targetScore: session.targetScore,
-      players: players.map(p => ({
+      players: players.map((p) => ({
         nickname: p.nickname,
         playerIndex: p.playerIndex,
         team: p.team,

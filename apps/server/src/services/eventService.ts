@@ -11,7 +11,9 @@ export async function saveEvent(event: GameEvent): Promise<void> {
 }
 
 export async function saveEvents(events: GameEvent[]): Promise<void> {
-  if (events.length === 0) {return;}
+  if (events.length === 0) {
+    return;
+  }
 
   const client = await pool.connect();
 
@@ -47,7 +49,7 @@ export async function getEvents(
     [sessionId, afterSequence]
   );
 
-  return result.rows.map(row => ({
+  return result.rows.map((row) => ({
     id: row.id,
     sessionId: row.session_id,
     sequence: parseInt(row.sequence),

@@ -53,9 +53,7 @@ function Card({ card, selected = false, valid = true, onClick }: CardProps) {
     >
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <span style={{ fontSize: '1.5rem' }}>{SUIT_SYMBOLS[card.suit]}</span>
-        <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-          {RANK_DISPLAY[card.rank]}
-        </span>
+        <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{RANK_DISPLAY[card.rank]}</span>
       </div>
     </div>
   );

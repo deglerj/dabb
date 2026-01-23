@@ -21,7 +21,10 @@ export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
   const { playerCount, playerIndex } = options;
 
   const [state, dispatch] = useReducer(
-    (currentState: GameState, action: { type: 'APPLY_EVENTS'; events: GameEvent[] } | { type: 'RESET' }) => {
+    (
+      currentState: GameState,
+      action: { type: 'APPLY_EVENTS'; events: GameEvent[] } | { type: 'RESET' }
+    ) => {
       if (action.type === 'RESET') {
         return createInitialState(playerCount);
       }

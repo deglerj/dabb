@@ -15,13 +15,7 @@ interface TrickAreaProps {
   trump: Suit | null;
 }
 
-function TrickArea({
-  trick,
-  cards,
-  playerCount,
-  currentPlayerIndex,
-  trump,
-}: TrickAreaProps) {
+function TrickArea({ trick, cards, playerCount, currentPlayerIndex, trump }: TrickAreaProps) {
   const getPositionStyle = (playerIndex: number) => {
     const relativePosition = (playerIndex - currentPlayerIndex + playerCount) % playerCount;
 
@@ -54,7 +48,7 @@ function TrickArea({
     return {};
   };
 
-  const playedCards = trick.cards.map(pc => ({
+  const playedCards = trick.cards.map((pc) => ({
     card: cards.get(pc.cardId),
     playerIndex: pc.playerIndex,
   }));
@@ -70,18 +64,13 @@ function TrickArea({
       <View style={styles.trickArea}>
         {playedCards.map(({ card, playerIndex }) =>
           card ? (
-            <View
-              key={card.id}
-              style={[styles.cardPosition, getPositionStyle(playerIndex)]}
-            >
+            <View key={card.id} style={[styles.cardPosition, getPositionStyle(playerIndex)]}>
               <Card card={card} />
             </View>
           ) : null
         )}
 
-        {trick.cards.length === 0 && (
-          <Text style={styles.emptyText}>Spielbereich</Text>
-        )}
+        {trick.cards.length === 0 && <Text style={styles.emptyText}>Spielbereich</Text>}
       </View>
     </View>
   );

@@ -19,14 +19,14 @@ We need to deploy Dabb (server + web app + database) in a way that:
 
 ### Options Considered
 
-| Option | Free Tier | Vendor Lock-in | WebSocket Support | Complexity |
-|--------|-----------|----------------|-------------------|------------|
-| **Oracle Cloud + Coolify** | 4 vCPU, 24GB RAM | None | Yes | Low |
-| Railway | $5 credit only | Medium | Yes | Very Low |
-| Fly.io | 3GB RAM, 160 GB-hr | Low | Yes | Medium |
-| Google Cloud Run | Scale-to-zero | Medium | Limited | Medium |
-| Render | 750 hrs/month | Low | Yes | Low |
-| Vercel + External DB | Frontend only | Medium | N/A | Medium |
+| Option                     | Free Tier          | Vendor Lock-in | WebSocket Support | Complexity |
+| -------------------------- | ------------------ | -------------- | ----------------- | ---------- |
+| **Oracle Cloud + Coolify** | 4 vCPU, 24GB RAM   | None           | Yes               | Low        |
+| Railway                    | $5 credit only     | Medium         | Yes               | Very Low   |
+| Fly.io                     | 3GB RAM, 160 GB-hr | Low            | Yes               | Medium     |
+| Google Cloud Run           | Scale-to-zero      | Medium         | Limited           | Medium     |
+| Render                     | 750 hrs/month      | Low            | Yes               | Low        |
+| Vercel + External DB       | Frontend only      | Medium         | N/A               | Medium     |
 
 ## Decision
 

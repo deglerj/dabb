@@ -41,7 +41,9 @@ export function useGame(code: string): UseGameReturn {
 
   useEffect(() => {
     const stored = localStorage.getItem(`dabb-${code}`);
-    if (!stored) {return;}
+    if (!stored) {
+      return;
+    }
 
     const { secretId, playerIndex: storedIndex, sessionId } = JSON.parse(stored);
     setPlayerIndex(storedIndex);
@@ -66,7 +68,7 @@ export function useGame(code: string): UseGameReturn {
     });
 
     newSocket.on('game:events', ({ events: newEvents }) => {
-      setEvents(prev => {
+      setEvents((prev) => {
         const combined = [...prev, ...newEvents];
         const newState = applyEvents(combined);
         setState(newState);
@@ -92,14 +94,19 @@ export function useGame(code: string): UseGameReturn {
       return [];
     }
     const hand = state.hands.get(playerIndex) || [];
-    if (!state.trump) {return hand.map(c => c.id);}
+    if (!state.trump) {
+      return hand.map((c) => c.id);
+    }
     const validCards = getValidPlays(hand, state.currentTrick, state.trump);
-    return validCards.map(c => c.id);
+    return validCards.map((c) => c.id);
   })();
 
-  const bid = useCallback((amount: number) => {
-    socket?.emit('game:bid', { amount });
-  }, [socket]);
+  const bid = useCallback(
+    (amount: number) => {
+      socket?.emit('game:bid', { amount });
+    },
+    [socket]
+  );
 
   const pass = useCallback(() => {
     socket?.emit('game:pass');
@@ -109,21 +116,33 @@ export function useGame(code: string): UseGameReturn {
     socket?.emit('game:takeDabb');
   }, [socket]);
 
-  const discard = useCallback((cardIds: CardId[]) => {
-    socket?.emit('game:discard', { cardIds });
-  }, [socket]);
+  const discard = useCallback(
+    (cardIds: CardId[]) => {
+      socket?.emit('game:discard', { cardIds });
+    },
+    [socket]
+  );
 
-  const declareTrump = useCallback((suit: Suit) => {
-    socket?.emit('game:declareTrump', { suit });
-  }, [socket]);
+  const declareTrump = useCallback(
+    (suit: Suit) => {
+      socket?.emit('game:declareTrump', { suit });
+    },
+    [socket]
+  );
 
-  const declareMelds = useCallback((melds: Meld[]) => {
-    socket?.emit('game:declareMelds', { melds });
-  }, [socket]);
+  const declareMelds = useCallback(
+    (melds: Meld[]) => {
+      socket?.emit('game:declareMelds', { melds });
+    },
+    [socket]
+  );
 
-  const playCard = useCallback((cardId: CardId) => {
-    socket?.emit('game:playCard', { cardId });
-  }, [socket]);
+  const playCard = useCallback(
+    (cardId: CardId) => {
+      socket?.emit('game:playCard', { cardId });
+    },
+    [socket]
+  );
 
   return {
     state,

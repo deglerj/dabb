@@ -4,11 +4,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import type {
-  ClientToServerEvents,
-  ServerToClientEvents,
-  GameEvent,
-} from '@dabb/shared-types';
+import type { ClientToServerEvents, ServerToClientEvents, GameEvent } from '@dabb/shared-types';
 
 type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 

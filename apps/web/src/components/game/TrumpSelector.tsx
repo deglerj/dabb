@@ -17,7 +17,7 @@ function TrumpSelector({ onSelect }: TrumpSelectorProps) {
     <div className="card" style={{ textAlign: 'center' }}>
       <h3>Trumpf wählen</h3>
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
-        {SUITS.map(suit => (
+        {SUITS.map((suit) => (
           <button
             key={suit}
             onClick={() => onSelect(suit)}

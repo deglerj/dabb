@@ -13,15 +13,15 @@ This file provides context for AI assistants working on the Dabb codebase.
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Monorepo | pnpm workspaces + Turborepo |
-| Language | TypeScript (strict mode) |
-| Backend | Node.js + Express + Socket.IO |
-| Database | PostgreSQL |
-| Web | React 19 + Vite |
-| Mobile | React Native + Expo |
-| Testing | Vitest |
+| Component | Technology                    |
+| --------- | ----------------------------- |
+| Monorepo  | pnpm workspaces + Turborepo   |
+| Language  | TypeScript (strict mode)      |
+| Backend   | Node.js + Express + Socket.IO |
+| Database  | PostgreSQL                    |
+| Web       | React 19 + Vite               |
+| Mobile    | React Native + Expo           |
+| Testing   | Vitest                        |
 
 ## Project Structure
 
@@ -46,16 +46,21 @@ dabb/
 ## Key Patterns
 
 ### Event Sourcing
+
 All game state is managed through events:
+
 - Events are stored in PostgreSQL
 - State is computed by replaying events through a reducer
 - Enables reconnection, debugging, and anti-cheat
 
 ### Anti-Cheat
+
 Events are filtered before sending to clients so players only see their own cards.
 
 ### Swabian Terminology
+
 Uses Swabian German card names:
+
 - Suits: Kreuz (♣), Schippe (♠), Herz (♥), Bollen (♦)
 - Ranks: Ass, Zehn, König, Ober, Buabe, Neun
 
@@ -82,19 +87,20 @@ pnpm typecheck
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `packages/shared-types/src/cards.ts` | Card types and constants |
-| `packages/shared-types/src/game.ts` | Game state and meld types |
-| `packages/shared-types/src/events.ts` | Event type definitions |
-| `packages/game-logic/src/state/reducer.ts` | Event sourcing reducer |
-| `packages/game-logic/src/melds/detector.ts` | Meld detection |
-| `packages/game-logic/src/phases/tricks.ts` | Trick-taking rules |
-| `apps/server/src/socket/handlers.ts` | Socket.IO event handlers |
+| File                                        | Purpose                   |
+| ------------------------------------------- | ------------------------- |
+| `packages/shared-types/src/cards.ts`        | Card types and constants  |
+| `packages/shared-types/src/game.ts`         | Game state and meld types |
+| `packages/shared-types/src/events.ts`       | Event type definitions    |
+| `packages/game-logic/src/state/reducer.ts`  | Event sourcing reducer    |
+| `packages/game-logic/src/melds/detector.ts` | Meld detection            |
+| `packages/game-logic/src/phases/tricks.ts`  | Trick-taking rules        |
+| `apps/server/src/socket/handlers.ts`        | Socket.IO event handlers  |
 
 ## Testing
 
 Tests are in `__tests__` directories alongside source files:
+
 - `packages/game-logic/src/__tests__/` - Game logic tests
 - Run with `pnpm test` or `pnpm --filter @dabb/game-logic test`
 
@@ -109,6 +115,7 @@ Tests are in `__tests__` directories alongside source files:
 ## Game Rules Reference
 
 See `README.md` for full game rules. Key points:
+
 - 48-card deck (2 copies each)
 - Bidding starts at 150
 - Melds score points (Paar: 20, Familie: 100, Binokel: 40)

@@ -37,7 +37,7 @@ function GamePage() {
 
   const resolveCard = (cardId: string, playerIdx: PlayerIndex) => {
     const hand = state.hands.get(playerIdx) || [];
-    return hand.find(c => c.id === cardId);
+    return hand.find((c) => c.id === cardId);
   };
 
   if (!connected) {
@@ -54,7 +54,15 @@ function GamePage() {
       <ScoreBoard state={state} currentPlayerIndex={state.currentPlayer} />
 
       {/* Middle: Game area */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flex: 1,
+        }}
+      >
         {/* Phase indicator */}
         <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
           <PhaseIndicator phase={state.phase} trump={state.trump} />
@@ -62,7 +70,9 @@ function GamePage() {
 
         {/* Error message */}
         {error && (
-          <p className="error" style={{ marginBottom: '1rem' }}>{error}</p>
+          <p className="error" style={{ marginBottom: '1rem' }}>
+            {error}
+          </p>
         )}
 
         {/* Bidding phase */}
@@ -91,10 +101,7 @@ function GamePage() {
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                   Wähle {dabbSize} Karten zum Abwerfen
                 </p>
-                <button
-                  onClick={handleDiscard}
-                  disabled={selectedCards.length !== dabbSize}
-                >
+                <button onClick={handleDiscard} disabled={selectedCards.length !== dabbSize}>
                   {selectedCards.length}/{dabbSize} ausgewählt - Abwerfen
                 </button>
               </>
@@ -104,7 +111,8 @@ function GamePage() {
 
         {state.phase === 'dabb' && state.bidWinner !== playerIndex && (
           <p style={{ color: 'var(--text-secondary)' }}>
-            Warte auf Spieler {state.players.find(p => p.playerIndex === state.bidWinner)?.nickname}...
+            Warte auf Spieler{' '}
+            {state.players.find((p) => p.playerIndex === state.bidWinner)?.nickname}...
           </p>
         )}
 
@@ -114,9 +122,7 @@ function GamePage() {
         )}
 
         {state.phase === 'trump' && state.bidWinner !== playerIndex && (
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Warte auf Trumpf-Ansage...
-          </p>
+          <p style={{ color: 'var(--text-secondary)' }}>Warte auf Trumpf-Ansage...</p>
         )}
 
         {/* Melding phase */}
@@ -125,17 +131,13 @@ function GamePage() {
             {!state.declaredMelds.has(playerIndex as PlayerIndex) ? (
               <>
                 <h3>Meldungen ansagen</h3>
-                {state.trump && (
-                  <MeldPreview hand={myHand} trump={state.trump} />
-                )}
+                {state.trump && <MeldPreview hand={myHand} trump={state.trump} />}
                 <button onClick={handleDeclareMelds} style={{ marginTop: '1rem' }}>
                   Meldungen bestätigen
                 </button>
               </>
             ) : (
-              <p style={{ color: 'var(--text-secondary)' }}>
-                Warte auf andere Spieler...
-              </p>
+              <p style={{ color: 'var(--text-secondary)' }}>Warte auf andere Spieler...</p>
             )}
           </div>
         )}
@@ -153,9 +155,7 @@ function GamePage() {
         {state.phase === 'scoring' && (
           <div className="card" style={{ textAlign: 'center' }}>
             <h3>Runde beendet</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>
-              Nächste Runde beginnt...
-            </p>
+            <p style={{ color: 'var(--text-secondary)' }}>Nächste Runde beginnt...</p>
           </div>
         )}
 
@@ -221,9 +221,7 @@ function MeldPreview({ hand, trump }: { hand: Card[]; trump: Suit }) {
           {meld.type} ({meld.points} Punkte)
         </div>
       ))}
-      <div style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>
-        Gesamt: {totalPoints} Punkte
-      </div>
+      <div style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>Gesamt: {totalPoints} Punkte</div>
     </div>
   );
 }

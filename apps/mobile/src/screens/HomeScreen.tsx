@@ -102,13 +102,10 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
 
           <Text style={styles.label}>Anzahl Spieler</Text>
           <View style={styles.playerCountButtons}>
-            {([2, 3, 4] as const).map(count => (
+            {([2, 3, 4] as const).map((count) => (
               <TouchableOpacity
                 key={count}
-                style={[
-                  styles.countButton,
-                  playerCount === count && styles.countButtonSelected,
-                ]}
+                style={[styles.countButton, playerCount === count && styles.countButtonSelected]}
                 onPress={() => setPlayerCount(count)}
               >
                 <Text

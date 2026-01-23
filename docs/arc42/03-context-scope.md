@@ -25,11 +25,11 @@ server --> db : Store events
 
 ### Communication Partners
 
-| Partner | Interface | Description |
-|---------|-----------|-------------|
-| Web Browser | HTTPS + WebSocket | React SPA |
-| Android Device | HTTPS + WebSocket | Expo app |
-| PostgreSQL | TCP/IP | Event and session storage |
+| Partner        | Interface         | Description               |
+| -------------- | ----------------- | ------------------------- |
+| Web Browser    | HTTPS + WebSocket | React SPA                 |
+| Android Device | HTTPS + WebSocket | Expo app                  |
+| PostgreSQL     | TCP/IP            | Event and session storage |
 
 ## 3.2 Technical Context
 
@@ -65,8 +65,8 @@ socketio -down-> db : SQL
 
 ### Technical Interfaces
 
-| Interface | Protocol | Purpose |
-|-----------|----------|---------|
-| REST API | HTTP/JSON | Session management (create, join, reconnect) |
-| WebSocket | Socket.IO | Real-time game events |
-| Database | PostgreSQL | Persistent storage |
+| Interface | Protocol   | Purpose                                      |
+| --------- | ---------- | -------------------------------------------- |
+| REST API  | HTTP/JSON  | Session management (create, join, reconnect) |
+| WebSocket | Socket.IO  | Real-time game events                        |
+| Database  | PostgreSQL | Persistent storage                           |

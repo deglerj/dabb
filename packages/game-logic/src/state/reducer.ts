@@ -2,13 +2,7 @@
  * Event sourcing reducer for game state
  */
 
-import {
-  Card,
-  GameEvent,
-  GameState,
-  PlayerIndex,
-  Trick,
-} from '@dabb/shared-types';
+import { Card, GameEvent, GameState, PlayerIndex, Trick } from '@dabb/shared-types';
 
 import { getFirstBidder, getNextBidder, isBiddingComplete } from '../phases/bidding';
 import { createInitialState, resetForNewRound } from './initial';
@@ -80,10 +74,7 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
 /**
  * Apply multiple events to build state
  */
-export function applyEvents(
-  events: GameEvent[],
-  initialState?: GameState
-): GameState {
+export function applyEvents(events: GameEvent[], initialState?: GameState): GameState {
   let state = initialState || createInitialState(4);
 
   for (const event of events) {
@@ -100,10 +91,7 @@ function handleGameStarted(
   event: Extract<GameEvent, { type: 'GAME_STARTED' }>
 ): GameState {
   return {
-    ...createInitialState(
-      event.payload.playerCount as 2 | 3 | 4,
-      event.payload.targetScore
-    ),
+    ...createInitialState(event.payload.playerCount as 2 | 3 | 4, event.payload.targetScore),
     players: state.players,
     dealer: event.payload.dealer,
     phase: 'dealing',
@@ -135,10 +123,8 @@ function handlePlayerLeft(
 ): GameState {
   return {
     ...state,
-    players: state.players.map(p =>
-      p.playerIndex === event.payload.playerIndex
-        ? { ...p, connected: false }
-        : p
+    players: state.players.map((p) =>
+      p.playerIndex === event.payload.playerIndex ? { ...p, connected: false } : p
     ),
   };
 }
@@ -149,10 +135,8 @@ function handlePlayerReconnected(
 ): GameState {
   return {
     ...state,
-    players: state.players.map(p =>
-      p.playerIndex === event.payload.playerIndex
-        ? { ...p, connected: true }
-        : p
+    players: state.players.map((p) =>
+      p.playerIndex === event.payload.playerIndex ? { ...p, connected: true } : p
     ),
   };
 }
@@ -251,7 +235,7 @@ function handleCardsDiscarded(
 ): GameState {
   const currentHand = state.hands.get(event.payload.playerIndex) || [];
   const discardedIds = new Set(event.payload.discardedCards);
-  const newHand = currentHand.filter(c => !discardedIds.has(c.id));
+  const newHand = currentHand.filter((c) => !discardedIds.has(c.id));
 
   const newHands = new Map(state.hands);
   newHands.set(event.payload.playerIndex, newHand);
@@ -317,7 +301,7 @@ function handleCardPlayed(
 ): GameState {
   // Remove card from player's hand
   const currentHand = state.hands.get(event.payload.playerIndex) || [];
-  const newHand = currentHand.filter(c => c.id !== event.payload.card.id);
+  const newHand = currentHand.filter((c) => c.id !== event.payload.card.id);
 
   const newHands = new Map(state.hands);
   newHands.set(event.payload.playerIndex, newHand);

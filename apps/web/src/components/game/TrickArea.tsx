@@ -15,7 +15,9 @@ function TrickArea({ trick, playerCount, resolveCard }: TrickAreaProps) {
     <div className="trick-area">
       {trick.cards.map((playedCard) => {
         const card = resolveCard(playedCard.cardId, playedCard.playerIndex);
-        if (!card) {return null;}
+        if (!card) {
+          return null;
+        }
 
         return (
           <div
@@ -31,9 +33,7 @@ function TrickArea({ trick, playerCount, resolveCard }: TrickAreaProps) {
       })}
 
       {trick.cards.length === 0 && (
-        <span style={{ color: 'var(--text-secondary)' }}>
-          Warte auf erste Karte...
-        </span>
+        <span style={{ color: 'var(--text-secondary)' }}>Warte auf erste Karte...</span>
       )}
     </div>
   );

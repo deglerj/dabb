@@ -2,14 +2,7 @@
  * Trick-taking logic for Binokel
  */
 
-import {
-  Card,
-  CardId,
-  RANK_POINTS,
-  Rank,
-  Suit,
-  Trick,
-} from '@dabb/shared-types';
+import { Card, CardId, RANK_POINTS, Rank, Suit, Trick } from '@dabb/shared-types';
 
 /**
  * Card strength ordering (higher index = stronger)
@@ -27,10 +20,7 @@ const CARD_STRENGTH: Record<Rank, number> = {
  * Determine which card wins a trick
  * Returns the index within the trick's cards array
  */
-export function determineTrickWinner(
-  trick: Trick,
-  trump: Suit
-): number {
+export function determineTrickWinner(trick: Trick, trump: Suit): number {
   if (trick.cards.length === 0) {
     throw new Error('Cannot determine winner of empty trick');
   }
@@ -54,20 +44,19 @@ export function determineTrickWinner(
 /**
  * Check if cardA beats cardB given lead suit and trump
  */
-function cardBeats(
-  cardA: Card,
-  cardB: Card,
-  leadSuit: Suit,
-  trump: Suit
-): boolean {
+function cardBeats(cardA: Card, cardB: Card, leadSuit: Suit, trump: Suit): boolean {
   const aIsTrump = cardA.suit === trump;
   const bIsTrump = cardB.suit === trump;
   const aIsLead = cardA.suit === leadSuit;
   const bIsLead = cardB.suit === leadSuit;
 
   // Trump beats non-trump
-  if (aIsTrump && !bIsTrump) {return true;}
-  if (!aIsTrump && bIsTrump) {return false;}
+  if (aIsTrump && !bIsTrump) {
+    return true;
+  }
+  if (!aIsTrump && bIsTrump) {
+    return false;
+  }
 
   // Both trump: higher strength wins
   if (aIsTrump && bIsTrump) {
@@ -75,8 +64,12 @@ function cardBeats(
   }
 
   // Neither trump: lead suit beats non-lead
-  if (aIsLead && !bIsLead) {return true;}
-  if (!aIsLead && bIsLead) {return false;}
+  if (aIsLead && !bIsLead) {
+    return true;
+  }
+  if (!aIsLead && bIsLead) {
+    return false;
+  }
 
   // Same suit (both lead or both non-lead): higher strength wins
   if (cardA.suit === cardB.suit) {
@@ -97,11 +90,7 @@ function cardBeats(
  * 4. If playing trump, must beat highest trump if possible
  * 5. If cannot follow or trump, any card is valid
  */
-export function getValidPlays(
-  hand: Card[],
-  trick: Trick,
-  trump: Suit
-): Card[] {
+export function getValidPlays(hand: Card[], trick: Trick, trump: Suit): Card[] {
   // First card of trick: any card is valid
   if (trick.cards.length === 0 || !trick.leadSuit) {
     return hand;
@@ -110,14 +99,14 @@ export function getValidPlays(
   const leadSuit = trick.leadSuit;
 
   // Find cards of lead suit in hand
-  const leadSuitCards = hand.filter(c => c.suit === leadSuit);
+  const leadSuitCards = hand.filter((c) => c.suit === leadSuit);
 
   if (leadSuitCards.length > 0) {
     // Must follow suit
     const highestLeadInTrick = getHighestCardOfSuit(trick, leadSuit);
 
     // Must beat if possible
-    const beatingCards = leadSuitCards.filter(c =>
+    const beatingCards = leadSuitCards.filter((c) =>
       highestLeadInTrick ? cardBeats(c, highestLeadInTrick, leadSuit, trump) : true
     );
 
@@ -125,13 +114,13 @@ export function getValidPlays(
   }
 
   // Cannot follow suit - must trump if possible
-  const trumpCards = hand.filter(c => c.suit === trump);
+  const trumpCards = hand.filter((c) => c.suit === trump);
 
   if (trumpCards.length > 0) {
     const highestTrumpInTrick = getHighestCardOfSuit(trick, trump);
 
     // Must beat highest trump if possible
-    const beatingTrumps = trumpCards.filter(c =>
+    const beatingTrumps = trumpCards.filter((c) =>
       highestTrumpInTrick ? cardBeats(c, highestTrumpInTrick, trump, trump) : true
     );
 
@@ -145,14 +134,9 @@ export function getValidPlays(
 /**
  * Check if a specific card can be played
  */
-export function isValidPlay(
-  card: Card,
-  hand: Card[],
-  trick: Trick,
-  trump: Suit
-): boolean {
+export function isValidPlay(card: Card, hand: Card[], trick: Trick, trump: Suit): boolean {
   const validPlays = getValidPlays(hand, trick, trump);
-  return validPlays.some(c => c.id === card.id);
+  return validPlays.some((c) => c.id === card.id);
 }
 
 /**
@@ -179,15 +163,14 @@ function findCardById(cardId: CardId): Card {
 /**
  * Get highest card of a specific suit in a trick
  */
-function getHighestCardOfSuit(
-  trick: Trick,
-  suit: Suit
-): Card | null {
+function getHighestCardOfSuit(trick: Trick, suit: Suit): Card | null {
   const cardsOfSuit = trick.cards
-    .map(pc => findCardById(pc.cardId))
-    .filter(c => c.suit === suit);
+    .map((pc) => findCardById(pc.cardId))
+    .filter((c) => c.suit === suit);
 
-  if (cardsOfSuit.length === 0) {return null;}
+  if (cardsOfSuit.length === 0) {
+    return null;
+  }
 
   return cardsOfSuit.reduce((highest, card) =>
     CARD_STRENGTH[card.rank] > CARD_STRENGTH[highest.rank] ? card : highest

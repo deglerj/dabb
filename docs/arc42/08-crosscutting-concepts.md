@@ -14,6 +14,7 @@ interface GameEvent {
 ```
 
 **Benefits:**
+
 - Complete audit trail
 - Easy debugging (replay events)
 - Reliable state reconstruction
@@ -31,8 +32,8 @@ function filterEventForPlayer(event: GameEvent, playerIndex: PlayerIndex): GameE
       ...event,
       payload: {
         ...event.payload,
-        hands: filterHands(event.payload.hands, playerIndex)
-      }
+        hands: filterHands(event.payload.hands, playerIndex),
+      },
     };
   }
   // ... more filtering

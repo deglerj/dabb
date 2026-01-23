@@ -26,13 +26,13 @@ describe('Deck', () => {
 
     it('has all 4 suits', () => {
       const deck = createDeck();
-      const suits = new Set(deck.map(c => c.suit));
+      const suits = new Set(deck.map((c) => c.suit));
       expect(suits).toEqual(new Set(['kreuz', 'schippe', 'herz', 'bollen']));
     });
 
     it('has all 6 ranks', () => {
       const deck = createDeck();
-      const ranks = new Set(deck.map(c => c.rank));
+      const ranks = new Set(deck.map((c) => c.rank));
       expect(ranks).toEqual(new Set(['9', 'buabe', 'ober', 'koenig', '10', 'ass']));
     });
   });
@@ -44,18 +44,18 @@ describe('Deck', () => {
 
       expect(shuffled).toHaveLength(48);
 
-      const originalIds = new Set(deck.map(c => c.id));
-      const shuffledIds = new Set(shuffled.map(c => c.id));
+      const originalIds = new Set(deck.map((c) => c.id));
+      const shuffledIds = new Set(shuffled.map((c) => c.id));
       expect(shuffledIds).toEqual(originalIds);
     });
 
     it('does not modify the original deck', () => {
       const deck = createDeck();
-      const originalIds = deck.map(c => c.id);
+      const originalIds = deck.map((c) => c.id);
 
       shuffleDeck(deck);
 
-      expect(deck.map(c => c.id)).toEqual(originalIds);
+      expect(deck.map((c) => c.id)).toEqual(originalIds);
     });
   });
 
@@ -120,7 +120,7 @@ describe('Deck', () => {
 
       const sorted = sortHand(hand);
 
-      expect(sorted.map(c => c.suit)).toEqual(['kreuz', 'schippe', 'herz', 'herz']);
+      expect(sorted.map((c) => c.suit)).toEqual(['kreuz', 'schippe', 'herz', 'herz']);
       expect(sorted[2].rank).toBe('ass');
       expect(sorted[3].rank).toBe('9');
     });

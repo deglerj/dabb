@@ -40,11 +40,10 @@ export async function createSession(
 
     do {
       code = generateSessionCode();
-      const existing = await client.query(
-        'SELECT id FROM sessions WHERE code = $1',
-        [code]
-      );
-      if (existing.rows.length === 0) {break;}
+      const existing = await client.query('SELECT id FROM sessions WHERE code = $1', [code]);
+      if (existing.rows.length === 0) {
+        break;
+      }
       attempts++;
     } while (attempts < maxAttempts);
 
@@ -106,7 +105,9 @@ export async function getSessionByCode(code: string): Promise<Session | null> {
     [code]
   );
 
-  if (result.rows.length === 0) {return null;}
+  if (result.rows.length === 0) {
+    return null;
+  }
 
   return {
     id: result.rows[0].id,
@@ -125,7 +126,9 @@ export async function getSessionById(id: string): Promise<Session | null> {
     [id]
   );
 
-  if (result.rows.length === 0) {return null;}
+  if (result.rows.length === 0) {
+    return null;
+  }
 
   return {
     id: result.rows[0].id,
@@ -137,10 +140,7 @@ export async function getSessionById(id: string): Promise<Session | null> {
   };
 }
 
-export async function joinSession(
-  sessionId: string,
-  nickname: string
-): Promise<Player> {
+export async function joinSession(sessionId: string, nickname: string): Promise<Player> {
   const client = await pool.connect();
 
   try {
@@ -173,14 +173,14 @@ export async function joinSession(
     }
 
     // Find next available player index
-    const usedIndices = new Set(playersResult.rows.map(r => r.player_index));
+    const usedIndices = new Set(playersResult.rows.map((r) => r.player_index));
     let playerIndex: PlayerIndex = 0;
     while (usedIndices.has(playerIndex)) {
       playerIndex = (playerIndex + 1) as PlayerIndex;
     }
 
     // Determine team for 4-player games
-    const team = playerCount === 4 ? (playerIndex % 2) as Team : null;
+    const team = playerCount === 4 ? ((playerIndex % 2) as Team) : null;
 
     // Create player
     const secretId = uuidv4();
@@ -217,7 +217,9 @@ export async function getPlayerBySecretId(secretId: string): Promise<Player | nu
     [secretId]
   );
 
-  if (result.rows.length === 0) {return null;}
+  if (result.rows.length === 0) {
+    return null;
+  }
 
   return {
     id: result.rows[0].id,
@@ -238,7 +240,7 @@ export async function getSessionPlayers(sessionId: string): Promise<Player[]> {
     [sessionId]
   );
 
-  return result.rows.map(row => ({
+  return result.rows.map((row) => ({
     id: row.id,
     sessionId: row.session_id,
     secretId: row.secret_id,
@@ -249,22 +251,13 @@ export async function getSessionPlayers(sessionId: string): Promise<Player[]> {
   }));
 }
 
-export async function updatePlayerConnection(
-  playerId: string,
-  connected: boolean
-): Promise<void> {
-  await pool.query(
-    'UPDATE players SET connected = $1 WHERE id = $2',
-    [connected, playerId]
-  );
+export async function updatePlayerConnection(playerId: string, connected: boolean): Promise<void> {
+  await pool.query('UPDATE players SET connected = $1 WHERE id = $2', [connected, playerId]);
 }
 
 export async function updateSessionStatus(
   sessionId: string,
   status: 'waiting' | 'active' | 'finished'
 ): Promise<void> {
-  await pool.query(
-    'UPDATE sessions SET status = $1 WHERE id = $2',
-    [status, sessionId]
-  );
+  await pool.query('UPDATE sessions SET status = $1 WHERE id = $2', [status, sessionId]);
 }

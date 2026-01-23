@@ -22,34 +22,33 @@ export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
   const { playerIndex, initialPlayerCount = 4 } = options;
 
   const [events, setEvents] = useState<GameEvent[]>([]);
-  const [state, setState] = useState<GameState>(() =>
-    createInitialState(initialPlayerCount)
+  const [state, setState] = useState<GameState>(() => createInitialState(initialPlayerCount));
+
+  const processEvents = useCallback(
+    (newEvents: GameEvent[]) => {
+      // Filter events for this player's view
+      const filteredEvents = filterEventsForPlayer(newEvents, playerIndex);
+
+      setEvents((prev) => {
+        // Deduplicate by event ID
+        const existingIds = new Set(prev.map((e) => e.id));
+        const uniqueNewEvents = filteredEvents.filter((e) => !existingIds.has(e.id));
+
+        if (uniqueNewEvents.length === 0) {
+          return prev;
+        }
+
+        const combined = [...prev, ...uniqueNewEvents].sort((a, b) => a.sequence - b.sequence);
+
+        // Rebuild state from all events
+        const newState = applyEvents(combined);
+        setState(newState);
+
+        return combined;
+      });
+    },
+    [playerIndex]
   );
-
-  const processEvents = useCallback((newEvents: GameEvent[]) => {
-    // Filter events for this player's view
-    const filteredEvents = filterEventsForPlayer(newEvents, playerIndex);
-
-    setEvents(prev => {
-      // Deduplicate by event ID
-      const existingIds = new Set(prev.map(e => e.id));
-      const uniqueNewEvents = filteredEvents.filter(e => !existingIds.has(e.id));
-
-      if (uniqueNewEvents.length === 0) {
-        return prev;
-      }
-
-      const combined = [...prev, ...uniqueNewEvents].sort(
-        (a, b) => a.sequence - b.sequence
-      );
-
-      // Rebuild state from all events
-      const newState = applyEvents(combined);
-      setState(newState);
-
-      return combined;
-    });
-  }, [playerIndex]);
 
   const reset = useCallback(() => {
     setEvents([]);

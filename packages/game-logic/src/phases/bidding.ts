@@ -2,12 +2,7 @@
  * Bidding logic for Binokel
  */
 
-import {
-  BID_INCREMENT,
-  MIN_BID,
-  PlayerCount,
-  PlayerIndex,
-} from '@dabb/shared-types';
+import { BID_INCREMENT, MIN_BID, PlayerCount, PlayerIndex } from '@dabb/shared-types';
 
 /**
  * Get the next player in bidding order
@@ -30,12 +25,13 @@ export function getNextBidder(
 /**
  * Check if a bid is valid
  */
-export function isValidBid(
-  amount: number,
-  currentBid: number
-): boolean {
-  if (amount < MIN_BID) {return false;}
-  if (currentBid === 0) {return amount >= MIN_BID;}
+export function isValidBid(amount: number, currentBid: number): boolean {
+  if (amount < MIN_BID) {
+    return false;
+  }
+  if (currentBid === 0) {
+    return amount >= MIN_BID;
+  }
   return amount >= currentBid + BID_INCREMENT;
 }
 
@@ -43,17 +39,16 @@ export function isValidBid(
  * Get minimum valid bid amount
  */
 export function getMinBid(currentBid: number): number {
-  if (currentBid === 0) {return MIN_BID;}
+  if (currentBid === 0) {
+    return MIN_BID;
+  }
   return currentBid + BID_INCREMENT;
 }
 
 /**
  * Get the first bidder (player after dealer)
  */
-export function getFirstBidder(
-  dealer: PlayerIndex,
-  playerCount: PlayerCount
-): PlayerIndex {
+export function getFirstBidder(dealer: PlayerIndex, playerCount: PlayerCount): PlayerIndex {
   return ((dealer + 1) % playerCount) as PlayerIndex;
 }
 

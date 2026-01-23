@@ -228,12 +228,15 @@ export function createTrickWonEvent(
 
 export function createRoundScoredEvent(
   ctx: EventContext,
-  scores: Record<PlayerIndex | Team, {
-    melds: number;
-    tricks: number;
-    total: number;
-    bidMet: boolean;
-  }>,
+  scores: Record<
+    PlayerIndex | Team,
+    {
+      melds: number;
+      tricks: number;
+      total: number;
+      bidMet: boolean;
+    }
+  >,
   totalScores: Record<PlayerIndex | Team, number>
 ): RoundScoredEvent {
   return {

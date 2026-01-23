@@ -33,12 +33,14 @@ dabb/
 ## Consequences
 
 ### Positive
+
 - **Shared Code**: Types and logic used everywhere
 - **Type Safety**: Changes to types immediately visible
 - **Coordinated Releases**: All apps updated together
 - **Fast Builds**: Turborepo caches and parallelizes
 
 ### Negative
+
 - **Complexity**: More complex than separate repos
 - **Learning Curve**: Team must understand monorepo tooling
 - **CI Setup**: Need to configure selective builds

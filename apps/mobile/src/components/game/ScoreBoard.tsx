@@ -13,14 +13,8 @@ interface ScoreBoardProps {
   currentPlayerIndex: PlayerIndex;
 }
 
-function ScoreBoard({
-  scores,
-  targetScore,
-  nicknames,
-  currentPlayerIndex,
-}: ScoreBoardProps) {
-  const sortedPlayers = Array.from(scores.entries())
-    .sort((a, b) => b[1] - a[1]);
+function ScoreBoard({ scores, targetScore, nicknames, currentPlayerIndex }: ScoreBoardProps) {
+  const sortedPlayers = Array.from(scores.entries()).sort((a, b) => b[1] - a[1]);
 
   return (
     <View style={styles.container}>
@@ -35,10 +29,7 @@ function ScoreBoard({
           return (
             <View
               key={playerIndex}
-              style={[
-                styles.scoreRow,
-                isCurrentPlayer && styles.currentPlayerRow,
-              ]}
+              style={[styles.scoreRow, isCurrentPlayer && styles.currentPlayerRow]}
             >
               <View style={styles.rankBadge}>
                 <Text style={styles.rankText}>{rank + 1}</Text>
