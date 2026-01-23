@@ -28,6 +28,7 @@
 - **Cross-platform** - Web and Android support
 - **Event-sourced** - Reliable state management with reconnection support
 - **Swabian dialect** - Authentic card names and terminology
+- **AI slop** - Purely vibe coded - nix mit schaffe, schaffe, ...
 
 ---
 
@@ -230,7 +231,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 <div align="center">
 
 Made with ♥ in Swabia
-
-**Guad's Kärtele!** 🃏
 
 </div>
