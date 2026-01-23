@@ -34,7 +34,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://dabb:dabb_dev_password@postgres:5432/dabb
-      CLIENT_URL: http://localhost:5173
+      CLIENT_URL: http://localhost:8080
     ports:
       - '3000:3000'
     healthcheck:
