@@ -9,6 +9,7 @@ import type {
   SocketData,
 } from '@dabb/shared-types';
 
+import { env } from './config/env.js';
 import { sessionsRouter } from './routes/sessions.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 import logger from './utils/logger.js';
@@ -17,7 +18,7 @@ const app = express();
 const httpServer = createServer(app);
 
 // CORS configuration
-const corsOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+const corsOrigin = env.CLIENT_URL;
 
 app.use(
   cors({
@@ -50,10 +51,8 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
 setupSocketHandlers(io);
 
 // Start server
-const PORT = process.env.PORT || 3000;
-
-httpServer.listen(PORT, () => {
-  logger.info({ port: PORT, corsOrigin }, 'Server started');
+httpServer.listen(env.PORT, () => {
+  logger.info({ port: env.PORT, corsOrigin, env: env.NODE_ENV }, 'Server started');
 });
 
 // Graceful shutdown

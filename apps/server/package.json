@@ -16,6 +16,7 @@
     "@dabb/game-logic": "workspace:*",
     "@dabb/shared-types": "workspace:*",
     "cors": "^2.8.5",
+    "envalid": "^8.1.1",
     "express": "^5.0.1",
     "pg": "^8.13.1",
     "pino": "^10.3.0",
