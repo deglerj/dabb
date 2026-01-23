@@ -5,19 +5,27 @@ FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
 # Copy workspace configuration
-COPY package.json bun.lock ./
+COPY package.json bun.lock turbo.json ./
 
 # Copy all package.json files for dependency resolution
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/game-logic/package.json ./packages/game-logic/
+COPY packages/ui-shared/package.json ./packages/ui-shared/
 COPY apps/web/package.json ./apps/web/
 
 # Install dependencies with Bun
-RUN bun install --frozen-lockfile
+RUN bun install
+
+# Create workspace symlinks manually (bun might not create them in container)
+RUN mkdir -p node_modules/@dabb && \
+    ln -sf ../../packages/shared-types node_modules/@dabb/shared-types && \
+    ln -sf ../../packages/game-logic node_modules/@dabb/game-logic && \
+    ln -sf ../../packages/ui-shared node_modules/@dabb/ui-shared
 
 # Copy source files
 COPY packages/shared-types ./packages/shared-types
 COPY packages/game-logic ./packages/game-logic
+COPY packages/ui-shared ./packages/ui-shared
 COPY apps/web ./apps/web
 COPY tsconfig.base.json ./
 
@@ -25,9 +33,10 @@ COPY tsconfig.base.json ./
 ARG VITE_SERVER_URL=http://localhost:3000
 ENV VITE_SERVER_URL=$VITE_SERVER_URL
 
-# Build all packages
+# Build packages sequentially to ensure proper dependency resolution
 RUN cd packages/shared-types && bun run build && \
     cd ../game-logic && bun run build && \
+    cd ../ui-shared && bun run build && \
     cd ../../apps/web && bun run build
 
 # Stage 2: Production with nginx
