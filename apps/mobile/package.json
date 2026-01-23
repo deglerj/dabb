@@ -14,7 +14,7 @@
     "@dabb/shared-types": "workspace:*",
     "@dabb/card-assets": "workspace:*",
     "@dabb/ui-shared": "workspace:*",
-    "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~54.0.32",
     "expo-status-bar": "~3.0.9",
     "react": "19.2.3",
