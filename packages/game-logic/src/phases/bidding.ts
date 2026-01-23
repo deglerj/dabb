@@ -34,8 +34,8 @@ export function isValidBid(
   amount: number,
   currentBid: number
 ): boolean {
-  if (amount < MIN_BID) return false;
-  if (currentBid === 0) return amount >= MIN_BID;
+  if (amount < MIN_BID) {return false;}
+  if (currentBid === 0) {return amount >= MIN_BID;}
   return amount >= currentBid + BID_INCREMENT;
 }
 
@@ -43,7 +43,7 @@ export function isValidBid(
  * Get minimum valid bid amount
  */
 export function getMinBid(currentBid: number): number {
-  if (currentBid === 0) return MIN_BID;
+  if (currentBid === 0) {return MIN_BID;}
   return currentBid + BID_INCREMENT;
 }
 

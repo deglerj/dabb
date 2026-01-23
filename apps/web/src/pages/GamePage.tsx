@@ -206,7 +206,7 @@ function PhaseIndicator({ phase, trump }: { phase: string; trump: string | null 
   );
 }
 
-function MeldPreview({ hand, trump }: { hand: any[]; trump: Suit }) {
+function MeldPreview({ hand, trump }: { hand: Card[]; trump: Suit }) {
   const melds = detectMelds(hand, trump);
   const totalPoints = calculateMeldPoints(melds);
 

@@ -123,7 +123,7 @@ function detectFourOfAKind(
 
   for (const [rank, cards] of byRank) {
     const meldTypes = rankToMeldTypes[rank];
-    if (!meldTypes) continue;
+    if (!meldTypes) {continue;}
 
     // Check for cards in all four suits
     const suitCount = new Set(cards.map(c => c.suit)).size;

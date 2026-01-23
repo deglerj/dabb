@@ -81,7 +81,7 @@ export default function App() {
     });
   }, []);
 
-  const { socket, connected, emit } = useSocket({
+  const { socket: _socket, connected: _connected, emit } = useSocket({
     serverUrl: SERVER_URL,
     sessionId: sessionInfo?.sessionId || '',
     secretId: credentials?.secretId || '',
@@ -111,7 +111,7 @@ export default function App() {
         body: JSON.stringify({ playerCount }),
       });
 
-      if (!response.ok) throw new Error('Failed to create game');
+      if (!response.ok) {throw new Error('Failed to create game');}
 
       const { sessionId, code } = await response.json();
 
@@ -122,7 +122,7 @@ export default function App() {
         body: JSON.stringify({ nickname }),
       });
 
-      if (!joinResponse.ok) throw new Error('Failed to join game');
+      if (!joinResponse.ok) {throw new Error('Failed to join game');}
 
       const { secretId, playerIndex } = await joinResponse.json();
 
@@ -140,7 +140,7 @@ export default function App() {
       setNicknames(new Map([[playerIndex as PlayerIndex, nickname]]));
 
       setScreen('waiting');
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Fehler', 'Spiel konnte nicht erstellt werden');
     } finally {
       setApiLoading(false);
@@ -152,7 +152,7 @@ export default function App() {
     try {
       // Get session info
       const infoResponse = await fetch(`${SERVER_URL}/sessions/${sessionCode}`);
-      if (!infoResponse.ok) throw new Error('Game not found');
+      if (!infoResponse.ok) {throw new Error('Game not found');}
 
       const { playerCount } = await infoResponse.json();
 
@@ -163,7 +163,7 @@ export default function App() {
         body: JSON.stringify({ nickname }),
       });
 
-      if (!joinResponse.ok) throw new Error('Failed to join game');
+      if (!joinResponse.ok) {throw new Error('Failed to join game');}
 
       const { secretId, playerIndex, sessionId } = await joinResponse.json();
 
@@ -177,7 +177,7 @@ export default function App() {
       });
 
       setScreen('waiting');
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Fehler', 'Spiel konnte nicht beigetreten werden');
     } finally {
       setApiLoading(false);

@@ -44,7 +44,7 @@ export async function createSession(
         'SELECT id FROM sessions WHERE code = $1',
         [code]
       );
-      if (existing.rows.length === 0) break;
+      if (existing.rows.length === 0) {break;}
       attempts++;
     } while (attempts < maxAttempts);
 
@@ -106,7 +106,7 @@ export async function getSessionByCode(code: string): Promise<Session | null> {
     [code]
   );
 
-  if (result.rows.length === 0) return null;
+  if (result.rows.length === 0) {return null;}
 
   return {
     id: result.rows[0].id,
@@ -125,7 +125,7 @@ export async function getSessionById(id: string): Promise<Session | null> {
     [id]
   );
 
-  if (result.rows.length === 0) return null;
+  if (result.rows.length === 0) {return null;}
 
   return {
     id: result.rows[0].id,
@@ -217,7 +217,7 @@ export async function getPlayerBySecretId(secretId: string): Promise<Player | nu
     [secretId]
   );
 
-  if (result.rows.length === 0) return null;
+  if (result.rows.length === 0) {return null;}
 
   return {
     id: result.rows[0].id,

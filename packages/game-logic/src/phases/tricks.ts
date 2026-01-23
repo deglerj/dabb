@@ -66,8 +66,8 @@ function cardBeats(
   const bIsLead = cardB.suit === leadSuit;
 
   // Trump beats non-trump
-  if (aIsTrump && !bIsTrump) return true;
-  if (!aIsTrump && bIsTrump) return false;
+  if (aIsTrump && !bIsTrump) {return true;}
+  if (!aIsTrump && bIsTrump) {return false;}
 
   // Both trump: higher strength wins
   if (aIsTrump && bIsTrump) {
@@ -75,8 +75,8 @@ function cardBeats(
   }
 
   // Neither trump: lead suit beats non-lead
-  if (aIsLead && !bIsLead) return true;
-  if (!aIsLead && bIsLead) return false;
+  if (aIsLead && !bIsLead) {return true;}
+  if (!aIsLead && bIsLead) {return false;}
 
   // Same suit (both lead or both non-lead): higher strength wins
   if (cardA.suit === cardB.suit) {
@@ -187,7 +187,7 @@ function getHighestCardOfSuit(
     .map(pc => findCardById(pc.cardId))
     .filter(c => c.suit === suit);
 
-  if (cardsOfSuit.length === 0) return null;
+  if (cardsOfSuit.length === 0) {return null;}
 
   return cardsOfSuit.reduce((highest, card) =>
     CARD_STRENGTH[card.rank] > CARD_STRENGTH[highest.rank] ? card : highest

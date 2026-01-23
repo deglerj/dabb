@@ -3,7 +3,7 @@
  */
 
 import React, { useMemo, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import type { GameState, PlayerIndex, Card as CardType, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import {
@@ -131,7 +131,7 @@ function GameScreen({
           </View>
         );
 
-      case 'finished':
+      case 'finished': {
         const winner = Array.from(state.scores.entries())
           .find(([, score]) => score >= state.targetScore);
         return (
@@ -147,6 +147,7 @@ function GameScreen({
             />
           </View>
         );
+      }
 
       default:
         return null;

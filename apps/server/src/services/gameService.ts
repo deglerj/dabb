@@ -3,6 +3,7 @@
  */
 
 import {
+  applyEvent,
   applyEvents,
   createDeck,
   createGameStartedEvent,
@@ -48,7 +49,7 @@ const gameStates = new Map<string, GameState>();
 async function getGameState(sessionId: string): Promise<GameState> {
   // Check cache first
   let state = gameStates.get(sessionId);
-  if (state) return state;
+  if (state) {return state;}
 
   // Rebuild from events
   const events = await getAllEvents(sessionId);
@@ -70,7 +71,6 @@ function updateGameState(sessionId: string, event: GameEvent): GameState {
     throw new Error('Game state not initialized');
   }
 
-  const { applyEvent } = require('@dabb/game-logic');
   const newState = applyEvent(currentState, event);
   gameStates.set(sessionId, newState);
 
@@ -79,7 +79,7 @@ function updateGameState(sessionId: string, event: GameEvent): GameState {
 
 export async function startGame(sessionId: string): Promise<GameEvent[]> {
   const session = await getSessionById(sessionId);
-  if (!session) throw new Error('Session not found');
+  if (!session) {throw new Error('Session not found');}
 
   const players = await getSessionPlayers(sessionId);
   if (players.length !== session.playerCount) {

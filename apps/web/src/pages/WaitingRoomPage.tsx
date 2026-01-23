@@ -20,7 +20,7 @@ function WaitingRoomPage() {
   const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
-    if (!code) return;
+    if (!code) {return;}
 
     // Get stored credentials
     const stored = localStorage.getItem(`dabb-${code}`);
@@ -44,7 +44,7 @@ function WaitingRoomPage() {
     });
 
     newSocket.on('connect', () => {
-      console.log('Connected to server');
+      // Connection established
     });
 
     newSocket.on('player:joined', () => {

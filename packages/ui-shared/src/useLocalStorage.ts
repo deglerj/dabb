@@ -15,7 +15,7 @@ export function useSessionCredentials(sessionCode: string) {
   const storageKey = `dabb-${sessionCode}`;
 
   const [credentials, setCredentials] = useState<SessionCredentials | null>(() => {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === 'undefined') {return null;}
     const stored = localStorage.getItem(storageKey);
     return stored ? JSON.parse(stored) : null;
   });

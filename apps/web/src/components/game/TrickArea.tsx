@@ -1,11 +1,11 @@
-import type { Trick, PlayerIndex } from '@dabb/shared-types';
+import type { Trick, PlayerIndex, Card as CardType } from '@dabb/shared-types';
 
 import Card from './Card';
 
 interface TrickAreaProps {
   trick: Trick;
   playerCount: number;
-  resolveCard: (cardId: string, playerIndex: PlayerIndex) => any;
+  resolveCard: (cardId: string, playerIndex: PlayerIndex) => CardType | undefined;
 }
 
 function TrickArea({ trick, playerCount, resolveCard }: TrickAreaProps) {
@@ -15,7 +15,7 @@ function TrickArea({ trick, playerCount, resolveCard }: TrickAreaProps) {
     <div className="trick-area">
       {trick.cards.map((playedCard) => {
         const card = resolveCard(playedCard.cardId, playedCard.playerIndex);
-        if (!card) return null;
+        if (!card) {return null;}
 
         return (
           <div

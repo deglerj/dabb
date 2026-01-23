@@ -21,7 +21,7 @@ function PlayerHand({
   onCardSelect,
 }: PlayerHandProps) {
   const isCardValid = (cardId: string) => {
-    if (!validCardIds) return true;
+    if (!validCardIds) {return true;}
     return validCardIds.includes(cardId);
   };
 

@@ -35,7 +35,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
 
     try {
       await onCreateGame(nickname.trim(), playerCount);
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Fehler', 'Spiel konnte nicht erstellt werden');
     }
   };
@@ -52,7 +52,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
 
     try {
       await onJoinGame(sessionCode.trim().toLowerCase(), nickname.trim());
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Fehler', 'Spiel konnte nicht beigetreten werden');
     }
   };

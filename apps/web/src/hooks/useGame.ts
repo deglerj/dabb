@@ -41,7 +41,7 @@ export function useGame(code: string): UseGameReturn {
 
   useEffect(() => {
     const stored = localStorage.getItem(`dabb-${code}`);
-    if (!stored) return;
+    if (!stored) {return;}
 
     const { secretId, playerIndex: storedIndex, sessionId } = JSON.parse(stored);
     setPlayerIndex(storedIndex);
@@ -92,7 +92,7 @@ export function useGame(code: string): UseGameReturn {
       return [];
     }
     const hand = state.hands.get(playerIndex) || [];
-    if (!state.trump) return hand.map(c => c.id);
+    if (!state.trump) {return hand.map(c => c.id);}
     const validCards = getValidPlays(hand, state.currentTrick, state.trump);
     return validCards.map(c => c.id);
   })();

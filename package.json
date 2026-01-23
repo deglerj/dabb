@@ -2,12 +2,14 @@
   "name": "dabb",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Binokel card game - multiplayer web and mobile app",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
     "test": "turbo run test",
-    "lint": "turbo run lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "clean": "turbo run clean && rm -rf node_modules",
     "typecheck": "turbo run typecheck",
     "docker:start": "./dev.sh start",
@@ -18,8 +20,12 @@
     "docker:reset": "./dev.sh reset"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "globals": "^17.1.0",
     "turbo": "^2.3.3",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.53.1"
   },
   "packageManager": "pnpm@9.15.4",
   "engines": {

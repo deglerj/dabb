@@ -11,7 +11,7 @@ export async function saveEvent(event: GameEvent): Promise<void> {
 }
 
 export async function saveEvents(events: GameEvent[]): Promise<void> {
-  if (events.length === 0) return;
+  if (events.length === 0) {return;}
 
   const client = await pool.connect();
 
