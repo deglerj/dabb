@@ -11,14 +11,13 @@
 
 ## 11.2 Technical Debt
 
-| Item                | Description                                                                                  | Priority |
-| ------------------- | -------------------------------------------------------------------------------------------- | -------- |
-| Test Coverage       | Integration tests missing for socket handlers                                                | High     |
-| Mobile Polish       | UI needs optimization for various screen sizes                                               | Medium   |
-| Error Handling      | Better error messages for players                                                            | Medium   |
-| Logging             | Structured logging for production debugging                                                  | Low      |
-| Metrics             | Performance monitoring not implemented                                                       | Low      |
-| ui-shared Migration | Web and mobile apps have duplicated socket/state logic that should use @dabb/ui-shared hooks | Low      |
+| Item                | Description                                                                                                   | Priority |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- | -------- |
+| Test Coverage       | Integration tests missing for socket handlers                                                                 | High     |
+| Mobile Polish       | UI needs optimization for various screen sizes                                                                | Medium   |
+| Error Handling      | Better error messages for players                                                                             | Medium   |
+| Metrics             | Performance monitoring not implemented                                                                        | Low      |
+| ui-shared Migration | Web app has its own useGame.ts instead of using @dabb/ui-shared hooks; mobile duplicates useSocket.ts locally | Low      |
 
 ## 11.3 Future Improvements
 
