@@ -11,6 +11,7 @@ import type {
 
 import { sessionsRouter } from './routes/sessions.js';
 import { setupSocketHandlers } from './socket/handlers.js';
+import logger from './utils/logger.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -52,15 +53,14 @@ setupSocketHandlers(io);
 const PORT = process.env.PORT || 3000;
 
 httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`CORS origin: ${corsOrigin}`);
+  logger.info({ port: PORT, corsOrigin }, 'Server started');
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  logger.info('SIGTERM received, shutting down gracefully');
   httpServer.close(() => {
-    console.log('Server closed');
+    logger.info('Server closed');
     process.exit(0);
   });
 });

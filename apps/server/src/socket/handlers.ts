@@ -20,6 +20,7 @@ import {
 } from '../services/gameService.js';
 import { getPlayerBySecretId, updatePlayerConnection } from '../services/sessionService.js';
 import { getEvents } from '../services/eventService.js';
+import { socketLogger } from '../utils/logger.js';
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 type GameServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -55,7 +56,7 @@ export function setupSocketHandlers(io: GameServer) {
   io.on('connection', async (socket: GameSocket) => {
     const { sessionId, playerId, playerIndex } = socket.data;
 
-    console.log(`Player ${playerIndex} connected to session ${sessionId}`);
+    socketLogger.info({ sessionId, playerIndex }, 'Player connected');
 
     // Join session room
     socket.join(sessionId);
@@ -181,7 +182,7 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle disconnect
     socket.on('disconnect', async () => {
-      console.log(`Player ${playerIndex} disconnected from session ${sessionId}`);
+      socketLogger.info({ sessionId, playerIndex }, 'Player disconnected');
 
       // Remove from tracking
       sessionSockets.get(sessionId)?.delete(socket);
