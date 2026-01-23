@@ -98,11 +98,10 @@ jobs:
           bun pm pack 2>/dev/null || echo "::warning::Security audit check completed"
 
       - name: Run OSV Scanner
-        uses: google/osv-scanner-action@v1
+        uses: google/osv-scanner-action@v2
         with:
           scan-args: |-
             --lockfile=bun.lock
-            --format=table
 
   build-docker:
     name: Build Docker Images
