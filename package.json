@@ -9,7 +9,13 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "docker:start": "./dev.sh start",
+    "docker:stop": "./dev.sh stop",
+    "docker:logs": "./dev.sh logs",
+    "docker:status": "./dev.sh status",
+    "docker:health": "./dev.sh health",
+    "docker:reset": "./dev.sh reset"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

@@ -141,9 +141,13 @@ dabb/
 
 ### Prerequisites
 
+**For Docker/Podman development (recommended):**
+- Docker or Podman with compose support
+
+**For native development:**
 - Node.js 20+
 - pnpm 9+
-- PostgreSQL (for server)
+- PostgreSQL 16+
 
 ### Installation
 
@@ -174,6 +178,40 @@ pnpm --filter @dabb/web dev
 # Start the mobile app
 pnpm --filter @dabb/mobile start
 ```
+
+### Local Development with Docker/Podman
+
+The easiest way to run the full stack locally is using the `dev.sh` script, which works with both Docker and Podman (with docker aliases):
+
+```bash
+# Start all services (PostgreSQL, Server, Web)
+./dev.sh start
+
+# Or using pnpm
+pnpm docker:start
+```
+
+**Access points:**
+- Web app: http://localhost:8080
+- Server API: http://localhost:3000
+- PostgreSQL: `postgresql://dabb:dabb_dev_password@localhost:5432/dabb`
+
+**Available commands:**
+
+| Command | Description |
+|---------|-------------|
+| `./dev.sh start` | Start all services |
+| `./dev.sh stop` | Stop all services |
+| `./dev.sh restart` | Restart all services |
+| `./dev.sh logs` | Follow logs (add service name to filter) |
+| `./dev.sh status` | Show container status |
+| `./dev.sh health` | Health check all services |
+| `./dev.sh shell <service>` | Open shell in container (postgres, server, web) |
+| `./dev.sh db` | Connect to PostgreSQL CLI |
+| `./dev.sh reset` | Remove all data and start fresh |
+| `./dev.sh build` | Rebuild images |
+
+**Requirements:** Docker or Podman with compose support.
 
 ### Environment Variables
 

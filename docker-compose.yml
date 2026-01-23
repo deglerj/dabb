@@ -1,6 +1,6 @@
 # Local development docker-compose
-# Usage: docker compose up -d
-version: "3.9"
+# Works with Docker Compose and Podman Compose
+# Usage: ./dev.sh start  (or: docker compose up -d)
 
 services:
   postgres:
