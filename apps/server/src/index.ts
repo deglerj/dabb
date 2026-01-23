@@ -11,6 +11,7 @@ import type {
 } from '@dabb/shared-types';
 
 import { env } from './config/env.js';
+import { closePool } from './db/pool.js';
 import { sessionsRouter } from './routes/sessions.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 import logger, { apiLogger } from './utils/logger.js';
@@ -79,10 +80,35 @@ httpServer.listen(env.PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  httpServer.close(() => {
-    logger.info('Server closed');
-    process.exit(0);
+async function shutdown(signal: string) {
+  logger.info({ signal }, 'Shutdown signal received, shutting down gracefully');
+
+  // Close HTTP server first (stop accepting new connections)
+  httpServer.close(async () => {
+    logger.info('HTTP server closed');
+
+    try {
+      // Close Socket.IO connections
+      io.close();
+      logger.info('Socket.IO server closed');
+
+      // Close database pool
+      await closePool();
+
+      logger.info('Graceful shutdown complete');
+      process.exit(0);
+    } catch (error) {
+      logger.error({ error }, 'Error during shutdown');
+      process.exit(1);
+    }
   });
-});
+
+  // Force exit after timeout
+  setTimeout(() => {
+    logger.error('Shutdown timeout, forcing exit');
+    process.exit(1);
+  }, 10000);
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

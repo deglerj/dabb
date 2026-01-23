@@ -19,4 +19,13 @@ pool.on('connect', () => {
   dbLogger.debug('New database connection established');
 });
 
+/**
+ * Close all pool connections gracefully
+ */
+export async function closePool(): Promise<void> {
+  dbLogger.info('Closing database connection pool');
+  await pool.end();
+  dbLogger.info('Database connection pool closed');
+}
+
 export { pool };
