@@ -18,6 +18,7 @@
 | Error Handling | Better error messages for players | Medium |
 | Logging | Structured logging for production debugging | Low |
 | Metrics | Performance monitoring not implemented | Low |
+| ui-shared Migration | Web and mobile apps have duplicated socket/state logic that should use @dabb/ui-shared hooks | Low |
 
 ## 11.3 Future Improvements
 

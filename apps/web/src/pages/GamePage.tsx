@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import type { CardId, Suit, PlayerIndex } from '@dabb/shared-types';
+import type { Card, CardId, Suit, PlayerIndex } from '@dabb/shared-types';
 import { DABB_SIZE, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
 

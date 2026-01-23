@@ -38,6 +38,9 @@ importers:
       '@dabb/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      '@dabb/ui-shared':
+        specifier: workspace:*
+        version: link:../../packages/ui-shared
       '@react-native-async-storage/async-storage':
         specifier: 2.1.2
         version: 2.1.2(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.1.17)(react@19.1.0))
@@ -118,6 +121,9 @@ importers:
       '@dabb/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      '@dabb/ui-shared':
+        specifier: workspace:*
+        version: link:../../packages/ui-shared
       react:
         specifier: ^19.0.0
         version: 19.2.3
