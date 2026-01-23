@@ -5,8 +5,7 @@ FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
 # Copy workspace configuration
-COPY package.json bun.lock* ./
-COPY pnpm-workspace.yaml ./
+COPY package.json bun.lock ./
 
 # Copy all package.json files for dependency resolution
 COPY packages/shared-types/package.json ./packages/shared-types/

@@ -114,14 +114,14 @@ Visit [your-deployment-url] to play instantly in your browser!
 
 ### Tech Stack
 
-| Component | Technology                    |
-| --------- | ----------------------------- |
-| Monorepo  | pnpm + Turborepo              |
-| Backend   | Node.js + Express + Socket.IO |
-| Database  | PostgreSQL                    |
-| Web       | React + Vite                  |
-| Mobile    | React Native + Expo           |
-| Types     | TypeScript                    |
+| Component | Technology                |
+| --------- | ------------------------- |
+| Monorepo  | Bun + Turborepo           |
+| Backend   | Bun + Express + Socket.IO |
+| Database  | PostgreSQL                |
+| Web       | React + Vite              |
+| Mobile    | React Native + Expo       |
+| Types     | TypeScript                |
 
 ### Project Structure
 
@@ -147,8 +147,7 @@ dabb/
 
 **For native development:**
 
-- Node.js 20+
-- pnpm 9+
+- Bun 1.0+
 - PostgreSQL 16+
 
 ### Installation
@@ -159,26 +158,26 @@ git clone https://github.com/your-username/dabb.git
 cd dabb
 
 # Install dependencies
-pnpm install
+bun install
 
 # Build all packages
-pnpm build
+bun run build
 
 # Run tests
-pnpm test
+bun test
 ```
 
 ### Development Server
 
 ```bash
 # Start the backend server
-pnpm --filter @dabb/server dev
+bun run --filter @dabb/server dev
 
 # Start the web client (in another terminal)
-pnpm --filter @dabb/web dev
+bun run --filter @dabb/web dev
 
 # Start the mobile app
-pnpm --filter @dabb/mobile start
+bun run --filter @dabb/mobile start
 ```
 
 ### Local Development with Docker/Podman
@@ -189,8 +188,8 @@ The easiest way to run the full stack locally is using the `dev.sh` script, whic
 # Start all services (PostgreSQL, Server, Web)
 ./dev.sh start
 
-# Or using pnpm
-pnpm docker:start
+# Or using bun
+bun run docker:start
 ```
 
 **Access points:**
@@ -261,7 +260,7 @@ Contributions are welcome! Please read our contributing guidelines before submit
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests (`pnpm test`)
+4. Run tests (`bun test`)
 5. Submit a pull request
 
 ---
