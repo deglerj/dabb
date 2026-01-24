@@ -89,12 +89,10 @@ export type MeldType =
   | 'binokel'
   | 'doppel-binokel'
   | 'vier-ass'
-  | 'vier-zehn'
   | 'vier-koenig'
   | 'vier-ober'
   | 'vier-unter'
   | 'acht-ass'
-  | 'acht-zehn'
   | 'acht-koenig'
   | 'acht-ober'
   | 'acht-unter';
@@ -113,12 +111,10 @@ export const MELD_BASE_POINTS: Record<MeldType, number> = {
   binokel: 40,
   'doppel-binokel': 300,
   'vier-ass': 100,
-  'vier-zehn': 100,
   'vier-koenig': 80,
   'vier-ober': 60,
   'vier-unter': 40,
   'acht-ass': 1000,
-  'acht-zehn': 800,
   'acht-koenig': 600,
   'acht-ober': 400,
   'acht-unter': 200,

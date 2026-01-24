@@ -70,7 +70,6 @@ Binokel is played with a **48-card deck** (two copies of each card). The goal is
 | Binokel        | Ober Schippe + Buabe Bollen           | 40                 |
 | Doppel-Binokel | Both Ober Schippe + both Buabe Bollen | 300                |
 | Vier Ass       | All four Asses                        | 100                |
-| Vier Zehn      | All four 10s                          | 100                |
 | Vier König     | All four Kings                        | 80                 |
 | Vier Ober      | All four Obers                        | 60                 |
 | Vier Buabe     | All four Buaben                       | 40                 |

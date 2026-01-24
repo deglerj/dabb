@@ -111,7 +111,7 @@ function detectFourOfAKind(byRank: Map<Rank, Card[]>, config: MeldConfig): Meld[
 
   const rankToMeldTypes: Record<Rank, { four: MeldType; eight: MeldType } | null> = {
     ass: { four: 'vier-ass', eight: 'acht-ass' },
-    '10': { four: 'vier-zehn', eight: 'acht-zehn' },
+    '10': null,
     koenig: { four: 'vier-koenig', eight: 'acht-koenig' },
     ober: { four: 'vier-ober', eight: 'acht-ober' },
     buabe: { four: 'vier-unter', eight: 'acht-unter' },
