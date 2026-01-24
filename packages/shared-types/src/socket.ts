@@ -40,4 +40,6 @@ export interface SocketData {
   sessionId: string;
   playerId: string;
   playerIndex: PlayerIndex;
+  nickname: string;
+  wasConnected: boolean;
 }

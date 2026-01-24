@@ -46,6 +46,8 @@ export function setupSocketHandlers(io: GameServer) {
       socket.data.sessionId = sessionId;
       socket.data.playerId = player.id;
       socket.data.playerIndex = player.playerIndex;
+      socket.data.nickname = player.nickname;
+      socket.data.wasConnected = player.connected;
 
       next();
     } catch (_error) {
@@ -54,7 +56,7 @@ export function setupSocketHandlers(io: GameServer) {
   });
 
   io.on('connection', async (socket: GameSocket) => {
-    const { sessionId, playerId, playerIndex } = socket.data;
+    const { sessionId, playerId, playerIndex, nickname, wasConnected } = socket.data;
 
     socketLogger.info({ sessionId, playerIndex }, 'Player connected');
 
@@ -70,8 +72,12 @@ export function setupSocketHandlers(io: GameServer) {
     // Mark player as connected
     await updatePlayerConnection(playerId, true);
 
-    // Notify others
-    socket.to(sessionId).emit('player:reconnected', { playerIndex });
+    // Notify others - emit player:joined for new players, player:reconnected for returning players
+    if (wasConnected) {
+      socket.to(sessionId).emit('player:reconnected', { playerIndex });
+    } else {
+      socket.to(sessionId).emit('player:joined', { playerIndex, nickname });
+    }
 
     // Send current state
     try {

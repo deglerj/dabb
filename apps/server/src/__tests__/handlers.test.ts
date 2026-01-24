@@ -224,7 +224,7 @@ describe('Socket Handlers Integration', () => {
       expect(state.events).toEqual(mockEvents);
     });
 
-    it('notifies other players when someone connects', async () => {
+    it('notifies other players when a new player joins', async () => {
       mockedGetEvents.mockRejectedValue(new Error('No game'));
 
       // Connect first client
@@ -233,8 +233,51 @@ describe('Socket Handlers Integration', () => {
         client1.on('connect', resolve);
       });
 
-      // Setup second player
-      const mockPlayer2 = { ...mockPlayer, id: 'player-2', playerIndex: 1 as PlayerIndex };
+      // Setup second player (new player, not previously connected)
+      const mockPlayer2 = {
+        ...mockPlayer,
+        id: 'player-2',
+        playerIndex: 1 as PlayerIndex,
+        nickname: 'Player2',
+        connected: false,
+      };
+      mockedGetPlayerBySecretId.mockResolvedValue(mockPlayer2);
+
+      // Listener for join event
+      const joinPromise = new Promise<{ playerIndex: number; nickname: string }>((resolve) => {
+        client1.on('player:joined', resolve);
+      });
+
+      // Connect second client
+      const client2 = createClient({ secretId: 'secret-456', sessionId: mockSessionId });
+      await new Promise<void>((resolve) => {
+        client2.on('connect', resolve);
+      });
+
+      const event = await joinPromise;
+      expect(event.playerIndex).toBe(1);
+      expect(event.nickname).toBe('Player2');
+
+      client1.disconnect();
+      client2.disconnect();
+    });
+
+    it('notifies other players when someone reconnects', async () => {
+      mockedGetEvents.mockRejectedValue(new Error('No game'));
+
+      // Connect first client
+      const client1 = createClient({ secretId: mockSecretId, sessionId: mockSessionId });
+      await new Promise<void>((resolve) => {
+        client1.on('connect', resolve);
+      });
+
+      // Setup second player (previously connected, now reconnecting)
+      const mockPlayer2 = {
+        ...mockPlayer,
+        id: 'player-2',
+        playerIndex: 1 as PlayerIndex,
+        connected: true,
+      };
       mockedGetPlayerBySecretId.mockResolvedValue(mockPlayer2);
 
       // Listener for reconnect event
