@@ -13,6 +13,7 @@ import type {
 import { env } from './config/env.js';
 import { closePool } from './db/pool.js';
 import { sessionsRouter } from './routes/sessions.js';
+import { eventsRouter, setSocketServer } from './routes/events.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 import logger, { apiLogger } from './utils/logger.js';
 
@@ -60,6 +61,7 @@ app.get('/health', (_req, res) => {
 
 // API routes
 app.use('/sessions', sessionsRouter);
+app.use('/sessions', eventsRouter);
 
 // Socket.IO setup
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(
@@ -73,6 +75,7 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
 );
 
 setupSocketHandlers(io);
+setSocketServer(io);
 
 // Start server
 httpServer.listen(env.PORT, () => {

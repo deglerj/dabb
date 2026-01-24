@@ -26,6 +26,7 @@ export interface ServerToClientEvents {
   'player:joined': (data: { playerIndex: PlayerIndex; nickname: string }) => void;
   'player:left': (data: { playerIndex: PlayerIndex }) => void;
   'player:reconnected': (data: { playerIndex: PlayerIndex }) => void;
+  'session:terminated': (data: { message: string }) => void;
   error: (data: { message: string; code: string }) => void;
 }
 

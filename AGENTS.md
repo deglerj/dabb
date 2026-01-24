@@ -95,6 +95,7 @@ bun run typecheck
 | `packages/game-logic/src/state/reducer.ts`  | Event sourcing reducer    |
 | `packages/game-logic/src/melds/detector.ts` | Meld detection            |
 | `packages/game-logic/src/phases/tricks.ts`  | Trick-taking rules        |
+| `packages/game-logic/src/export/`           | Event export for debug    |
 | `apps/server/src/socket/handlers.ts`        | Socket.IO event handlers  |
 
 ## Testing
@@ -111,6 +112,10 @@ Tests are in `__tests__` directories alongside source files:
 3. **Swabian names** - Use Kreuz/Schippe/Herz/Bollen, Buabe not Unter
 4. **Strict mode** - TypeScript strict is enabled
 5. **Workspace imports** - Use `@dabb/*` package imports
+6. **Update documentation** - After adding/changing APIs, endpoints, or socket events, update:
+   - `docs/API.md` for REST endpoints
+   - `docs/SOCKET_EVENTS.md` for Socket.IO events
+   - This file (`CLAUDE.md`) for new key files or patterns
 
 ## Game Rules Reference
 

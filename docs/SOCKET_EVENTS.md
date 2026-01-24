@@ -289,6 +289,25 @@ socket.on('player:reconnected', ({ playerIndex }) => {
 
 ---
 
+### `session:terminated`
+
+The session was terminated (e.g., due to debug export).
+
+```typescript
+socket.on('session:terminated', ({ message }) => {
+  console.log(`Session ended: ${message}`);
+  // Redirect to home or show message
+});
+```
+
+**Payload:**
+
+| Field     | Type     | Description            |
+| --------- | -------- | ---------------------- |
+| `message` | `string` | Reason for termination |
+
+---
+
 ### `error`
 
 An error occurred.

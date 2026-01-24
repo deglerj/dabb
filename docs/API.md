@@ -120,11 +120,12 @@ curl http://localhost:3000/sessions/schnell-fuchs-42
 
 **Session Status Values:**
 
-| Status     | Description         |
-| ---------- | ------------------- |
-| `waiting`  | Waiting for players |
-| `playing`  | Game in progress    |
-| `finished` | Game completed      |
+| Status       | Description                       |
+| ------------ | --------------------------------- |
+| `waiting`    | Waiting for players               |
+| `active`     | Game in progress                  |
+| `finished`   | Game completed                    |
+| `terminated` | Session terminated (debug export) |
 
 **Error Responses:**
 
@@ -240,6 +241,78 @@ Use `lastEventSequence` to request missed events via Socket.IO.
 | 401    | `INVALID_SECRET`     | Secret ID not valid    |
 | 404    | `SESSION_NOT_FOUND`  | Session not found      |
 | 500    | `INTERNAL_ERROR`     | Server error           |
+
+---
+
+### Export Game Events
+
+```
+GET /sessions/:code/events/export
+```
+
+Export all game events in human-readable text format for debugging and bug reporting.
+
+**⚠️ Warning:** This endpoint reveals ALL cards (bypassing anti-cheat) and **terminates the session** to prevent cheating. All connected players will be disconnected.
+
+**URL Parameters:**
+
+| Parameter | Description  |
+| --------- | ------------ |
+| `code`    | Session code |
+
+**Example Request:**
+
+```bash
+curl http://localhost:3000/sessions/schnell-fuchs-42/events/export \
+  -o game-log.txt
+```
+
+**Success Response (200):**
+
+Returns a plain text file (`Content-Type: text/plain`) with the event log:
+
+```
+================================================================================
+DABB GAME EVENT LOG
+================================================================================
+⚠️  SESSION TERMINATED AFTER EXPORT
+
+Session: schnell-fuchs-42 (uuid-here)
+Export Time: 2024-01-23T12:00:00.000Z
+Total Events: 47
+
+PLAYERS:
+  [0] Hans (Team 0)
+  [1] Maria (Team 1)
+
+================================================================================
+ROUND 1 - Dealer: Hans [0]
+================================================================================
+
+--- DEALING ---
+[001] 12:00:00 | CARDS_DEALT
+      Player 0: Herz Ass, Kreuz König, Bollen Ober, ...
+      Player 1: Schippe Zehn, Herz Buabe, ...
+      Dabb: Herz Neun, Bollen König
+
+--- BIDDING ---
+[002] 12:00:05 | BID_PLACED
+      Maria [1] bid 150
+
+... (more events)
+
+================================================================================
+END OF LOG
+================================================================================
+```
+
+**Error Responses:**
+
+| Status | Code                 | Description                |
+| ------ | -------------------- | -------------------------- |
+| 404    | `SESSION_NOT_FOUND`  | Session not found          |
+| 409    | `SESSION_TERMINATED` | Session already terminated |
+| 500    | `INTERNAL_ERROR`     | Server error               |
 
 ---
 

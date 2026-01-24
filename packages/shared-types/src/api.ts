@@ -43,12 +43,15 @@ export interface ReconnectResponse {
   lastEventSequence: number;
 }
 
+// Session status
+export type SessionStatus = 'waiting' | 'active' | 'finished' | 'terminated';
+
 // Session info
 export interface SessionInfoResponse {
   sessionId: string;
   sessionCode: string;
   playerCount: PlayerCount;
-  status: 'waiting' | 'active' | 'finished';
+  status: SessionStatus;
   targetScore: number;
   players: Array<{
     nickname: string;

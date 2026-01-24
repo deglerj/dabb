@@ -1,14 +1,16 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { PlayerCount, PlayerIndex, Team } from '@dabb/shared-types';
+import type { PlayerCount, PlayerIndex, SessionStatus, Team } from '@dabb/shared-types';
 
 import { pool } from '../db/pool.js';
 import { generateSessionCode } from '../utils/sessionCode.js';
+
+export type { SessionStatus };
 
 export interface Session {
   id: string;
   code: string;
   playerCount: PlayerCount;
-  status: 'waiting' | 'active' | 'finished';
+  status: SessionStatus;
   targetScore: number;
   createdAt: Date;
 }
@@ -255,9 +257,6 @@ export async function updatePlayerConnection(playerId: string, connected: boolea
   await pool.query('UPDATE players SET connected = $1 WHERE id = $2', [connected, playerId]);
 }
 
-export async function updateSessionStatus(
-  sessionId: string,
-  status: 'waiting' | 'active' | 'finished'
-): Promise<void> {
+export async function updateSessionStatus(sessionId: string, status: SessionStatus): Promise<void> {
   await pool.query('UPDATE sessions SET status = $1 WHERE id = $2', [status, sessionId]);
 }

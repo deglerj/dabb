@@ -60,6 +60,7 @@ export type {
   ReconnectRequest,
   ReconnectResponse,
   SessionInfoResponse,
+  SessionStatus,
 } from './api';
 
 // Socket types
