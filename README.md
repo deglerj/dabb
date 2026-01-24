@@ -181,6 +181,41 @@ pnpm --filter @dabb/web dev
 pnpm --filter @dabb/mobile start
 ```
 
+### Mobile Development with Expo Go
+
+To test the mobile app on a physical device using [Expo Go](https://expo.dev/go):
+
+1. **Install Expo Go** on your phone (iOS App Store / Google Play)
+
+2. **Find your computer's local IP:**
+
+   ```bash
+   # Linux
+   hostname -I
+   # macOS
+   ipconfig getifaddr en0
+   ```
+
+3. **Configure the server URL** in `apps/mobile/.env`:
+
+   ```env
+   EXPO_PUBLIC_SERVER_URL=http://YOUR_LOCAL_IP:3000
+   ```
+
+4. **Start the server and mobile app:**
+
+   ```bash
+   # Terminal 1
+   pnpm --filter @dabb/server dev
+
+   # Terminal 2
+   pnpm --filter @dabb/mobile start
+   ```
+
+5. **Scan the QR code** in the terminal with your phone's camera (iOS) or Expo Go app (Android)
+
+**Note:** Your phone and computer must be on the same WiFi network.
+
 ### Local Development with Docker/Podman
 
 The easiest way to run the full stack locally is using the `dev.sh` script, which works with both Docker and Podman (with docker aliases):
