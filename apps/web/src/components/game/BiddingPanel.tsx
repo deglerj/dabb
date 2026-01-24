@@ -1,4 +1,5 @@
 import { getMinBid } from '@dabb/game-logic';
+import { useTranslation } from '@dabb/i18n';
 
 interface BiddingPanelProps {
   currentBid: number;
@@ -8,6 +9,7 @@ interface BiddingPanelProps {
 }
 
 function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps) {
+  const { t } = useTranslation();
   const minBid = getMinBid(currentBid);
 
   const bidOptions = [minBid, minBid + 10, minBid + 20, minBid + 50];
@@ -15,7 +17,7 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
   return (
     <div className="bidding-panel">
       <span style={{ marginRight: '1rem' }}>
-        Aktuelles Gebot: <strong>{currentBid || '-'}</strong>
+        {t('game.currentBid')}: <strong>{currentBid || '-'}</strong>
       </span>
 
       {isMyTurn && (
@@ -26,13 +28,13 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
             </button>
           ))}
           <button className="secondary" onClick={onPass}>
-            Passen
+            {t('game.pass')}
           </button>
         </>
       )}
 
       {!isMyTurn && (
-        <span style={{ color: 'var(--text-secondary)' }}>Warte auf andere Spieler...</span>
+        <span style={{ color: 'var(--text-secondary)' }}>{t('game.waitingForOtherPlayers')}</span>
       )}
     </div>
   );

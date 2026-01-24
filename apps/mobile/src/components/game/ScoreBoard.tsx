@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { PlayerIndex, Team } from '@dabb/shared-types';
+import { useTranslation } from '@dabb/i18n';
 
 interface ScoreBoardProps {
   scores: Map<PlayerIndex | Team, number>;
@@ -14,18 +15,22 @@ interface ScoreBoardProps {
 }
 
 function ScoreBoard({ scores, targetScore, nicknames, currentPlayerIndex }: ScoreBoardProps) {
+  const { t } = useTranslation();
   const sortedEntries = Array.from(scores.entries()).sort((a, b) => b[1] - a[1]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Punktestand</Text>
-      <Text style={styles.targetScore}>Ziel: {targetScore}</Text>
+      <Text style={styles.title}>{t('game.scoreBoard')}</Text>
+      <Text style={styles.targetScore}>
+        {t('game.targetScore')}: {targetScore}
+      </Text>
 
       <View style={styles.scoreList}>
         {sortedEntries.map(([playerOrTeam, score], rank) => {
           const isCurrentPlayer = playerOrTeam === currentPlayerIndex;
           const nickname =
-            nicknames.get(playerOrTeam as PlayerIndex) || `Spieler ${playerOrTeam + 1}`;
+            nicknames.get(playerOrTeam as PlayerIndex) ||
+            `${t('common.player')} ${(playerOrTeam as number) + 1}`;
 
           return (
             <View
@@ -40,7 +45,7 @@ function ScoreBoard({ scores, targetScore, nicknames, currentPlayerIndex }: Scor
                 numberOfLines={1}
               >
                 {nickname}
-                {isCurrentPlayer && ' (Du)'}
+                {isCurrentPlayer && ` (${t('common.you')})`}
               </Text>
               <Text style={[styles.score, isCurrentPlayer && styles.currentPlayerText]}>
                 {score}

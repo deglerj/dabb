@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { I18nProvider } from '@dabb/i18n';
 import ErrorBoundary from '../ErrorBoundary';
 
 const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
@@ -9,13 +10,17 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   return <div>Child content</div>;
 };
 
+const renderWithI18n = (ui: React.ReactElement) => {
+  return render(<I18nProvider initialLanguage="de">{ui}</I18nProvider>);
+};
+
 describe('ErrorBoundary', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   it('renders children when there is no error', () => {
-    render(
+    renderWithI18n(
       <ErrorBoundary>
         <div>Test content</div>
       </ErrorBoundary>
@@ -25,7 +30,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('renders error UI when a child throws', () => {
-    render(
+    renderWithI18n(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
@@ -36,7 +41,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('renders custom fallback when provided', () => {
-    render(
+    renderWithI18n(
       <ErrorBoundary fallback={<div>Custom fallback</div>}>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
@@ -46,7 +51,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('shows retry and reload buttons in error state', () => {
-    render(
+    renderWithI18n(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>

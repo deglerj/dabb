@@ -14,6 +14,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useTranslation } from '@dabb/i18n';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface HomeScreenProps {
   onCreateGame: (nickname: string, playerCount: 2 | 3 | 4) => Promise<void>;
@@ -22,6 +24,7 @@ interface HomeScreenProps {
 }
 
 function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu');
   const [nickname, setNickname] = useState('');
   const [sessionCode, setSessionCode] = useState('');
@@ -29,53 +32,56 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
 
   const handleCreate = async () => {
     if (!nickname.trim()) {
-      Alert.alert('Fehler', 'Bitte gib einen Nickname ein');
+      Alert.alert(t('common.error'), t('errors.enterNickname'));
       return;
     }
 
     try {
       await onCreateGame(nickname.trim(), playerCount);
     } catch (_error) {
-      Alert.alert('Fehler', 'Spiel konnte nicht erstellt werden');
+      Alert.alert(t('common.error'), t('errors.createFailed'));
     }
   };
 
   const handleJoin = async () => {
     if (!nickname.trim()) {
-      Alert.alert('Fehler', 'Bitte gib einen Nickname ein');
+      Alert.alert(t('common.error'), t('errors.enterNickname'));
       return;
     }
     if (!sessionCode.trim()) {
-      Alert.alert('Fehler', 'Bitte gib einen Spielcode ein');
+      Alert.alert(t('common.error'), t('errors.enterGameCode'));
       return;
     }
 
     try {
       await onJoinGame(sessionCode.trim().toLowerCase(), nickname.trim());
     } catch (_error) {
-      Alert.alert('Fehler', 'Spiel konnte nicht beigetreten werden');
+      Alert.alert(t('common.error'), t('errors.joinFailed'));
     }
   };
 
   if (mode === 'menu') {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Dabb</Text>
-        <Text style={styles.subtitle}>Binokel Kartenspiel</Text>
+        <View style={styles.languageSwitcherContainer}>
+          <LanguageSwitcher />
+        </View>
+        <Text style={styles.title}>{t('home.title')}</Text>
+        <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
         <View style={styles.buttonGroup}>
           <TouchableOpacity
             style={[styles.button, styles.primaryButton]}
             onPress={() => setMode('create')}
           >
-            <Text style={styles.buttonText}>Neues Spiel erstellen</Text>
+            <Text style={styles.buttonText}>{t('home.createGame')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.button, styles.secondaryButton]}
             onPress={() => setMode('join')}
           >
-            <Text style={styles.secondaryButtonText}>Spiel beitreten</Text>
+            <Text style={styles.secondaryButtonText}>{t('home.joinGame')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -88,19 +94,19 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Text style={styles.title}>Neues Spiel</Text>
+        <Text style={styles.title}>{t('home.newGame')}</Text>
 
         <View style={styles.form}>
-          <Text style={styles.label}>Dein Nickname</Text>
+          <Text style={styles.label}>{t('home.nickname')}</Text>
           <TextInput
             style={styles.input}
             value={nickname}
             onChangeText={setNickname}
-            placeholder="Name eingeben..."
+            placeholder={t('home.nicknamePlaceholder')}
             maxLength={20}
           />
 
-          <Text style={styles.label}>Anzahl Spieler</Text>
+          <Text style={styles.label}>{t('home.playerCount')}</Text>
           <View style={styles.playerCountButtons}>
             {([2, 3, 4] as const).map((count) => (
               <TouchableOpacity
@@ -129,7 +135,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Spiel erstellen</Text>
+                <Text style={styles.buttonText}>{t('home.create')}</Text>
               )}
             </TouchableOpacity>
 
@@ -138,7 +144,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
               onPress={() => setMode('menu')}
               disabled={loading}
             >
-              <Text style={styles.textButtonText}>Zurück</Text>
+              <Text style={styles.textButtonText}>{t('common.back')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -151,24 +157,24 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <Text style={styles.title}>Spiel beitreten</Text>
+      <Text style={styles.title}>{t('home.joinGame')}</Text>
 
       <View style={styles.form}>
-        <Text style={styles.label}>Dein Nickname</Text>
+        <Text style={styles.label}>{t('home.nickname')}</Text>
         <TextInput
           style={styles.input}
           value={nickname}
           onChangeText={setNickname}
-          placeholder="Name eingeben..."
+          placeholder={t('home.nicknamePlaceholder')}
           maxLength={20}
         />
 
-        <Text style={styles.label}>Spielcode</Text>
+        <Text style={styles.label}>{t('home.gameCode')}</Text>
         <TextInput
           style={styles.input}
           value={sessionCode}
           onChangeText={setSessionCode}
-          placeholder="z.B. schnell-fuchs-42"
+          placeholder={t('home.gameCodePlaceholder')}
           autoCapitalize="none"
         />
 
@@ -181,7 +187,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Beitreten</Text>
+              <Text style={styles.buttonText}>{t('home.join')}</Text>
             )}
           </TouchableOpacity>
 
@@ -190,7 +196,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
             onPress={() => setMode('menu')}
             disabled={loading}
           >
-            <Text style={styles.textButtonText}>Zurück</Text>
+            <Text style={styles.textButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -205,6 +211,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     backgroundColor: '#f0f9ff',
+  },
+  languageSwitcherContainer: {
+    position: 'absolute',
+    top: 60,
+    right: 24,
   },
   title: {
     fontSize: 48,

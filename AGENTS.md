@@ -35,7 +35,8 @@ dabb/
 │   ├── shared-types/  # TypeScript types
 │   ├── game-logic/    # Core game rules
 │   ├── ui-shared/     # Shared React hooks
-│   └── card-assets/   # SVG graphics
+│   ├── card-assets/   # SVG graphics
+│   └── i18n/          # Internationalization (i18n)
 ├── docs/
 │   ├── arc42/         # Architecture docs
 │   └── adr/           # Decision records
@@ -68,6 +69,39 @@ Uses Swabian German card names:
 
 - Suits: Kreuz (♣), Schippe (♠), Herz (♥), Bollen (♦)
 - Ranks: Ass, Zehn, König, Ober, Buabe
+
+### Internationalization (i18n)
+
+The app supports multiple languages via the `@dabb/i18n` package:
+
+- **Supported languages**: German (de), English (en)
+- **Default**: German
+- **Storage**: localStorage (web), AsyncStorage (mobile)
+
+**Untranslated terms** (Swabian game terminology remains in German across all languages):
+
+- Suits: Kreuz, Schippe, Herz, Bollen
+- Ranks: Buabe, Ober, König, Zehn, Ass
+- Melds: Paar, Familie, Binokel, Doppel-Binokel, etc.
+- Game terms: Dabb, Binokel
+
+**Usage in components:**
+
+```tsx
+import { useTranslation } from '@dabb/i18n';
+
+function MyComponent() {
+  const { t } = useTranslation();
+  return <p>{t('common.loading')}</p>;
+}
+```
+
+**Adding a new language:**
+
+1. Create `packages/i18n/src/locales/[lang].ts` (copy from `de.ts`)
+2. Add to `SUPPORTED_LANGUAGES` in `packages/i18n/src/types.ts`
+3. Export from `packages/i18n/src/locales/index.ts`
+4. Add label to `LANGUAGE_LABELS` in `types.ts`
 
 ## Commands
 
@@ -107,26 +141,31 @@ pnpm docker:reset         # Reset database
 
 ## Key Files
 
-| File                                         | Purpose                    |
-| -------------------------------------------- | -------------------------- |
-| `packages/shared-types/src/cards.ts`         | Card types and constants   |
-| `packages/shared-types/src/game.ts`          | Game state and meld types  |
-| `packages/shared-types/src/events.ts`        | Event type definitions     |
-| `packages/shared-types/src/api.ts`           | API request/response types |
-| `packages/shared-types/src/socket.ts`        | Socket event types         |
-| `packages/game-logic/src/state/reducer.ts`   | Event sourcing reducer     |
-| `packages/game-logic/src/state/views.ts`     | State view functions       |
-| `packages/game-logic/src/melds/detector.ts`  | Meld detection             |
-| `packages/game-logic/src/phases/bidding.ts`  | Bidding phase logic        |
-| `packages/game-logic/src/phases/tricks.ts`   | Trick-taking rules         |
-| `packages/game-logic/src/export/`            | Event export for debug     |
-| `packages/ui-shared/src/useGameState.ts`     | Game state React hook      |
-| `packages/ui-shared/src/useSocket.ts`        | Socket.IO React hook       |
-| `apps/server/src/socket/handlers.ts`         | Socket.IO event handlers   |
-| `apps/server/src/services/eventService.ts`   | Event persistence          |
-| `apps/server/src/services/gameService.ts`    | Game logic service         |
-| `apps/server/src/services/sessionService.ts` | Session management         |
-| `apps/server/src/db/pool.ts`                 | Database connection pool   |
+| File                                            | Purpose                    |
+| ----------------------------------------------- | -------------------------- |
+| `packages/shared-types/src/cards.ts`            | Card types and constants   |
+| `packages/shared-types/src/game.ts`             | Game state and meld types  |
+| `packages/shared-types/src/events.ts`           | Event type definitions     |
+| `packages/shared-types/src/api.ts`              | API request/response types |
+| `packages/shared-types/src/socket.ts`           | Socket event types         |
+| `packages/game-logic/src/state/reducer.ts`      | Event sourcing reducer     |
+| `packages/game-logic/src/state/views.ts`        | State view functions       |
+| `packages/game-logic/src/melds/detector.ts`     | Meld detection             |
+| `packages/game-logic/src/phases/bidding.ts`     | Bidding phase logic        |
+| `packages/game-logic/src/phases/tricks.ts`      | Trick-taking rules         |
+| `packages/game-logic/src/export/`               | Event export for debug     |
+| `packages/ui-shared/src/useGameState.ts`        | Game state React hook      |
+| `packages/ui-shared/src/useSocket.ts`           | Socket.IO React hook       |
+| `apps/server/src/socket/handlers.ts`            | Socket.IO event handlers   |
+| `apps/server/src/services/eventService.ts`      | Event persistence          |
+| `apps/server/src/services/gameService.ts`       | Game logic service         |
+| `apps/server/src/services/sessionService.ts`    | Session management         |
+| `apps/server/src/db/pool.ts`                    | Database connection pool   |
+| `packages/i18n/src/locales/de.ts`               | German translations        |
+| `packages/i18n/src/locales/en.ts`               | English translations       |
+| `packages/i18n/src/types.ts`                    | i18n types and config      |
+| `packages/i18n/src/config.ts`                   | i18next initialization     |
+| `packages/i18n/src/components/I18nProvider.tsx` | React i18n provider        |
 
 ## Testing
 

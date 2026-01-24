@@ -6,6 +6,7 @@ import React, { useMemo, useCallback, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import type { GameState, PlayerIndex, Card as CardType, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
+import { useTranslation } from '@dabb/i18n';
 import { PlayerHand, BiddingPanel, TrumpSelector, TrickArea, ScoreBoard } from '../components/game';
 
 interface GameScreenProps {
@@ -27,6 +28,7 @@ function GameScreen({
   onDeclareTrump,
   onPlayCard,
 }: GameScreenProps) {
+  const { t } = useTranslation();
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   const myHand = state.hands.get(playerIndex) || [];
@@ -71,14 +73,14 @@ function GameScreen({
       case 'waiting':
         return (
           <View style={styles.phaseContainer}>
-            <Text style={styles.phaseText}>Warte auf Spielstart...</Text>
+            <Text style={styles.phaseText}>{t('game.waitingForGameStart')}</Text>
           </View>
         );
 
       case 'dealing':
         return (
           <View style={styles.phaseContainer}>
-            <Text style={styles.phaseText}>Karten werden verteilt...</Text>
+            <Text style={styles.phaseText}>{t('game.dealing')}</Text>
           </View>
         );
 
@@ -99,7 +101,9 @@ function GameScreen({
         return (
           <View style={styles.phaseContainer}>
             <Text style={styles.phaseText}>
-              {nicknames.get(state.bidWinner!) || 'Spieler'} wählt Trumpf...
+              {t('game.choosingTrump', {
+                name: nicknames.get(state.bidWinner!) || t('common.player'),
+              })}
             </Text>
           </View>
         );
@@ -118,7 +122,7 @@ function GameScreen({
       case 'scoring':
         return (
           <View style={styles.phaseContainer}>
-            <Text style={styles.phaseText}>Runde beendet!</Text>
+            <Text style={styles.phaseText}>{t('game.roundOver')}</Text>
             <ScoreBoard
               scores={state.totalScores}
               targetScore={state.targetScore}
@@ -136,8 +140,10 @@ function GameScreen({
           <View style={styles.phaseContainer}>
             <Text style={styles.winnerText}>
               {winner
-                ? `${nicknames.get(winner[0] as PlayerIndex) || 'Spieler'} gewinnt!`
-                : 'Spiel beendet'}
+                ? t('game.wins', {
+                    name: nicknames.get(winner[0] as PlayerIndex) || t('common.player'),
+                  })
+                : t('game.gameOver')}
             </Text>
             <ScoreBoard
               scores={state.totalScores}
@@ -158,11 +164,11 @@ function GameScreen({
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.phaseLabel}>
-          {state.phase === 'bidding' && `Gebot: ${state.currentBid}`}
-          {state.phase === 'tricks' && state.trump && `Trumpf: ${state.trump}`}
+          {state.phase === 'bidding' && `${t('game.bid')}: ${state.currentBid}`}
+          {state.phase === 'tricks' && state.trump && `${t('game.trump')}: ${state.trump}`}
         </Text>
         {isMyTurn && state.phase !== 'waiting' && state.phase !== 'dealing' && (
-          <Text style={styles.turnIndicator}>Du bist dran!</Text>
+          <Text style={styles.turnIndicator}>{t('game.yourTurn')}</Text>
         )}
       </View>
 
@@ -176,7 +182,7 @@ function GameScreen({
           onCardSelect={handleCardSelect}
         />
         {state.phase === 'tricks' && selectedCardId && (
-          <Text style={styles.hint}>Tippe nochmal um zu spielen</Text>
+          <Text style={styles.hint}>{t('game.tapAgainToPlay')}</Text>
         )}
       </View>
     </SafeAreaView>

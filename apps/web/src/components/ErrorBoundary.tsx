@@ -1,4 +1,5 @@
 import { Component, ReactNode } from 'react';
+import { useTranslation } from '@dabb/i18n';
 
 interface Props {
   children: ReactNode;
@@ -8,6 +9,52 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+}
+
+function ErrorView({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '50vh',
+        padding: '2rem',
+        textAlign: 'center',
+      }}
+    >
+      <h2 style={{ color: 'var(--error)', marginBottom: '1rem' }}>
+        {t('errors.somethingWentWrong')}
+      </h2>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: '400px' }}>
+        {t('errors.unexpectedError')}
+      </p>
+      {error && (
+        <pre
+          style={{
+            background: 'var(--bg-input)',
+            padding: '1rem',
+            borderRadius: '8px',
+            fontSize: '0.75rem',
+            maxWidth: '100%',
+            overflow: 'auto',
+            marginBottom: '1.5rem',
+          }}
+        >
+          {error.message}
+        </pre>
+      )}
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <button onClick={onRetry}>{t('common.retry')}</button>
+        <button className="secondary" onClick={() => window.location.reload()}>
+          {t('common.reload')}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -34,46 +81,7 @@ class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      return (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '50vh',
-            padding: '2rem',
-            textAlign: 'center',
-          }}
-        >
-          <h2 style={{ color: 'var(--error)', marginBottom: '1rem' }}>Etwas ist schiefgelaufen</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: '400px' }}>
-            Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut oder lade die Seite
-            neu.
-          </p>
-          {this.state.error && (
-            <pre
-              style={{
-                background: 'var(--bg-input)',
-                padding: '1rem',
-                borderRadius: '8px',
-                fontSize: '0.75rem',
-                maxWidth: '100%',
-                overflow: 'auto',
-                marginBottom: '1.5rem',
-              }}
-            >
-              {this.state.error.message}
-            </pre>
-          )}
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button onClick={this.handleRetry}>Erneut versuchen</button>
-            <button className="secondary" onClick={() => window.location.reload()}>
-              Seite neu laden
-            </button>
-          </div>
-        </div>
-      );
+      return <ErrorView error={this.state.error} onRetry={this.handleRetry} />;
     }
 
     return this.props.children;

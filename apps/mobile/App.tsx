@@ -5,11 +5,25 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { PlayerIndex, GameEvent, PlayerCount, Suit } from '@dabb/shared-types';
+import {
+  I18nProvider,
+  setStorageAdapter,
+  detectLanguageAsync,
+  useTranslation,
+  type SupportedLanguage,
+} from '@dabb/i18n';
 import { HomeScreen, WaitingRoomScreen, GameScreen } from './src/screens';
 import { useSessionCredentials } from './src/hooks/useAsyncStorage';
 import { useSocket } from './src/hooks/useSocket';
 import { useGameState } from './src/hooks/useGameState';
+
+// Set up AsyncStorage adapter for i18n
+setStorageAdapter({
+  getItem: (key) => AsyncStorage.getItem(key),
+  setItem: (key, value) => AsyncStorage.setItem(key, value),
+});
 
 const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL || 'http://localhost:3000';
 
@@ -23,7 +37,8 @@ interface SessionInfo {
   isHost: boolean;
 }
 
-export default function App() {
+function AppContent() {
+  const { t } = useTranslation();
   const {
     credentials,
     setCredentials,
@@ -163,7 +178,7 @@ export default function App() {
 
       setScreen('waiting');
     } catch (_error) {
-      Alert.alert('Fehler', 'Spiel konnte nicht erstellt werden');
+      Alert.alert(t('common.error'), t('errors.createFailed'));
     } finally {
       setApiLoading(false);
     }
@@ -204,7 +219,7 @@ export default function App() {
 
       setScreen('waiting');
     } catch (_error) {
-      Alert.alert('Fehler', 'Spiel konnte nicht beigetreten werden');
+      Alert.alert(t('common.error'), t('errors.joinFailed'));
     } finally {
       setApiLoading(false);
     }
@@ -243,7 +258,7 @@ export default function App() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
-        <Text style={styles.loadingText}>Laden...</Text>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
         <StatusBar style="auto" />
       </View>
     );
@@ -297,7 +312,7 @@ export default function App() {
 
   return (
     <View style={styles.loadingContainer}>
-      <Text>Etwas ist schiefgelaufen</Text>
+      <Text>{t('errors.somethingWentWrong')}</Text>
       <StatusBar style="auto" />
     </View>
   );
@@ -316,3 +331,30 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
 });
+
+export default function App() {
+  const [initialLanguage, setInitialLanguage] = useState<SupportedLanguage | undefined>(undefined);
+  const [languageLoading, setLanguageLoading] = useState(true);
+
+  useEffect(() => {
+    detectLanguageAsync().then((lang) => {
+      setInitialLanguage(lang);
+      setLanguageLoading(false);
+    });
+  }, []);
+
+  if (languageLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2563eb" />
+        <StatusBar style="auto" />
+      </View>
+    );
+  }
+
+  return (
+    <I18nProvider initialLanguage={initialLanguage}>
+      <AppContent />
+    </I18nProvider>
+  );
+}

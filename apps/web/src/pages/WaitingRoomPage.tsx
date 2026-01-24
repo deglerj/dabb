@@ -6,12 +6,14 @@ import type {
   ServerToClientEvents,
   SessionInfoResponse,
 } from '@dabb/shared-types';
+import { useTranslation } from '@dabb/i18n';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 function WaitingRoomPage() {
+  const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const [session, setSession] = useState<SessionInfoResponse | null>(null);
@@ -109,8 +111,8 @@ function WaitingRoomPage() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Dabb - Binokel Spiel',
-          text: 'Komm und spiel Binokel mit mir!',
+          title: `${t('home.title')} - ${t('home.subtitle')}`,
+          text: t('waitingRoom.shareMessage'),
           url,
         });
       } catch {
@@ -124,7 +126,7 @@ function WaitingRoomPage() {
   if (!session) {
     return (
       <div className="card" style={{ maxWidth: 500, margin: '4rem auto', textAlign: 'center' }}>
-        {error ? <p className="error">{error}</p> : <p>Laden...</p>}
+        {error ? <p className="error">{error}</p> : <p>{t('common.loading')}</p>}
       </div>
     );
   }
@@ -133,7 +135,7 @@ function WaitingRoomPage() {
 
   return (
     <div className="card" style={{ maxWidth: 500, margin: '4rem auto' }}>
-      <h2>Warteraum</h2>
+      <h2>{t('waitingRoom.title')}</h2>
 
       <div
         style={{
@@ -147,22 +149,24 @@ function WaitingRoomPage() {
         }}
       >
         <div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Spielcode</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+            {t('waitingRoom.gameCode')}
+          </p>
           <p style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{code}</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button className="secondary" onClick={copyCode}>
-            Kopieren
+            {t('common.copy')}
           </button>
           <button className="secondary" onClick={shareUrl}>
-            Teilen
+            {t('common.share')}
           </button>
         </div>
       </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
         <h3>
-          Spieler ({session.players.length}/{session.playerCount})
+          {t('common.players')} ({session.players.length}/{session.playerCount})
         </h3>
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}
@@ -182,11 +186,13 @@ function WaitingRoomPage() {
                 }}
               >
                 <span>
-                  {player ? player.nickname : '(Warten...)'}
-                  {i === 0 && ' (Gastgeber)'}
+                  {player ? player.nickname : `(${t('waitingRoom.waitingForPlayers')})`}
+                  {i === 0 && ` (${t('waitingRoom.host')})`}
                 </span>
                 {player?.connected && (
-                  <span style={{ color: 'var(--success)', fontSize: '0.75rem' }}>Verbunden</span>
+                  <span style={{ color: 'var(--success)', fontSize: '0.75rem' }}>
+                    {t('common.connected')}
+                  </span>
                 )}
               </div>
             );
@@ -199,14 +205,16 @@ function WaitingRoomPage() {
       {isHost && (
         <button onClick={handleStartGame} disabled={!canStart} style={{ width: '100%' }}>
           {canStart
-            ? 'Spiel starten'
-            : `Warte auf ${session.playerCount - session.players.length} Spieler...`}
+            ? t('waitingRoom.startGame')
+            : t('waitingRoom.waitingForPlayersCount', {
+                count: session.playerCount - session.players.length,
+              })}
         </button>
       )}
 
       {!isHost && (
         <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-          Warte auf den Gastgeber...
+          {t('waitingRoom.waitingForHost')}
         </p>
       )}
     </div>

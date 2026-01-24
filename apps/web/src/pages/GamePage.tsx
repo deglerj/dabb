@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import type { Card, CardId, Suit, PlayerIndex } from '@dabb/shared-types';
 import { DABB_SIZE, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
+import { useTranslation } from '@dabb/i18n';
 
 import { useGame } from '../hooks/useGame';
 import PlayerHand from '../components/game/PlayerHand';
@@ -12,6 +13,7 @@ import TrickArea from '../components/game/TrickArea';
 import ScoreBoard from '../components/game/ScoreBoard';
 
 function GamePage() {
+  const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
   const game = useGame(code || '');
   const [selectedCards, setSelectedCards] = useState<CardId[]>([]);
@@ -43,7 +45,7 @@ function GamePage() {
   if (!connected) {
     return (
       <div className="card" style={{ textAlign: 'center', marginTop: '4rem' }}>
-        <p>Verbindung wird hergestellt...</p>
+        <p>{t('game.connectingToServer')}</p>
       </div>
     );
   }
@@ -90,19 +92,19 @@ function GamePage() {
           <div className="card" style={{ textAlign: 'center' }}>
             {state.dabb.length > 0 ? (
               <>
-                <h3>Dabb aufnehmen</h3>
+                <h3>{t('game.takeDabb')}</h3>
                 <button onClick={game.takeDabb} style={{ marginTop: '1rem' }}>
-                  Dabb aufnehmen ({state.dabb.length} Karten)
+                  {t('game.takeDabbCards', { count: state.dabb.length })}
                 </button>
               </>
             ) : (
               <>
-                <h3>Karten abwerfen</h3>
+                <h3>{t('game.discardCards')}</h3>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  Wähle {dabbSize} Karten zum Abwerfen
+                  {t('game.selectCardsToDiscard', { count: dabbSize })}
                 </p>
                 <button onClick={handleDiscard} disabled={selectedCards.length !== dabbSize}>
-                  {selectedCards.length}/{dabbSize} ausgewählt - Abwerfen
+                  {t('game.selectedCount', { selected: selectedCards.length, total: dabbSize })}
                 </button>
               </>
             )}
@@ -111,8 +113,9 @@ function GamePage() {
 
         {state.phase === 'dabb' && state.bidWinner !== playerIndex && (
           <p style={{ color: 'var(--text-secondary)' }}>
-            Warte auf Spieler{' '}
-            {state.players.find((p) => p.playerIndex === state.bidWinner)?.nickname}...
+            {t('game.waitingForPlayer', {
+              name: state.players.find((p) => p.playerIndex === state.bidWinner)?.nickname,
+            })}
           </p>
         )}
 
@@ -122,7 +125,7 @@ function GamePage() {
         )}
 
         {state.phase === 'trump' && state.bidWinner !== playerIndex && (
-          <p style={{ color: 'var(--text-secondary)' }}>Warte auf Trumpf-Ansage...</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{t('game.waitingForTrump')}</p>
         )}
 
         {/* Melding phase */}
@@ -130,14 +133,14 @@ function GamePage() {
           <div className="card" style={{ textAlign: 'center' }}>
             {!state.declaredMelds.has(playerIndex as PlayerIndex) ? (
               <>
-                <h3>Meldungen ansagen</h3>
+                <h3>{t('game.declareMelds')}</h3>
                 {state.trump && <MeldPreview hand={myHand} trump={state.trump} />}
                 <button onClick={handleDeclareMelds} style={{ marginTop: '1rem' }}>
-                  Meldungen bestätigen
+                  {t('game.confirmMelds')}
                 </button>
               </>
             ) : (
-              <p style={{ color: 'var(--text-secondary)' }}>Warte auf andere Spieler...</p>
+              <p style={{ color: 'var(--text-secondary)' }}>{t('game.waitingForOtherPlayers')}</p>
             )}
           </div>
         )}
@@ -154,15 +157,15 @@ function GamePage() {
         {/* Scoring phase */}
         {state.phase === 'scoring' && (
           <div className="card" style={{ textAlign: 'center' }}>
-            <h3>Runde beendet</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>Nächste Runde beginnt...</p>
+            <h3>{t('game.roundOver')}</h3>
+            <p style={{ color: 'var(--text-secondary)' }}>{t('game.nextRoundStarting')}</p>
           </div>
         )}
 
         {/* Finished */}
         {state.phase === 'finished' && (
           <div className="card" style={{ textAlign: 'center' }}>
-            <h3>Spiel beendet!</h3>
+            <h3>{t('game.gameOver')}</h3>
           </div>
         )}
       </div>
@@ -181,25 +184,17 @@ function GamePage() {
 }
 
 function PhaseIndicator({ phase, trump }: { phase: string; trump: string | null }) {
-  const phaseNames: Record<string, string> = {
-    waiting: 'Warten',
-    dealing: 'Austeilen',
-    bidding: 'Reizen',
-    dabb: 'Dabb',
-    trump: 'Trumpf',
-    melding: 'Melden',
-    tricks: 'Stechen',
-    scoring: 'Zählen',
-    finished: 'Beendet',
-  };
+  const { t } = useTranslation();
+
+  const phaseKey = `phases.${phase}` as const;
 
   return (
     <div>
-      <span style={{ color: 'var(--text-secondary)' }}>Phase: </span>
-      <strong>{phaseNames[phase] || phase}</strong>
+      <span style={{ color: 'var(--text-secondary)' }}>{t('game.phase')}: </span>
+      <strong>{t(phaseKey)}</strong>
       {trump && (
         <span style={{ marginLeft: '1rem' }}>
-          | Trumpf: <strong>{SUIT_NAMES[trump as keyof typeof SUIT_NAMES]}</strong>
+          | {t('game.trump')}: <strong>{SUIT_NAMES[trump as keyof typeof SUIT_NAMES]}</strong>
         </span>
       )}
     </div>
@@ -207,21 +202,24 @@ function PhaseIndicator({ phase, trump }: { phase: string; trump: string | null 
 }
 
 function MeldPreview({ hand, trump }: { hand: Card[]; trump: Suit }) {
+  const { t } = useTranslation();
   const melds = detectMelds(hand, trump);
   const totalPoints = calculateMeldPoints(melds);
 
   if (melds.length === 0) {
-    return <p style={{ color: 'var(--text-secondary)' }}>Keine Meldungen</p>;
+    return <p style={{ color: 'var(--text-secondary)' }}>{t('game.noMelds')}</p>;
   }
 
   return (
     <div style={{ marginTop: '1rem' }}>
       {melds.map((meld, i) => (
         <div key={i}>
-          {meld.type} ({meld.points} Punkte)
+          {meld.type} ({meld.points} {t('game.points')})
         </div>
       ))}
-      <div style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>Gesamt: {totalPoints} Punkte</div>
+      <div style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>
+        {t('game.total')}: {totalPoints} {t('game.points')}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { GameState, PlayerIndex } from '@dabb/shared-types';
+import { useTranslation } from '@dabb/i18n';
 
 interface ScoreBoardProps {
   state: GameState;
@@ -6,6 +7,8 @@ interface ScoreBoardProps {
 }
 
 function ScoreBoard({ state, currentPlayerIndex }: ScoreBoardProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="scoreboard">
       {state.players.map((player) => {
@@ -18,11 +21,13 @@ function ScoreBoard({ state, currentPlayerIndex }: ScoreBoardProps) {
             <div className="score">{score}</div>
             {player.playerIndex === state.bidWinner && state.phase !== 'waiting' && (
               <div style={{ fontSize: '0.75rem', color: 'var(--accent)' }}>
-                Gebot: {state.currentBid}
+                {t('game.bid')}: {state.currentBid}
               </div>
             )}
             {!player.connected && (
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>(Getrennt)</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                ({t('common.disconnected')})
+              </div>
             )}
           </div>
         );

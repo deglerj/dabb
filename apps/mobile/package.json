@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@dabb/game-logic": "workspace:*",
+    "@dabb/i18n": "workspace:*",
     "@dabb/shared-types": "workspace:*",
     "@dabb/card-assets": "workspace:*",
     "@dabb/ui-shared": "workspace:*",

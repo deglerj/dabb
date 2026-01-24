@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from '@dabb/i18n';
 
 interface BiddingPanelProps {
   currentBid: number;
@@ -15,6 +16,7 @@ interface BiddingPanelProps {
 const BID_INCREMENTS = [10, 20, 50];
 
 function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps) {
+  const { t } = useTranslation();
   const [selectedBid, setSelectedBid] = useState(currentBid + 10);
 
   const handleBid = () => {
@@ -30,16 +32,20 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
   if (!isMyTurn) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Warten auf andere Spieler...</Text>
-        <Text style={styles.currentBid}>Aktuelles Gebot: {currentBid}</Text>
+        <Text style={styles.title}>{t('game.waitingForOtherPlayers')}</Text>
+        <Text style={styles.currentBid}>
+          {t('game.currentBid')}: {currentBid}
+        </Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Dein Gebot</Text>
-      <Text style={styles.currentBid}>Aktuelles Gebot: {currentBid}</Text>
+      <Text style={styles.title}>{t('game.yourBid')}</Text>
+      <Text style={styles.currentBid}>
+        {t('game.currentBid')}: {currentBid}
+      </Text>
 
       <View style={styles.bidSelector}>
         <TouchableOpacity
@@ -66,11 +72,11 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
 
       <View style={styles.actionButtons}>
         <TouchableOpacity style={[styles.button, styles.bidButton]} onPress={handleBid}>
-          <Text style={styles.buttonText}>Bieten</Text>
+          <Text style={styles.buttonText}>{t('game.bid')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.passButton]} onPress={onPass}>
-          <Text style={styles.passButtonText}>Passen</Text>
+          <Text style={styles.passButtonText}>{t('game.pass')}</Text>
         </TouchableOpacity>
       </View>
     </View>

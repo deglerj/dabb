@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import type { PlayerIndex } from '@dabb/shared-types';
+import { useTranslation } from '@dabb/i18n';
 
 interface WaitingRoomScreenProps {
   sessionCode: string;
@@ -31,13 +32,14 @@ function WaitingRoomScreen({
   onStartGame,
   onLeave,
 }: WaitingRoomScreenProps) {
+  const { t } = useTranslation();
   const connectedPlayers = Array.from(players.values()).filter((p) => p.connected).length;
   const canStart = connectedPlayers === playerCount;
 
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Spiel mit mir Binokel! Code: ${sessionCode}`,
+        message: `${t('waitingRoom.shareMessage')} Code: ${sessionCode}`,
       });
     } catch (error) {
       console.error('Share failed:', error);
@@ -46,19 +48,19 @@ function WaitingRoomScreen({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Warteraum</Text>
+      <Text style={styles.title}>{t('waitingRoom.title')}</Text>
 
       <View style={styles.codeContainer}>
-        <Text style={styles.codeLabel}>Spielcode:</Text>
+        <Text style={styles.codeLabel}>{t('waitingRoom.gameCode')}:</Text>
         <Text style={styles.code}>{sessionCode}</Text>
         <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-          <Text style={styles.shareButtonText}>Teilen</Text>
+          <Text style={styles.shareButtonText}>{t('common.share')}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.playersSection}>
         <Text style={styles.playersTitle}>
-          Spieler ({connectedPlayers}/{playerCount})
+          {t('common.players')} ({connectedPlayers}/{playerCount})
         </Text>
 
         <View style={styles.playersList}>
@@ -72,8 +74,10 @@ function WaitingRoomScreen({
                     player?.connected ? styles.statusOnline : styles.statusOffline,
                   ]}
                 />
-                <Text style={styles.playerName}>{player?.nickname || 'Warten auf Spieler...'}</Text>
-                {index === 0 && <Text style={styles.hostBadge}>Host</Text>}
+                <Text style={styles.playerName}>
+                  {player?.nickname || `${t('waitingRoom.waitingForPlayers')}...`}
+                </Text>
+                {index === 0 && <Text style={styles.hostBadge}>{t('waitingRoom.host')}</Text>}
               </View>
             );
           })}
@@ -84,7 +88,9 @@ function WaitingRoomScreen({
         <View style={styles.waitingIndicator}>
           <ActivityIndicator size="small" color="#2563eb" />
           <Text style={styles.waitingText}>
-            Warte auf {playerCount - connectedPlayers} weitere Spieler...
+            {t('waitingRoom.waitingForPlayersCount', {
+              count: playerCount - connectedPlayers,
+            })}
           </Text>
         </View>
       )}
@@ -96,12 +102,12 @@ function WaitingRoomScreen({
             onPress={onStartGame}
             disabled={!canStart}
           >
-            <Text style={styles.buttonText}>Spiel starten</Text>
+            <Text style={styles.buttonText}>{t('waitingRoom.startGame')}</Text>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity style={[styles.button, styles.leaveButton]} onPress={onLeave}>
-          <Text style={styles.leaveButtonText}>Verlassen</Text>
+          <Text style={styles.leaveButtonText}>{t('common.leave')}</Text>
         </TouchableOpacity>
       </View>
     </View>

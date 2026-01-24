@@ -26,6 +26,7 @@ _Play the traditional Swabian card game Binokel with friends online!_
 
 - **Real-time multiplayer** - Play with friends anywhere
 - **Cross-platform** - Web and Android support
+- **Multi-language** - German and English UI (Swabian card terms preserved)
 - **Event-sourced** - Reliable state management with reconnection support
 - **Swabian dialect** - Authentic card names and terminology
 - **AI slop** - Purely vibe coded - nix mit schaffe, schaffe, ...
@@ -156,7 +157,8 @@ dabb/
 │   ├── game-logic/     # Core game engine
 │   ├── shared-types/   # TypeScript types
 │   ├── ui-shared/      # Shared React hooks
-│   └── card-assets/    # SVG card graphics
+│   ├── card-assets/    # SVG card graphics
+│   └── i18n/           # Internationalization
 └── turbo.json
 ```
 

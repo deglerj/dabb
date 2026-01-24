@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PlayerCount } from '@dabb/shared-types';
+import { useTranslation } from '@dabb/i18n';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function HomePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu');
   const [nickname, setNickname] = useState('');
@@ -15,7 +18,7 @@ function HomePage() {
 
   const handleCreate = async () => {
     if (!nickname.trim()) {
-      setError('Bitte gib einen Spitznamen ein');
+      setError(t('errors.enterNickname'));
       return;
     }
 
@@ -34,7 +37,7 @@ function HomePage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Fehler beim Erstellen');
+        throw new Error(data.error || t('errors.createFailed'));
       }
 
       const data = await res.json();
@@ -51,7 +54,7 @@ function HomePage() {
 
       navigate(`/game/${data.sessionCode}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unbekannter Fehler');
+      setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
       setLoading(false);
     }
@@ -59,12 +62,12 @@ function HomePage() {
 
   const handleJoin = async () => {
     if (!nickname.trim()) {
-      setError('Bitte gib einen Spitznamen ein');
+      setError(t('errors.enterNickname'));
       return;
     }
 
     if (!joinCode.trim()) {
-      setError('Bitte gib einen Spielcode ein');
+      setError(t('errors.enterGameCode'));
       return;
     }
 
@@ -82,7 +85,7 @@ function HomePage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Fehler beim Beitreten');
+        throw new Error(data.error || t('errors.joinFailed'));
       }
 
       const data = await res.json();
@@ -99,7 +102,7 @@ function HomePage() {
 
       navigate(`/game/${joinCode.trim()}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unbekannter Fehler');
+      setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
       setLoading(false);
     }
@@ -108,12 +111,15 @@ function HomePage() {
   if (mode === 'menu') {
     return (
       <div className="card" style={{ maxWidth: 400, margin: '4rem auto', textAlign: 'center' }}>
-        <h1 style={{ marginBottom: '2rem' }}>Dabb</h1>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Binokel Online</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 style={{ marginBottom: '2rem' }}>{t('home.title')}</h1>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>{t('home.subtitle')}</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <button onClick={() => setMode('create')}>Neues Spiel erstellen</button>
+          <button onClick={() => setMode('create')}>{t('home.createGame')}</button>
           <button className="secondary" onClick={() => setMode('join')}>
-            Spiel beitreten
+            {t('home.joinGame')}
           </button>
         </div>
       </div>
@@ -122,22 +128,22 @@ function HomePage() {
 
   return (
     <div className="card" style={{ maxWidth: 400, margin: '4rem auto' }}>
-      <h2>{mode === 'create' ? 'Neues Spiel' : 'Spiel beitreten'}</h2>
+      <h2>{mode === 'create' ? t('home.newGame') : t('home.joinGame')}</h2>
 
       <div className="form-group">
-        <label>Dein Spitzname</label>
+        <label>{t('home.nickname')}</label>
         <input
           type="text"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          placeholder="z.B. Hans"
+          placeholder={t('home.nicknamePlaceholder')}
           maxLength={20}
         />
       </div>
 
       {mode === 'create' && (
         <div className="form-group">
-          <label>Spieleranzahl</label>
+          <label>{t('home.playerCount')}</label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             {([2, 3, 4] as PlayerCount[]).map((count) => (
               <button
@@ -155,12 +161,12 @@ function HomePage() {
 
       {mode === 'join' && (
         <div className="form-group">
-          <label>Spielcode</label>
+          <label>{t('home.gameCode')}</label>
           <input
             type="text"
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value)}
-            placeholder="z.B. schnell-fuchs-42"
+            placeholder={t('home.gameCodePlaceholder')}
           />
         </div>
       )}
@@ -169,14 +175,14 @@ function HomePage() {
 
       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
         <button className="secondary" onClick={() => setMode('menu')}>
-          Zurück
+          {t('common.back')}
         </button>
         <button
           onClick={mode === 'create' ? handleCreate : handleJoin}
           disabled={loading}
           style={{ flex: 1 }}
         >
-          {loading ? 'Laden...' : mode === 'create' ? 'Erstellen' : 'Beitreten'}
+          {loading ? t('common.loading') : mode === 'create' ? t('home.create') : t('home.join')}
         </button>
       </div>
     </div>
