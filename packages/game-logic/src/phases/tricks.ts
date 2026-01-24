@@ -8,12 +8,11 @@ import { Card, CardId, RANK_POINTS, Rank, Suit, Trick } from '@dabb/shared-types
  * Card strength ordering (higher index = stronger)
  */
 const CARD_STRENGTH: Record<Rank, number> = {
-  '9': 0,
-  buabe: 1,
-  ober: 2,
-  koenig: 3,
-  '10': 4,
-  ass: 5,
+  buabe: 0,
+  ober: 1,
+  koenig: 2,
+  '10': 3,
+  ass: 4,
 };
 
 /**

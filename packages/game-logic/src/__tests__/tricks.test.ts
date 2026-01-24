@@ -38,23 +38,23 @@ describe('Trick Logic', () => {
     it('trump beats lead suit', () => {
       const trick = createTrick([
         { card: card('herz', 'ass'), playerIndex: 0 },
-        { card: card('kreuz', '9'), playerIndex: 1 }, // Trump 9
+        { card: card('kreuz', 'buabe'), playerIndex: 1 }, // Trump Buabe
         { card: card('herz', '10'), playerIndex: 2 },
       ]);
 
       const winnerIdx = determineTrickWinner(trick, 'kreuz');
-      expect(winnerIdx).toBe(1); // Trump 9 beats Herz Ass
+      expect(winnerIdx).toBe(1); // Trump Buabe beats Herz Ass
     });
 
     it('higher trump beats lower trump', () => {
       const trick = createTrick([
-        { card: card('kreuz', '9'), playerIndex: 0 },
-        { card: card('kreuz', 'buabe'), playerIndex: 1 },
+        { card: card('kreuz', 'buabe'), playerIndex: 0 },
+        { card: card('kreuz', 'ober'), playerIndex: 1 },
         { card: card('kreuz', 'koenig'), playerIndex: 2 },
       ]);
 
       const winnerIdx = determineTrickWinner(trick, 'kreuz');
-      expect(winnerIdx).toBe(2); // König beats Buabe beats 9
+      expect(winnerIdx).toBe(2); // König beats Ober beats Buabe
     });
 
     it('off-suit card cannot win', () => {
@@ -81,7 +81,7 @@ describe('Trick Logic', () => {
 
   describe('getValidPlays', () => {
     it('any card is valid on empty trick', () => {
-      const hand = [card('herz', 'ass'), card('kreuz', 'koenig'), card('schippe', '9')];
+      const hand = [card('herz', 'ass'), card('kreuz', 'koenig'), card('schippe', 'buabe')];
       const emptyTrick: Trick = { cards: [], leadSuit: null, winnerIndex: null };
 
       const validPlays = getValidPlays(hand, emptyTrick, 'kreuz');
@@ -89,9 +89,9 @@ describe('Trick Logic', () => {
     });
 
     it('must follow suit if possible', () => {
-      const hand = [card('herz', 'ass'), card('herz', 'koenig'), card('kreuz', '9')];
+      const hand = [card('herz', 'ass'), card('herz', 'koenig'), card('kreuz', 'buabe')];
       const trick = createTrick([
-        { card: card('herz', '9'), playerIndex: 0 }, // Low card that both can beat
+        { card: card('herz', 'buabe'), playerIndex: 0 }, // Low card that both can beat
       ]);
 
       const validPlays = getValidPlays(hand, trick, 'kreuz');
@@ -101,7 +101,7 @@ describe('Trick Logic', () => {
     });
 
     it('must beat if following suit and can beat', () => {
-      const hand = [card('herz', 'ass'), card('herz', '9')];
+      const hand = [card('herz', 'ass'), card('herz', 'buabe')];
       const trick = createTrick([{ card: card('herz', 'koenig'), playerIndex: 0 }]);
 
       const validPlays = getValidPlays(hand, trick, 'kreuz');
@@ -112,7 +112,7 @@ describe('Trick Logic', () => {
     });
 
     it('can play any of suit if cannot beat', () => {
-      const hand = [card('herz', '9'), card('herz', 'buabe')];
+      const hand = [card('herz', 'buabe'), card('herz', 'ober')];
       const trick = createTrick([{ card: card('herz', 'ass'), playerIndex: 0 }]);
 
       const validPlays = getValidPlays(hand, trick, 'kreuz');
@@ -124,8 +124,8 @@ describe('Trick Logic', () => {
     it('must trump if cannot follow suit', () => {
       const hand = [
         card('schippe', 'ass'),
-        card('kreuz', '9'), // Trump
         card('kreuz', 'buabe'), // Trump
+        card('kreuz', 'ober'), // Trump
       ];
       const trick = createTrick([{ card: card('herz', 'koenig'), playerIndex: 0 }]);
 
@@ -147,7 +147,7 @@ describe('Trick Logic', () => {
 
   describe('isValidPlay', () => {
     it('returns true for valid plays', () => {
-      const hand = [card('herz', 'ass'), card('kreuz', '9')];
+      const hand = [card('herz', 'ass'), card('kreuz', 'buabe')];
       const emptyTrick: Trick = { cards: [], leadSuit: null, winnerIndex: null };
 
       expect(isValidPlay(hand[0], hand, emptyTrick, 'kreuz')).toBe(true);
@@ -169,10 +169,10 @@ describe('Trick Logic', () => {
         card('herz', 'ass'), // 11
         card('herz', '10'), // 10
         card('herz', 'koenig'), // 4
-        card('herz', '9'), // 0
+        card('herz', 'buabe'), // 2
       ];
 
-      expect(calculateTrickPoints(cards)).toBe(25);
+      expect(calculateTrickPoints(cards)).toBe(27);
     });
 
     it('returns 0 for empty cards', () => {

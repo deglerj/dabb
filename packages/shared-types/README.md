@@ -13,7 +13,7 @@ pnpm add @dabb/shared-types
 ### Card Types (`cards.ts`)
 
 - `Suit` - Card suits: Kreuz, Schippe, Herz, Bollen
-- `Rank` - Card ranks: Ass, Zehn, König, Ober, Buabe, Neun
+- `Rank` - Card ranks: Ass, Zehn, König, Ober, Buabe
 - `Card` - Card with id, suit, rank, and point value
 - `CardId` - String identifier for cards
 - `RANK_POINTS` - Points per rank

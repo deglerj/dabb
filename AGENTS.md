@@ -67,7 +67,7 @@ Events are filtered before sending to clients so players only see their own card
 Uses Swabian German card names:
 
 - Suits: Kreuz (♣), Schippe (♠), Herz (♥), Bollen (♦)
-- Ranks: Ass, Zehn, König, Ober, Buabe, Neun
+- Ranks: Ass, Zehn, König, Ober, Buabe
 
 ## Commands
 
@@ -163,7 +163,7 @@ Example naming: `'authenticates when session code differs from session UUID (reg
 
 See `README.md` for full game rules. Key points:
 
-- 48-card deck (2 copies each)
+- 40-card deck (2 copies each)
 - Bidding starts at 150
 - Melds score points (Paar: 20, Familie: 100, Binokel: 40)
 - Must follow suit, must beat, must trump

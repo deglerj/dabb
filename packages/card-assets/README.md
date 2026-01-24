@@ -1,6 +1,6 @@
 # @dabb/card-assets
 
-SVG card graphics for the Dabb Binokel card game. Contains all 48 card images in the traditional German/Swabian style.
+SVG card graphics for the Dabb Binokel card game. Contains all 40 card images in the traditional German/Swabian style.
 
 ## Installation
 
@@ -22,14 +22,13 @@ src/
 └── bollen/    # Diamonds (♦)
 ```
 
-Each suit contains 6 ranks:
+Each suit contains 5 ranks:
 
 - `ass.svg` - Ace (11 points)
 - `zehn.svg` - Ten (10 points)
 - `koenig.svg` - King (4 points)
 - `ober.svg` - Ober (3 points)
 - `buabe.svg` - Buabe/Unter (2 points)
-- `neun.svg` - Nine (0 points)
 
 ### Card Back
 
@@ -79,4 +78,3 @@ const card = getCardImage('herz', 'koenig');
 | König      | König   | King     |
 | Ass        | Ass     | Ace      |
 | Zehn       | Zehn    | Ten      |
-| Neun       | Neun    | Nine     |

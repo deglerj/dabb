@@ -293,7 +293,7 @@ ROUND 1 - Dealer: Hans [0]
 [001] 12:00:00 | CARDS_DEALT
       Player 0: Herz Ass, Kreuz König, Bollen Ober, ...
       Player 1: Schippe Zehn, Herz Buabe, ...
-      Dabb: Herz Neun, Bollen König
+      Dabb: Herz Buabe, Bollen König
 
 --- BIDDING ---
 [002] 12:00:05 | BID_PLACED

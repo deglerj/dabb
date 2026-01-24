@@ -42,7 +42,7 @@ const playerEvents = filterEventsForPlayer(events, playerIndex);
 
 ### Card Operations
 
-- `createDeck()` - Create 48-card Binokel deck
+- `createDeck()` - Create 40-card Binokel deck
 - `shuffleDeck(deck)` - Shuffle cards
 - `dealCards(deck, playerCount)` - Deal cards and create dabb
 - `sortHand(cards)` - Sort cards by suit and rank

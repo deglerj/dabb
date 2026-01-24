@@ -5,11 +5,10 @@
 export const SUITS = ['kreuz', 'schippe', 'herz', 'bollen'] as const;
 export type Suit = (typeof SUITS)[number];
 
-export const RANKS = ['9', 'buabe', 'ober', 'koenig', '10', 'ass'] as const;
+export const RANKS = ['buabe', 'ober', 'koenig', '10', 'ass'] as const;
 export type Rank = (typeof RANKS)[number];
 
 export const RANK_POINTS: Record<Rank, number> = {
-  '9': 0,
   buabe: 2,
   ober: 3,
   koenig: 4,
@@ -36,7 +35,6 @@ export const SUIT_NAMES: Record<Suit, string> = {
 
 // Rank display names (Swabian German)
 export const RANK_NAMES: Record<Rank, string> = {
-  '9': 'Neun',
   buabe: 'Buabe',
   ober: 'Ober',
   koenig: 'König',

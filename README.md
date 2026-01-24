@@ -36,7 +36,7 @@ _Play the traditional Swabian card game Binokel with friends online!_
 
 ### Overview
 
-Binokel is played with a **48-card deck** (two copies of each card). The goal is to score points through **melds** (card combinations) and **tricks** (winning rounds).
+Binokel is played with a **40-card deck** (two copies of each card). The goal is to score points through **melds** (card combinations) and **tricks** (winning rounds).
 
 ### Cards
 
@@ -47,7 +47,6 @@ Binokel is played with a **48-card deck** (two copies of each card). The goal is
 | K    | König          | 4      |
 | O    | Ober           | 3      |
 | U    | Buabe          | 2      |
-| 9    | Neun           | 0      |
 
 **Suits**: Kreuz (♣), Schippe (♠), Herz (♥), Bollen (♦)
 

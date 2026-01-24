@@ -43,8 +43,8 @@ describe('Card Formatter', () => {
       expect(formatCard(card('bollen', '10'))).toBe('Bollen Zehn');
     });
 
-    it('formats a Herz Neun correctly', () => {
-      expect(formatCard(card('herz', '9'))).toBe('Herz Neun');
+    it('formats a Herz Buabe correctly', () => {
+      expect(formatCard(card('herz', 'buabe'))).toBe('Herz Buabe');
     });
   });
 
@@ -197,7 +197,7 @@ describe('Event Formatter', () => {
               0: [card('herz', 'ass'), card('kreuz', 'koenig')],
               1: [card('schippe', '10'), card('bollen', 'buabe')],
             } as Record<PlayerIndex, Card[]>,
-            dabb: [card('herz', '9'), card('bollen', 'koenig')],
+            dabb: [card('herz', 'buabe'), card('bollen', 'koenig')],
           },
         },
       ];
@@ -208,7 +208,7 @@ describe('Event Formatter', () => {
       expect(log).toContain('CARDS_DEALT');
       expect(log).toContain('Player 0: Herz Ass, Kreuz König');
       expect(log).toContain('Player 1: Schippe Zehn, Bollen Buabe');
-      expect(log).toContain('Dabb: Herz Neun, Bollen König');
+      expect(log).toContain('Dabb: Herz Buabe, Bollen König');
     });
 
     it('formats bidding events', () => {
@@ -318,14 +318,14 @@ describe('Event Formatter', () => {
         {
           ...baseEvent(5),
           type: 'CARD_PLAYED',
-          payload: { playerIndex: 1 as PlayerIndex, card: card('herz', '9') },
+          payload: { playerIndex: 1 as PlayerIndex, card: card('herz', 'buabe') },
         },
         {
           ...baseEvent(6),
           type: 'TRICK_WON',
           payload: {
             winnerIndex: 0 as PlayerIndex,
-            cards: [card('herz', 'ass'), card('herz', '9')],
+            cards: [card('herz', 'ass'), card('herz', 'buabe')],
             points: 11,
           },
         },
@@ -335,7 +335,7 @@ describe('Event Formatter', () => {
 
       expect(log).toContain('TRICKS');
       expect(log).toContain('Hans [0] played Herz Ass');
-      expect(log).toContain('Maria [1] played Herz Neun');
+      expect(log).toContain('Maria [1] played Herz Buabe');
       expect(log).toContain('Hans [0] won trick (11 pts)');
     });
 

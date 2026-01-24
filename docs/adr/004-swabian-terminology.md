@@ -30,7 +30,6 @@ We will use **Swabian German terminology** for authenticity:
 | King       | König           | **König**            |
 | Over/Queen | Ober/Dame       | **Ober**             |
 | Under/Jack | Unter/Bube      | **Buabe**            |
-| Nine       | Neun            | **Neun**             |
 
 ## Consequences
 

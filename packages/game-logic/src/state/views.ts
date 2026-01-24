@@ -113,7 +113,7 @@ function createHiddenCards(count: number): Card[] {
     .map((_, i) => ({
       id: `hidden-${i}`,
       suit: 'kreuz' as const,
-      rank: '9' as const,
+      rank: 'buabe' as const,
       copy: 0 as const,
     }));
 }

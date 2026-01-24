@@ -25,7 +25,6 @@
 | **König**   | King                                        |
 | **Ober**    | Over (Queen equivalent)                     |
 | **Buabe**   | Under (Jack equivalent, Swabian for "Bube") |
-| **Neun**    | Nine                                        |
 
 ## Technical Terms
 

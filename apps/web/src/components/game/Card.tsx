@@ -16,7 +16,6 @@ const SUIT_SYMBOLS: Record<Suit, string> = {
 };
 
 const RANK_DISPLAY: Record<Rank, string> = {
-  '9': '9',
   buabe: 'U',
   ober: 'O',
   koenig: 'K',

@@ -22,7 +22,7 @@ function createCardId(suit: Suit, rank: Rank, copy: 0 | 1): string {
 }
 
 /**
- * Create a full 48-card Binokel deck (2 copies of each card)
+ * Create a full 40-card Binokel deck (2 copies of each card)
  */
 export function createDeck(): Card[] {
   const deck: Card[] = [];
@@ -105,7 +105,6 @@ export function sortHand(cards: Card[]): Card[] {
     koenig: 2,
     ober: 3,
     buabe: 4,
-    '9': 5,
   };
 
   return [...cards].sort((a, b) => {
