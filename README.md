@@ -87,6 +87,29 @@ The first team/player to reach **1000 points** wins the game!
 
 ---
 
+## FAQ
+
+### "But that's not how we play it!"
+
+Ah yes, the eternal Binokel debate. Every village, every family, every Stammtisch has their own "correct" rules. Your uncle swears the winning score is 1500. Your grandmother insists you need all four 10s for a valid meld. Your neighbor plays with a 48-card deck and looks at you like you're a heretic for doing otherwise.
+
+Here's the thing: the rules implemented in this app are based on the one true tradition, passed down through generations of Swabian card players who definitely knew what they were doing. Any deviation you may have encountered in your life was simply... incorrect. We're sorry you had to find out this way.
+
+**Common "variations" (read: mistakes) we've heard:**
+
+| What you might think                   | The truth                                                                |
+| -------------------------------------- | ------------------------------------------------------------------------ |
+| "Winning score should be 1500!"        | 1000 is the correct threshold. Your games just lasted too long.          |
+| "We play with 48 cards including 9s!"  | The 9 (Neun) was banished for being too weak. It knows what it did.      |
+| "All four 10s should be a valid meld!" | No. The 10 already gets 10 points per trick. It doesn't need more glory. |
+| "We call the Ober 'Unter'!"            | The Ober is above the Buabe. It's in the name. Geography matters.        |
+
+If your local rules differ, we respectfully suggest that your ancestors may have misheard the rules at some point, and the error has been propagated through generations. It happens to the best of us.
+
+That said, feel free to open an issue if you want to argue. We enjoy reading passionate defenses of objectively wrong rule variants.
+
+---
+
 ## Getting Started
 
 ### Play Online
