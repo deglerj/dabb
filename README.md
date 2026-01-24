@@ -8,7 +8,7 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933.svg?logo=node.js)](https://nodejs.org/)
 [![Expo](https://img.shields.io/badge/Expo-54-000020.svg?logo=expo)](https://expo.dev/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](LICENSE)
 
 _Play the traditional Swabian card game Binokel with friends online!_
 
@@ -301,7 +301,7 @@ Contributions are welcome! Please read our contributing guidelines before submit
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+CC BY-NC 4.0 License - see [LICENSE](LICENSE) for details.
 
 ---
 
