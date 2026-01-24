@@ -99,6 +99,28 @@ function WaitingRoomPage() {
     }
   };
 
+  const shareUrl = async () => {
+    if (!code) {
+      return;
+    }
+
+    const url = `${window.location.origin}/game/${code}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Dabb - Binokel Spiel',
+          text: 'Komm und spiel Binokel mit mir!',
+          url,
+        });
+      } catch {
+        // User cancelled or share failed, ignore
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+    }
+  };
+
   if (!session) {
     return (
       <div className="card" style={{ maxWidth: 500, margin: '4rem auto', textAlign: 'center' }}>
@@ -128,9 +150,14 @@ function WaitingRoomPage() {
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Spielcode</p>
           <p style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{code}</p>
         </div>
-        <button className="secondary" onClick={copyCode}>
-          Kopieren
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="secondary" onClick={copyCode}>
+            Kopieren
+          </button>
+          <button className="secondary" onClick={shareUrl}>
+            Teilen
+          </button>
+        </div>
       </div>
 
       <div style={{ marginBottom: '1.5rem' }}>
