@@ -43,8 +43,8 @@ COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/game-logic/package.json ./packages/game-logic/
 COPY apps/server/package.json ./apps/server/
 
-# Install production dependencies
-RUN pnpm install --prod --frozen-lockfile
+# Install production dependencies (ignore scripts to skip husky which is a devDependency)
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # Copy built files from builder stage
 COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
