@@ -66,17 +66,17 @@ The Docker images are portable and can be deployed to:
 ### Server Container (`dabb-server`)
 
 ```dockerfile
-FROM oven/bun:1-alpine
+FROM node:22-alpine
 # Multi-stage build with non-root user
 # Health check on /health endpoint
-# Bun runtime for faster startup and lower memory
+# Node.js runtime
 EXPOSE 3000
 ```
 
 ### Web Container (`dabb-web`)
 
 ```dockerfile
-FROM oven/bun:1-alpine AS builder  # Build stage
+FROM node:22-alpine AS builder     # Build stage
 FROM nginx:alpine                   # Production stage
 # Static SPA with security headers
 # Gzip compression enabled

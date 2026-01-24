@@ -8,20 +8,20 @@ This file provides context for AI assistants working on the Dabb codebase.
 
 - **Web app** (React + Vite)
 - **Mobile app** (React Native + Expo)
-- **Server** (Bun + Express + Socket.IO)
+- **Server** (Node.js + Express + Socket.IO)
 - **Shared packages** (types, game logic, UI hooks)
 
 ## Tech Stack
 
-| Component | Technology                 |
-| --------- | -------------------------- |
-| Monorepo  | Bun workspaces + Turborepo |
-| Language  | TypeScript (strict mode)   |
-| Backend   | Bun + Express + Socket.IO  |
-| Database  | PostgreSQL                 |
-| Web       | React 19 + Vite            |
-| Mobile    | React Native + Expo        |
-| Testing   | Vitest                     |
+| Component | Technology                    |
+| --------- | ----------------------------- |
+| Monorepo  | pnpm workspaces + Turborepo   |
+| Language  | TypeScript (strict mode)      |
+| Backend   | Node.js + Express + Socket.IO |
+| Database  | PostgreSQL                    |
+| Web       | React 19 + Vite               |
+| Mobile    | React Native + Expo           |
+| Testing   | Vitest                        |
 
 ## Project Structure
 
@@ -30,7 +30,7 @@ dabb/
 ├── apps/
 │   ├── web/           # React web app
 │   ├── mobile/        # React Native app
-│   └── server/        # Bun backend
+│   └── server/        # Node.js backend
 ├── packages/
 │   ├── shared-types/  # TypeScript types
 │   ├── game-logic/    # Core game rules
@@ -68,21 +68,21 @@ Uses Swabian German card names:
 
 ```bash
 # Install dependencies
-bun install
+pnpm install
 
 # Build all packages
-bun run build
+pnpm run build
 
 # Run tests
-bun test
+pnpm test
 
 # Start development servers
-bun run --filter @dabb/server dev
-bun run --filter @dabb/web dev
-bun run --filter @dabb/mobile start
+pnpm --filter @dabb/server dev
+pnpm --filter @dabb/web dev
+pnpm --filter @dabb/mobile start
 
 # Type check
-bun run typecheck
+pnpm run typecheck
 ```
 
 ## Key Files
@@ -103,7 +103,7 @@ bun run typecheck
 Tests are in `__tests__` directories alongside source files:
 
 - `packages/game-logic/src/__tests__/` - Game logic tests
-- Run with `bun test` or `bun run --filter @dabb/game-logic test`
+- Run with `pnpm test` or `pnpm --filter @dabb/game-logic test`
 
 ## Conventions
 

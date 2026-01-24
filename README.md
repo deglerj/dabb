@@ -114,14 +114,14 @@ Visit [your-deployment-url] to play instantly in your browser!
 
 ### Tech Stack
 
-| Component | Technology                |
-| --------- | ------------------------- |
-| Monorepo  | Bun + Turborepo           |
-| Backend   | Bun + Express + Socket.IO |
-| Database  | PostgreSQL                |
-| Web       | React + Vite              |
-| Mobile    | React Native + Expo       |
-| Types     | TypeScript                |
+| Component | Technology                    |
+| --------- | ----------------------------- |
+| Monorepo  | pnpm + Turborepo              |
+| Backend   | Node.js + Express + Socket.IO |
+| Database  | PostgreSQL                    |
+| Web       | React + Vite                  |
+| Mobile    | React Native + Expo           |
+| Types     | TypeScript                    |
 
 ### Project Structure
 
@@ -147,7 +147,8 @@ dabb/
 
 **For native development:**
 
-- Bun 1.0+
+- Node.js 22+
+- pnpm 9+
 - PostgreSQL 16+
 
 ### Installation
@@ -158,26 +159,26 @@ git clone https://github.com/your-username/dabb.git
 cd dabb
 
 # Install dependencies
-bun install
+pnpm install
 
 # Build all packages
-bun run build
+pnpm run build
 
 # Run tests
-bun test
+pnpm test
 ```
 
 ### Development Server
 
 ```bash
 # Start the backend server
-bun run --filter @dabb/server dev
+pnpm --filter @dabb/server dev
 
 # Start the web client (in another terminal)
-bun run --filter @dabb/web dev
+pnpm --filter @dabb/web dev
 
 # Start the mobile app
-bun run --filter @dabb/mobile start
+pnpm --filter @dabb/mobile start
 ```
 
 ### Local Development with Docker/Podman
@@ -188,8 +189,8 @@ The easiest way to run the full stack locally is using the `dev.sh` script, whic
 # Start all services (PostgreSQL, Server, Web)
 ./dev.sh start
 
-# Or using bun
-bun run docker:start
+# Or using pnpm
+pnpm run docker:start
 ```
 
 **Access points:**
@@ -260,7 +261,7 @@ Contributions are welcome! Please read our contributing guidelines before submit
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests (`bun test`)
+4. Run tests (`pnpm test`)
 5. Submit a pull request
 
 ---

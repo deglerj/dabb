@@ -1,11 +1,14 @@
-# Multi-stage build for @dabb/web using Bun
+# Multi-stage build for @dabb/web using Node.js
 # Stage 1: Build
-FROM oven/bun:1-alpine AS builder
+FROM node:22-alpine AS builder
+
+# Enable corepack for pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
 # Copy workspace configuration
-COPY package.json bun.lock turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 
 # Copy all package.json files for dependency resolution
 COPY packages/shared-types/package.json ./packages/shared-types/
@@ -13,14 +16,8 @@ COPY packages/game-logic/package.json ./packages/game-logic/
 COPY packages/ui-shared/package.json ./packages/ui-shared/
 COPY apps/web/package.json ./apps/web/
 
-# Install dependencies with Bun
-RUN bun install
-
-# Create workspace symlinks manually (bun might not create them in container)
-RUN mkdir -p node_modules/@dabb && \
-    ln -sf ../../packages/shared-types node_modules/@dabb/shared-types && \
-    ln -sf ../../packages/game-logic node_modules/@dabb/game-logic && \
-    ln -sf ../../packages/ui-shared node_modules/@dabb/ui-shared
+# Install dependencies with pnpm
+RUN pnpm install --frozen-lockfile
 
 # Copy source files
 COPY packages/shared-types ./packages/shared-types
@@ -34,10 +31,10 @@ ARG VITE_SERVER_URL=http://localhost:3000
 ENV VITE_SERVER_URL=$VITE_SERVER_URL
 
 # Build packages sequentially to ensure proper dependency resolution
-RUN cd packages/shared-types && bun run build && \
-    cd ../game-logic && bun run build && \
-    cd ../ui-shared && bun run build && \
-    cd ../../apps/web && bun run build
+RUN cd packages/shared-types && pnpm run build && \
+    cd ../game-logic && pnpm run build && \
+    cd ../ui-shared && pnpm run build && \
+    cd ../../apps/web && pnpm run build
 
 # Stage 2: Production with nginx
 FROM nginx:alpine AS production

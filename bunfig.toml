@@ -1,9 +1,0 @@
-# Bun configuration for Dabb monorepo
-
-[install]
-# Use frozen lockfile in CI
-# frozen = true  # Enable this in CI via --frozen-lockfile flag
-
-[install.scopes]
-# Workspace packages
-"@dabb" = { }

@@ -19,30 +19,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: '22'
 
-      - name: Cache Bun dependencies
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Cache pnpm dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          path: ~/.local/share/pnpm/store/v3
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-bun-
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
+        run: pnpm install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
 
       - name: Build packages
-        run: bun run build
+        run: pnpm run build
 
       - name: Lint
-        run: bun run lint
+        run: pnpm run lint
 
       - name: Typecheck
-        run: bun run typecheck
+        run: pnpm run typecheck
 
   test:
     name: Test
@@ -52,27 +57,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: '22'
 
-      - name: Cache Bun dependencies
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Cache pnpm dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          path: ~/.local/share/pnpm/store/v3
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-bun-
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
+        run: pnpm install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
 
       - name: Build packages
-        run: bun run build
+        run: pnpm run build
 
       - name: Run tests
-        run: bun run test
+        run: pnpm run test
 
   security-audit:
     name: Security Audit
@@ -83,7 +93,7 @@ jobs:
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.2
     with:
       scan-args: |-
-        --lockfile=bun.lock
+        --lockfile=pnpm-lock.yaml
 
   build-docker:
     name: Build Docker Images
@@ -189,24 +199,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: '22'
 
-      - name: Cache Bun dependencies
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Cache pnpm dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          path: ~/.local/share/pnpm/store/v3
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-bun-
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
+        run: pnpm install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
 
       - name: Build
-        run: bun run build
+        run: pnpm run build
 
       - name: Upload web artifact
         uses: actions/upload-artifact@v4

@@ -2,7 +2,7 @@
 
 This guide walks you through deploying Dabb to production using Oracle Cloud's Always Free tier with Coolify or Docker Compose.
 
-The application runs on **Bun** for faster startup times and lower memory usage.
+The application runs on **Node.js** with **pnpm** for dependency management.
 
 ## Quick Start (Local Development)
 
