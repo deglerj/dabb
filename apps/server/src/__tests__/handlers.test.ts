@@ -10,6 +10,7 @@ import { setupSocketHandlers } from '../socket/handlers.js';
 // Mock services
 vi.mock('../services/sessionService.js', () => ({
   getPlayerBySecretId: vi.fn(),
+  getSessionByCode: vi.fn(),
   updatePlayerConnection: vi.fn(),
 }));
 
@@ -41,7 +42,11 @@ vi.mock('@dabb/game-logic', () => ({
   filterEventsForPlayer: vi.fn((events: unknown[]) => events),
 }));
 
-import { getPlayerBySecretId, updatePlayerConnection } from '../services/sessionService.js';
+import {
+  getPlayerBySecretId,
+  getSessionByCode,
+  updatePlayerConnection,
+} from '../services/sessionService.js';
 import { getEvents } from '../services/eventService.js';
 import {
   startGame,
@@ -55,6 +60,7 @@ import {
 } from '../services/gameService.js';
 
 const mockedGetPlayerBySecretId = vi.mocked(getPlayerBySecretId);
+const mockedGetSessionByCode = vi.mocked(getSessionByCode);
 const mockedUpdatePlayerConnection = vi.mocked(updatePlayerConnection);
 const mockedGetEvents = vi.mocked(getEvents);
 const mockedStartGame = vi.mocked(startGame);
@@ -72,14 +78,24 @@ describe('Socket Handlers Integration', () => {
   let clientSocket: ClientSocket;
   let serverUrl: string;
 
-  const mockSessionId = 'test-session-123';
+  const mockSessionId = 'test-session-uuid-123'; // UUID in database
+  const mockSessionCode = 'test-session-123'; // Code passed from frontend
   const mockPlayerId = 'player-1';
   const mockSecretId = 'secret-123';
   const mockPlayerIndex = 0 as PlayerIndex;
 
+  const mockSession = {
+    id: mockSessionId,
+    code: mockSessionCode,
+    playerCount: 4 as const,
+    status: 'waiting' as const,
+    targetScore: 1500,
+    createdAt: new Date(),
+  };
+
   const mockPlayer = {
     id: mockPlayerId,
-    sessionId: mockSessionId,
+    sessionId: mockSessionId, // UUID matching mockSession.id
     secretId: mockSecretId,
     nickname: 'TestPlayer',
     playerIndex: mockPlayerIndex,
@@ -152,7 +168,7 @@ describe('Socket Handlers Integration', () => {
     it('rejects connection with invalid secretId', async () => {
       mockedGetPlayerBySecretId.mockResolvedValue(null);
 
-      const client = createClient({ secretId: 'invalid', sessionId: mockSessionId });
+      const client = createClient({ secretId: 'invalid', sessionId: mockSessionCode });
 
       await expect(
         new Promise((_, reject) => {
@@ -166,10 +182,26 @@ describe('Socket Handlers Integration', () => {
     it('rejects connection with mismatched sessionId', async () => {
       mockedGetPlayerBySecretId.mockResolvedValue({
         ...mockPlayer,
-        sessionId: 'different-session',
+        sessionId: 'different-session-uuid', // Player belongs to different session
       });
+      mockedGetSessionByCode.mockResolvedValue(mockSession); // Session exists
 
-      const client = createClient({ secretId: mockSecretId, sessionId: mockSessionId });
+      const client = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
+
+      await expect(
+        new Promise((_, reject) => {
+          client.on('connect_error', reject);
+        })
+      ).rejects.toThrow('Invalid credentials');
+
+      client.disconnect();
+    });
+
+    it('rejects connection with non-existent session code', async () => {
+      mockedGetPlayerBySecretId.mockResolvedValue(mockPlayer);
+      mockedGetSessionByCode.mockResolvedValue(null); // Session doesn't exist
+
+      const client = createClient({ secretId: mockSecretId, sessionId: 'non-existent-code' });
 
       await expect(
         new Promise((_, reject) => {
@@ -182,10 +214,11 @@ describe('Socket Handlers Integration', () => {
 
     it('accepts valid authentication', async () => {
       mockedGetPlayerBySecretId.mockResolvedValue(mockPlayer);
+      mockedGetSessionByCode.mockResolvedValue(mockSession);
       mockedGetEvents.mockRejectedValue(new Error('No game'));
       mockedUpdatePlayerConnection.mockResolvedValue();
 
-      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionId });
+      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
 
       await new Promise<void>((resolve) => {
         clientSocket.on('connect', resolve);
@@ -194,11 +227,47 @@ describe('Socket Handlers Integration', () => {
       expect(clientSocket.connected).toBe(true);
       expect(mockedUpdatePlayerConnection).toHaveBeenCalledWith(mockPlayerId, true);
     });
+
+    // Regression test: Frontend passes session CODE (e.g., "schnell-fuchs-42") but
+    // player.sessionId in DB is the session UUID. Previously this comparison failed
+    // because we compared code !== UUID directly. Now we look up session by code
+    // and compare UUIDs correctly.
+    it('authenticates when session code differs from session UUID (regression)', async () => {
+      // Simulate real scenario: code and UUID are different strings
+      const realSessionUuid = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+      const realSessionCode = 'schnell-fuchs-42';
+
+      const playerWithUuid = {
+        ...mockPlayer,
+        sessionId: realSessionUuid, // Player stores UUID reference
+      };
+      const sessionWithCode = {
+        ...mockSession,
+        id: realSessionUuid,
+        code: realSessionCode,
+      };
+
+      mockedGetPlayerBySecretId.mockResolvedValue(playerWithUuid);
+      mockedGetSessionByCode.mockResolvedValue(sessionWithCode);
+      mockedGetEvents.mockRejectedValue(new Error('No game'));
+      mockedUpdatePlayerConnection.mockResolvedValue();
+
+      // Frontend connects using CODE from URL, not UUID
+      clientSocket = createClient({ secretId: mockSecretId, sessionId: realSessionCode });
+
+      await new Promise<void>((resolve) => {
+        clientSocket.on('connect', resolve);
+      });
+
+      expect(clientSocket.connected).toBe(true);
+      expect(mockedGetSessionByCode).toHaveBeenCalledWith(realSessionCode);
+    });
   });
 
   describe('Connection Events', () => {
     beforeEach(() => {
       mockedGetPlayerBySecretId.mockResolvedValue(mockPlayer);
+      mockedGetSessionByCode.mockResolvedValue(mockSession);
       mockedUpdatePlayerConnection.mockResolvedValue();
     });
 
@@ -215,7 +284,7 @@ describe('Socket Handlers Integration', () => {
       ];
       mockedGetEvents.mockResolvedValue(mockEvents as never);
 
-      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionId });
+      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
 
       const state = await new Promise<{ events: typeof mockEvents }>((resolve) => {
         clientSocket.on('game:state', resolve);
@@ -228,7 +297,7 @@ describe('Socket Handlers Integration', () => {
       mockedGetEvents.mockRejectedValue(new Error('No game'));
 
       // Connect first client
-      const client1 = createClient({ secretId: mockSecretId, sessionId: mockSessionId });
+      const client1 = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
       await new Promise<void>((resolve) => {
         client1.on('connect', resolve);
       });
@@ -249,7 +318,7 @@ describe('Socket Handlers Integration', () => {
       });
 
       // Connect second client
-      const client2 = createClient({ secretId: 'secret-456', sessionId: mockSessionId });
+      const client2 = createClient({ secretId: 'secret-456', sessionId: mockSessionCode });
       await new Promise<void>((resolve) => {
         client2.on('connect', resolve);
       });
@@ -266,7 +335,7 @@ describe('Socket Handlers Integration', () => {
       mockedGetEvents.mockRejectedValue(new Error('No game'));
 
       // Connect first client
-      const client1 = createClient({ secretId: mockSecretId, sessionId: mockSessionId });
+      const client1 = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
       await new Promise<void>((resolve) => {
         client1.on('connect', resolve);
       });
@@ -286,7 +355,7 @@ describe('Socket Handlers Integration', () => {
       });
 
       // Connect second client
-      const client2 = createClient({ secretId: 'secret-456', sessionId: mockSessionId });
+      const client2 = createClient({ secretId: 'secret-456', sessionId: mockSessionCode });
       await new Promise<void>((resolve) => {
         client2.on('connect', resolve);
       });
@@ -302,7 +371,7 @@ describe('Socket Handlers Integration', () => {
       mockedGetEvents.mockRejectedValue(new Error('No game'));
 
       // Connect first client
-      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionId });
+      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
       await new Promise<void>((resolve) => {
         clientSocket.on('connect', resolve);
       });
@@ -311,7 +380,7 @@ describe('Socket Handlers Integration', () => {
       const mockPlayer2 = { ...mockPlayer, id: 'player-2', playerIndex: 1 as PlayerIndex };
       mockedGetPlayerBySecretId.mockResolvedValue(mockPlayer2);
 
-      const client2 = createClient({ secretId: 'secret-456', sessionId: mockSessionId });
+      const client2 = createClient({ secretId: 'secret-456', sessionId: mockSessionCode });
       await new Promise<void>((resolve) => {
         client2.on('connect', resolve);
       });
@@ -333,10 +402,11 @@ describe('Socket Handlers Integration', () => {
   describe('Game Event Handlers', () => {
     beforeEach(async () => {
       mockedGetPlayerBySecretId.mockResolvedValue(mockPlayer);
+      mockedGetSessionByCode.mockResolvedValue(mockSession);
       mockedGetEvents.mockRejectedValue(new Error('No game'));
       mockedUpdatePlayerConnection.mockResolvedValue();
 
-      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionId });
+      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
       await new Promise<void>((resolve) => {
         clientSocket.on('connect', resolve);
       });
@@ -364,7 +434,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedStartGame).toHaveBeenCalledWith(mockSessionId);
+        expect(mockedStartGame).toHaveBeenCalledWith(mockSessionCode);
       });
 
       it('emits error on failure', async () => {
@@ -404,7 +474,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedPlaceBid).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, 160);
+        expect(mockedPlaceBid).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, 160);
       });
 
       it('emits error on invalid bid', async () => {
@@ -444,7 +514,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedPassBid).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex);
+        expect(mockedPassBid).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex);
       });
 
       it('emits error on failure', async () => {
@@ -484,7 +554,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedTakeDabb).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex);
+        expect(mockedTakeDabb).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex);
       });
 
       it('emits error on failure', async () => {
@@ -525,7 +595,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedDiscardCards).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, cardIds);
+        expect(mockedDiscardCards).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, cardIds);
       });
 
       it('emits error on failure', async () => {
@@ -566,7 +636,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedDeclareTrump).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, suit);
+        expect(mockedDeclareTrump).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, suit);
       });
 
       it('emits error on failure', async () => {
@@ -607,7 +677,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedDeclareMelds).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, melds);
+        expect(mockedDeclareMelds).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, melds);
       });
 
       it('emits error on failure', async () => {
@@ -648,7 +718,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedPlayCard).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, cardId);
+        expect(mockedPlayCard).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, cardId);
       });
 
       it('emits error on invalid play', async () => {
@@ -688,7 +758,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedGetEvents).toHaveBeenCalledWith(mockSessionId, 1);
+        expect(mockedGetEvents).toHaveBeenCalledWith(mockSessionCode, 1);
       });
 
       it('emits error on sync failure', async () => {
@@ -713,6 +783,7 @@ describe('Socket Handlers Integration', () => {
       const mockedFilter = vi.mocked(filterEventsForPlayer);
 
       mockedGetPlayerBySecretId.mockResolvedValue(mockPlayer);
+      mockedGetSessionByCode.mockResolvedValue(mockSession);
       mockedUpdatePlayerConnection.mockResolvedValue();
 
       const mockEvents = [
@@ -727,7 +798,7 @@ describe('Socket Handlers Integration', () => {
       ];
       mockedGetEvents.mockResolvedValue(mockEvents as never);
 
-      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionId });
+      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
 
       await new Promise<void>((resolve) => {
         clientSocket.on('game:state', resolve);

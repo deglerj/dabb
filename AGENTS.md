@@ -135,6 +135,17 @@ Tests are in `__tests__` directories alongside source files:
 - `packages/game-logic/src/__tests__/` - Game logic tests
 - Run with `pnpm test` or `pnpm --filter @dabb/game-logic test`
 
+### Regression Tests
+
+**Always add regression tests when fixing bugs.** A regression test should:
+
+1. Document the bug scenario in a comment
+2. Use realistic values that reproduce the original issue
+3. Verify the fix works correctly
+4. Prevent the bug from being reintroduced
+
+Example naming: `'authenticates when session code differs from session UUID (regression)'`
+
 ## Conventions
 
 1. **No `any` types** - Use proper TypeScript types

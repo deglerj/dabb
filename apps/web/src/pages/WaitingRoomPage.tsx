@@ -62,6 +62,12 @@ function WaitingRoomPage() {
         .then((data) => setSession(data));
     });
 
+    newSocket.on('player:reconnected', () => {
+      fetch(`${API_URL}/sessions/${code}`)
+        .then((res) => res.json())
+        .then((data) => setSession(data));
+    });
+
     newSocket.on('game:events', ({ events }) => {
       // Check if game started
       const gameStarted = events.some((e) => e.type === 'GAME_STARTED');

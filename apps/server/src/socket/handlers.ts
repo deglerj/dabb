@@ -18,7 +18,11 @@ import {
   declareMelds,
   playCard,
 } from '../services/gameService.js';
-import { getPlayerBySecretId, updatePlayerConnection } from '../services/sessionService.js';
+import {
+  getPlayerBySecretId,
+  getSessionByCode,
+  updatePlayerConnection,
+} from '../services/sessionService.js';
 import { getEvents } from '../services/eventService.js';
 import { socketLogger } from '../utils/logger.js';
 
@@ -31,19 +35,26 @@ const sessionSockets = new Map<string, Set<GameSocket>>();
 export function setupSocketHandlers(io: GameServer) {
   io.use(async (socket, next) => {
     try {
-      const { secretId, sessionId } = socket.handshake.auth;
+      // Note: sessionId from auth is actually the session code (from URL)
+      const { secretId, sessionId: sessionCode } = socket.handshake.auth;
 
-      if (!secretId || !sessionId) {
+      if (!secretId || !sessionCode) {
         return next(new Error('Missing authentication'));
       }
 
       const player = await getPlayerBySecretId(secretId);
-
-      if (!player || player.sessionId !== sessionId) {
+      if (!player) {
         return next(new Error('Invalid credentials'));
       }
 
-      socket.data.sessionId = sessionId;
+      // Validate that the session code matches the player's session
+      const session = await getSessionByCode(sessionCode);
+      if (!session || player.sessionId !== session.id) {
+        return next(new Error('Invalid credentials'));
+      }
+
+      // Use the session code for room management (consistent with frontend)
+      socket.data.sessionId = sessionCode;
       socket.data.playerId = player.id;
       socket.data.playerIndex = player.playerIndex;
       socket.data.nickname = player.nickname;
