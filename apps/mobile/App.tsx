@@ -211,7 +211,7 @@ export default function App() {
   };
 
   const handleStartGame = () => {
-    emit?.('game:start', {});
+    emit?.('game:start');
   };
 
   const handleLeave = async () => {
@@ -228,7 +228,7 @@ export default function App() {
   };
 
   const handlePass = () => {
-    emit?.('game:pass', {});
+    emit?.('game:pass');
   };
 
   const handleDeclareTrump = (suit: Suit) => {

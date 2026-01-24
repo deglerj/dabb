@@ -3,7 +3,7 @@
  */
 
 import { useReducer, useCallback } from 'react';
-import { gameReducer, createInitialState } from '@dabb/game-logic';
+import { applyEvent, createInitialState, filterEventForPlayer } from '@dabb/game-logic';
 import type { GameEvent, GameState, PlayerCount, PlayerIndex } from '@dabb/shared-types';
 
 interface UseGameStateOptions {
@@ -31,7 +31,8 @@ export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
 
       let newState = currentState;
       for (const event of action.events) {
-        newState = gameReducer(newState, event, playerIndex);
+        const filteredEvent = filterEventForPlayer(event, playerIndex);
+        newState = applyEvent(newState, filteredEvent);
       }
       return newState;
     },

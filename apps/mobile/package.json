@@ -7,7 +7,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "echo 'Expo builds are done via EAS Build'"
+    "typecheck": "tsc --noEmit",
+    "build:local": "eas build --local --platform android --profile preview",
+    "clean": "rm -rf .expo dist"
   },
   "dependencies": {
     "@dabb/game-logic": "workspace:*",

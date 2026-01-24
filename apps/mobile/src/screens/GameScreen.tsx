@@ -32,7 +32,7 @@ function GameScreen({
   const myHand = state.hands.get(playerIndex) || [];
   const sortedHand = useMemo(() => sortHand(myHand), [myHand]);
 
-  const isMyTurn = state.currentPlayerIndex === playerIndex;
+  const isMyTurn = state.currentPlayer === playerIndex;
 
   const cardsMap = useMemo(() => {
     const map = new Map<string, CardType>();
@@ -120,7 +120,7 @@ function GameScreen({
           <View style={styles.phaseContainer}>
             <Text style={styles.phaseText}>Runde beendet!</Text>
             <ScoreBoard
-              scores={state.scores}
+              scores={state.totalScores}
               targetScore={state.targetScore}
               nicknames={nicknames}
               currentPlayerIndex={playerIndex}
@@ -129,16 +129,18 @@ function GameScreen({
         );
 
       case 'finished': {
-        const winner = Array.from(state.scores.entries()).find(
+        const winner = Array.from(state.totalScores.entries()).find(
           ([, score]) => score >= state.targetScore
         );
         return (
           <View style={styles.phaseContainer}>
             <Text style={styles.winnerText}>
-              {winner ? `${nicknames.get(winner[0]) || 'Spieler'} gewinnt!` : 'Spiel beendet'}
+              {winner
+                ? `${nicknames.get(winner[0] as PlayerIndex) || 'Spieler'} gewinnt!`
+                : 'Spiel beendet'}
             </Text>
             <ScoreBoard
-              scores={state.scores}
+              scores={state.totalScores}
               targetScore={state.targetScore}
               nicknames={nicknames}
               currentPlayerIndex={playerIndex}

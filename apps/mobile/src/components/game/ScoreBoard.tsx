@@ -4,17 +4,17 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import type { PlayerIndex } from '@dabb/shared-types';
+import type { PlayerIndex, Team } from '@dabb/shared-types';
 
 interface ScoreBoardProps {
-  scores: Map<PlayerIndex, number>;
+  scores: Map<PlayerIndex | Team, number>;
   targetScore: number;
   nicknames: Map<PlayerIndex, string>;
   currentPlayerIndex: PlayerIndex;
 }
 
 function ScoreBoard({ scores, targetScore, nicknames, currentPlayerIndex }: ScoreBoardProps) {
-  const sortedPlayers = Array.from(scores.entries()).sort((a, b) => b[1] - a[1]);
+  const sortedEntries = Array.from(scores.entries()).sort((a, b) => b[1] - a[1]);
 
   return (
     <View style={styles.container}>
@@ -22,13 +22,14 @@ function ScoreBoard({ scores, targetScore, nicknames, currentPlayerIndex }: Scor
       <Text style={styles.targetScore}>Ziel: {targetScore}</Text>
 
       <View style={styles.scoreList}>
-        {sortedPlayers.map(([playerIndex, score], rank) => {
-          const isCurrentPlayer = playerIndex === currentPlayerIndex;
-          const nickname = nicknames.get(playerIndex) || `Spieler ${playerIndex + 1}`;
+        {sortedEntries.map(([playerOrTeam, score], rank) => {
+          const isCurrentPlayer = playerOrTeam === currentPlayerIndex;
+          const nickname =
+            nicknames.get(playerOrTeam as PlayerIndex) || `Spieler ${playerOrTeam + 1}`;
 
           return (
             <View
-              key={playerIndex}
+              key={playerOrTeam}
               style={[styles.scoreRow, isCurrentPlayer && styles.currentPlayerRow]}
             >
               <View style={styles.rankBadge}>
