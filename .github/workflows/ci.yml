@@ -225,14 +225,19 @@ jobs:
       - name: Build packages
         run: pnpm run build
 
-      - name: Install EAS CLI
-        run: pnpm add -g eas-cli
-
-      - name: Build APK locally
+      - name: Generate native Android project
         working-directory: apps/mobile
-        run: eas build --local --platform android --profile preview --non-interactive --output=./build/dabb.apk
-        env:
-          EAS_NO_VCS: 1
+        run: npx expo prebuild --platform android --clean
+
+      - name: Build APK with Gradle
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleRelease
+
+      - name: Move APK to build directory
+        working-directory: apps/mobile
+        run: |
+          mkdir -p build
+          cp android/app/build/outputs/apk/release/app-release.apk build/dabb.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
