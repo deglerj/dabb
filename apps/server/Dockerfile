@@ -38,7 +38,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # Copy package.json files and create workspace structure
-COPY package.json pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/game-logic/package.json ./packages/game-logic/
 COPY apps/server/package.json ./apps/server/
