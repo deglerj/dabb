@@ -23,7 +23,7 @@ const router = Router();
 // Create a new session
 router.post('/', async (req, res) => {
   try {
-    const { playerCount, targetScore = 1500, nickname } = req.body as CreateSessionRequest;
+    const { playerCount, targetScore = 1000, nickname } = req.body as CreateSessionRequest;
 
     if (!playerCount || ![2, 3, 4].includes(playerCount)) {
       return res.status(400).json({

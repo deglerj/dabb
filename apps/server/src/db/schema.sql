@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   code VARCHAR(50) UNIQUE NOT NULL,
   player_count SMALLINT NOT NULL CHECK (player_count IN (2, 3, 4)),
   status VARCHAR(20) NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting', 'active', 'finished')),
-  target_score INTEGER NOT NULL DEFAULT 1500,
+  target_score INTEGER NOT NULL DEFAULT 1000,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

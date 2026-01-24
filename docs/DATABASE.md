@@ -41,7 +41,7 @@ Stores game session metadata.
 | `code`         | VARCHAR(50) | Unique join code (e.g., "ABCD")                 |
 | `player_count` | SMALLINT    | Number of players (2, 3, or 4)                  |
 | `status`       | VARCHAR(20) | Session status: `waiting`, `active`, `finished` |
-| `target_score` | INTEGER     | Score needed to win (default: 1500)             |
+| `target_score` | INTEGER     | Score needed to win (default: 1000)             |
 | `created_at`   | TIMESTAMPTZ | Creation timestamp                              |
 | `updated_at`   | TIMESTAMPTZ | Last update timestamp                           |
 

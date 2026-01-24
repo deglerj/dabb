@@ -167,4 +167,4 @@ See `README.md` for full game rules. Key points:
 - Bidding starts at 150
 - Melds score points (Paar: 20, Familie: 100, Binokel: 40)
 - Must follow suit, must beat, must trump
-- First to 1500 wins
+- First to 1000 wins

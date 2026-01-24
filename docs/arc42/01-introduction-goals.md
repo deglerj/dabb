@@ -25,7 +25,7 @@ Dabb is a multiplayer implementation of the Swabian card game **Binokel** that a
 | G3  | Trump suit selection            | Must     |
 | G4  | Meld declaration and scoring    | Must     |
 | G5  | Trick-taking with Binokel rules | Must     |
-| G6  | Score tracking to target (1500) | Must     |
+| G6  | Score tracking to target (1000) | Must     |
 
 ## 1.2 Quality Goals
 

@@ -6,7 +6,7 @@ import { GameState, PlayerCount, PlayerIndex } from '@dabb/shared-types';
 
 export function createInitialState(
   playerCount: PlayerCount,
-  targetScore: number = 1500
+  targetScore: number = 1000
 ): GameState {
   return {
     phase: 'waiting',

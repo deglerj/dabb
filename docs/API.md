@@ -39,7 +39,7 @@ Create a new game session.
 | ------------- | -------- | -------- | ---------------------------- |
 | `playerCount` | `number` | Yes      | Number of players (2, 3, 4)  |
 | `nickname`    | `string` | Yes      | Host player's nickname       |
-| `targetScore` | `number` | No       | Score to win (default: 1500) |
+| `targetScore` | `number` | No       | Score to win (default: 1000) |
 
 **Example Request:**
 
@@ -99,7 +99,7 @@ curl http://localhost:3000/sessions/schnell-fuchs-42
   "sessionCode": "schnell-fuchs-42",
   "playerCount": 4,
   "status": "waiting",
-  "targetScore": 1500,
+  "targetScore": 1000,
   "players": [
     {
       "nickname": "Hans",

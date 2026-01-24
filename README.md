@@ -85,7 +85,7 @@ Binokel is played with a **48-card deck** (two copies of each card). The goal is
 
 ### Winning
 
-The first team/player to reach **1500 points** wins the game!
+The first team/player to reach **1000 points** wins the game!
 
 ---
 

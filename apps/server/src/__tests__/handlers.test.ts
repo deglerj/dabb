@@ -89,7 +89,7 @@ describe('Socket Handlers Integration', () => {
     code: mockSessionCode,
     playerCount: 4 as const,
     status: 'waiting' as const,
-    targetScore: 1500,
+    targetScore: 1000,
     createdAt: new Date(),
   };
 
