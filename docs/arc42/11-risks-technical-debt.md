@@ -13,11 +13,16 @@
 
 | Item                | Description                                                                                                   | Priority |
 | ------------------- | ------------------------------------------------------------------------------------------------------------- | -------- |
-| Test Coverage       | Integration tests missing for socket handlers                                                                 | High     |
 | Mobile Polish       | UI needs optimization for various screen sizes                                                                | Medium   |
 | Error Handling      | Better error messages for players                                                                             | Medium   |
 | Metrics             | Performance monitoring not implemented                                                                        | Low      |
 | ui-shared Migration | Web app has its own useGame.ts instead of using @dabb/ui-shared hooks; mobile duplicates useSocket.ts locally | Low      |
+
+### Resolved Items
+
+| Item          | Description                                 | Resolution Date |
+| ------------- | ------------------------------------------- | --------------- |
+| Test Coverage | Integration tests for socket handlers added | 2026-01-24      |
 
 ## 11.3 Future Improvements
 
