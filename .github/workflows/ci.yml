@@ -33,7 +33,7 @@ jobs:
             ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
 
       - name: Build packages
         run: bun run build
@@ -66,7 +66,7 @@ jobs:
             ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
 
       - name: Build packages
         run: bun run build
@@ -203,7 +203,7 @@ jobs:
             ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
 
       - name: Build
         run: bun run build
