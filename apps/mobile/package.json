@@ -12,20 +12,20 @@
     "clean": "rm -rf .expo dist"
   },
   "dependencies": {
+    "@dabb/card-assets": "workspace:*",
     "@dabb/game-logic": "workspace:*",
     "@dabb/i18n": "workspace:*",
     "@dabb/shared-types": "workspace:*",
-    "@dabb/card-assets": "workspace:*",
     "@dabb/ui-shared": "workspace:*",
-    "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~54.0.32",
     "expo-status-bar": "~3.0.9",
-    "react": "19.2.3",
+    "react": "19.2.4",
     "react-native": "0.81.5",
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0",
+    "@types/react": "~19.2.10",
     "typescript": "~5.9.2"
   },
   "private": true
