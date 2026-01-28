@@ -2,8 +2,8 @@
  * Export all locale translations
  */
 
-import de from './de';
-import en from './en';
+import de from './de.js';
+import en from './en.js';
 
 export { de, en };
 

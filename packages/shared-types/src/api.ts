@@ -2,7 +2,7 @@
  * REST API types
  */
 
-import type { PlayerCount, PlayerIndex, Team } from './game';
+import type { PlayerCount, PlayerIndex, Team } from './game.js';
 
 // Session creation
 export interface CreateSessionRequest {

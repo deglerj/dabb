@@ -1,5 +1,5 @@
 // Cards
-export { createDeck, dealCards, shuffleDeck, sortHand } from './cards';
+export { createDeck, dealCards, shuffleDeck, sortHand } from './cards/index.js';
 
 // Events
 export {
@@ -21,10 +21,10 @@ export {
   createRoundScoredEvent,
   createTrickWonEvent,
   createTrumpDeclaredEvent,
-} from './events';
+} from './events/index.js';
 
 // Melds
-export { calculateMeldPoints, detectMelds } from './melds';
+export { calculateMeldPoints, detectMelds } from './melds/index.js';
 
 // Phases
 export {
@@ -38,7 +38,7 @@ export {
   isBiddingComplete,
   isValidBid,
   isValidPlay,
-} from './phases';
+} from './phases/index.js';
 
 // State
 export {
@@ -49,7 +49,7 @@ export {
   filterEventsForPlayer,
   isHiddenCard,
   resetForNewRound,
-} from './state';
+} from './state/index.js';
 
 // Export
 export {
@@ -59,5 +59,5 @@ export {
   formatMeld,
   formatMelds,
   formatEventLog,
-} from './export';
-export type { PlayerInfo, EventLogOptions } from './export';
+} from './export/index.js';
+export type { PlayerInfo, EventLogOptions } from './export/index.js';

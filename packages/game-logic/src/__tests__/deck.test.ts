@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createDeck, dealCards, shuffleDeck, sortHand } from '../cards/deck';
+import { createDeck, dealCards, shuffleDeck, sortHand } from '../cards/deck.js';
 
 describe('Deck', () => {
   describe('createDeck', () => {

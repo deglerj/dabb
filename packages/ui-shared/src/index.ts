@@ -1,3 +1,3 @@
-export { useSocket } from './useSocket';
-export { useGameState } from './useGameState';
-export { useSessionCredentials } from './useLocalStorage';
+export { useSocket } from './useSocket.js';
+export { useGameState } from './useGameState.js';
+export { useSessionCredentials } from './useLocalStorage.js';

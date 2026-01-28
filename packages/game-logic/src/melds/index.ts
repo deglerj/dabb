@@ -1,1 +1,1 @@
-export { calculateMeldPoints, detectMelds } from './detector';
+export { calculateMeldPoints, detectMelds } from './detector.js';

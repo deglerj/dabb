@@ -2,9 +2,9 @@
  * Socket.IO event types
  */
 
-import type { CardId, Suit } from './cards';
-import type { GameEvent } from './events';
-import type { Meld, PlayerIndex } from './game';
+import type { CardId, Suit } from './cards.js';
+import type { GameEvent } from './events.js';
+import type { Meld, PlayerIndex } from './game.js';
 
 // Client -> Server events
 export interface ClientToServerEvents {

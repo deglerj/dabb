@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Card, Suit } from '@dabb/shared-types';
 
-import { calculateMeldPoints, detectMelds } from '../melds/detector';
+import { calculateMeldPoints, detectMelds } from '../melds/detector.js';
 
 // Helper to create cards
 function card(suit: Suit, rank: Card['rank'], copy: 0 | 1 = 0): Card {

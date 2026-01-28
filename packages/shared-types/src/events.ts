@@ -2,8 +2,8 @@
  * Event sourcing event types
  */
 
-import type { Card, CardId, Suit } from './cards';
-import type { Meld, PlayerIndex, Team } from './game';
+import type { Card, CardId, Suit } from './cards.js';
+import type { Meld, PlayerIndex, Team } from './game.js';
 
 // Base event interface
 export interface BaseEvent {

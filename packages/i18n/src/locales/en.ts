@@ -2,7 +2,7 @@
  * English translations
  */
 
-import type { TranslationKeys } from '../types';
+import type { TranslationKeys } from '../types.js';
 
 const en: TranslationKeys = {
   common: {

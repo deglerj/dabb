@@ -4,8 +4,8 @@
 
 import { Card, GameEvent, GameState, PlayerIndex, Trick } from '@dabb/shared-types';
 
-import { getFirstBidder, getNextBidder, isBiddingComplete } from '../phases/bidding';
-import { createInitialState, resetForNewRound } from './initial';
+import { getFirstBidder, getNextBidder, isBiddingComplete } from '../phases/bidding.js';
+import { createInitialState, resetForNewRound } from './initial.js';
 
 /**
  * Apply a single event to the game state

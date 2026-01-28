@@ -14,6 +14,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/game-logic/package.json ./packages/game-logic/
 COPY packages/ui-shared/package.json ./packages/ui-shared/
+COPY packages/i18n/package.json ./packages/i18n/
 COPY apps/web/package.json ./apps/web/
 
 # Install dependencies with pnpm
@@ -23,6 +24,7 @@ RUN pnpm install --frozen-lockfile
 COPY packages/shared-types ./packages/shared-types
 COPY packages/game-logic ./packages/game-logic
 COPY packages/ui-shared ./packages/ui-shared
+COPY packages/i18n ./packages/i18n
 COPY apps/web ./apps/web
 COPY tsconfig.base.json ./
 
@@ -33,6 +35,7 @@ ENV VITE_SERVER_URL=$VITE_SERVER_URL
 # Build packages sequentially to ensure proper dependency resolution
 RUN cd packages/shared-types && pnpm run build && \
     cd ../game-logic && pnpm run build && \
+    cd ../i18n && pnpm run build && \
     cd ../ui-shared && pnpm run build && \
     cd ../../apps/web && pnpm run build
 

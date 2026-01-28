@@ -1,1 +1,1 @@
-export { createDeck, dealCards, shuffleDeck, sortHand } from './deck';
+export { createDeck, dealCards, shuffleDeck, sortHand } from './deck.js';

@@ -7,8 +7,8 @@ import {
   formatSuit,
   formatMeld,
   formatMelds,
-} from '../export/cardFormatter';
-import { formatEventLog } from '../export/eventFormatter';
+} from '../export/cardFormatter.js';
+import { formatEventLog } from '../export/eventFormatter.js';
 
 // Helper to create cards
 function card(suit: Suit, rank: Card['rank'], copy: 0 | 1 = 0): Card {

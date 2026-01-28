@@ -17,4 +17,4 @@ export {
   createRoundScoredEvent,
   createTrickWonEvent,
   createTrumpDeclaredEvent,
-} from './generators';
+} from './generators.js';

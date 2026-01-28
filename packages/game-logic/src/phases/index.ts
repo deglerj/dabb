@@ -5,5 +5,10 @@ export {
   getNextBidder,
   isBiddingComplete,
   isValidBid,
-} from './bidding';
-export { calculateTrickPoints, determineTrickWinner, getValidPlays, isValidPlay } from './tricks';
+} from './bidding.js';
+export {
+  calculateTrickPoints,
+  determineTrickWinner,
+  getValidPlays,
+  isValidPlay,
+} from './tricks.js';

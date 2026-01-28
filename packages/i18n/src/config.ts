@@ -5,8 +5,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import { resources } from './locales';
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, type SupportedLanguage } from './types';
+import { resources } from './locales/index.js';
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, type SupportedLanguage } from './types.js';
 
 const STORAGE_KEY = 'dabb-language';
 

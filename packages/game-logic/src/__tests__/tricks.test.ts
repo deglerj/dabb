@@ -6,7 +6,7 @@ import {
   determineTrickWinner,
   getValidPlays,
   isValidPlay,
-} from '../phases/tricks';
+} from '../phases/tricks.js';
 
 // Helper to create cards
 function card(suit: Suit, rank: Card['rank'], copy: 0 | 1 = 0): Card {

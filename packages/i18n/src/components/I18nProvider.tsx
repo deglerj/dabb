@@ -5,8 +5,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 
-import { i18n, initI18n, persistLanguage } from '../config';
-import type { SupportedLanguage } from '../types';
+import { i18n, initI18n, persistLanguage } from '../config.js';
+import type { SupportedLanguage } from '../types.js';
 
 interface I18nProviderProps {
   children: ReactNode;

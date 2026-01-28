@@ -2,7 +2,7 @@
  * Game state types
  */
 
-import type { Card, CardId, Suit } from './cards';
+import type { Card, CardId, Suit } from './cards.js';
 
 export type PlayerCount = 2 | 3 | 4;
 export type PlayerIndex = 0 | 1 | 2 | 3;

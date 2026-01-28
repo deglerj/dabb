@@ -3,7 +3,7 @@
  */
 
 // Components
-export { I18nProvider } from './components/I18nProvider';
+export { I18nProvider } from './components/I18nProvider.js';
 
 // Config
 export {
@@ -14,7 +14,7 @@ export {
   getStorageAdapter,
   detectLanguageAsync,
   type StorageAdapter,
-} from './config';
+} from './config.js';
 
 // Types
 export {
@@ -24,10 +24,10 @@ export {
   type SupportedLanguage,
   type TranslationKeys,
   type TranslationResource,
-} from './types';
+} from './types.js';
 
 // Locales
-export { de, en, resources } from './locales';
+export { de, en, resources } from './locales/index.js';
 
 // Re-export react-i18next hooks for convenience
 export { useTranslation } from 'react-i18next';

@@ -7,7 +7,7 @@ import {
   getNextBidder,
   isBiddingComplete,
   isValidBid,
-} from '../phases/bidding';
+} from '../phases/bidding.js';
 
 describe('Bidding Logic', () => {
   describe('getFirstBidder', () => {
