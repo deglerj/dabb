@@ -53,8 +53,8 @@ export function setupSocketHandlers(io: GameServer) {
         return next(new Error('Invalid credentials'));
       }
 
-      // Use the session code for room management (consistent with frontend)
-      socket.data.sessionId = sessionCode;
+      // Use the session UUID for database queries and room management
+      socket.data.sessionId = session.id;
       socket.data.playerId = player.id;
       socket.data.playerIndex = player.playerIndex;
       socket.data.nickname = player.nickname;

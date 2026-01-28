@@ -434,7 +434,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedStartGame).toHaveBeenCalledWith(mockSessionCode);
+        expect(mockedStartGame).toHaveBeenCalledWith(mockSessionId);
       });
 
       it('emits error on failure', async () => {
@@ -474,7 +474,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedPlaceBid).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, 160);
+        expect(mockedPlaceBid).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, 160);
       });
 
       it('emits error on invalid bid', async () => {
@@ -514,7 +514,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedPassBid).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex);
+        expect(mockedPassBid).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex);
       });
 
       it('emits error on failure', async () => {
@@ -554,7 +554,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedTakeDabb).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex);
+        expect(mockedTakeDabb).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex);
       });
 
       it('emits error on failure', async () => {
@@ -595,7 +595,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedDiscardCards).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, cardIds);
+        expect(mockedDiscardCards).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, cardIds);
       });
 
       it('emits error on failure', async () => {
@@ -636,7 +636,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedDeclareTrump).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, suit);
+        expect(mockedDeclareTrump).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, suit);
       });
 
       it('emits error on failure', async () => {
@@ -677,7 +677,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedDeclareMelds).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, melds);
+        expect(mockedDeclareMelds).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, melds);
       });
 
       it('emits error on failure', async () => {
@@ -718,7 +718,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedPlayCard).toHaveBeenCalledWith(mockSessionCode, mockPlayerIndex, cardId);
+        expect(mockedPlayCard).toHaveBeenCalledWith(mockSessionId, mockPlayerIndex, cardId);
       });
 
       it('emits error on invalid play', async () => {
@@ -758,7 +758,7 @@ describe('Socket Handlers Integration', () => {
 
         const result = await eventsPromise;
         expect(result.events).toEqual(mockEvents);
-        expect(mockedGetEvents).toHaveBeenCalledWith(mockSessionCode, 1);
+        expect(mockedGetEvents).toHaveBeenCalledWith(mockSessionId, 1);
       });
 
       it('emits error on sync failure', async () => {
