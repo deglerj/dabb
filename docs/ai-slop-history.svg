@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" style="background: #0d1117">
+  <defs>
+    <linearGradient id="slopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#238636;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#238636;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Chart background -->
+  <rect width="600" height="300" fill="#0d1117"/>
+
+  <!-- Grid lines -->
+  <g stroke="#21262d" stroke-width="1">
+    <line x1="60" y1="40" x2="580" y2="40"/>
+    <line x1="60" y1="90" x2="580" y2="90"/>
+    <line x1="60" y1="140" x2="580" y2="140"/>
+    <line x1="60" y1="190" x2="580" y2="190"/>
+    <line x1="60" y1="240" x2="580" y2="240"/>
+  </g>
+
+  <!-- Y-axis labels -->
+  <g fill="#8b949e" font-family="system-ui, -apple-system, sans-serif" font-size="11">
+    <text x="50" y="44" text-anchor="end">100%</text>
+    <text x="50" y="94" text-anchor="end">75%</text>
+    <text x="50" y="144" text-anchor="end">50%</text>
+    <text x="50" y="194" text-anchor="end">25%</text>
+    <text x="50" y="244" text-anchor="end">0%</text>
+  </g>
+
+  <!-- X-axis labels -->
+  <g fill="#8b949e" font-family="system-ui, -apple-system, sans-serif" font-size="11">
+    <text x="60" y="260" text-anchor="start">Jan 2025</text>
+    <text x="190" y="260" text-anchor="middle">Apr 2025</text>
+    <text x="320" y="260" text-anchor="middle">Jul 2025</text>
+    <text x="450" y="260" text-anchor="middle">Oct 2025</text>
+    <text x="580" y="260" text-anchor="end">Jan 2026</text>
+  </g>
+
+  <!-- Area fill under the line -->
+  <path d="M60,40
+           C80,42 100,38 120,41
+           C140,39 160,43 180,40
+           C200,42 220,38 240,41
+           C260,39 280,42 300,40
+           C320,41 340,38 360,42
+           C380,39 400,41 420,40
+           C440,42 460,38 480,41
+           C500,40 520,42 540,39
+           C560,41 575,40 580,40
+           L580,240 L60,240 Z"
+        fill="url(#slopGradient)"/>
+
+  <!-- The squiggly line at 100% -->
+  <path d="M60,40
+           C80,42 100,38 120,41
+           C140,39 160,43 180,40
+           C200,42 220,38 240,41
+           C260,39 280,42 300,40
+           C320,41 340,38 360,42
+           C380,39 400,41 420,40
+           C440,42 460,38 480,41
+           C500,40 520,42 540,39
+           C560,41 575,40 580,40"
+        fill="none"
+        stroke="#238636"
+        stroke-width="2.5"
+        stroke-linecap="round"/>
+
+  <!-- Title -->
+  <text x="320" y="25" fill="#c9d1d9" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" text-anchor="middle">AI Slop History</text>
+
+  <!-- Decorative dot at the end -->
+  <circle cx="580" cy="40" r="4" fill="#238636"/>
+
+  <!-- Legend box -->
+  <rect x="470" y="270" width="120" height="24" rx="4" fill="#161b22" stroke="#30363d"/>
+  <circle cx="485" cy="282" r="5" fill="#238636"/>
+  <text x="495" y="286" fill="#c9d1d9" font-family="system-ui, -apple-system, sans-serif" font-size="11">dabb/dabb</text>
+</svg>

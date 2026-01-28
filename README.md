@@ -4,11 +4,17 @@
 
 ### A Multiplayer Binokel Card Game
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg?logo=typescript)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react)](https://react.dev/)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-339933.svg?logo=node.js)](https://nodejs.org/)
-[![Expo](https://img.shields.io/badge/Expo-54-000020.svg?logo=expo)](https://expo.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-22-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Expo](https://img.shields.io/badge/Expo-54-000020.svg?logo=expo&logoColor=white)](https://expo.dev/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-4-010101.svg?logo=socket.io&logoColor=white)](https://socket.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1.svg?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Turborepo](https://img.shields.io/badge/Turborepo-2-EF4444.svg?logo=turborepo&logoColor=white)](https://turbo.build/)
+[![pnpm](https://img.shields.io/badge/pnpm-9-F69220.svg?logo=pnpm&logoColor=white)](https://pnpm.io/)
+[![Vitest](https://img.shields.io/badge/Vitest-3-6E9F18.svg?logo=vitest&logoColor=white)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](LICENSE)
+[![AI Slop](https://img.shields.io/badge/AI%20Slop-100%25-blueviolet.svg?logo=openai&logoColor=white)](#ai-slop-history)
 
 _Play the traditional Swabian card game Binokel with friends online!_
 
@@ -30,6 +36,12 @@ _Play the traditional Swabian card game Binokel with friends online!_
 - **Event-sourced** - Reliable state management with reconnection support
 - **Swabian dialect** - Authentic card names and terminology
 - **AI slop** - Purely vibe coded - nix mit schaffe, schaffe, ...
+
+### AI Slop History
+
+<p align="center">
+  <img src="docs/ai-slop-history.svg" alt="AI Slop History" width="600">
+</p>
 
 ---
 
