@@ -99,10 +99,11 @@ print_header() {
 # Start services
 cmd_start() {
     print_header
-    echo -e "${YELLOW}Starting services...${NC}"
+    echo -e "${YELLOW}Clearing old logs and starting services...${NC}"
     echo ""
 
-    $COMPOSE_CMD up -d --build
+    # Force recreate containers to clear old logs
+    $COMPOSE_CMD up -d --build --force-recreate
 
     echo ""
     echo -e "${YELLOW}Waiting for services to be healthy...${NC}"
