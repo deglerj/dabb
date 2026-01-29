@@ -29,7 +29,8 @@ function WaitingRoomPage() {
     // Get stored credentials
     const stored = localStorage.getItem(`dabb-${code}`);
     if (!stored) {
-      navigate('/');
+      // Redirect to home with session code pre-filled for joining
+      navigate(`/?join=${encodeURIComponent(code)}`);
       return;
     }
 

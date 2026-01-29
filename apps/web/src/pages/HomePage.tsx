@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { PlayerCount } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher';
@@ -9,12 +9,22 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu');
+  const [searchParams] = useSearchParams();
+  const joinCodeFromUrl = searchParams.get('join');
+  const [mode, setMode] = useState<'menu' | 'create' | 'join'>(joinCodeFromUrl ? 'join' : 'menu');
   const [nickname, setNickname] = useState('');
   const [playerCount, setPlayerCount] = useState<PlayerCount>(4);
-  const [joinCode, setJoinCode] = useState('');
+  const [joinCode, setJoinCode] = useState(joinCodeFromUrl || '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Update state when URL changes
+  useEffect(() => {
+    if (joinCodeFromUrl) {
+      setMode('join');
+      setJoinCode(joinCodeFromUrl);
+    }
+  }, [joinCodeFromUrl]);
 
   const handleCreate = async () => {
     if (!nickname.trim()) {
