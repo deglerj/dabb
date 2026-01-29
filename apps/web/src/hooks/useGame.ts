@@ -8,8 +8,10 @@ import type {
   CardId,
   Suit,
   Meld,
+  PlayerIndex,
 } from '@dabb/shared-types';
 import { applyEvents, createInitialState, getValidPlays } from '@dabb/game-logic';
+import { updateDebugStore } from '../utils/debug';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -65,6 +67,7 @@ export function useGame(code: string): UseGameReturn {
       setEvents(newEvents);
       const newState = applyEvents(newEvents);
       setState(newState);
+      updateDebugStore(newEvents, newState, code, storedIndex as PlayerIndex);
     });
 
     newSocket.on('game:events', ({ events: newEvents }) => {
@@ -72,6 +75,7 @@ export function useGame(code: string): UseGameReturn {
         const combined = [...prev, ...newEvents];
         const newState = applyEvents(combined);
         setState(newState);
+        updateDebugStore(combined, newState, code, storedIndex as PlayerIndex);
         return combined;
       });
     });
