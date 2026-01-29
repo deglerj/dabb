@@ -232,7 +232,8 @@ jobs:
 
       - name: Fix Hermes permissions
         run: |
-          find node_modules -name "hermesc" -type f -exec chmod +x {} \;
+          find node_modules -path "*/hermesc/linux64-bin/*" -exec chmod +x {} \;
+          find node_modules -name "hermesc" -exec chmod +x {} \;
 
       - name: Build APK with Gradle
         working-directory: apps/mobile/android
