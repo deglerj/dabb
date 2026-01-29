@@ -29,6 +29,7 @@ export interface Player {
 
 export interface PlayedCard {
   cardId: CardId;
+  card: Card;
   playerIndex: PlayerIndex;
 }
 

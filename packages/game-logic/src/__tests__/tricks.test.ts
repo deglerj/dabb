@@ -16,7 +16,7 @@ function card(suit: Suit, rank: Card['rank'], copy: 0 | 1 = 0): Card {
 // Helper to create a trick
 function createTrick(cards: { card: Card; playerIndex: 0 | 1 | 2 | 3 }[]): Trick {
   return {
-    cards: cards.map((c) => ({ cardId: c.card.id, playerIndex: c.playerIndex })),
+    cards: cards.map((c) => ({ cardId: c.card.id, card: c.card, playerIndex: c.playerIndex })),
     leadSuit: cards[0]?.card.suit || null,
     winnerIndex: null,
   };
@@ -177,6 +177,38 @@ describe('Trick Logic', () => {
 
     it('returns 0 for empty cards', () => {
       expect(calculateTrickPoints([])).toBe(0);
+    });
+  });
+
+  describe('PlayedCard structure (regression)', () => {
+    // Regression test for bug where played cards were not visible to other players.
+    // The issue was that PlayedCard only stored cardId, not the full Card object.
+    // When a card was played, it was removed from the player's hand, so looking it up
+    // by cardId from hands returned undefined, causing the TrickArea to show nothing.
+    it('PlayedCard contains full card object for rendering', () => {
+      const herzKoenig = card('herz', 'koenig');
+      const trick = createTrick([{ card: herzKoenig, playerIndex: 0 }]);
+
+      // Verify the PlayedCard structure includes the card object
+      expect(trick.cards[0].card).toBeDefined();
+      expect(trick.cards[0].card.suit).toBe('herz');
+      expect(trick.cards[0].card.rank).toBe('koenig');
+      expect(trick.cards[0].cardId).toBe(herzKoenig.id);
+    });
+
+    it('all played cards are accessible from trick without needing hand lookup', () => {
+      const cards = [
+        { card: card('herz', 'ass'), playerIndex: 0 as const },
+        { card: card('herz', '10'), playerIndex: 1 as const },
+        { card: card('kreuz', 'buabe'), playerIndex: 2 as const },
+      ];
+      const trick = createTrick(cards);
+
+      // Each played card should have the full card object embedded
+      trick.cards.forEach((playedCard, index) => {
+        expect(playedCard.card).toEqual(cards[index].card);
+        expect(playedCard.playerIndex).toBe(cards[index].playerIndex);
+      });
     });
   });
 });

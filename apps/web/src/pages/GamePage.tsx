@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import type { Card, CardId, Suit, PlayerIndex } from '@dabb/shared-types';
+import type { Card, CardId, PlayerIndex, Suit } from '@dabb/shared-types';
 import { DABB_SIZE, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
@@ -35,11 +35,6 @@ function GamePage() {
       const melds = detectMelds(myHand, state.trump);
       game.declareMelds(melds);
     }
-  };
-
-  const resolveCard = (cardId: string, playerIdx: PlayerIndex) => {
-    const hand = state.hands.get(playerIdx) || [];
-    return hand.find((c) => c.id === cardId);
   };
 
   if (!connected) {
@@ -147,11 +142,7 @@ function GamePage() {
 
         {/* Tricks phase */}
         {state.phase === 'tricks' && (
-          <TrickArea
-            trick={state.currentTrick}
-            playerCount={state.playerCount}
-            resolveCard={resolveCard}
-          />
+          <TrickArea trick={state.currentTrick} playerCount={state.playerCount} />
         )}
 
         {/* Scoring phase */}

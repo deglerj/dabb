@@ -4,7 +4,7 @@
 
 import React, { useMemo, useCallback, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
-import type { GameState, PlayerIndex, Card as CardType, Suit } from '@dabb/shared-types';
+import type { GameState, PlayerIndex, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
 import { PlayerHand, BiddingPanel, TrumpSelector, TrickArea, ScoreBoard } from '../components/game';
@@ -35,16 +35,6 @@ function GameScreen({
   const sortedHand = useMemo(() => sortHand(myHand), [myHand]);
 
   const isMyTurn = state.currentPlayer === playerIndex;
-
-  const cardsMap = useMemo(() => {
-    const map = new Map<string, CardType>();
-    for (const [, cards] of state.hands) {
-      for (const card of cards) {
-        map.set(card.id, card);
-      }
-    }
-    return map;
-  }, [state.hands]);
 
   const validCardIds = useMemo(() => {
     if (state.phase !== 'tricks' || !isMyTurn || !state.trump) {
@@ -112,7 +102,6 @@ function GameScreen({
         return (
           <TrickArea
             trick={state.currentTrick}
-            cards={cardsMap}
             playerCount={state.playerCount}
             currentPlayerIndex={playerIndex}
             trump={state.trump}

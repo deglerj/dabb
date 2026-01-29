@@ -4,18 +4,17 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import type { Card as CardType, Trick, PlayerIndex, Suit } from '@dabb/shared-types';
+import type { Trick, PlayerIndex, Suit } from '@dabb/shared-types';
 import Card from './Card';
 
 interface TrickAreaProps {
   trick: Trick;
-  cards: Map<string, CardType>;
   playerCount: number;
   currentPlayerIndex: PlayerIndex;
   trump: Suit | null;
 }
 
-function TrickArea({ trick, cards, playerCount, currentPlayerIndex, trump }: TrickAreaProps) {
+function TrickArea({ trick, playerCount, currentPlayerIndex, trump }: TrickAreaProps) {
   const getPositionStyle = (playerIndex: number) => {
     const relativePosition = (playerIndex - currentPlayerIndex + playerCount) % playerCount;
 
@@ -48,11 +47,6 @@ function TrickArea({ trick, cards, playerCount, currentPlayerIndex, trump }: Tri
     return {};
   };
 
-  const playedCards = trick.cards.map((pc) => ({
-    card: cards.get(pc.cardId),
-    playerIndex: pc.playerIndex,
-  }));
-
   return (
     <View style={styles.container}>
       {trump && (
@@ -62,13 +56,14 @@ function TrickArea({ trick, cards, playerCount, currentPlayerIndex, trump }: Tri
       )}
 
       <View style={styles.trickArea}>
-        {playedCards.map(({ card, playerIndex }) =>
-          card ? (
-            <View key={card.id} style={[styles.cardPosition, getPositionStyle(playerIndex)]}>
-              <Card card={card} />
-            </View>
-          ) : null
-        )}
+        {trick.cards.map((playedCard) => (
+          <View
+            key={playedCard.cardId}
+            style={[styles.cardPosition, getPositionStyle(playedCard.playerIndex)]}
+          >
+            <Card card={playedCard.card} />
+          </View>
+        ))}
 
         {trick.cards.length === 0 && <Text style={styles.emptyText}>Spielbereich</Text>}
       </View>

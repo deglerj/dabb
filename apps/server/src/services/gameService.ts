@@ -375,7 +375,7 @@ export async function playCard(
   // Check if trick is complete
   if (state.currentTrick.cards.length + 1 === state.playerCount) {
     const newTrick = {
-      cards: [...state.currentTrick.cards, { cardId: card.id, playerIndex }],
+      cards: [...state.currentTrick.cards, { cardId: card.id, card, playerIndex }],
       leadSuit: state.currentTrick.leadSuit || card.suit,
       winnerIndex: null,
     };
@@ -383,10 +383,7 @@ export async function playCard(
     const winnerIdx = determineTrickWinner(newTrick, state.trump!);
     const winnerPlayerIndex = newTrick.cards[winnerIdx].playerIndex;
 
-    const trickCards = newTrick.cards.map((pc) => {
-      const h = state.hands.get(pc.playerIndex) || [];
-      return h.find((c) => c.id === pc.cardId) || card; // fallback to current card
-    });
+    const trickCards = newTrick.cards.map((pc) => pc.card);
 
     const points = calculateTrickPoints(trickCards);
     events.push(createTrickWonEvent(ctx(), winnerPlayerIndex, trickCards, points));

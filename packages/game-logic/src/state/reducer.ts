@@ -310,7 +310,11 @@ function handleCardPlayed(
   const newTrick: Trick = {
     cards: [
       ...state.currentTrick.cards,
-      { cardId: event.payload.card.id, playerIndex: event.payload.playerIndex },
+      {
+        cardId: event.payload.card.id,
+        card: event.payload.card,
+        playerIndex: event.payload.playerIndex,
+      },
     ],
     leadSuit: state.currentTrick.leadSuit || event.payload.card.suit,
     winnerIndex: null,

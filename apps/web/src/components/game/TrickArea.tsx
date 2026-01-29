@@ -1,36 +1,28 @@
-import type { Trick, PlayerIndex, Card as CardType } from '@dabb/shared-types';
+import type { Trick } from '@dabb/shared-types';
 
 import Card from './Card';
 
 interface TrickAreaProps {
   trick: Trick;
   playerCount: number;
-  resolveCard: (cardId: string, playerIndex: PlayerIndex) => CardType | undefined;
 }
 
-function TrickArea({ trick, playerCount, resolveCard }: TrickAreaProps) {
+function TrickArea({ trick, playerCount }: TrickAreaProps) {
   const positions = getPositions(playerCount);
 
   return (
     <div className="trick-area">
-      {trick.cards.map((playedCard) => {
-        const card = resolveCard(playedCard.cardId, playedCard.playerIndex);
-        if (!card) {
-          return null;
-        }
-
-        return (
-          <div
-            key={playedCard.cardId}
-            style={{
-              position: 'relative',
-              ...positions[playedCard.playerIndex],
-            }}
-          >
-            <Card card={card} />
-          </div>
-        );
-      })}
+      {trick.cards.map((playedCard) => (
+        <div
+          key={playedCard.cardId}
+          style={{
+            position: 'relative',
+            ...positions[playedCard.playerIndex],
+          }}
+        >
+          <Card card={playedCard.card} />
+        </div>
+      ))}
 
       {trick.cards.length === 0 && (
         <span style={{ color: 'var(--text-secondary)' }}>Warte auf erste Karte...</span>
