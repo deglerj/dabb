@@ -90,6 +90,7 @@ jobs:
     with:
       scan-args: |-
         --lockfile=pnpm-lock.yaml
+        --config=osv-scanner.toml
 
   build-docker:
     name: Build Docker Images

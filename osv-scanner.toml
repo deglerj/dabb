@@ -1,0 +1,6 @@
+# OSV Scanner configuration
+# https://google.github.io/osv-scanner/configuration/
+
+[[IgnoredVulns]]
+id = "GHSA-34x7-hfp2-rc4v"
+reason = "tar is a transitive dependency - not used directly for archive extraction"
