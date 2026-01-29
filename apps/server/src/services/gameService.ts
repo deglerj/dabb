@@ -18,6 +18,9 @@ import {
   createMeldingCompleteEvent,
   createCardPlayedEvent,
   createTrickWonEvent,
+  createRoundScoredEvent,
+  createGameFinishedEvent,
+  createNewRoundStartedEvent,
   createPlayerJoinedEvent,
   dealCards,
   shuffleDeck,
@@ -388,11 +391,87 @@ export async function playCard(
     const points = calculateTrickPoints(trickCards);
     events.push(createTrickWonEvent(ctx(), winnerPlayerIndex, trickCards, points));
 
-    // Check if round is over
+    // Check if round is over (all cards played)
     const remainingCards = (state.hands.get(playerIndex)?.length || 0) - 1;
     if (remainingCards === 0) {
-      // Round scoring would go here
-      // For now, just continue to next round or finish
+      // Apply events so far to get updated state with final trick
+      let scoringState = state;
+      for (const event of events) {
+        scoringState = applyEvent(scoringState, event);
+      }
+
+      // Calculate round scores
+      const scores = {} as Record<
+        PlayerIndex,
+        { melds: number; tricks: number; total: number; bidMet: boolean }
+      >;
+
+      const bidWinner = scoringState.bidWinner!;
+      const winningBid = scoringState.currentBid || 150;
+
+      for (let i = 0; i < scoringState.playerCount; i++) {
+        const idx = i as PlayerIndex;
+        const melds = calculateMeldPoints(scoringState.declaredMelds.get(idx) || []);
+        const tricksCards = scoringState.tricksTaken.get(idx) || [];
+        const tricks = tricksCards.reduce(
+          (sum, trickCards) => sum + calculateTrickPoints(trickCards),
+          0
+        );
+        const total = melds + tricks;
+        const isBidWinner = idx === bidWinner;
+        const bidMet = !isBidWinner || total >= winningBid;
+
+        scores[idx] = { melds, tricks, total, bidMet };
+      }
+
+      // Calculate new total scores
+      const totalScores = {} as Record<PlayerIndex, number>;
+      for (let i = 0; i < scoringState.playerCount; i++) {
+        const idx = i as PlayerIndex;
+        const currentTotal = scoringState.totalScores.get(idx) || 0;
+        const roundScore = scores[idx];
+
+        if (idx === bidWinner && !roundScore.bidMet) {
+          // Bid winner failed to meet bid - lose bid amount
+          totalScores[idx] = currentTotal - winningBid;
+        } else {
+          totalScores[idx] = currentTotal + roundScore.total;
+        }
+      }
+
+      events.push(createRoundScoredEvent(ctx(), scores, totalScores));
+
+      // Check if game is finished (someone reached target score)
+      const targetScore = scoringState.targetScore;
+      let winner: PlayerIndex | null = null;
+      let highestScore = 0;
+
+      for (let i = 0; i < scoringState.playerCount; i++) {
+        const idx = i as PlayerIndex;
+        if (totalScores[idx] >= targetScore && totalScores[idx] > highestScore) {
+          winner = idx;
+          highestScore = totalScores[idx];
+        }
+      }
+
+      if (winner !== null) {
+        events.push(createGameFinishedEvent(ctx(), winner, totalScores));
+      } else {
+        // Start new round
+        const newDealer = ((scoringState.dealer + 1) % scoringState.playerCount) as PlayerIndex;
+        events.push(createNewRoundStartedEvent(ctx(), scoringState.round + 1, newDealer));
+
+        // Deal cards for new round
+        const deck = shuffleDeck(createDeck());
+        const { hands, dabb } = dealCards(deck, scoringState.playerCount);
+
+        const handsRecord = {} as Record<PlayerIndex, Card[]>;
+        hands.forEach((cards, index) => {
+          handsRecord[index as PlayerIndex] = cards;
+        });
+
+        events.push(createCardsDealtEvent(ctx(), handsRecord, dabb));
+      }
     }
   }
 
