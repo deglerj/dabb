@@ -128,13 +128,13 @@ export const MELD_TRUMP_BONUS: Partial<Record<MeldType, number>> = {
 
 // Cards per player based on player count (40-card deck)
 export const CARDS_PER_PLAYER: Record<PlayerCount, number> = {
-  2: 16,
+  2: 18,
   3: 12,
   4: 9,
 };
 
 export const DABB_SIZE: Record<PlayerCount, number> = {
-  2: 8,
+  2: 4,
   3: 4,
   4: 4,
 };

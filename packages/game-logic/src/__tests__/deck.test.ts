@@ -60,14 +60,14 @@ describe('Deck', () => {
   });
 
   describe('dealCards', () => {
-    it('deals correctly for 2 players (16 cards each, 8 dabb)', () => {
+    it('deals correctly for 2 players (18 cards each, 4 dabb)', () => {
       const deck = shuffleDeck(createDeck());
       const { hands, dabb } = dealCards(deck, 2);
 
       expect(hands.size).toBe(2);
-      expect(hands.get(0)).toHaveLength(16);
-      expect(hands.get(1)).toHaveLength(16);
-      expect(dabb).toHaveLength(8);
+      expect(hands.get(0)).toHaveLength(18);
+      expect(hands.get(1)).toHaveLength(18);
+      expect(dabb).toHaveLength(4);
     });
 
     it('deals correctly for 3 players (12 cards each, 4 dabb)', () => {
