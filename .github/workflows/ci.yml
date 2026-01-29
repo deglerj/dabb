@@ -229,6 +229,10 @@ jobs:
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --clean
 
+      - name: Fix Hermes permissions
+        run: |
+          find node_modules -name "hermesc" -type f -exec chmod +x {} \;
+
       - name: Build APK with Gradle
         working-directory: apps/mobile/android
         run: ./gradlew assembleRelease
