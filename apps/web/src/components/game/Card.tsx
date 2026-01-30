@@ -48,6 +48,7 @@ function Card({ card, selected = false, valid = true, onClick }: CardProps) {
         filter: valid ? 'none' : 'grayscale(100%) brightness(0.7)',
         cursor: valid && onClick ? 'pointer' : 'default',
         color: isRed ? '#dc2626' : '#1e3a5f',
+        zIndex: valid ? 1 : 0,
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
