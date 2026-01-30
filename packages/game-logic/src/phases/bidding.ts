@@ -53,6 +53,14 @@ export function getFirstBidder(dealer: PlayerIndex, playerCount: PlayerCount): P
 }
 
 /**
+ * Check if a player can pass
+ * The first bidder cannot pass - they must bid at least 150
+ */
+export function canPass(currentBid: number): boolean {
+  return currentBid > 0;
+}
+
+/**
  * Check if bidding is complete (only one active player left)
  */
 export function isBiddingComplete(

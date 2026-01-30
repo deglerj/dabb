@@ -29,6 +29,7 @@ export { calculateMeldPoints, detectMelds } from './melds/index.js';
 // Phases
 export {
   calculateTrickPoints,
+  canPass,
   determineTrickWinner,
   getBiddingWinner,
   getFirstBidder,

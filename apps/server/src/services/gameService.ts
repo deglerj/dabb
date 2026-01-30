@@ -5,32 +5,33 @@
 import {
   applyEvent,
   applyEvents,
-  createDeck,
-  createGameStartedEvent,
-  createCardsDealtEvent,
+  calculateMeldPoints,
+  calculateTrickPoints,
+  canPass,
   createBidPlacedEvent,
-  createPlayerPassedEvent,
   createBiddingWonEvent,
-  createDabbTakenEvent,
-  createCardsDiscardedEvent,
-  createTrumpDeclaredEvent,
-  createMeldsDeclaredEvent,
-  createMeldingCompleteEvent,
   createCardPlayedEvent,
-  createTrickWonEvent,
-  createRoundScoredEvent,
+  createCardsDealtEvent,
+  createCardsDiscardedEvent,
+  createDabbTakenEvent,
+  createDeck,
   createGameFinishedEvent,
+  createGameStartedEvent,
+  createMeldingCompleteEvent,
+  createMeldsDeclaredEvent,
   createNewRoundStartedEvent,
   createPlayerJoinedEvent,
+  createPlayerPassedEvent,
+  createRoundScoredEvent,
+  createTrickWonEvent,
+  createTrumpDeclaredEvent,
   dealCards,
-  shuffleDeck,
-  isValidBid,
+  determineTrickWinner,
   getBiddingWinner,
   isBiddingComplete,
+  isValidBid,
   isValidPlay,
-  determineTrickWinner,
-  calculateTrickPoints,
-  calculateMeldPoints,
+  shuffleDeck,
 } from '@dabb/game-logic';
 import type {
   Card,
@@ -176,6 +177,10 @@ export async function passBid(sessionId: string, playerIndex: PlayerIndex): Prom
 
   if (state.currentBidder !== playerIndex) {
     throw new Error('Not your turn');
+  }
+
+  if (!canPass(state.currentBid)) {
+    throw new Error('First bidder must bid at least 150');
   }
 
   const events: GameEvent[] = [];

@@ -1,4 +1,5 @@
 export {
+  canPass,
   getBiddingWinner,
   getFirstBidder,
   getMinBid,

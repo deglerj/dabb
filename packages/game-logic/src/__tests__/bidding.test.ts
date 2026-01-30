@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  canPass,
   getBiddingWinner,
   getFirstBidder,
   getMinBid,
@@ -93,6 +94,18 @@ describe('Bidding Logic', () => {
     it('returns null if all passed', () => {
       const passed = new Set<0 | 1 | 2 | 3>([0, 1, 2, 3]);
       expect(getBiddingWinner(4, passed)).toBe(null);
+    });
+  });
+
+  describe('canPass', () => {
+    // Regression test: First bidder must bid at least 150 and cannot pass
+    it('does not allow passing before any bid is placed (regression)', () => {
+      expect(canPass(0)).toBe(false);
+    });
+
+    it('allows passing after a bid has been placed', () => {
+      expect(canPass(150)).toBe(true);
+      expect(canPass(200)).toBe(true);
     });
   });
 });
