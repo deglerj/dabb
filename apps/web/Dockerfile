@@ -15,6 +15,7 @@ COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/game-logic/package.json ./packages/game-logic/
 COPY packages/ui-shared/package.json ./packages/ui-shared/
 COPY packages/i18n/package.json ./packages/i18n/
+COPY packages/card-assets/package.json ./packages/card-assets/
 COPY apps/web/package.json ./apps/web/
 
 # Install dependencies with pnpm
@@ -25,6 +26,7 @@ COPY packages/shared-types ./packages/shared-types
 COPY packages/game-logic ./packages/game-logic
 COPY packages/ui-shared ./packages/ui-shared
 COPY packages/i18n ./packages/i18n
+COPY packages/card-assets ./packages/card-assets
 COPY apps/web ./apps/web
 COPY tsconfig.base.json ./
 
