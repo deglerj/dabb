@@ -1,5 +1,6 @@
-import type { Card as CardType, Suit, Rank } from '@dabb/shared-types';
+import type { Card as CardType, Rank } from '@dabb/shared-types';
 import { isHiddenCard } from '@dabb/game-logic';
+import SuitIcon from '../SuitIcon';
 
 interface CardProps {
   card: CardType;
@@ -7,13 +8,6 @@ interface CardProps {
   valid?: boolean;
   onClick?: () => void;
 }
-
-const SUIT_SYMBOLS: Record<Suit, string> = {
-  kreuz: '♣',
-  schippe: '♠',
-  herz: '❤️',
-  bollen: '♦',
-};
 
 const RANK_DISPLAY: Record<Rank, string> = {
   buabe: 'U',
@@ -52,7 +46,7 @@ function Card({ card, selected = false, valid = true, onClick }: CardProps) {
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <span style={{ fontSize: '1.5rem' }}>{SUIT_SYMBOLS[card.suit]}</span>
+        <SuitIcon suit={card.suit} size={32} />
         <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{RANK_DISPLAY[card.rank]}</span>
       </div>
     </div>
