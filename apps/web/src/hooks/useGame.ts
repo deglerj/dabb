@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 import type {
   ClientToServerEvents,
@@ -66,19 +66,11 @@ export function useGame(code: string): UseGameReturn {
 
     newSocket.on('game:state', ({ events: newEvents }) => {
       setEvents(newEvents);
-      const newState = applyEvents(newEvents);
-      setState(newState);
-      updateDebugStore(newEvents, newState, code, storedIndex as PlayerIndex);
+      // State will be computed by the useEffect when events change
     });
 
     newSocket.on('game:events', ({ events: newEvents }) => {
-      setEvents((prev) => {
-        const combined = [...prev, ...newEvents];
-        const newState = applyEvents(combined);
-        setState(newState);
-        updateDebugStore(combined, newState, code, storedIndex as PlayerIndex);
-        return combined;
-      });
+      setEvents((prev) => [...prev, ...newEvents]);
     });
 
     newSocket.on('error', ({ message }) => {
@@ -92,9 +84,18 @@ export function useGame(code: string): UseGameReturn {
     };
   }, [code]);
 
+  // Recompute state when events change (for game:events updates)
+  useEffect(() => {
+    if (events.length > 0) {
+      const newState = applyEvents(events);
+      setState(newState);
+      updateDebugStore(events, newState, code, playerIndex as PlayerIndex);
+    }
+  }, [events, code, playerIndex]);
+
   const isMyTurn = state.currentPlayer === playerIndex || state.currentBidder === playerIndex;
 
-  const validMoves = (() => {
+  const validMoves = useMemo(() => {
     if (state.phase !== 'tricks' || state.currentPlayer !== playerIndex) {
       return [];
     }
@@ -104,7 +105,7 @@ export function useGame(code: string): UseGameReturn {
     }
     const validCards = getValidPlays(hand, state.currentTrick, state.trump);
     return validCards.map((c) => c.id);
-  })();
+  }, [state.phase, state.currentPlayer, playerIndex, state.hands, state.trump, state.currentTrick]);
 
   const bid = useCallback(
     (amount: number) => {
