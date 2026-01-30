@@ -170,6 +170,7 @@ pnpm docker:reset         # Reset database
 | `packages/ui-shared/src/useGameState.ts`                     | Game state React hook        |
 | `packages/ui-shared/src/useSocket.ts`                        | Socket.IO React hook         |
 | `packages/ui-shared/src/useRoundHistory.ts`                  | Round history for scoreboard |
+| `packages/ui-shared/src/useLocalStorage.ts`                  | Session credentials hook     |
 | `apps/web/src/components/game/ScoreBoard.tsx`                | Web scoreboard component     |
 | `apps/mobile/src/components/game/ScoreBoard.tsx`             | Mobile scoreboard component  |
 | `apps/mobile/src/components/game/ScoreBoardHeader.tsx`       | Mobile compact scoreboard    |

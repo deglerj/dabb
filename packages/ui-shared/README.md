@@ -87,24 +87,29 @@ if (gameWinner !== null) {
 
 ### useSessionCredentials
 
-Persists session credentials in local storage:
+Persists session credentials in local storage for reconnection:
 
 ```typescript
 import { useSessionCredentials } from '@dabb/ui-shared';
 
-const { credentials, setCredentials, clearCredentials, loading } = useSessionCredentials();
+const { credentials, saveCredentials, clearCredentials, hasCredentials } =
+  useSessionCredentials('session-code');
 
 // Save credentials after joining
-await setCredentials({
+saveCredentials({
   secretId: 'abc',
-  sessionId: 'xyz',
-  nickname: 'Player1',
+  playerId: 'player-xyz',
+  playerIndex: 0,
+  sessionId: 'session-id', // optional
 });
 
-// Access stored credentials
-if (credentials) {
+// Access stored credentials for reconnection
+if (hasCredentials) {
   connectToGame(credentials.secretId, credentials.sessionId);
 }
+
+// Clear on logout
+clearCredentials();
 ```
 
 ## Peer Dependencies

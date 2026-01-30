@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code VARCHAR(50) UNIQUE NOT NULL,
   player_count SMALLINT NOT NULL CHECK (player_count IN (2, 3, 4)),
-  status VARCHAR(20) NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting', 'active', 'finished')),
+  status VARCHAR(20) NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting', 'active', 'finished', 'terminated')),
   target_score INTEGER NOT NULL DEFAULT 1000,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
