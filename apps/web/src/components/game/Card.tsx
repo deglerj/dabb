@@ -45,7 +45,7 @@ function Card({ card, selected = false, valid = true, onClick }: CardProps) {
       className={`playing-card ${card.suit} ${selected ? 'selected' : ''}`}
       onClick={valid ? onClick : undefined}
       style={{
-        opacity: valid ? 1 : 0.5,
+        filter: valid ? 'none' : 'grayscale(100%) brightness(0.7)',
         cursor: valid && onClick ? 'pointer' : 'default',
         color: isRed ? '#dc2626' : '#1e3a5f',
       }}

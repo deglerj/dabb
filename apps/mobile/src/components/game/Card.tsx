@@ -42,13 +42,30 @@ function Card({ card, selected = false, valid = true, onPress }: CardProps) {
 
   return (
     <TouchableOpacity
-      style={[styles.card, selected && styles.selectedCard, !valid && styles.invalidCard]}
+      style={[styles.card, selected && styles.selectedCard]}
       onPress={valid ? onPress : undefined}
       disabled={!valid || !onPress}
       activeOpacity={valid && onPress ? 0.7 : 1}
     >
-      <Text style={[styles.suitSymbol, isRed && styles.redText]}>{SUIT_SYMBOLS[card.suit]}</Text>
-      <Text style={[styles.rankText, isRed && styles.redText]}>{RANK_DISPLAY[card.rank]}</Text>
+      <Text
+        style={[
+          styles.suitSymbol,
+          isRed ? styles.redText : styles.blackText,
+          !valid && styles.grayedText,
+        ]}
+      >
+        {SUIT_SYMBOLS[card.suit]}
+      </Text>
+      <Text
+        style={[
+          styles.rankText,
+          isRed ? styles.redText : styles.blackText,
+          !valid && styles.grayedText,
+        ]}
+      >
+        {RANK_DISPLAY[card.rank]}
+      </Text>
+      {!valid && <View style={styles.invalidOverlay} />}
     </TouchableOpacity>
   );
 }
@@ -77,8 +94,20 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     transform: [{ translateY: -8 }],
   },
-  invalidCard: {
-    opacity: 0.5,
+  invalidOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(128, 128, 128, 0.3)',
+    borderRadius: 8,
+  },
+  grayedText: {
+    color: '#9ca3af',
+  },
+  blackText: {
+    color: '#1e3a5f',
   },
   hiddenSymbol: {
     fontSize: 32,
