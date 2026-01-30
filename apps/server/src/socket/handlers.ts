@@ -30,7 +30,8 @@ type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServer
 type GameServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
 // Map of sessionId -> Set of connected sockets
-const sessionSockets = new Map<string, Set<GameSocket>>();
+// Exported for cleanup scheduler to disconnect sockets on terminated sessions
+export const sessionSockets = new Map<string, Set<GameSocket>>();
 
 export function setupSocketHandlers(io: GameServer) {
   io.use(async (socket, next) => {

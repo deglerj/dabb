@@ -160,6 +160,8 @@ pnpm docker:reset         # Reset database
 | `apps/server/src/services/eventService.ts`      | Event persistence          |
 | `apps/server/src/services/gameService.ts`       | Game logic service         |
 | `apps/server/src/services/sessionService.ts`    | Session management         |
+| `apps/server/src/services/cleanupService.ts`    | Inactive session cleanup   |
+| `apps/server/src/scheduler/cleanupScheduler.ts` | Cleanup background job     |
 | `apps/server/src/db/pool.ts`                    | Database connection pool   |
 | `packages/i18n/src/locales/de.ts`               | German translations        |
 | `packages/i18n/src/locales/en.ts`               | English translations       |

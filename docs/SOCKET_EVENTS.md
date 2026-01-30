@@ -291,7 +291,7 @@ socket.on('player:reconnected', ({ playerIndex }) => {
 
 ### `session:terminated`
 
-The session was terminated (e.g., due to debug export).
+The session was terminated (e.g., due to inactivity or debug export).
 
 ```typescript
 socket.on('session:terminated', ({ message }) => {
@@ -305,6 +305,11 @@ socket.on('session:terminated', ({ message }) => {
 | Field     | Type     | Description            |
 | --------- | -------- | ---------------------- |
 | `message` | `string` | Reason for termination |
+
+**Termination Reasons:**
+
+- Inactivity: Sessions with no activity for 2+ days are automatically terminated
+- Debug export: Session terminated after exporting game data for debugging
 
 ---
 

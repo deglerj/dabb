@@ -31,6 +31,7 @@ export const env = cleanEnv(process.env, {
   // Session
   SESSION_CLEANUP_INTERVAL_MS: num({ default: 3600000 }), // 1 hour
   SESSION_MAX_AGE_MS: num({ default: 86400000 }), // 24 hours
+  SESSION_INACTIVITY_TIMEOUT_MS: num({ default: 172800000 }), // 2 days
 
   // Development
   TRUST_PROXY: bool({ default: false }),

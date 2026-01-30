@@ -14,6 +14,7 @@ import { env } from './config/env.js';
 import { closePool } from './db/pool.js';
 import { sessionsRouter } from './routes/sessions.js';
 import { eventsRouter, setSocketServer } from './routes/events.js';
+import { startCleanupScheduler, stopCleanupScheduler } from './scheduler/cleanupScheduler.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 import logger, { apiLogger } from './utils/logger.js';
 
@@ -77,6 +78,9 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
 setupSocketHandlers(io);
 setSocketServer(io);
 
+// Start cleanup scheduler for inactive sessions
+startCleanupScheduler(io);
+
 // Start server
 httpServer.listen(env.PORT, () => {
   logger.info({ port: env.PORT, corsOrigin, env: env.NODE_ENV }, 'Server started');
@@ -91,6 +95,9 @@ async function shutdown(signal: string) {
     logger.info('HTTP server closed');
 
     try {
+      // Stop cleanup scheduler
+      stopCleanupScheduler();
+
       // Close Socket.IO connections
       io.close();
       logger.info('Socket.IO server closed');

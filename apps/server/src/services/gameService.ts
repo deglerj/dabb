@@ -483,4 +483,12 @@ export async function playCard(
   return events;
 }
 
+/**
+ * Clear the cached game state for a session
+ * Used when terminating inactive sessions
+ */
+export function clearGameStateCache(sessionId: string): void {
+  gameStates.delete(sessionId);
+}
+
 export { getGameState };
