@@ -141,6 +141,14 @@ export interface GameFinishedEvent extends BaseEvent {
   };
 }
 
+export interface GameTerminatedEvent extends BaseEvent {
+  type: 'GAME_TERMINATED';
+  payload: {
+    terminatedBy: PlayerIndex;
+    reason: 'player_exit';
+  };
+}
+
 // Player events
 export interface PlayerJoinedEvent extends BaseEvent {
   type: 'PLAYER_JOINED';
@@ -191,6 +199,7 @@ export type GameEvent =
   | TrickWonEvent
   | RoundScoredEvent
   | GameFinishedEvent
+  | GameTerminatedEvent
   | PlayerJoinedEvent
   | PlayerLeftEvent
   | PlayerReconnectedEvent

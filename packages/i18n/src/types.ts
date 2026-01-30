@@ -100,6 +100,12 @@ export interface TranslationKeys {
     melds: string;
     tricks: string;
     gameWinner: string;
+    exitGame: string;
+    exitGameConfirmTitle: string;
+    exitGameConfirmMessage: string;
+    gameTerminated: string;
+    gameTerminatedMessage: string;
+    backToHome: string;
   };
   phases: {
     waiting: string;
@@ -111,6 +117,7 @@ export interface TranslationKeys {
     tricks: string;
     scoring: string;
     finished: string;
+    terminated: string;
   };
   errors: {
     enterNickname: string;

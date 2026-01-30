@@ -17,6 +17,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
+interface TerminationInfo {
+  terminatedBy: string | null;
+}
+
 interface UseGameReturn {
   state: GameState;
   events: GameEvent[];
@@ -25,6 +29,8 @@ interface UseGameReturn {
   validMoves: CardId[];
   error: string | null;
   connected: boolean;
+  isTerminated: boolean;
+  terminationInfo: TerminationInfo | null;
   bid: (amount: number) => void;
   pass: () => void;
   takeDabb: () => void;
@@ -32,6 +38,7 @@ interface UseGameReturn {
   declareTrump: (suit: Suit) => void;
   declareMelds: (melds: Meld[]) => void;
   playCard: (cardId: CardId) => void;
+  exitGame: () => void;
 }
 
 export function useGame(code: string): UseGameReturn {
@@ -41,6 +48,8 @@ export function useGame(code: string): UseGameReturn {
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [playerIndex, setPlayerIndex] = useState(0);
+  const [isTerminated, setIsTerminated] = useState(false);
+  const [terminationInfo, setTerminationInfo] = useState<TerminationInfo | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(`dabb-${code}`);
@@ -75,6 +84,11 @@ export function useGame(code: string): UseGameReturn {
 
     newSocket.on('error', ({ message }) => {
       setError(message);
+    });
+
+    newSocket.on('session:terminated', ({ terminatedBy }) => {
+      setIsTerminated(true);
+      setTerminationInfo({ terminatedBy: terminatedBy || null });
     });
 
     setSocket(newSocket);
@@ -150,6 +164,10 @@ export function useGame(code: string): UseGameReturn {
     [socket]
   );
 
+  const exitGame = useCallback(() => {
+    socket?.emit('game:exit');
+  }, [socket]);
+
   return {
     state,
     events,
@@ -158,6 +176,8 @@ export function useGame(code: string): UseGameReturn {
     validMoves,
     error,
     connected,
+    isTerminated,
+    terminationInfo,
     bid,
     pass,
     takeDabb: takeDabbFn,
@@ -165,5 +185,6 @@ export function useGame(code: string): UseGameReturn {
     declareTrump,
     declareMelds,
     playCard,
+    exitGame,
   };
 }

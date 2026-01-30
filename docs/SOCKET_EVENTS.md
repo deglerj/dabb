@@ -190,6 +190,27 @@ socket.emit('game:sync', { lastEventSequence: 5 });
 
 ---
 
+### `game:exit`
+
+Exit the game, terminating it for all players.
+
+```typescript
+socket.emit('game:exit');
+```
+
+**Requirements:**
+
+- Game must be in an active phase (dealing, bidding, dabb, trump, melding, tricks, or scoring)
+- Cannot exit from waiting or finished phases
+
+**Response:**
+
+- All players receive `session:terminated` event with the exiting player's nickname
+- All player sockets are disconnected
+- Game state is set to `terminated` phase
+
+---
+
 ## Server → Client Events
 
 Events sent from the server to clients.
@@ -291,23 +312,29 @@ socket.on('player:reconnected', ({ playerIndex }) => {
 
 ### `session:terminated`
 
-The session was terminated (e.g., due to inactivity or debug export).
+The session was terminated (e.g., due to player exit, inactivity, or debug export).
 
 ```typescript
-socket.on('session:terminated', ({ message }) => {
-  console.log(`Session ended: ${message}`);
+socket.on('session:terminated', ({ message, terminatedBy }) => {
+  if (terminatedBy) {
+    console.log(`${terminatedBy} left the game`);
+  } else {
+    console.log(`Session ended: ${message}`);
+  }
   // Redirect to home or show message
 });
 ```
 
 **Payload:**
 
-| Field     | Type     | Description            |
-| --------- | -------- | ---------------------- |
-| `message` | `string` | Reason for termination |
+| Field          | Type     | Description                              |
+| -------------- | -------- | ---------------------------------------- |
+| `message`      | `string` | Reason for termination                   |
+| `terminatedBy` | `string` | (Optional) Nickname of player who exited |
 
 **Termination Reasons:**
 
+- Player exit: A player chose to exit the game, ending it for all players
 - Inactivity: Sessions with no activity for 2+ days are automatically terminated
 - Debug export: Session terminated after exporting game data for debugging
 

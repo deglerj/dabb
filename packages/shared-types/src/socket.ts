@@ -17,6 +17,7 @@ export interface ClientToServerEvents {
   'game:declareMelds': (data: { melds: Meld[] }) => void;
   'game:playCard': (data: { cardId: CardId }) => void;
   'game:sync': (data: { lastEventSequence: number }) => void;
+  'game:exit': () => void;
 }
 
 // Server -> Client events
@@ -26,7 +27,7 @@ export interface ServerToClientEvents {
   'player:joined': (data: { playerIndex: PlayerIndex; nickname: string }) => void;
   'player:left': (data: { playerIndex: PlayerIndex }) => void;
   'player:reconnected': (data: { playerIndex: PlayerIndex }) => void;
-  'session:terminated': (data: { message: string }) => void;
+  'session:terminated': (data: { message: string; terminatedBy?: string }) => void;
   error: (data: { message: string; code: string }) => void;
 }
 

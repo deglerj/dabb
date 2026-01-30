@@ -17,6 +17,7 @@ import {
   declareTrump,
   declareMelds,
   playCard,
+  terminateGame,
 } from '../services/gameService.js';
 import {
   getPlayerBySecretId,
@@ -195,6 +196,32 @@ export function setupSocketHandlers(io: GameServer) {
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         socket.emit('error', { message, code: 'SYNC_FAILED' });
+      }
+    });
+
+    // Handle game exit
+    socket.on('game:exit', async () => {
+      try {
+        const event = await terminateGame(sessionId, playerIndex);
+        broadcastEvents(io, sessionId, [event]);
+
+        // Notify all players that the session was terminated
+        io.to(sessionId).emit('session:terminated', {
+          message: 'Game terminated by player',
+          terminatedBy: nickname,
+        });
+
+        // Disconnect all sockets in the session
+        const sockets = sessionSockets.get(sessionId);
+        if (sockets) {
+          for (const s of sockets) {
+            s.disconnect(true);
+          }
+          sessionSockets.delete(sessionId);
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        socket.emit('error', { message, code: 'EXIT_FAILED' });
       }
     });
 

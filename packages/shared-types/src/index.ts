@@ -39,6 +39,7 @@ export type {
   GameEventType,
   GameFinishedEvent,
   GameStartedEvent,
+  GameTerminatedEvent,
   MeldingCompleteEvent,
   MeldsDeclaredEvent,
   NewRoundStartedEvent,

@@ -3,7 +3,7 @@
  */
 
 import React, { useMemo, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Modal } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Modal, TouchableOpacity } from 'react-native';
 import type { GameState, GameEvent, PlayerIndex, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
@@ -25,6 +25,7 @@ interface GameScreenProps {
   onPass: () => void;
   onDeclareTrump: (suit: Suit) => void;
   onPlayCard: (cardId: string) => void;
+  onExitGame?: () => void;
 }
 
 function GameScreen({
@@ -36,6 +37,7 @@ function GameScreen({
   onPass,
   onDeclareTrump,
   onPlayCard,
+  onExitGame,
 }: GameScreenProps) {
   const { t } = useTranslation();
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -74,6 +76,10 @@ function GameScreen({
     state.phase !== 'dealing' &&
     state.phase !== 'scoring' &&
     state.phase !== 'finished';
+
+  // Check if we can show the exit button (only during active game phases)
+  const activePhases = ['dealing', 'bidding', 'dabb', 'trump', 'melding', 'tricks', 'scoring'];
+  const canExit = activePhases.includes(state.phase);
 
   const renderPhaseContent = () => {
     switch (state.phase) {
@@ -169,12 +175,19 @@ function GameScreen({
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.phaseLabel}>
-          {state.phase === 'bidding' && `${t('game.bid')}: ${state.currentBid}`}
-          {state.phase === 'tricks' && state.trump && `${t('game.trump')}: ${state.trump}`}
-        </Text>
-        {isMyTurn && state.phase !== 'waiting' && state.phase !== 'dealing' && (
-          <Text style={styles.turnIndicator}>{t('game.yourTurn')}</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.phaseLabel}>
+            {state.phase === 'bidding' && `${t('game.bid')}: ${state.currentBid}`}
+            {state.phase === 'tricks' && state.trump && `${t('game.trump')}: ${state.trump}`}
+          </Text>
+          {isMyTurn && state.phase !== 'waiting' && state.phase !== 'dealing' && (
+            <Text style={styles.turnIndicator}>{t('game.yourTurn')}</Text>
+          )}
+        </View>
+        {canExit && onExitGame && (
+          <TouchableOpacity style={styles.exitButton} onPress={onExitGame}>
+            <Text style={styles.exitButtonText}>{t('game.exitGame')}</Text>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -236,6 +249,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: 'rgba(0,0,0,0.2)',
   },
+  headerLeft: {
+    flex: 1,
+  },
   phaseLabel: {
     color: '#fff',
     fontSize: 14,
@@ -245,6 +261,19 @@ const styles = StyleSheet.create({
     color: '#fef08a',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  exitButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  exitButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   gameArea: {
     flex: 1,

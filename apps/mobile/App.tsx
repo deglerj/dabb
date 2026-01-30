@@ -111,6 +111,29 @@ function AppContent() {
     });
   }, []);
 
+  const handleSessionTerminated = useCallback(
+    (terminatedBy?: string) => {
+      const message = terminatedBy
+        ? t('game.gameTerminatedMessage', { name: terminatedBy })
+        : t('game.gameTerminated');
+
+      Alert.alert(t('game.gameTerminated'), message, [
+        {
+          text: t('game.backToHome'),
+          onPress: async () => {
+            await clearCredentials();
+            setSessionInfo(null);
+            setPlayers(new Map());
+            setNicknames(new Map());
+            resetGameState();
+            setScreen('home');
+          },
+        },
+      ]);
+    },
+    [t, clearCredentials, resetGameState]
+  );
+
   const {
     socket: _socket,
     connected: _connected,
@@ -123,6 +146,7 @@ function AppContent() {
     onPlayerJoined: handlePlayerJoined,
     onPlayerLeft: handlePlayerLeft,
     onPlayerReconnected: handlePlayerReconnected,
+    onSessionTerminated: handleSessionTerminated,
   });
 
   // Initialize app screen based on credentials
@@ -255,6 +279,22 @@ function AppContent() {
     emit?.('game:playCard', { cardId });
   };
 
+  const handleExitGame = () => {
+    Alert.alert(t('game.exitGameConfirmTitle'), t('game.exitGameConfirmMessage'), [
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+      {
+        text: t('game.exitGame'),
+        style: 'destructive',
+        onPress: () => {
+          emit?.('game:exit');
+        },
+      },
+    ]);
+  };
+
   if (screen === 'loading') {
     return (
       <View style={styles.loadingContainer}>
@@ -306,6 +346,7 @@ function AppContent() {
           onPass={handlePass}
           onDeclareTrump={handleDeclareTrump}
           onPlayCard={handlePlayCard}
+          onExitGame={handleExitGame}
         />
         <StatusBar style="light" />
       </>

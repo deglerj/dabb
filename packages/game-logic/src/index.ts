@@ -11,6 +11,7 @@ export {
   createDabbTakenEvent,
   createGameFinishedEvent,
   createGameStartedEvent,
+  createGameTerminatedEvent,
   createMeldingCompleteEvent,
   createMeldsDeclaredEvent,
   createNewRoundStartedEvent,

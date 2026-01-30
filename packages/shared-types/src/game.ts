@@ -17,7 +17,8 @@ export type GamePhase =
   | 'melding'
   | 'tricks'
   | 'scoring'
-  | 'finished';
+  | 'finished'
+  | 'terminated';
 
 export interface Player {
   id: string;

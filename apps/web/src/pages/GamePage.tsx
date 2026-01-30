@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import type { Card, CardId, PlayerIndex, Suit } from '@dabb/shared-types';
 import { DABB_SIZE, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
@@ -12,17 +12,52 @@ import TrumpSelector from '../components/game/TrumpSelector';
 import TrickArea from '../components/game/TrickArea';
 import ScoreBoard from '../components/game/ScoreBoard';
 import SuitIcon from '../components/SuitIcon';
+import ConfirmModal from '../components/ConfirmModal';
+import GameTerminatedModal from '../components/game/GameTerminatedModal';
 
 function GamePage() {
   const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
+  const navigate = useNavigate();
   const game = useGame(code || '');
   const [selectedCards, setSelectedCards] = useState<CardId[]>([]);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
-  const { state, events, playerIndex, isMyTurn, validMoves, error, connected } = game;
+  const {
+    state,
+    events,
+    playerIndex,
+    isMyTurn,
+    validMoves,
+    error,
+    connected,
+    isTerminated,
+    terminationInfo,
+  } = game;
 
   const myHand = state.hands.get(playerIndex as PlayerIndex) || [];
   const dabbSize = DABB_SIZE[state.playerCount];
+
+  // Check if we can show the exit button (only during active game phases)
+  const activePhases = ['dealing', 'bidding', 'dabb', 'trump', 'melding', 'tricks', 'scoring'];
+  const canExit = activePhases.includes(state.phase);
+
+  const handleExitClick = () => {
+    setShowExitConfirm(true);
+  };
+
+  const handleExitConfirm = () => {
+    game.exitGame();
+    setShowExitConfirm(false);
+  };
+
+  const handleExitCancel = () => {
+    setShowExitConfirm(false);
+  };
+
+  const handleGoHome = () => {
+    navigate('/');
+  };
 
   const handleDiscard = () => {
     if (selectedCards.length === dabbSize) {
@@ -48,6 +83,25 @@ function GamePage() {
 
   return (
     <div className="game-board">
+      {/* Exit confirmation modal */}
+      {showExitConfirm && (
+        <ConfirmModal
+          title={t('game.exitGameConfirmTitle')}
+          message={t('game.exitGameConfirmMessage')}
+          confirmLabel={t('game.exitGame')}
+          onConfirm={handleExitConfirm}
+          onCancel={handleExitCancel}
+        />
+      )}
+
+      {/* Game terminated modal (shown when another player exits) */}
+      {isTerminated && (
+        <GameTerminatedModal
+          terminatedBy={terminationInfo?.terminatedBy || null}
+          onGoHome={handleGoHome}
+        />
+      )}
+
       {/* Top: Scoreboard */}
       <ScoreBoard state={state} events={events} currentPlayerIndex={state.currentPlayer} />
 
@@ -61,9 +115,22 @@ function GamePage() {
           flex: 1,
         }}
       >
-        {/* Phase indicator */}
-        <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
+        {/* Phase indicator with exit button */}
+        <div
+          style={{
+            marginBottom: '1rem',
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+          }}
+        >
           <PhaseIndicator phase={state.phase} trump={state.trump} />
+          {canExit && (
+            <button className="exit-button" onClick={handleExitClick}>
+              {t('game.exitGame')}
+            </button>
+          )}
         </div>
 
         {/* Error message */}

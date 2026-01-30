@@ -23,6 +23,7 @@ import {
   createTrickWonEvent,
   createRoundScoredEvent,
   createNewRoundStartedEvent,
+  createGameTerminatedEvent,
 } from '../events/generators.js';
 
 /**
@@ -245,5 +246,12 @@ export class GameTestHelper {
     }
 
     return detectMelds(hand, trump);
+  }
+
+  /**
+   * Terminate the game (player exits)
+   */
+  terminateGame(terminatedBy: PlayerIndex): void {
+    this.events.push(createGameTerminatedEvent(this.ctx(), terminatedBy, 'player_exit'));
   }
 }

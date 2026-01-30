@@ -89,6 +89,12 @@ const en: TranslationKeys = {
     melds: 'Melds',
     tricks: 'Tricks',
     gameWinner: 'Winner',
+    exitGame: 'Exit game',
+    exitGameConfirmTitle: 'Exit game?',
+    exitGameConfirmMessage: 'If you leave, the game will end for all players.',
+    gameTerminated: 'Game terminated',
+    gameTerminatedMessage: '{{name}} has left the game.',
+    backToHome: 'Back to home',
   },
   phases: {
     waiting: 'Waiting',
@@ -100,6 +106,7 @@ const en: TranslationKeys = {
     tricks: 'Tricks',
     scoring: 'Scoring',
     finished: 'Finished',
+    terminated: 'Terminated',
   },
   errors: {
     enterNickname: 'Please enter a nickname',

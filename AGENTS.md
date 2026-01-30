@@ -59,6 +59,16 @@ All game state is managed through events:
 - State is computed by replaying events through a reducer
 - Enables reconnection, debugging, and anti-cheat
 
+**Key Events:**
+
+- `GameStartedEvent`, `CardsDealtEvent` - Game lifecycle
+- `BidPlacedEvent`, `PlayerPassedEvent`, `BiddingWonEvent` - Bidding phase
+- `DabbTakenEvent`, `CardsDiscardedEvent`, `TrumpDeclaredEvent` - Dabb/Trump phases
+- `MeldsDeclaredEvent`, `MeldingCompleteEvent` - Melding phase
+- `CardPlayedEvent`, `TrickWonEvent` - Tricks phase
+- `RoundScoredEvent`, `GameFinishedEvent` - Scoring/End
+- `GameTerminatedEvent` - Game terminated by player exit (no winner)
+
 ### Anti-Cheat
 
 Events are filtered before sending to clients so players only see their own cards.
@@ -172,6 +182,8 @@ pnpm docker:reset         # Reset database
 | `packages/ui-shared/src/useRoundHistory.ts`                  | Round history for scoreboard |
 | `packages/ui-shared/src/useLocalStorage.ts`                  | Session credentials hook     |
 | `apps/web/src/components/game/ScoreBoard.tsx`                | Web scoreboard component     |
+| `apps/web/src/components/ConfirmModal.tsx`                   | Reusable confirmation modal  |
+| `apps/web/src/components/game/GameTerminatedModal.tsx`       | Game terminated notification |
 | `apps/mobile/src/components/game/ScoreBoard.tsx`             | Mobile scoreboard component  |
 | `apps/mobile/src/components/game/ScoreBoardHeader.tsx`       | Mobile compact scoreboard    |
 | `apps/server/src/socket/handlers.ts`                         | Socket.IO event handlers     |

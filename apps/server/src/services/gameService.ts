@@ -17,6 +17,7 @@ import {
   createDeck,
   createGameFinishedEvent,
   createGameStartedEvent,
+  createGameTerminatedEvent,
   createMeldingCompleteEvent,
   createMeldsDeclaredEvent,
   createNewRoundStartedEvent,
@@ -486,6 +487,35 @@ export async function playCard(
   }
 
   return events;
+}
+
+/**
+ * Terminate a game due to player exit
+ * Returns the termination event for broadcasting
+ */
+export async function terminateGame(
+  sessionId: string,
+  playerIndex: PlayerIndex
+): Promise<GameEvent> {
+  const state = await getGameState(sessionId);
+
+  // Only allow termination during active game phases
+  const activePhases = ['dealing', 'bidding', 'dabb', 'trump', 'melding', 'tricks', 'scoring'];
+  if (!activePhases.includes(state.phase)) {
+    throw new Error('Cannot terminate game in current phase');
+  }
+
+  const sequence = (await getLastSequence(sessionId)) + 1;
+  const ctx = { sessionId, sequence };
+
+  const event = createGameTerminatedEvent(ctx, playerIndex);
+
+  await saveEvent(event);
+  updateGameState(sessionId, event);
+
+  await updateSessionStatus(sessionId, 'terminated');
+
+  return event;
 }
 
 /**

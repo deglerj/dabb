@@ -15,6 +15,7 @@ import {
   GameEvent,
   GameFinishedEvent,
   GameStartedEvent,
+  GameTerminatedEvent,
   Meld,
   MeldingCompleteEvent,
   MeldsDeclaredEvent,
@@ -267,5 +268,17 @@ export function createNewRoundStartedEvent(
     ...createBaseEvent(ctx),
     type: 'NEW_ROUND_STARTED',
     payload: { round, dealer },
+  };
+}
+
+export function createGameTerminatedEvent(
+  ctx: EventContext,
+  terminatedBy: PlayerIndex,
+  reason: 'player_exit' = 'player_exit'
+): GameTerminatedEvent {
+  return {
+    ...createBaseEvent(ctx),
+    type: 'GAME_TERMINATED',
+    payload: { terminatedBy, reason },
   };
 }

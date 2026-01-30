@@ -89,6 +89,12 @@ const de: TranslationKeys = {
     melds: 'Meldungen',
     tricks: 'Stiche',
     gameWinner: 'Gewinner',
+    exitGame: 'Spiel verlassen',
+    exitGameConfirmTitle: 'Spiel verlassen?',
+    exitGameConfirmMessage: 'Wenn du das Spiel verlässt, wird es für alle Spieler beendet.',
+    gameTerminated: 'Spiel abgebrochen',
+    gameTerminatedMessage: '{{name}} hat das Spiel verlassen.',
+    backToHome: 'Zurück zum Start',
   },
   phases: {
     waiting: 'Warten',
@@ -100,6 +106,7 @@ const de: TranslationKeys = {
     tricks: 'Stechen',
     scoring: 'Zählen',
     finished: 'Beendet',
+    terminated: 'Abgebrochen',
   },
   errors: {
     enterNickname: 'Bitte gib einen Spitznamen ein',

@@ -324,6 +324,52 @@ h3 {
   border-top: 1px solid var(--border);
 }
 
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  max-width: 400px;
+  width: 100%;
+  animation: modal-appear 0.2s ease-out;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Exit button styles */
+.exit-button {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+}
+
+.exit-button:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
 /* Mobile: hide expanded history by default */
 @media (max-width: 767px) {
   .scoreboard-history {

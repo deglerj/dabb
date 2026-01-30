@@ -66,6 +66,9 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
     case 'NEW_ROUND_STARTED':
       return handleNewRoundStarted(state, event);
 
+    case 'GAME_TERMINATED':
+      return handleGameTerminated(state);
+
     default:
       return state;
   }
@@ -389,5 +392,12 @@ function handleNewRoundStarted(
     ...resetForNewRound(state),
     dealer: event.payload.dealer,
     round: event.payload.round,
+  };
+}
+
+function handleGameTerminated(state: GameState): GameState {
+  return {
+    ...state,
+    phase: 'terminated',
   };
 }
