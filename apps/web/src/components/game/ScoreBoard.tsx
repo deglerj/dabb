@@ -7,9 +7,10 @@ interface ScoreBoardProps {
   state: GameState;
   events: GameEvent[];
   currentPlayerIndex: PlayerIndex | null;
+  onExitClick?: () => void;
 }
 
-function ScoreBoard({ state, events, currentPlayerIndex }: ScoreBoardProps) {
+function ScoreBoard({ state, events, currentPlayerIndex, onExitClick }: ScoreBoardProps) {
   const { t } = useTranslation();
   const { rounds, currentRound, gameWinner } = useRoundHistory(events);
 
@@ -58,9 +59,23 @@ function ScoreBoard({ state, events, currentPlayerIndex }: ScoreBoardProps) {
           })}
         </div>
 
-        <button className="scoreboard-toggle" type="button">
-          {isExpanded ? t('game.hideHistory') : t('game.showHistory')}
-        </button>
+        <div className="scoreboard-actions">
+          <button className="scoreboard-toggle" type="button">
+            {isExpanded ? t('game.hideHistory') : t('game.showHistory')}
+          </button>
+          {onExitClick && (
+            <button
+              className="exit-button"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onExitClick();
+              }}
+            >
+              {t('game.exitGame')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Game winner banner */}

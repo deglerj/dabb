@@ -83,13 +83,6 @@ function GamePage() {
 
   return (
     <div className="game-board">
-      {/* Exit button (top-right corner) */}
-      {canExit && (
-        <button className="exit-button" onClick={handleExitClick}>
-          {t('game.exitGame')}
-        </button>
-      )}
-
       {/* Exit confirmation modal */}
       {showExitConfirm && (
         <ConfirmModal
@@ -110,7 +103,12 @@ function GamePage() {
       )}
 
       {/* Top: Scoreboard */}
-      <ScoreBoard state={state} events={events} currentPlayerIndex={state.currentPlayer} />
+      <ScoreBoard
+        state={state}
+        events={events}
+        currentPlayerIndex={state.currentPlayer}
+        onExitClick={canExit ? handleExitClick : undefined}
+      />
 
       {/* Middle: Game area */}
       <div
