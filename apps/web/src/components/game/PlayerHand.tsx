@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Card as CardType, CardId } from '@dabb/shared-types';
 import { sortHand } from '@dabb/game-logic';
 
@@ -23,6 +23,12 @@ function PlayerHand({
 }: PlayerHandProps) {
   const [selected, setSelected] = useState<Set<CardId>>(new Set());
   const sortedCards = sortHand(cards);
+
+  // Clear selection when selection mode changes (e.g., entering/leaving dabb phase)
+  useEffect(() => {
+    setSelected(new Set());
+    onSelectionChange?.([]);
+  }, [selectionMode]);
 
   const handleClick = (card: CardType) => {
     if (selectionMode === 'single' && onPlayCard) {

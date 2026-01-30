@@ -2,7 +2,7 @@
  * Main game screen
  */
 
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Modal, TouchableOpacity } from 'react-native';
 import type { GameState, GameEvent, PlayerIndex, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
@@ -42,6 +42,11 @@ function GameScreen({
   const { t } = useTranslation();
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [showExpandedScoreboard, setShowExpandedScoreboard] = useState(false);
+
+  // Clear selected card when phase changes (e.g., between rounds)
+  useEffect(() => {
+    setSelectedCardId(null);
+  }, [state.phase]);
 
   const myHand = state.hands.get(playerIndex) || [];
   const sortedHand = useMemo(() => sortHand(myHand), [myHand]);
