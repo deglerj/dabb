@@ -233,23 +233,28 @@ jobs:
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --clean
 
-      - name: Fix Hermes permissions
+      - name: Fix Hermes path for pnpm
         run: |
-          # Find and fix permissions for all hermesc binaries (follow symlinks)
-          find -L node_modules -path "*/hermesc/linux64-bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
-          find -L node_modules -name "hermesc" -type f -exec chmod +x {} \; 2>/dev/null || true
-          # Also check apps/mobile/node_modules if it exists
-          find -L apps/mobile/node_modules -path "*/hermesc/linux64-bin/*" -type f -exec chmod +x {} \; 2>/dev/null || true
-          # Debug: show what we found
-          echo "Found hermesc binaries:"
-          find -L node_modules -name "hermesc" -type f 2>/dev/null | head -5 || echo "none found"
-          # Verify the binary is executable
-          HERMESC=$(find -L node_modules -path "*/hermesc/linux64-bin/hermesc" -type f 2>/dev/null | head -1)
-          if [ -n "$HERMESC" ]; then
-            echo "Testing hermesc at: $HERMESC"
-            ls -la "$HERMESC"
-            file "$HERMESC" || true
-            ldd "$HERMESC" 2>&1 || true
+          # React Native looks for hermesc at react-native/sdks/hermesc/ but with pnpm
+          # the binary is in a separate hermes-compiler package. Create symlink.
+          RN_DIR=$(find node_modules/.pnpm -type d -name "react-native" -path "*react-native@*/node_modules/react-native" 2>/dev/null | head -1)
+          if [ -n "$RN_DIR" ]; then
+            echo "Found react-native at: $RN_DIR"
+            HERMES_COMPILER=$(dirname "$RN_DIR")/hermes-compiler
+            if [ -d "$HERMES_COMPILER" ]; then
+              echo "Found hermes-compiler at: $HERMES_COMPILER"
+              mkdir -p "$RN_DIR/sdks"
+              # Use relative path from symlink location: sdks/hermesc -> ../../hermes-compiler/hermesc
+              ln -sf "../../hermes-compiler/hermesc" "$RN_DIR/sdks/hermesc"
+              echo "Created symlink: $RN_DIR/sdks/hermesc -> ../../hermes-compiler/hermesc"
+              # Verify the symlink works
+              ls -la "$RN_DIR/sdks/hermesc/linux64-bin/hermesc"
+              chmod +x "$RN_DIR/sdks/hermesc/linux64-bin/hermesc"
+            else
+              echo "hermes-compiler not found at expected location"
+            fi
+          else
+            echo "react-native directory not found"
           fi
 
       - name: Build APK with Gradle
