@@ -83,6 +83,13 @@ function GamePage() {
 
   return (
     <div className="game-board">
+      {/* Exit button (top-right corner) */}
+      {canExit && (
+        <button className="exit-button" onClick={handleExitClick}>
+          {t('game.exitGame')}
+        </button>
+      )}
+
       {/* Exit confirmation modal */}
       {showExitConfirm && (
         <ConfirmModal
@@ -115,22 +122,9 @@ function GamePage() {
           flex: 1,
         }}
       >
-        {/* Phase indicator with exit button */}
-        <div
-          style={{
-            marginBottom: '1rem',
-            textAlign: 'center',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-          }}
-        >
+        {/* Phase indicator */}
+        <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
           <PhaseIndicator phase={state.phase} trump={state.trump} />
-          {canExit && (
-            <button className="exit-button" onClick={handleExitClick}>
-              {t('game.exitGame')}
-            </button>
-          )}
         </div>
 
         {/* Error message */}
