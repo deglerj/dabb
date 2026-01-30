@@ -151,6 +151,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@dabb/card-assets':
+        specifier: workspace:*
+        version: link:../../packages/card-assets
       '@dabb/game-logic':
         specifier: workspace:*
         version: link:../../packages/game-logic

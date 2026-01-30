@@ -11,6 +11,7 @@ import BiddingPanel from '../components/game/BiddingPanel';
 import TrumpSelector from '../components/game/TrumpSelector';
 import TrickArea from '../components/game/TrickArea';
 import ScoreBoard from '../components/game/ScoreBoard';
+import SuitIcon from '../components/SuitIcon';
 
 function GamePage() {
   const { t } = useTranslation();
@@ -184,8 +185,16 @@ function PhaseIndicator({ phase, trump }: { phase: string; trump: string | null 
       <span style={{ color: 'var(--text-secondary)' }}>{t('game.phase')}: </span>
       <strong>{t(phaseKey)}</strong>
       {trump && (
-        <span style={{ marginLeft: '1rem' }}>
-          | {t('game.trump')}: <strong>{SUIT_NAMES[trump as keyof typeof SUIT_NAMES]}</strong>
+        <span
+          style={{
+            marginLeft: '1rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+          }}
+        >
+          | {t('game.trump')}: <SuitIcon suit={trump as Suit} size={20} />
+          <strong>{SUIT_NAMES[trump as keyof typeof SUIT_NAMES]}</strong>
         </span>
       )}
     </div>

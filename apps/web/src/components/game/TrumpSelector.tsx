@@ -2,16 +2,11 @@ import type { Suit } from '@dabb/shared-types';
 import { SUITS, SUIT_NAMES } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
+import SuitIcon from '../SuitIcon';
+
 interface TrumpSelectorProps {
   onSelect: (suit: Suit) => void;
 }
-
-const SUIT_COLORS: Record<Suit, string> = {
-  kreuz: '#8B4513',
-  schippe: '#228B22',
-  herz: '#dc2626',
-  bollen: '#FFD700',
-};
 
 function TrumpSelector({ onSelect }: TrumpSelectorProps) {
   const { t } = useTranslation();
@@ -25,11 +20,16 @@ function TrumpSelector({ onSelect }: TrumpSelectorProps) {
             key={suit}
             onClick={() => onSelect(suit)}
             style={{
-              background: SUIT_COLORS[suit],
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.5rem',
               minWidth: '80px',
+              padding: '0.75rem',
             }}
           >
-            {SUIT_NAMES[suit]}
+            <SuitIcon suit={suit} size={40} />
+            <span>{SUIT_NAMES[suit]}</span>
           </button>
         ))}
       </div>
