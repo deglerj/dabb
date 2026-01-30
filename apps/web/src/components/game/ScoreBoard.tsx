@@ -71,7 +71,7 @@ function ScoreBoard({ state, events, currentPlayerIndex }: ScoreBoardProps) {
       )}
 
       {/* Expanded history table */}
-      {isExpanded && rounds.length > 0 && (
+      {isExpanded && (rounds.length > 0 || currentRound) && (
         <div className="scoreboard-history">
           <table>
             <thead>
@@ -120,6 +120,34 @@ function ScoreBoard({ state, events, currentPlayerIndex }: ScoreBoardProps) {
                   })}
                 </tr>
               ))}
+              {/* Active round row */}
+              {currentRound && currentRound.bidWinner !== null && (
+                <tr className="round-in-progress">
+                  <td className="round-cell">
+                    <div className="round-number">{currentRound.round}</div>
+                    <div className="round-bid">
+                      {getName(currentRound.bidWinner)}: {currentRound.winningBid}
+                    </div>
+                  </td>
+                  {scoringEntities.map((entity) => {
+                    const meldScore = currentRound.meldScores?.[entity as PlayerIndex];
+                    if (meldScore === undefined) {
+                      return (
+                        <td key={entity} className="score-cell">
+                          -
+                        </td>
+                      );
+                    }
+                    return (
+                      <td key={entity} className="score-cell">
+                        <div className="score-breakdown">
+                          {t('game.melds')}: {meldScore}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              )}
             </tbody>
             <tfoot>
               <tr>

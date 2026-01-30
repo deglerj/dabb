@@ -18,7 +18,7 @@ interface ScoreBoardProps {
 
 function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }: ScoreBoardProps) {
   const { t } = useTranslation();
-  const { rounds, gameWinner } = useRoundHistory(events);
+  const { rounds, currentRound, gameWinner } = useRoundHistory(events);
 
   const getName = (playerOrTeam: PlayerIndex | Team): string => {
     const nickname = nicknames.get(playerOrTeam as PlayerIndex);
@@ -86,7 +86,7 @@ function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }
       </View>
 
       {/* Round history table */}
-      {rounds.length > 0 && (
+      {(rounds.length > 0 || currentRound) && (
         <View style={styles.historySection}>
           <Text style={styles.historyTitle}>{t('game.showHistory')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator style={styles.tableScroll}>
@@ -148,6 +148,35 @@ function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }
                   })}
                 </View>
               ))}
+
+              {/* Active round row */}
+              {currentRound && currentRound.bidWinner !== null && (
+                <View style={styles.tableRow}>
+                  <View style={[styles.tableCell, styles.roundCell]}>
+                    <Text style={styles.roundNumber}>{currentRound.round}</Text>
+                    <Text style={styles.roundBid}>
+                      {getName(currentRound.bidWinner)}: {currentRound.winningBid}
+                    </Text>
+                  </View>
+                  {scoringEntities.map((entity) => {
+                    const meldScore = currentRound.meldScores?.[entity as PlayerIndex];
+                    if (meldScore === undefined) {
+                      return (
+                        <View key={entity} style={styles.tableCell}>
+                          <Text style={styles.cellText}>-</Text>
+                        </View>
+                      );
+                    }
+                    return (
+                      <View key={entity} style={styles.tableCell}>
+                        <Text style={styles.cellBreakdown}>
+                          {t('game.melds')}: {meldScore}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
             </View>
           </ScrollView>
         </View>
