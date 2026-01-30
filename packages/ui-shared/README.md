@@ -53,6 +53,38 @@ socket.on('game:events', ({ events }) => {
 console.log(state.phase, state.currentPlayer);
 ```
 
+### useRoundHistory
+
+Computes round-by-round game history from events for scoreboard display:
+
+```typescript
+import { useRoundHistory } from '@dabb/ui-shared';
+
+const { rounds, currentRound, gameWinner } = useRoundHistory(events);
+
+// rounds: Array of completed rounds with scores
+rounds.forEach((round) => {
+  console.log(`Round ${round.round}:`);
+  console.log(`  Bid winner: ${round.bidWinner} with ${round.winningBid}`);
+  if (round.scores) {
+    Object.entries(round.scores).forEach(([player, score]) => {
+      console.log(`  ${player}: ${score.melds} melds + ${score.tricks} tricks = ${score.total}`);
+      if (!score.bidMet) console.log('    (bid not met!)');
+    });
+  }
+});
+
+// currentRound: Info about the round in progress (if any)
+if (currentRound) {
+  console.log(`Current: Round ${currentRound.round}, bid: ${currentRound.winningBid}`);
+}
+
+// gameWinner: Player/team index when game is finished
+if (gameWinner !== null) {
+  console.log(`Winner: ${gameWinner}`);
+}
+```
+
 ### useSessionCredentials
 
 Persists session credentials in local storage:

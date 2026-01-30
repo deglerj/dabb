@@ -63,6 +63,17 @@ All game state is managed through events:
 
 Events are filtered before sending to clients so players only see their own cards.
 
+### Scoreboard
+
+The scoreboard displays round-by-round history computed client-side from events:
+
+- **Data source**: Uses `useRoundHistory` hook to compute history from `BiddingWonEvent`, `RoundScoredEvent`, and `GameFinishedEvent`
+- **Minimizable**: Collapsed by default on mobile (< 768px), expandable to show full history
+- **Round details**: Shows bid winner, winning bid, and per-player scores (melds + tricks)
+- **Bid tracking**: Highlights rounds where the bid winner didn't meet their bid
+- **Web**: Table-based layout in `apps/web/src/components/game/ScoreBoard.tsx`
+- **Mobile**: Compact header (`ScoreBoardHeader.tsx`) during play, full modal view when expanded
+
 ### Swabian Terminology
 
 Uses Swabian German card names:
@@ -141,33 +152,37 @@ pnpm docker:reset         # Reset database
 
 ## Key Files
 
-| File                                            | Purpose                    |
-| ----------------------------------------------- | -------------------------- |
-| `packages/shared-types/src/cards.ts`            | Card types and constants   |
-| `packages/shared-types/src/game.ts`             | Game state and meld types  |
-| `packages/shared-types/src/events.ts`           | Event type definitions     |
-| `packages/shared-types/src/api.ts`              | API request/response types |
-| `packages/shared-types/src/socket.ts`           | Socket event types         |
-| `packages/game-logic/src/state/reducer.ts`      | Event sourcing reducer     |
-| `packages/game-logic/src/state/views.ts`        | State view functions       |
-| `packages/game-logic/src/melds/detector.ts`     | Meld detection             |
-| `packages/game-logic/src/phases/bidding.ts`     | Bidding phase logic        |
-| `packages/game-logic/src/phases/tricks.ts`      | Trick-taking rules         |
-| `packages/game-logic/src/export/`               | Event export for debug     |
-| `packages/ui-shared/src/useGameState.ts`        | Game state React hook      |
-| `packages/ui-shared/src/useSocket.ts`           | Socket.IO React hook       |
-| `apps/server/src/socket/handlers.ts`            | Socket.IO event handlers   |
-| `apps/server/src/services/eventService.ts`      | Event persistence          |
-| `apps/server/src/services/gameService.ts`       | Game logic service         |
-| `apps/server/src/services/sessionService.ts`    | Session management         |
-| `apps/server/src/services/cleanupService.ts`    | Inactive session cleanup   |
-| `apps/server/src/scheduler/cleanupScheduler.ts` | Cleanup background job     |
-| `apps/server/src/db/pool.ts`                    | Database connection pool   |
-| `packages/i18n/src/locales/de.ts`               | German translations        |
-| `packages/i18n/src/locales/en.ts`               | English translations       |
-| `packages/i18n/src/types.ts`                    | i18n types and config      |
-| `packages/i18n/src/config.ts`                   | i18next initialization     |
-| `packages/i18n/src/components/I18nProvider.tsx` | React i18n provider        |
+| File                                                   | Purpose                      |
+| ------------------------------------------------------ | ---------------------------- |
+| `packages/shared-types/src/cards.ts`                   | Card types and constants     |
+| `packages/shared-types/src/game.ts`                    | Game state and meld types    |
+| `packages/shared-types/src/events.ts`                  | Event type definitions       |
+| `packages/shared-types/src/api.ts`                     | API request/response types   |
+| `packages/shared-types/src/socket.ts`                  | Socket event types           |
+| `packages/game-logic/src/state/reducer.ts`             | Event sourcing reducer       |
+| `packages/game-logic/src/state/views.ts`               | State view functions         |
+| `packages/game-logic/src/melds/detector.ts`            | Meld detection               |
+| `packages/game-logic/src/phases/bidding.ts`            | Bidding phase logic          |
+| `packages/game-logic/src/phases/tricks.ts`             | Trick-taking rules           |
+| `packages/game-logic/src/export/`                      | Event export for debug       |
+| `packages/ui-shared/src/useGameState.ts`               | Game state React hook        |
+| `packages/ui-shared/src/useSocket.ts`                  | Socket.IO React hook         |
+| `packages/ui-shared/src/useRoundHistory.ts`            | Round history for scoreboard |
+| `apps/web/src/components/game/ScoreBoard.tsx`          | Web scoreboard component     |
+| `apps/mobile/src/components/game/ScoreBoard.tsx`       | Mobile scoreboard component  |
+| `apps/mobile/src/components/game/ScoreBoardHeader.tsx` | Mobile compact scoreboard    |
+| `apps/server/src/socket/handlers.ts`                   | Socket.IO event handlers     |
+| `apps/server/src/services/eventService.ts`             | Event persistence            |
+| `apps/server/src/services/gameService.ts`              | Game logic service           |
+| `apps/server/src/services/sessionService.ts`           | Session management           |
+| `apps/server/src/services/cleanupService.ts`           | Inactive session cleanup     |
+| `apps/server/src/scheduler/cleanupScheduler.ts`        | Cleanup background job       |
+| `apps/server/src/db/pool.ts`                           | Database connection pool     |
+| `packages/i18n/src/locales/de.ts`                      | German translations          |
+| `packages/i18n/src/locales/en.ts`                      | English translations         |
+| `packages/i18n/src/types.ts`                           | i18n types and config        |
+| `packages/i18n/src/config.ts`                          | i18next initialization       |
+| `packages/i18n/src/components/I18nProvider.tsx`        | React i18n provider          |
 
 ## Testing
 

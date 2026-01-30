@@ -19,6 +19,7 @@ type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 interface UseGameReturn {
   state: GameState;
+  events: GameEvent[];
   playerIndex: number;
   isMyTurn: boolean;
   validMoves: CardId[];
@@ -36,7 +37,7 @@ interface UseGameReturn {
 export function useGame(code: string): UseGameReturn {
   const [socket, setSocket] = useState<GameSocket | null>(null);
   const [state, setState] = useState<GameState>(createInitialState(4));
-  const [, setEvents] = useState<GameEvent[]>([]);
+  const [events, setEvents] = useState<GameEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [playerIndex, setPlayerIndex] = useState(0);
@@ -150,6 +151,7 @@ export function useGame(code: string): UseGameReturn {
 
   return {
     state,
+    events,
     playerIndex,
     isMyTurn,
     validMoves,

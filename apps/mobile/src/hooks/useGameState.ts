@@ -13,39 +13,45 @@ interface UseGameStateOptions {
 
 interface UseGameStateReturn {
   state: GameState;
+  events: GameEvent[];
   applyEvents: (events: GameEvent[]) => void;
   reset: () => void;
+}
+
+interface StateWithEvents {
+  gameState: GameState;
+  events: GameEvent[];
 }
 
 export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
   const { playerCount, playerIndex } = options;
 
-  const [state, dispatch] = useReducer(
+  const [{ gameState, events }, dispatch] = useReducer(
     (
-      currentState: GameState,
+      current: StateWithEvents,
       action: { type: 'APPLY_EVENTS'; events: GameEvent[] } | { type: 'RESET' }
-    ) => {
+    ): StateWithEvents => {
       if (action.type === 'RESET') {
-        return createInitialState(playerCount);
+        return { gameState: createInitialState(playerCount), events: [] };
       }
 
-      let newState = currentState;
+      let newState = current.gameState;
       for (const event of action.events) {
         const filteredEvent = filterEventForPlayer(event, playerIndex);
         newState = applyEvent(newState, filteredEvent);
       }
-      return newState;
+      return { gameState: newState, events: [...current.events, ...action.events] };
     },
-    createInitialState(playerCount)
+    { gameState: createInitialState(playerCount), events: [] }
   );
 
-  const applyEvents = useCallback((events: GameEvent[]) => {
-    dispatch({ type: 'APPLY_EVENTS', events });
+  const applyEventsCallback = useCallback((newEvents: GameEvent[]) => {
+    dispatch({ type: 'APPLY_EVENTS', events: newEvents });
   }, []);
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
   }, []);
 
-  return { state, applyEvents, reset };
+  return { state: gameState, events, applyEvents: applyEventsCallback, reset };
 }

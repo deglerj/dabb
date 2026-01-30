@@ -18,7 +18,7 @@ function GamePage() {
   const game = useGame(code || '');
   const [selectedCards, setSelectedCards] = useState<CardId[]>([]);
 
-  const { state, playerIndex, isMyTurn, validMoves, error, connected } = game;
+  const { state, events, playerIndex, isMyTurn, validMoves, error, connected } = game;
 
   const myHand = state.hands.get(playerIndex as PlayerIndex) || [];
   const dabbSize = DABB_SIZE[state.playerCount];
@@ -48,7 +48,7 @@ function GamePage() {
   return (
     <div className="game-board">
       {/* Top: Scoreboard */}
-      <ScoreBoard state={state} currentPlayerIndex={state.currentPlayer} />
+      <ScoreBoard state={state} events={events} currentPlayerIndex={state.currentPlayer} />
 
       {/* Middle: Game area */}
       <div

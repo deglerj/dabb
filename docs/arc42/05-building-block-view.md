@@ -80,6 +80,16 @@ src/
     └── views.ts      # Player view filtering
 ```
 
+### @dabb/ui-shared
+
+```
+src/
+├── useSocket.ts           # Socket.IO connection hook
+├── useGameState.ts        # Event-sourced state management
+├── useRoundHistory.ts     # Round history computation for scoreboard
+└── useLocalStorage.ts     # Session credential persistence
+```
+
 ### @dabb/server
 
 ```

@@ -1,36 +1,66 @@
 /**
- * Score board component for React Native
+ * Score board component for React Native with round history
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import type { PlayerIndex, Team } from '@dabb/shared-types';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import type { PlayerIndex, Team, GameEvent, GameState } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
+import { useRoundHistory } from '@dabb/ui-shared';
 
 interface ScoreBoardProps {
-  scores: Map<PlayerIndex | Team, number>;
-  targetScore: number;
+  state: GameState;
+  events: GameEvent[];
   nicknames: Map<PlayerIndex, string>;
   currentPlayerIndex: PlayerIndex;
+  onCollapse?: () => void;
 }
 
-function ScoreBoard({ scores, targetScore, nicknames, currentPlayerIndex }: ScoreBoardProps) {
+function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }: ScoreBoardProps) {
   const { t } = useTranslation();
-  const sortedEntries = Array.from(scores.entries()).sort((a, b) => b[1] - a[1]);
+  const { rounds, gameWinner } = useRoundHistory(events);
+
+  const getName = (playerOrTeam: PlayerIndex | Team): string => {
+    const nickname = nicknames.get(playerOrTeam as PlayerIndex);
+    if (nickname) {
+      return nickname;
+    }
+    return `${t('common.player')} ${(playerOrTeam as number) + 1}`;
+  };
+
+  const scoringEntities = Array.from(state.totalScores.keys());
+  const sortedEntries = Array.from(state.totalScores.entries()).sort((a, b) => b[1] - a[1]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('game.scoreBoard')}</Text>
+      {/* Header with collapse button */}
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('game.scoreBoard')}</Text>
+        {onCollapse && (
+          <TouchableOpacity onPress={onCollapse} style={styles.collapseButton}>
+            <Text style={styles.collapseText}>{t('game.hideHistory')}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       <Text style={styles.targetScore}>
-        {t('game.targetScore')}: {targetScore}
+        {t('game.targetScore')}: {state.targetScore}
       </Text>
 
+      {/* Game winner banner */}
+      {gameWinner !== null && (
+        <View style={styles.winnerBanner}>
+          <Text style={styles.winnerText}>
+            {t('game.gameWinner')}: {getName(gameWinner)}
+          </Text>
+        </View>
+      )}
+
+      {/* Player totals */}
       <View style={styles.scoreList}>
         {sortedEntries.map(([playerOrTeam, score], rank) => {
           const isCurrentPlayer = playerOrTeam === currentPlayerIndex;
-          const nickname =
-            nicknames.get(playerOrTeam as PlayerIndex) ||
-            `${t('common.player')} ${(playerOrTeam as number) + 1}`;
+          const nickname = getName(playerOrTeam);
 
           return (
             <View
@@ -54,6 +84,74 @@ function ScoreBoard({ scores, targetScore, nicknames, currentPlayerIndex }: Scor
           );
         })}
       </View>
+
+      {/* Round history table */}
+      {rounds.length > 0 && (
+        <View style={styles.historySection}>
+          <Text style={styles.historyTitle}>{t('game.showHistory')}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator style={styles.tableScroll}>
+            <View>
+              {/* Table header */}
+              <View style={styles.tableRow}>
+                <View style={[styles.tableCell, styles.roundCell]}>
+                  <Text style={styles.headerText}>{t('game.round')}</Text>
+                </View>
+                {scoringEntities.map((entity) => (
+                  <View key={entity} style={styles.tableCell}>
+                    <Text style={styles.headerText} numberOfLines={1}>
+                      {getName(entity)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Round rows */}
+              {rounds.map((round) => (
+                <View
+                  key={round.round}
+                  style={[styles.tableRow, round.scores && styles.completedRound]}
+                >
+                  <View style={[styles.tableCell, styles.roundCell]}>
+                    <Text style={styles.roundNumber}>{round.round}</Text>
+                    {round.bidWinner !== null && (
+                      <Text style={styles.roundBid}>
+                        {getName(round.bidWinner)}: {round.winningBid}
+                      </Text>
+                    )}
+                  </View>
+                  {scoringEntities.map((entity) => {
+                    const scoreData = round.scores?.[entity];
+                    if (!scoreData) {
+                      return (
+                        <View key={entity} style={styles.tableCell}>
+                          <Text style={styles.cellText}>-</Text>
+                        </View>
+                      );
+                    }
+                    return (
+                      <View
+                        key={entity}
+                        style={[styles.tableCell, !scoreData.bidMet && styles.bidNotMetCell]}
+                      >
+                        <Text style={styles.cellTotal}>{scoreData.total}</Text>
+                        <Text style={styles.cellBreakdown}>
+                          {t('game.melds')}: {scoreData.melds}
+                        </Text>
+                        <Text style={styles.cellBreakdown}>
+                          {t('game.tricks')}: {scoreData.tricks}
+                        </Text>
+                        {!scoreData.bidMet && (
+                          <Text style={styles.bidNotMetText}>{t('game.bidNotMet')}</Text>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      )}
     </View>
   );
 }
@@ -70,17 +168,40 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 4,
+  },
+  collapseButton: {
+    padding: 4,
+  },
+  collapseText: {
+    fontSize: 12,
+    color: '#2563eb',
   },
   targetScore: {
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
     marginBottom: 12,
+  },
+  winnerBanner: {
+    backgroundColor: '#22c55e',
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  winnerText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   scoreList: {
     gap: 8,
@@ -122,6 +243,74 @@ const styles = StyleSheet.create({
   },
   currentPlayerText: {
     color: '#1d4ed8',
+  },
+  historySection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  historyTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  tableScroll: {
+    maxHeight: 200,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  completedRound: {
+    backgroundColor: '#f9fafb',
+  },
+  tableCell: {
+    width: 80,
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  roundCell: {
+    width: 100,
+    alignItems: 'flex-start',
+  },
+  headerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  roundNumber: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  roundBid: {
+    fontSize: 10,
+    color: '#6b7280',
+  },
+  cellText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  cellTotal: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  cellBreakdown: {
+    fontSize: 9,
+    color: '#9ca3af',
+  },
+  bidNotMetCell: {
+    backgroundColor: '#fef2f2',
+  },
+  bidNotMetText: {
+    fontSize: 9,
+    color: '#dc2626',
+    fontWeight: '600',
   },
 });
 

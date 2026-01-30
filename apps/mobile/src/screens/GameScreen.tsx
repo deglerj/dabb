@@ -3,14 +3,22 @@
  */
 
 import React, { useMemo, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
-import type { GameState, PlayerIndex, Suit } from '@dabb/shared-types';
+import { View, Text, StyleSheet, SafeAreaView, Modal } from 'react-native';
+import type { GameState, GameEvent, PlayerIndex, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
-import { PlayerHand, BiddingPanel, TrumpSelector, TrickArea, ScoreBoard } from '../components/game';
+import {
+  PlayerHand,
+  BiddingPanel,
+  TrumpSelector,
+  TrickArea,
+  ScoreBoard,
+  ScoreBoardHeader,
+} from '../components/game';
 
 interface GameScreenProps {
   state: GameState;
+  events: GameEvent[];
   playerIndex: PlayerIndex;
   nicknames: Map<PlayerIndex, string>;
   onBid: (amount: number) => void;
@@ -21,6 +29,7 @@ interface GameScreenProps {
 
 function GameScreen({
   state,
+  events,
   playerIndex,
   nicknames,
   onBid,
@@ -30,6 +39,7 @@ function GameScreen({
 }: GameScreenProps) {
   const { t } = useTranslation();
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [showExpandedScoreboard, setShowExpandedScoreboard] = useState(false);
 
   const myHand = state.hands.get(playerIndex) || [];
   const sortedHand = useMemo(() => sortHand(myHand), [myHand]);
@@ -57,6 +67,13 @@ function GameScreen({
     },
     [state.phase, isMyTurn, selectedCardId, onPlayCard]
   );
+
+  // Determine if we should show the compact header or full scoreboard
+  const showScoreboardHeader =
+    state.phase !== 'waiting' &&
+    state.phase !== 'dealing' &&
+    state.phase !== 'scoring' &&
+    state.phase !== 'finished';
 
   const renderPhaseContent = () => {
     switch (state.phase) {
@@ -113,8 +130,8 @@ function GameScreen({
           <View style={styles.phaseContainer}>
             <Text style={styles.phaseText}>{t('game.roundOver')}</Text>
             <ScoreBoard
-              scores={state.totalScores}
-              targetScore={state.targetScore}
+              state={state}
+              events={events}
               nicknames={nicknames}
               currentPlayerIndex={playerIndex}
             />
@@ -135,8 +152,8 @@ function GameScreen({
                 : t('game.gameOver')}
             </Text>
             <ScoreBoard
-              scores={state.totalScores}
-              targetScore={state.targetScore}
+              state={state}
+              events={events}
               nicknames={nicknames}
               currentPlayerIndex={playerIndex}
             />
@@ -161,6 +178,16 @@ function GameScreen({
         )}
       </View>
 
+      {/* Compact scoreboard header during active play */}
+      {showScoreboardHeader && (
+        <ScoreBoardHeader
+          state={state}
+          events={events}
+          nicknames={nicknames}
+          onExpand={() => setShowExpandedScoreboard(true)}
+        />
+      )}
+
       <View style={styles.gameArea}>{renderPhaseContent()}</View>
 
       <View style={styles.handContainer}>
@@ -174,6 +201,24 @@ function GameScreen({
           <Text style={styles.hint}>{t('game.tapAgainToPlay')}</Text>
         )}
       </View>
+
+      {/* Expanded scoreboard modal */}
+      <Modal
+        visible={showExpandedScoreboard}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowExpandedScoreboard(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <ScoreBoard
+            state={state}
+            events={events}
+            nicknames={nicknames}
+            currentPlayerIndex={playerIndex}
+            onCollapse={() => setShowExpandedScoreboard(false)}
+          />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -234,6 +279,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     marginTop: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

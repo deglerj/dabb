@@ -175,23 +175,175 @@ h3 {
   flex-wrap: wrap;
 }
 
+/* Scoreboard styles */
 .scoreboard {
-  display: flex;
-  justify-content: space-around;
-  padding: 1rem;
   background: var(--bg-card);
   border-radius: 8px;
+  overflow: hidden;
+}
+
+.scoreboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  gap: 1rem;
+}
+
+.scoreboard-players {
+  display: flex;
+  justify-content: space-around;
+  flex: 1;
+  gap: 1rem;
 }
 
 .player-info {
   text-align: center;
+  min-width: 80px;
 }
 
 .player-info.current {
   color: var(--accent);
 }
 
+.player-info .player-name {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
 .player-info .score {
   font-size: 1.5rem;
   font-weight: bold;
+}
+
+.player-info .bid-info {
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+.player-info .disconnected-info {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.scoreboard-toggle {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  background: var(--bg-input);
+  white-space: nowrap;
+}
+
+.scoreboard-toggle:hover {
+  background: var(--border);
+}
+
+.game-winner-banner {
+  background: var(--success);
+  color: white;
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.scoreboard-history {
+  padding: 0.5rem 1rem 1rem;
+  overflow-x: auto;
+}
+
+.scoreboard-history table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.scoreboard-history th,
+.scoreboard-history td {
+  padding: 0.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.scoreboard-history th {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.scoreboard-history tbody tr:hover {
+  background: var(--bg-input);
+}
+
+.scoreboard-history .round-cell {
+  text-align: left;
+}
+
+.scoreboard-history .round-number {
+  font-weight: bold;
+}
+
+.scoreboard-history .round-bid {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.scoreboard-history .score-cell {
+  min-width: 100px;
+}
+
+.scoreboard-history .score-total {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.scoreboard-history .score-breakdown {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.scoreboard-history .bid-not-met {
+  background: rgba(233, 69, 96, 0.15);
+}
+
+.scoreboard-history .bid-failed {
+  font-size: 0.7rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.scoreboard-history tfoot td {
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+  padding-top: 0.75rem;
+}
+
+.current-round-info {
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+}
+
+/* Mobile: hide expanded history by default */
+@media (max-width: 767px) {
+  .scoreboard-history {
+    display: none;
+  }
+
+  .scoreboard.expanded .scoreboard-history {
+    display: block;
+  }
+
+  .player-info .player-name {
+    font-size: 0.75rem;
+  }
+
+  .player-info .score {
+    font-size: 1.25rem;
+  }
+
+  .scoreboard-toggle {
+    font-size: 0.65rem;
+    padding: 0.4rem 0.5rem;
+  }
 }

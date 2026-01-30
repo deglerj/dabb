@@ -4,3 +4,4 @@ export { default as BiddingPanel } from './BiddingPanel';
 export { default as TrumpSelector } from './TrumpSelector';
 export { default as TrickArea } from './TrickArea';
 export { default as ScoreBoard } from './ScoreBoard';
+export { default as ScoreBoardHeader } from './ScoreBoardHeader';

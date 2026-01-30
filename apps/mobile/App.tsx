@@ -55,6 +55,7 @@ function AppContent() {
 
   const {
     state,
+    events,
     applyEvents,
     reset: resetGameState,
   } = useGameState({
@@ -298,6 +299,7 @@ function AppContent() {
       <>
         <GameScreen
           state={state}
+          events={events}
           playerIndex={sessionInfo.playerIndex}
           nicknames={nicknames}
           onBid={handleBid}

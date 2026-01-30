@@ -92,6 +92,14 @@ export interface TranslationKeys {
     choosingTrump: string;
     waitingForGameStart: string;
     dealing: string;
+    round: string;
+    bidWinner: string;
+    bidNotMet: string;
+    showHistory: string;
+    hideHistory: string;
+    melds: string;
+    tricks: string;
+    gameWinner: string;
   };
   phases: {
     waiting: string;

@@ -143,3 +143,14 @@ export const DABB_SIZE: Record<PlayerCount, number> = {
 // Bidding constants
 export const MIN_BID = 150;
 export const BID_INCREMENT = 10;
+
+// Round history for scoreboard
+export interface RoundHistoryEntry {
+  round: number;
+  bidWinner: PlayerIndex | null;
+  winningBid: number;
+  scores: Record<
+    PlayerIndex | Team,
+    { melds: number; tricks: number; total: number; bidMet: boolean }
+  > | null;
+}
