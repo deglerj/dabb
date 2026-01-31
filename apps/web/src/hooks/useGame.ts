@@ -11,7 +11,7 @@ import type {
   PlayerIndex,
 } from '@dabb/shared-types';
 import { applyEvents, createInitialState, getValidPlays } from '@dabb/game-logic';
-import { updateDebugStore } from '../utils/debug';
+import { updateDebugStore, setTerminateCallback } from '../utils/debug';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -106,6 +106,18 @@ export function useGame(code: string): UseGameReturn {
       updateDebugStore(events, newState, code, playerIndex as PlayerIndex);
     }
   }, [events, code, playerIndex]);
+
+  // Set up anti-cheat termination callback for debug commands
+  useEffect(() => {
+    if (socket && connected) {
+      setTerminateCallback(() => {
+        socket.emit('game:exit');
+      });
+    }
+    return () => {
+      setTerminateCallback(null);
+    };
+  }, [socket, connected]);
 
   const isMyTurn = state.currentPlayer === playerIndex || state.currentBidder === playerIndex;
 

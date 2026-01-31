@@ -1,5 +1,8 @@
 /**
  * Debug utilities for exporting game state from the browser console
+ *
+ * ANTI-CHEAT: Using any debug command will terminate the current game
+ * to prevent cheating through console access.
  */
 
 import type { GameEvent, GameState, PlayerIndex } from '@dabb/shared-types';
@@ -11,6 +14,7 @@ interface DebugStore {
   state: GameState | null;
   sessionCode: string | null;
   playerIndex: PlayerIndex | null;
+  onTerminate: (() => void) | null;
 }
 
 const store: DebugStore = {
@@ -18,6 +22,7 @@ const store: DebugStore = {
   state: null,
   sessionCode: null,
   playerIndex: null,
+  onTerminate: null,
 };
 
 /**
@@ -33,6 +38,37 @@ export function updateDebugStore(
   store.state = state;
   store.sessionCode = sessionCode;
   store.playerIndex = playerIndex;
+}
+
+/**
+ * Set the callback to terminate the game (anti-cheat)
+ */
+export function setTerminateCallback(callback: (() => void) | null): void {
+  store.onTerminate = callback;
+}
+
+/**
+ * Terminate the game and log a warning
+ */
+function terminateGameOnAccess(): void {
+  if (store.onTerminate) {
+    console.warn(
+      '%c⚠️ ANTI-CHEAT: Game terminated due to console access',
+      'font-size: 14px; font-weight: bold; color: #ff4444'
+    );
+    store.onTerminate();
+    store.onTerminate = null; // Only terminate once
+  }
+}
+
+/**
+ * Wrap a function to terminate the game before executing
+ */
+function withTermination<T extends (...args: unknown[]) => unknown>(fn: T): T {
+  return ((...args: unknown[]) => {
+    terminateGameOnAccess();
+    return fn(...args);
+  }) as T;
 }
 
 /**
@@ -110,17 +146,21 @@ declare global {
  */
 export function initDebug(): void {
   window.dabb = {
-    exportLog: exportGameLog,
-    copyLog: copyGameLog,
-    downloadLog: downloadGameLog,
-    printLog: printGameLog,
-    getEvents: () => store.events,
-    getState: () => store.state,
+    exportLog: withTermination(exportGameLog),
+    copyLog: withTermination(copyGameLog),
+    downloadLog: withTermination(downloadGameLog),
+    printLog: withTermination(printGameLog),
+    getEvents: withTermination(() => store.events),
+    getState: withTermination(() => store.state),
   };
 
   console.log(
     '%c🎴 Dabb Debug Commands Available',
     'font-size: 14px; font-weight: bold; color: #4a9eff'
+  );
+  console.warn(
+    '%c⚠️ WARNING: Using any of these commands will terminate your current game!',
+    'font-size: 12px; font-weight: bold; color: #ff4444'
   );
   console.log(
     '%c  dabb.printLog()    - Print game event log to console\n' +
