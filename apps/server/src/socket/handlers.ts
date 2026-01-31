@@ -7,6 +7,7 @@ import type {
   GameEvent,
 } from '@dabb/shared-types';
 import { filterEventsForPlayer } from '@dabb/game-logic';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 import {
   startGame,
@@ -30,6 +31,24 @@ import { socketLogger } from '../utils/logger.js';
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 type GameServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+
+// Rate limiter: 30 events per 10 seconds per socket (generous for gameplay)
+const rateLimiter = new RateLimiterMemory({
+  points: 30,
+  duration: 10,
+});
+
+// Returns true if rate limit exceeded
+async function isRateLimited(socket: GameSocket): Promise<boolean> {
+  try {
+    await rateLimiter.consume(socket.id);
+    return false;
+  } catch {
+    socketLogger.warn({ socketId: socket.id }, 'Socket rate limit exceeded');
+    socket.emit('error', { message: 'Too many requests', code: 'RATE_LIMITED' });
+    return true;
+  }
+}
 
 // Map of sessionId -> Set of connected sockets
 // Exported for cleanup scheduler to disconnect sockets on terminated sessions
@@ -104,6 +123,9 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle game start
     socket.on('game:start', async () => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await startGame(sessionId);
         broadcastEvents(io, sessionId, events);
@@ -115,6 +137,9 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle bidding
     socket.on('game:bid', async ({ amount }) => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await placeBid(sessionId, playerIndex, amount);
         broadcastEvents(io, sessionId, events);
@@ -125,6 +150,9 @@ export function setupSocketHandlers(io: GameServer) {
     });
 
     socket.on('game:pass', async () => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await passBid(sessionId, playerIndex);
         broadcastEvents(io, sessionId, events);
@@ -136,6 +164,9 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle dabb
     socket.on('game:takeDabb', async () => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await takeDabb(sessionId, playerIndex);
         broadcastEvents(io, sessionId, events);
@@ -146,6 +177,9 @@ export function setupSocketHandlers(io: GameServer) {
     });
 
     socket.on('game:discard', async ({ cardIds }) => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await discardCards(sessionId, playerIndex, cardIds);
         broadcastEvents(io, sessionId, events);
@@ -157,6 +191,9 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle going out
     socket.on('game:goOut', async ({ suit }) => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await goOut(sessionId, playerIndex, suit);
         broadcastEvents(io, sessionId, events);
@@ -168,6 +205,9 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle trump declaration
     socket.on('game:declareTrump', async ({ suit }) => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await declareTrump(sessionId, playerIndex, suit);
         broadcastEvents(io, sessionId, events);
@@ -179,6 +219,9 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle melds
     socket.on('game:declareMelds', async ({ melds }) => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await declareMelds(sessionId, playerIndex, melds);
         broadcastEvents(io, sessionId, events);
@@ -190,6 +233,9 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle card play
     socket.on('game:playCard', async ({ cardId }) => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await playCard(sessionId, playerIndex, cardId);
         broadcastEvents(io, sessionId, events);
@@ -201,6 +247,9 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle sync request
     socket.on('game:sync', async ({ lastEventSequence }) => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const events = await getEvents(sessionId, lastEventSequence);
         const filteredEvents = filterEventsForPlayer(events, playerIndex);
@@ -213,6 +262,9 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Handle game exit
     socket.on('game:exit', async () => {
+      if (await isRateLimited(socket)) {
+        return;
+      }
       try {
         const event = await terminateGame(sessionId, playerIndex);
         broadcastEvents(io, sessionId, [event]);
