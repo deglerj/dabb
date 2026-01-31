@@ -155,6 +155,46 @@ export interface TranslationKeys {
     gameFinished: string;
     gameTerminated: string;
   };
+  serverErrors: {
+    // Session errors
+    SESSION_NOT_FOUND: string;
+    SESSION_FULL: string;
+    SESSION_CODE_GENERATION_FAILED: string;
+    // Game start errors
+    NOT_ENOUGH_PLAYERS: string;
+    GAME_ALREADY_STARTED: string;
+    // General game errors
+    NOT_YOUR_TURN: string;
+    GAME_STATE_NOT_INITIALIZED: string;
+    // Bidding phase errors
+    NOT_IN_BIDDING_PHASE: string;
+    NOT_YOUR_TURN_TO_BID: string;
+    INVALID_BID_AMOUNT: string;
+    FIRST_BIDDER_MUST_BID: string;
+    // Dabb phase errors
+    NOT_IN_DABB_PHASE: string;
+    ONLY_BID_WINNER_CAN_TAKE_DABB: string;
+    ONLY_BID_WINNER_CAN_DISCARD: string;
+    MUST_DISCARD_EXACT_COUNT: string;
+    CARD_NOT_IN_HAND: string;
+    // Going out errors
+    ONLY_BID_WINNER_CAN_GO_OUT: string;
+    MUST_TAKE_DABB_BEFORE_GOING_OUT: string;
+    // Trump phase errors
+    NOT_IN_TRUMP_PHASE: string;
+    ONLY_BID_WINNER_CAN_DECLARE_TRUMP: string;
+    // Melding phase errors
+    NOT_IN_MELDING_PHASE: string;
+    CANNOT_MELD_WHEN_GOING_OUT: string;
+    ALREADY_DECLARED_MELDS: string;
+    // Tricks phase errors
+    NOT_IN_TRICKS_PHASE: string;
+    INVALID_PLAY: string;
+    // Game termination errors
+    CANNOT_TERMINATE_IN_CURRENT_PHASE: string;
+    // Generic fallback
+    UNKNOWN_ERROR: string;
+  };
 }
 
 /**

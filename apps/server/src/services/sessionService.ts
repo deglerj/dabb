@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { PlayerCount, PlayerIndex, SessionStatus, Team } from '@dabb/shared-types';
+import { GameError, SERVER_ERROR_CODES } from '@dabb/shared-types';
 
 import { pool } from '../db/pool.js';
 import { generateSessionCode } from '../utils/sessionCode.js';
@@ -50,7 +51,7 @@ export async function createSession(
     } while (attempts < maxAttempts);
 
     if (attempts >= maxAttempts) {
-      throw new Error('Failed to generate unique session code');
+      throw new GameError(SERVER_ERROR_CODES.SESSION_CODE_GENERATION_FAILED);
     }
 
     // Create session
@@ -155,13 +156,13 @@ export async function joinSession(sessionId: string, nickname: string): Promise<
     );
 
     if (sessionResult.rows.length === 0) {
-      throw new Error('Session not found');
+      throw new GameError(SERVER_ERROR_CODES.SESSION_NOT_FOUND);
     }
 
     const { player_count: playerCount, status } = sessionResult.rows[0];
 
     if (status !== 'waiting') {
-      throw new Error('Game has already started');
+      throw new GameError(SERVER_ERROR_CODES.GAME_ALREADY_STARTED);
     }
 
     // Get current players
@@ -171,7 +172,7 @@ export async function joinSession(sessionId: string, nickname: string): Promise<
     );
 
     if (playersResult.rows.length >= playerCount) {
-      throw new Error('Session is full');
+      throw new GameError(SERVER_ERROR_CODES.SESSION_FULL);
     }
 
     // Find next available player index

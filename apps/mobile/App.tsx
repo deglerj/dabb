@@ -134,6 +134,15 @@ function AppContent() {
     [t, clearCredentials, resetGameState]
   );
 
+  const handleError = useCallback(
+    (error: { code: string; params?: Record<string, string | number> }) => {
+      // Translate error code to localized message
+      const translatedError = t(`serverErrors.${error.code}` as const, error.params);
+      Alert.alert(t('common.error'), translatedError);
+    },
+    [t]
+  );
+
   const {
     socket: _socket,
     connected: _connected,
@@ -143,6 +152,7 @@ function AppContent() {
     sessionId: sessionInfo?.sessionId || '',
     secretId: credentials?.secretId || '',
     onEvents: handleEvents,
+    onError: handleError,
     onPlayerJoined: handlePlayerJoined,
     onPlayerLeft: handlePlayerLeft,
     onPlayerReconnected: handlePlayerReconnected,

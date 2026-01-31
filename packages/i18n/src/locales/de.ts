@@ -145,6 +145,46 @@ const de: TranslationKeys = {
     gameFinished: '{{name}} gewinnt das Spiel!',
     gameTerminated: '{{name}} hat das Spiel verlassen',
   },
+  serverErrors: {
+    // Session errors
+    SESSION_NOT_FOUND: 'Sitzung nicht gefunden',
+    SESSION_FULL: 'Sitzung ist voll',
+    SESSION_CODE_GENERATION_FAILED: 'Spielcode konnte nicht erstellt werden',
+    // Game start errors
+    NOT_ENOUGH_PLAYERS: 'Es werden {{required}} Spieler benötigt',
+    GAME_ALREADY_STARTED: 'Spiel hat bereits begonnen',
+    // General game errors
+    NOT_YOUR_TURN: 'Du bist nicht am Zug',
+    GAME_STATE_NOT_INITIALIZED: 'Spielzustand nicht initialisiert',
+    // Bidding phase errors
+    NOT_IN_BIDDING_PHASE: 'Nicht in der Reizphase',
+    NOT_YOUR_TURN_TO_BID: 'Du bist nicht am Reizen',
+    INVALID_BID_AMOUNT: 'Ungültiger Reizwert',
+    FIRST_BIDDER_MUST_BID: 'Erster Spieler muss mindestens 150 bieten',
+    // Dabb phase errors
+    NOT_IN_DABB_PHASE: 'Nicht in der Dabb-Phase',
+    ONLY_BID_WINNER_CAN_TAKE_DABB: 'Nur der Reizgewinner darf den Dabb aufnehmen',
+    ONLY_BID_WINNER_CAN_DISCARD: 'Nur der Reizgewinner darf Karten ablegen',
+    MUST_DISCARD_EXACT_COUNT: 'Genau {{count}} Karten müssen abgelegt werden',
+    CARD_NOT_IN_HAND: 'Karte nicht auf der Hand',
+    // Going out errors
+    ONLY_BID_WINNER_CAN_GO_OUT: 'Nur der Reizgewinner darf abgehen',
+    MUST_TAKE_DABB_BEFORE_GOING_OUT: 'Dabb muss vor dem Abgehen aufgenommen werden',
+    // Trump phase errors
+    NOT_IN_TRUMP_PHASE: 'Nicht in der Trumpf-Phase',
+    ONLY_BID_WINNER_CAN_DECLARE_TRUMP: 'Nur der Reizgewinner darf Trumpf ansagen',
+    // Melding phase errors
+    NOT_IN_MELDING_PHASE: 'Nicht in der Meldephase',
+    CANNOT_MELD_WHEN_GOING_OUT: 'Keine Meldungen beim Abgehen',
+    ALREADY_DECLARED_MELDS: 'Meldungen wurden bereits angesagt',
+    // Tricks phase errors
+    NOT_IN_TRICKS_PHASE: 'Nicht in der Stechphase',
+    INVALID_PLAY: 'Ungültiger Spielzug',
+    // Game termination errors
+    CANNOT_TERMINATE_IN_CURRENT_PHASE: 'Spiel kann in dieser Phase nicht beendet werden',
+    // Generic fallback
+    UNKNOWN_ERROR: 'Unbekannter Fehler',
+  },
 };
 
 export default de;

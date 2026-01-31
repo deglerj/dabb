@@ -6,6 +6,7 @@ import type {
   SocketData,
   GameEvent,
 } from '@dabb/shared-types';
+import { GameError, SERVER_ERROR_CODES } from '@dabb/shared-types';
 import { filterEventsForPlayer } from '@dabb/game-logic';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 
@@ -31,6 +32,24 @@ import { socketLogger } from '../utils/logger.js';
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 type GameServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+
+/**
+ * Emit a structured error to the socket
+ */
+function emitError(socket: GameSocket, error: unknown): void {
+  if (error instanceof GameError) {
+    socket.emit('error', {
+      message: error.code,
+      code: error.code,
+      params: error.params,
+    });
+  } else {
+    socket.emit('error', {
+      message: SERVER_ERROR_CODES.UNKNOWN_ERROR,
+      code: SERVER_ERROR_CODES.UNKNOWN_ERROR,
+    });
+  }
+}
 
 // Rate limiter: 30 events per 10 seconds per socket (generous for gameplay)
 const rateLimiter = new RateLimiterMemory({
@@ -130,8 +149,7 @@ export function setupSocketHandlers(io: GameServer) {
         const events = await startGame(sessionId);
         broadcastEvents(io, sessionId, events);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'START_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -144,8 +162,7 @@ export function setupSocketHandlers(io: GameServer) {
         const events = await placeBid(sessionId, playerIndex, amount);
         broadcastEvents(io, sessionId, events);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'BID_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -157,8 +174,7 @@ export function setupSocketHandlers(io: GameServer) {
         const events = await passBid(sessionId, playerIndex);
         broadcastEvents(io, sessionId, events);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'PASS_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -171,8 +187,7 @@ export function setupSocketHandlers(io: GameServer) {
         const events = await takeDabb(sessionId, playerIndex);
         broadcastEvents(io, sessionId, events);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'DABB_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -184,8 +199,7 @@ export function setupSocketHandlers(io: GameServer) {
         const events = await discardCards(sessionId, playerIndex, cardIds);
         broadcastEvents(io, sessionId, events);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'DISCARD_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -198,8 +212,7 @@ export function setupSocketHandlers(io: GameServer) {
         const events = await goOut(sessionId, playerIndex, suit);
         broadcastEvents(io, sessionId, events);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'GOOUT_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -212,8 +225,7 @@ export function setupSocketHandlers(io: GameServer) {
         const events = await declareTrump(sessionId, playerIndex, suit);
         broadcastEvents(io, sessionId, events);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'TRUMP_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -226,8 +238,7 @@ export function setupSocketHandlers(io: GameServer) {
         const events = await declareMelds(sessionId, playerIndex, melds);
         broadcastEvents(io, sessionId, events);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'MELDS_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -240,8 +251,7 @@ export function setupSocketHandlers(io: GameServer) {
         const events = await playCard(sessionId, playerIndex, cardId);
         broadcastEvents(io, sessionId, events);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'PLAY_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -255,8 +265,7 @@ export function setupSocketHandlers(io: GameServer) {
         const filteredEvents = filterEventsForPlayer(events, playerIndex);
         socket.emit('game:events', { events: filteredEvents });
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'SYNC_FAILED' });
+        emitError(socket, error);
       }
     });
 
@@ -284,8 +293,7 @@ export function setupSocketHandlers(io: GameServer) {
           sessionSockets.delete(sessionId);
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        socket.emit('error', { message, code: 'EXIT_FAILED' });
+        emitError(socket, error);
       }
     });
 

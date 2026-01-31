@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import type {
   ClientToServerEvents,
@@ -11,6 +11,7 @@ import type {
   PlayerIndex,
 } from '@dabb/shared-types';
 import { applyEvents, createInitialState, getValidPlays } from '@dabb/game-logic';
+import { useTranslation } from '@dabb/i18n';
 import { updateDebugStore, setTerminateCallback } from '../utils/debug';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -43,6 +44,10 @@ interface UseGameReturn {
 }
 
 export function useGame(code: string): UseGameReturn {
+  const { t } = useTranslation();
+  const tRef = useRef(t);
+  tRef.current = t; // Keep ref updated with latest t function
+
   const [socket, setSocket] = useState<GameSocket | null>(null);
   const [state, setState] = useState<GameState>(createInitialState(4));
   const [events, setEvents] = useState<GameEvent[]>([]);
@@ -83,8 +88,10 @@ export function useGame(code: string): UseGameReturn {
       setEvents((prev) => [...prev, ...newEvents]);
     });
 
-    newSocket.on('error', ({ message }) => {
-      setError(message);
+    newSocket.on('error', ({ code: errorCode, params }) => {
+      // Translate error code to localized message
+      const translatedError = tRef.current(`serverErrors.${errorCode}` as const, params);
+      setError(translatedError);
     });
 
     newSocket.on('session:terminated', ({ terminatedBy }) => {

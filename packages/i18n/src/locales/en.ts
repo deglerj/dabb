@@ -144,6 +144,46 @@ const en: TranslationKeys = {
     gameFinished: '{{name}} wins the game!',
     gameTerminated: '{{name}} left the game',
   },
+  serverErrors: {
+    // Session errors
+    SESSION_NOT_FOUND: 'Session not found',
+    SESSION_FULL: 'Session is full',
+    SESSION_CODE_GENERATION_FAILED: 'Failed to generate game code',
+    // Game start errors
+    NOT_ENOUGH_PLAYERS: '{{required}} players are required',
+    GAME_ALREADY_STARTED: 'Game has already started',
+    // General game errors
+    NOT_YOUR_TURN: "It's not your turn",
+    GAME_STATE_NOT_INITIALIZED: 'Game state not initialized',
+    // Bidding phase errors
+    NOT_IN_BIDDING_PHASE: 'Not in bidding phase',
+    NOT_YOUR_TURN_TO_BID: "It's not your turn to bid",
+    INVALID_BID_AMOUNT: 'Invalid bid amount',
+    FIRST_BIDDER_MUST_BID: 'First bidder must bid at least 150',
+    // Dabb phase errors
+    NOT_IN_DABB_PHASE: 'Not in Dabb phase',
+    ONLY_BID_WINNER_CAN_TAKE_DABB: 'Only the bid winner can take the Dabb',
+    ONLY_BID_WINNER_CAN_DISCARD: 'Only the bid winner can discard',
+    MUST_DISCARD_EXACT_COUNT: 'Exactly {{count}} cards must be discarded',
+    CARD_NOT_IN_HAND: 'Card not in hand',
+    // Going out errors
+    ONLY_BID_WINNER_CAN_GO_OUT: 'Only the bid winner can go out',
+    MUST_TAKE_DABB_BEFORE_GOING_OUT: 'Must take Dabb before going out',
+    // Trump phase errors
+    NOT_IN_TRUMP_PHASE: 'Not in trump phase',
+    ONLY_BID_WINNER_CAN_DECLARE_TRUMP: 'Only the bid winner can declare trump',
+    // Melding phase errors
+    NOT_IN_MELDING_PHASE: 'Not in melding phase',
+    CANNOT_MELD_WHEN_GOING_OUT: 'Cannot declare melds when going out',
+    ALREADY_DECLARED_MELDS: 'Melds have already been declared',
+    // Tricks phase errors
+    NOT_IN_TRICKS_PHASE: 'Not in tricks phase',
+    INVALID_PLAY: 'Invalid play',
+    // Game termination errors
+    CANNOT_TERMINATE_IN_CURRENT_PHASE: 'Game cannot be terminated in current phase',
+    // Generic fallback
+    UNKNOWN_ERROR: 'Unknown error',
+  },
 };
 
 export default en;

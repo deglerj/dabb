@@ -44,7 +44,7 @@ import type {
   PlayerIndex,
   Suit,
 } from '@dabb/shared-types';
-import { DABB_SIZE } from '@dabb/shared-types';
+import { DABB_SIZE, GameError, SERVER_ERROR_CODES } from '@dabb/shared-types';
 
 import { getAllEvents, getLastSequence, saveEvent } from './eventService.js';
 import { getSessionById, getSessionPlayers, updateSessionStatus } from './sessionService.js';
@@ -64,7 +64,7 @@ async function getGameState(sessionId: string): Promise<GameState> {
   const session = await getSessionById(sessionId);
 
   if (!session) {
-    throw new Error('Session not found');
+    throw new GameError(SERVER_ERROR_CODES.SESSION_NOT_FOUND);
   }
 
   state = applyEvents(events);
@@ -76,7 +76,7 @@ async function getGameState(sessionId: string): Promise<GameState> {
 function updateGameState(sessionId: string, event: GameEvent): GameState {
   const currentState = gameStates.get(sessionId);
   if (!currentState) {
-    throw new Error('Game state not initialized');
+    throw new GameError(SERVER_ERROR_CODES.GAME_STATE_NOT_INITIALIZED);
   }
 
   const newState = applyEvent(currentState, event);
@@ -88,12 +88,14 @@ function updateGameState(sessionId: string, event: GameEvent): GameState {
 export async function startGame(sessionId: string): Promise<GameEvent[]> {
   const session = await getSessionById(sessionId);
   if (!session) {
-    throw new Error('Session not found');
+    throw new GameError(SERVER_ERROR_CODES.SESSION_NOT_FOUND);
   }
 
   const players = await getSessionPlayers(sessionId);
   if (players.length !== session.playerCount) {
-    throw new Error(`Need ${session.playerCount} players to start`);
+    throw new GameError(SERVER_ERROR_CODES.NOT_ENOUGH_PLAYERS, {
+      required: session.playerCount,
+    });
   }
 
   const events: GameEvent[] = [];
@@ -145,15 +147,15 @@ export async function placeBid(
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'bidding') {
-    throw new Error('Not in bidding phase');
+    throw new GameError(SERVER_ERROR_CODES.NOT_IN_BIDDING_PHASE);
   }
 
   if (state.currentBidder !== playerIndex) {
-    throw new Error('Not your turn to bid');
+    throw new GameError(SERVER_ERROR_CODES.NOT_YOUR_TURN_TO_BID);
   }
 
   if (!isValidBid(amount, state.currentBid)) {
-    throw new Error('Invalid bid amount');
+    throw new GameError(SERVER_ERROR_CODES.INVALID_BID_AMOUNT);
   }
 
   const events: GameEvent[] = [];
@@ -174,15 +176,15 @@ export async function passBid(sessionId: string, playerIndex: PlayerIndex): Prom
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'bidding') {
-    throw new Error('Not in bidding phase');
+    throw new GameError(SERVER_ERROR_CODES.NOT_IN_BIDDING_PHASE);
   }
 
   if (state.currentBidder !== playerIndex) {
-    throw new Error('Not your turn');
+    throw new GameError(SERVER_ERROR_CODES.NOT_YOUR_TURN);
   }
 
   if (!canPass(state.currentBid)) {
-    throw new Error('First bidder must bid at least 150');
+    throw new GameError(SERVER_ERROR_CODES.FIRST_BIDDER_MUST_BID);
   }
 
   const events: GameEvent[] = [];
@@ -214,11 +216,11 @@ export async function takeDabb(sessionId: string, playerIndex: PlayerIndex): Pro
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'dabb') {
-    throw new Error('Not in dabb phase');
+    throw new GameError(SERVER_ERROR_CODES.NOT_IN_DABB_PHASE);
   }
 
   if (state.bidWinner !== playerIndex) {
-    throw new Error('Only bid winner can take dabb');
+    throw new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_TAKE_DABB);
   }
 
   const events: GameEvent[] = [];
@@ -243,25 +245,25 @@ export async function discardCards(
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'dabb') {
-    throw new Error('Not in dabb phase');
+    throw new GameError(SERVER_ERROR_CODES.NOT_IN_DABB_PHASE);
   }
 
   if (state.bidWinner !== playerIndex) {
-    throw new Error('Only bid winner can discard');
+    throw new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_DISCARD);
   }
 
   const hand = state.hands.get(playerIndex) || [];
   const dabbSize = DABB_SIZE[state.playerCount];
 
   if (cardIds.length !== dabbSize) {
-    throw new Error(`Must discard exactly ${dabbSize} cards`);
+    throw new GameError(SERVER_ERROR_CODES.MUST_DISCARD_EXACT_COUNT, { count: dabbSize });
   }
 
   // Verify all cards are in hand
   const handIds = new Set(hand.map((c) => c.id));
   for (const cardId of cardIds) {
     if (!handIds.has(cardId)) {
-      throw new Error('Card not in hand');
+      throw new GameError(SERVER_ERROR_CODES.CARD_NOT_IN_HAND);
     }
   }
 
@@ -287,15 +289,15 @@ export async function goOut(
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'dabb') {
-    throw new Error('Not in dabb phase');
+    throw new GameError(SERVER_ERROR_CODES.NOT_IN_DABB_PHASE);
   }
 
   if (state.bidWinner !== playerIndex) {
-    throw new Error('Only bid winner can go out');
+    throw new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_GO_OUT);
   }
 
   if (state.dabb.length > 0) {
-    throw new Error('Must take dabb before going out');
+    throw new GameError(SERVER_ERROR_CODES.MUST_TAKE_DABB_BEFORE_GOING_OUT);
   }
 
   const events: GameEvent[] = [];
@@ -320,11 +322,11 @@ export async function declareTrump(
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'trump') {
-    throw new Error('Not in trump declaration phase');
+    throw new GameError(SERVER_ERROR_CODES.NOT_IN_TRUMP_PHASE);
   }
 
   if (state.bidWinner !== playerIndex) {
-    throw new Error('Only bid winner can declare trump');
+    throw new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_DECLARE_TRUMP);
   }
 
   const events: GameEvent[] = [];
@@ -349,16 +351,16 @@ export async function declareMelds(
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'melding') {
-    throw new Error('Not in melding phase');
+    throw new GameError(SERVER_ERROR_CODES.NOT_IN_MELDING_PHASE);
   }
 
   // Bid winner cannot meld when they went out
   if (state.wentOut && playerIndex === state.bidWinner) {
-    throw new Error('Cannot meld when going out');
+    throw new GameError(SERVER_ERROR_CODES.CANNOT_MELD_WHEN_GOING_OUT);
   }
 
   if (state.declaredMelds.has(playerIndex)) {
-    throw new Error('Already declared melds');
+    throw new GameError(SERVER_ERROR_CODES.ALREADY_DECLARED_MELDS);
   }
 
   const events: GameEvent[] = [];
@@ -488,22 +490,22 @@ export async function playCard(
   const state = await getGameState(sessionId);
 
   if (state.phase !== 'tricks') {
-    throw new Error('Not in tricks phase');
+    throw new GameError(SERVER_ERROR_CODES.NOT_IN_TRICKS_PHASE);
   }
 
   if (state.currentPlayer !== playerIndex) {
-    throw new Error('Not your turn');
+    throw new GameError(SERVER_ERROR_CODES.NOT_YOUR_TURN);
   }
 
   const hand = state.hands.get(playerIndex) || [];
   const card = hand.find((c) => c.id === cardId);
 
   if (!card) {
-    throw new Error('Card not in hand');
+    throw new GameError(SERVER_ERROR_CODES.CARD_NOT_IN_HAND);
   }
 
   if (!isValidPlay(card, hand, state.currentTrick, state.trump!)) {
-    throw new Error('Invalid play');
+    throw new GameError(SERVER_ERROR_CODES.INVALID_PLAY);
   }
 
   const events: GameEvent[] = [];
@@ -633,7 +635,7 @@ export async function terminateGame(
   // Only allow termination during active game phases
   const activePhases = ['dealing', 'bidding', 'dabb', 'trump', 'melding', 'tricks', 'scoring'];
   if (!activePhases.includes(state.phase)) {
-    throw new Error('Cannot terminate game in current phase');
+    throw new GameError(SERVER_ERROR_CODES.CANNOT_TERMINATE_IN_CURRENT_PHASE);
   }
 
   const sequence = (await getLastSequence(sessionId)) + 1;

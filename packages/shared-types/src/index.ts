@@ -95,3 +95,7 @@ export type {
   GameFinishedLogData,
   GameTerminatedLogData,
 } from './gameLog.js';
+
+// Error types
+export type { ServerErrorCode } from './errors.js';
+export { GameError, SERVER_ERROR_CODES } from './errors.js';

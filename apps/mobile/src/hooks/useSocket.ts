@@ -13,7 +13,11 @@ interface UseSocketOptions {
   sessionId: string;
   secretId: string;
   onEvents?: (events: GameEvent[]) => void;
-  onError?: (error: { message: string; code: string }) => void;
+  onError?: (error: {
+    message: string;
+    code: string;
+    params?: Record<string, string | number>;
+  }) => void;
   onPlayerJoined?: (playerIndex: number, nickname: string) => void;
   onPlayerLeft?: (playerIndex: number) => void;
   onPlayerReconnected?: (playerIndex: number) => void;
@@ -103,7 +107,7 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
     });
 
     newSocket.on('error', (err) => {
-      setError(err.message);
+      setError(err.code);
       callbacksRef.current.onError?.(err);
     });
 

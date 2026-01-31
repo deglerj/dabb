@@ -4,6 +4,7 @@ import { createServer, type Server as HttpServer } from 'http';
 import { io as ioc, type Socket as ClientSocket } from 'socket.io-client';
 import type { AddressInfo } from 'net';
 import type { PlayerIndex, Suit } from '@dabb/shared-types';
+import { GameError, SERVER_ERROR_CODES } from '@dabb/shared-types';
 
 import { setupSocketHandlers } from '../socket/handlers.js';
 
@@ -438,7 +439,9 @@ describe('Socket Handlers Integration', () => {
       });
 
       it('emits error on failure', async () => {
-        mockedStartGame.mockRejectedValue(new Error('Not enough players'));
+        mockedStartGame.mockRejectedValue(
+          new GameError(SERVER_ERROR_CODES.NOT_ENOUGH_PLAYERS, { required: 4 })
+        );
 
         const errorPromise = new Promise<{ message: string; code: string }>((resolve) => {
           clientSocket.on('error', resolve);
@@ -447,8 +450,8 @@ describe('Socket Handlers Integration', () => {
         clientSocket.emit('game:start');
 
         const error = await errorPromise;
-        expect(error.message).toBe('Not enough players');
-        expect(error.code).toBe('START_FAILED');
+        expect(error.message).toBe(SERVER_ERROR_CODES.NOT_ENOUGH_PLAYERS);
+        expect(error.code).toBe(SERVER_ERROR_CODES.NOT_ENOUGH_PLAYERS);
       });
     });
 
@@ -478,7 +481,7 @@ describe('Socket Handlers Integration', () => {
       });
 
       it('emits error on invalid bid', async () => {
-        mockedPlaceBid.mockRejectedValue(new Error('Invalid bid amount'));
+        mockedPlaceBid.mockRejectedValue(new GameError(SERVER_ERROR_CODES.INVALID_BID_AMOUNT));
 
         const errorPromise = new Promise<{ message: string; code: string }>((resolve) => {
           clientSocket.on('error', resolve);
@@ -487,8 +490,8 @@ describe('Socket Handlers Integration', () => {
         clientSocket.emit('game:bid', { amount: 100 });
 
         const error = await errorPromise;
-        expect(error.message).toBe('Invalid bid amount');
-        expect(error.code).toBe('BID_FAILED');
+        expect(error.message).toBe(SERVER_ERROR_CODES.INVALID_BID_AMOUNT);
+        expect(error.code).toBe(SERVER_ERROR_CODES.INVALID_BID_AMOUNT);
       });
     });
 
@@ -518,7 +521,7 @@ describe('Socket Handlers Integration', () => {
       });
 
       it('emits error on failure', async () => {
-        mockedPassBid.mockRejectedValue(new Error('Not your turn'));
+        mockedPassBid.mockRejectedValue(new GameError(SERVER_ERROR_CODES.NOT_YOUR_TURN));
 
         const errorPromise = new Promise<{ message: string; code: string }>((resolve) => {
           clientSocket.on('error', resolve);
@@ -527,8 +530,8 @@ describe('Socket Handlers Integration', () => {
         clientSocket.emit('game:pass');
 
         const error = await errorPromise;
-        expect(error.message).toBe('Not your turn');
-        expect(error.code).toBe('PASS_FAILED');
+        expect(error.message).toBe(SERVER_ERROR_CODES.NOT_YOUR_TURN);
+        expect(error.code).toBe(SERVER_ERROR_CODES.NOT_YOUR_TURN);
       });
     });
 
@@ -558,7 +561,9 @@ describe('Socket Handlers Integration', () => {
       });
 
       it('emits error on failure', async () => {
-        mockedTakeDabb.mockRejectedValue(new Error('Only bid winner can take dabb'));
+        mockedTakeDabb.mockRejectedValue(
+          new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_TAKE_DABB)
+        );
 
         const errorPromise = new Promise<{ message: string; code: string }>((resolve) => {
           clientSocket.on('error', resolve);
@@ -567,8 +572,8 @@ describe('Socket Handlers Integration', () => {
         clientSocket.emit('game:takeDabb');
 
         const error = await errorPromise;
-        expect(error.message).toBe('Only bid winner can take dabb');
-        expect(error.code).toBe('DABB_FAILED');
+        expect(error.message).toBe(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_TAKE_DABB);
+        expect(error.code).toBe(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_TAKE_DABB);
       });
     });
 
@@ -599,7 +604,7 @@ describe('Socket Handlers Integration', () => {
       });
 
       it('emits error on failure', async () => {
-        mockedDiscardCards.mockRejectedValue(new Error('Card not in hand'));
+        mockedDiscardCards.mockRejectedValue(new GameError(SERVER_ERROR_CODES.CARD_NOT_IN_HAND));
 
         const errorPromise = new Promise<{ message: string; code: string }>((resolve) => {
           clientSocket.on('error', resolve);
@@ -608,8 +613,8 @@ describe('Socket Handlers Integration', () => {
         clientSocket.emit('game:discard', { cardIds: ['invalid'] });
 
         const error = await errorPromise;
-        expect(error.message).toBe('Card not in hand');
-        expect(error.code).toBe('DISCARD_FAILED');
+        expect(error.message).toBe(SERVER_ERROR_CODES.CARD_NOT_IN_HAND);
+        expect(error.code).toBe(SERVER_ERROR_CODES.CARD_NOT_IN_HAND);
       });
     });
 
@@ -640,7 +645,9 @@ describe('Socket Handlers Integration', () => {
       });
 
       it('emits error on failure', async () => {
-        mockedDeclareTrump.mockRejectedValue(new Error('Only bid winner can declare trump'));
+        mockedDeclareTrump.mockRejectedValue(
+          new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_DECLARE_TRUMP)
+        );
 
         const errorPromise = new Promise<{ message: string; code: string }>((resolve) => {
           clientSocket.on('error', resolve);
@@ -649,8 +656,8 @@ describe('Socket Handlers Integration', () => {
         clientSocket.emit('game:declareTrump', { suit: 'herz' });
 
         const error = await errorPromise;
-        expect(error.message).toBe('Only bid winner can declare trump');
-        expect(error.code).toBe('TRUMP_FAILED');
+        expect(error.message).toBe(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_DECLARE_TRUMP);
+        expect(error.code).toBe(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_DECLARE_TRUMP);
       });
     });
 
@@ -681,7 +688,9 @@ describe('Socket Handlers Integration', () => {
       });
 
       it('emits error on failure', async () => {
-        mockedDeclareMelds.mockRejectedValue(new Error('Already declared melds'));
+        mockedDeclareMelds.mockRejectedValue(
+          new GameError(SERVER_ERROR_CODES.ALREADY_DECLARED_MELDS)
+        );
 
         const errorPromise = new Promise<{ message: string; code: string }>((resolve) => {
           clientSocket.on('error', resolve);
@@ -690,8 +699,8 @@ describe('Socket Handlers Integration', () => {
         clientSocket.emit('game:declareMelds', { melds: [] });
 
         const error = await errorPromise;
-        expect(error.message).toBe('Already declared melds');
-        expect(error.code).toBe('MELDS_FAILED');
+        expect(error.message).toBe(SERVER_ERROR_CODES.ALREADY_DECLARED_MELDS);
+        expect(error.code).toBe(SERVER_ERROR_CODES.ALREADY_DECLARED_MELDS);
       });
     });
 
@@ -722,7 +731,7 @@ describe('Socket Handlers Integration', () => {
       });
 
       it('emits error on invalid play', async () => {
-        mockedPlayCard.mockRejectedValue(new Error('Invalid play'));
+        mockedPlayCard.mockRejectedValue(new GameError(SERVER_ERROR_CODES.INVALID_PLAY));
 
         const errorPromise = new Promise<{ message: string; code: string }>((resolve) => {
           clientSocket.on('error', resolve);
@@ -731,8 +740,8 @@ describe('Socket Handlers Integration', () => {
         clientSocket.emit('game:playCard', { cardId: 'invalid' });
 
         const error = await errorPromise;
-        expect(error.message).toBe('Invalid play');
-        expect(error.code).toBe('PLAY_FAILED');
+        expect(error.message).toBe(SERVER_ERROR_CODES.INVALID_PLAY);
+        expect(error.code).toBe(SERVER_ERROR_CODES.INVALID_PLAY);
       });
     });
 
@@ -762,6 +771,7 @@ describe('Socket Handlers Integration', () => {
       });
 
       it('emits error on sync failure', async () => {
+        // Sync failures from non-GameError exceptions get UNKNOWN_ERROR
         mockedGetEvents.mockRejectedValue(new Error('Database error'));
 
         const errorPromise = new Promise<{ message: string; code: string }>((resolve) => {
@@ -771,8 +781,8 @@ describe('Socket Handlers Integration', () => {
         clientSocket.emit('game:sync', { lastEventSequence: 0 });
 
         const error = await errorPromise;
-        expect(error.message).toBe('Database error');
-        expect(error.code).toBe('SYNC_FAILED');
+        expect(error.message).toBe(SERVER_ERROR_CODES.UNKNOWN_ERROR);
+        expect(error.code).toBe(SERVER_ERROR_CODES.UNKNOWN_ERROR);
       });
     });
   });

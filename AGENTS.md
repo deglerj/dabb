@@ -160,6 +160,56 @@ function MyComponent() {
 3. Export from `packages/i18n/src/locales/index.ts`
 4. Add label to `LANGUAGE_LABELS` in `types.ts`
 
+### Server Error Internationalization
+
+Server errors are internationalized using error codes. The server sends structured error codes, and clients translate them to localized messages.
+
+**How it works:**
+
+1. Server throws `GameError` with a code and optional params:
+
+   ```typescript
+   import { GameError, SERVER_ERROR_CODES } from '@dabb/shared-types';
+
+   throw new GameError(SERVER_ERROR_CODES.MUST_DISCARD_EXACT_COUNT, { count: 4 });
+   ```
+
+2. Socket handler catches the error and emits structured data:
+
+   ```typescript
+   socket.emit('error', { message: code, code, params });
+   ```
+
+3. Client translates the error code before displaying:
+   ```typescript
+   const translatedError = t(`serverErrors.${errorCode}`, params);
+   setError(translatedError);
+   ```
+
+**Error codes** are defined in `packages/shared-types/src/errors.ts`:
+
+| Category | Example Codes                                                                    |
+| -------- | -------------------------------------------------------------------------------- |
+| Session  | `SESSION_NOT_FOUND`, `SESSION_FULL`, `GAME_ALREADY_STARTED`                      |
+| Bidding  | `NOT_IN_BIDDING_PHASE`, `NOT_YOUR_TURN_TO_BID`, `FIRST_BIDDER_MUST_BID`          |
+| Dabb     | `NOT_IN_DABB_PHASE`, `ONLY_BID_WINNER_CAN_TAKE_DABB`, `MUST_DISCARD_EXACT_COUNT` |
+| Trump    | `NOT_IN_TRUMP_PHASE`, `ONLY_BID_WINNER_CAN_DECLARE_TRUMP`                        |
+| Melding  | `NOT_IN_MELDING_PHASE`, `ALREADY_DECLARED_MELDS`, `CANNOT_MELD_WHEN_GOING_OUT`   |
+| Tricks   | `NOT_IN_TRICKS_PHASE`, `INVALID_PLAY`, `CARD_NOT_IN_HAND`                        |
+| General  | `NOT_YOUR_TURN`, `UNKNOWN_ERROR`                                                 |
+
+**Adding a new error:**
+
+1. Add the error code to `SERVER_ERROR_CODES` in `packages/shared-types/src/errors.ts`
+2. Add translations to both `packages/i18n/src/locales/de.ts` and `en.ts` in the `serverErrors` namespace
+3. Add the type to `serverErrors` interface in `packages/i18n/src/types.ts`
+4. Use `throw new GameError(SERVER_ERROR_CODES.YOUR_NEW_ERROR)` in server code
+
+**Parameterized errors** use i18next interpolation syntax:
+
+- Translation: `'Exactly {{count}} cards must be discarded'`
+- Throw: `new GameError(SERVER_ERROR_CODES.MUST_DISCARD_EXACT_COUNT, { count: 4 })`
+
 ## Commands
 
 ```bash
@@ -201,48 +251,51 @@ pnpm --filter @dabb/server db:migrate  # Run manually if needed
 
 ## Key Files
 
-| File                                                         | Purpose                      |
-| ------------------------------------------------------------ | ---------------------------- |
-| `packages/shared-types/src/cards.ts`                         | Card types and constants     |
-| `packages/shared-types/src/game.ts`                          | Game state and meld types    |
-| `packages/shared-types/src/events.ts`                        | Event type definitions       |
-| `packages/shared-types/src/gameLog.ts`                       | Game log entry types         |
-| `packages/shared-types/src/api.ts`                           | API request/response types   |
-| `packages/shared-types/src/socket.ts`                        | Socket event types           |
-| `packages/game-logic/src/state/reducer.ts`                   | Event sourcing reducer       |
-| `packages/game-logic/src/state/views.ts`                     | State view functions         |
-| `packages/game-logic/src/melds/detector.ts`                  | Meld detection               |
-| `packages/game-logic/src/phases/bidding.ts`                  | Bidding phase logic          |
-| `packages/game-logic/src/phases/tricks.ts`                   | Trick-taking rules           |
-| `packages/game-logic/src/export/`                            | Event export for debug       |
-| `packages/game-logic/src/__tests__/testHelpers.ts`           | Integration test utilities   |
-| `packages/game-logic/src/__tests__/roundIntegration.test.ts` | Full round integration test  |
-| `packages/ui-shared/src/useGameState.ts`                     | Game state React hook        |
-| `packages/ui-shared/src/useSocket.ts`                        | Socket.IO React hook         |
-| `packages/ui-shared/src/useRoundHistory.ts`                  | Round history for scoreboard |
-| `packages/ui-shared/src/useGameLog.ts`                       | Game log entries hook        |
-| `packages/ui-shared/src/useLocalStorage.ts`                  | Session credentials hook     |
-| `apps/web/src/components/game/ScoreBoard.tsx`                | Web scoreboard component     |
-| `apps/web/src/components/game/GameLog.tsx`                   | Web game log component       |
-| `apps/web/src/components/ConfirmModal.tsx`                   | Reusable confirmation modal  |
-| `apps/web/src/components/game/GameTerminatedModal.tsx`       | Game terminated notification |
-| `apps/mobile/src/components/game/ScoreBoard.tsx`             | Mobile scoreboard component  |
-| `apps/mobile/src/components/game/ScoreBoardHeader.tsx`       | Mobile compact scoreboard    |
-| `apps/mobile/src/components/game/GameLog.tsx`                | Mobile game log component    |
-| `apps/server/src/socket/handlers.ts`                         | Socket.IO event handlers     |
-| `apps/server/src/services/eventService.ts`                   | Event persistence            |
-| `apps/server/src/services/gameService.ts`                    | Game logic service           |
-| `apps/server/src/services/sessionService.ts`                 | Session management           |
-| `apps/server/src/services/cleanupService.ts`                 | Inactive session cleanup     |
-| `apps/server/src/scheduler/cleanupScheduler.ts`              | Cleanup background job       |
-| `apps/server/src/db/pool.ts`                                 | Database connection pool     |
-| `apps/server/src/db/runMigrations.ts`                        | Database migration runner    |
-| `apps/server/src/db/migrations/`                             | SQL migration files          |
-| `packages/i18n/src/locales/de.ts`                            | German translations          |
-| `packages/i18n/src/locales/en.ts`                            | English translations         |
-| `packages/i18n/src/types.ts`                                 | i18n types and config        |
-| `packages/i18n/src/config.ts`                                | i18next initialization       |
-| `packages/i18n/src/components/I18nProvider.tsx`              | React i18n provider          |
+| File                                                         | Purpose                        |
+| ------------------------------------------------------------ | ------------------------------ |
+| `packages/shared-types/src/cards.ts`                         | Card types and constants       |
+| `packages/shared-types/src/game.ts`                          | Game state and meld types      |
+| `packages/shared-types/src/events.ts`                        | Event type definitions         |
+| `packages/shared-types/src/errors.ts`                        | Error codes and GameError      |
+| `packages/shared-types/src/gameLog.ts`                       | Game log entry types           |
+| `packages/shared-types/src/api.ts`                           | API request/response types     |
+| `packages/shared-types/src/socket.ts`                        | Socket event types             |
+| `packages/game-logic/src/state/reducer.ts`                   | Event sourcing reducer         |
+| `packages/game-logic/src/state/views.ts`                     | State view functions           |
+| `packages/game-logic/src/melds/detector.ts`                  | Meld detection                 |
+| `packages/game-logic/src/phases/bidding.ts`                  | Bidding phase logic            |
+| `packages/game-logic/src/phases/tricks.ts`                   | Trick-taking rules             |
+| `packages/game-logic/src/export/`                            | Event export for debug         |
+| `packages/game-logic/src/__tests__/testHelpers.ts`           | Integration test utilities     |
+| `packages/game-logic/src/__tests__/roundIntegration.test.ts` | Full round integration test    |
+| `packages/ui-shared/src/useGameState.ts`                     | Game state React hook          |
+| `packages/ui-shared/src/useSocket.ts`                        | Socket.IO React hook           |
+| `packages/ui-shared/src/useRoundHistory.ts`                  | Round history for scoreboard   |
+| `packages/ui-shared/src/useGameLog.ts`                       | Game log entries hook          |
+| `packages/ui-shared/src/useLocalStorage.ts`                  | Session credentials hook       |
+| `apps/web/src/hooks/useGame.ts`                              | Web game hook with i18n errors |
+| `apps/web/src/components/game/ScoreBoard.tsx`                | Web scoreboard component       |
+| `apps/web/src/components/game/GameLog.tsx`                   | Web game log component         |
+| `apps/web/src/components/ConfirmModal.tsx`                   | Reusable confirmation modal    |
+| `apps/web/src/components/game/GameTerminatedModal.tsx`       | Game terminated notification   |
+| `apps/mobile/src/hooks/useSocket.ts`                         | Mobile socket with i18n errors |
+| `apps/mobile/src/components/game/ScoreBoard.tsx`             | Mobile scoreboard component    |
+| `apps/mobile/src/components/game/ScoreBoardHeader.tsx`       | Mobile compact scoreboard      |
+| `apps/mobile/src/components/game/GameLog.tsx`                | Mobile game log component      |
+| `apps/server/src/socket/handlers.ts`                         | Socket.IO event handlers       |
+| `apps/server/src/services/eventService.ts`                   | Event persistence              |
+| `apps/server/src/services/gameService.ts`                    | Game logic service             |
+| `apps/server/src/services/sessionService.ts`                 | Session management             |
+| `apps/server/src/services/cleanupService.ts`                 | Inactive session cleanup       |
+| `apps/server/src/scheduler/cleanupScheduler.ts`              | Cleanup background job         |
+| `apps/server/src/db/pool.ts`                                 | Database connection pool       |
+| `apps/server/src/db/runMigrations.ts`                        | Database migration runner      |
+| `apps/server/src/db/migrations/`                             | SQL migration files            |
+| `packages/i18n/src/locales/de.ts`                            | German translations            |
+| `packages/i18n/src/locales/en.ts`                            | English translations           |
+| `packages/i18n/src/types.ts`                                 | i18n types and config          |
+| `packages/i18n/src/config.ts`                                | i18next initialization         |
+| `packages/i18n/src/components/I18nProvider.tsx`              | React i18n provider            |
 
 ## Testing
 
