@@ -406,7 +406,7 @@ export async function declareMelds(
 /**
  * Calculate scores when bid winner goes out
  * - Bid winner loses their bid amount
- * - All other players get their melds + 30 bonus points
+ * - All other players get their melds + 40 bonus points
  */
 async function calculateGoingOutScores(
   state: GameState,
@@ -416,7 +416,7 @@ async function calculateGoingOutScores(
   const events: GameEvent[] = [];
   const bidWinner = state.bidWinner!;
   const winningBid = state.currentBid || 150;
-  const goingOutBonus = 30;
+  const goingOutBonus = 40;
 
   const scores = {} as Record<
     PlayerIndex,
@@ -429,7 +429,7 @@ async function calculateGoingOutScores(
       // Bid winner loses bid amount, gets no points
       scores[idx] = { melds: 0, tricks: 0, total: -winningBid, bidMet: false };
     } else {
-      // Other players get their melds + 30 bonus
+      // Other players get their melds + 40 bonus
       const melds = meldScores[idx] || 0;
       scores[idx] = { melds, tricks: 0, total: melds + goingOutBonus, bidMet: true };
     }

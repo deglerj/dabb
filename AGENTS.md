@@ -309,6 +309,6 @@ After taking the dabb, the bid winner can choose to "go out" if they don't think
 - **When**: After taking dabb, before discarding
 - **Action**: Choose a trump suit to "go out in" (e.g., "Ab in Schippen")
 - **Bid winner**: Loses points equal to their bid (subtracted from score), cannot meld
-- **Opponents**: Each gets their melds + 30 bonus points
+- **Opponents**: Each gets their melds + 40 bonus points
 - **Effect**: Round ends immediately (no tricks phase), new round starts
 - **State**: `wentOut: boolean` in GameState tracks this, reset on new round

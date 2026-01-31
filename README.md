@@ -125,6 +125,7 @@ Here's the thing: the rules implemented in this app are based on the one true tr
 | "We play with 48 cards including 9s!"  | The 9 (Neun) was banished for being too weak. It knows what it did.      |
 | "All four 10s should be a valid meld!" | No. The 10 already gets 10 points per trick. It doesn't need more glory. |
 | "We call the Ober 'Unter'!"            | The Ober is above the Buabe. It's in the name. Geography matters.        |
+| "Going out gives others 30 points!"    | It's 40. Your opponents deserve proper compensation for your cowardice.  |
 
 If your local rules differ, we respectfully suggest that your ancestors may have misheard the rules at some point, and the error has been propagated through generations. It happens to the best of us.
 

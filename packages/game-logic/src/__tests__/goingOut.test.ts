@@ -158,7 +158,7 @@ describe('Going Out (Abgehen)', () => {
 
       // Expected scoring when melding completes:
       // Alice (bid winner who went out): -160 (loses bid)
-      // Bob: melds + 30 bonus
+      // Bob: melds + 40 bonus
 
       // Verify the state is set up correctly for scoring
       expect(game.state.phase).toBe('melding');
