@@ -2,25 +2,22 @@
 
 ## 3.1 Business Context
 
-```plantuml
-@startuml
-!theme plain
+```mermaid
+flowchart TB
+    player((Player))
 
-actor "Player" as player
-rectangle "Dabb System" as dabb {
-  component "Web App" as web
-  component "Mobile App" as mobile
-  component "Server" as server
-  database "PostgreSQL" as db
-}
+    subgraph dabb [Dabb System]
+        web[Web App]
+        mobile[Mobile App]
+        server[Server]
+        db[(PostgreSQL)]
+    end
 
-player --> web : Play via browser
-player --> mobile : Play via Android
-web --> server : Socket.IO
-mobile --> server : Socket.IO
-server --> db : Store events
-
-@enduml
+    player -->|Play via browser| web
+    player -->|Play via Android| mobile
+    web -->|Socket.IO| server
+    mobile -->|Socket.IO| server
+    server -->|Store events| db
 ```
 
 ### Communication Partners
@@ -33,34 +30,28 @@ server --> db : Store events
 
 ## 3.2 Technical Context
 
-```plantuml
-@startuml
-!theme plain
+```mermaid
+flowchart TB
+    subgraph client [Client Layer]
+        web[Web Browser]
+        android[Android App]
+    end
 
-skinparam componentStyle rectangle
+    subgraph app [Application Layer]
+        express[Express Server]
+        socketio[Socket.IO]
+    end
 
-package "Client Layer" {
-  [Web Browser] as web
-  [Android App] as android
-}
+    subgraph data [Data Layer]
+        db[(PostgreSQL)]
+    end
 
-package "Application Layer" {
-  [Express Server] as express
-  [Socket.IO] as socketio
-}
-
-package "Data Layer" {
-  database "PostgreSQL" as db
-}
-
-web -down-> socketio : WebSocket\n(Socket.IO)
-android -down-> socketio : WebSocket\n(Socket.IO)
-web -down-> express : HTTP\n(REST API)
-android -down-> express : HTTP\n(REST API)
-express -down-> db : SQL
-socketio -down-> db : SQL
-
-@enduml
+    web -->|"WebSocket (Socket.IO)"| socketio
+    android -->|"WebSocket (Socket.IO)"| socketio
+    web -->|"HTTP (REST API)"| express
+    android -->|"HTTP (REST API)"| express
+    express -->|SQL| db
+    socketio -->|SQL| db
 ```
 
 ### Technical Interfaces

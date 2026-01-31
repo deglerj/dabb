@@ -2,35 +2,30 @@
 
 ## 7.1 Infrastructure Overview
 
-```plantuml
-@startuml
-!theme plain
+```mermaid
+flowchart TB
+    subgraph client [Client Device]
+        browser[Web Browser]
+        android[Android App]
+    end
 
-node "Client Device" {
-  [Web Browser] as browser
-  [Android App] as android
-}
+    internet((Internet))
 
-cloud "Internet" {
-}
+    subgraph oracle [Oracle Cloud - Always Free]
+        subgraph arm [ARM Instance - 4 vCPU, 24GB RAM]
+            orchestrator[Coolify / Docker Compose]
+            web[nginx - Web]
+            server[Node.js Server]
+            db[(PostgreSQL)]
+        end
+    end
 
-node "Oracle Cloud (Always Free)" {
-  node "ARM Instance (4 vCPU, 24GB RAM)" {
-    [Coolify / Docker Compose] as orchestrator
-    [nginx (Web)] as web
-    [Node.js Server] as server
-    database "PostgreSQL" as db
-  }
-}
-
-browser --> Internet
-android --> Internet
-Internet --> web : HTTPS (8080)
-Internet --> server : Socket.IO (3000)
-web --> server : Internal
-server --> db : TCP (5432)
-
-@enduml
+    browser --> internet
+    android --> internet
+    internet -->|"HTTPS (8080)"| web
+    internet -->|"Socket.IO (3000)"| server
+    web -->|Internal| server
+    server -->|"TCP (5432)"| db
 ```
 
 ## 7.2 Deployment Options

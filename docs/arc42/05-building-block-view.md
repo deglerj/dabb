@@ -2,41 +2,37 @@
 
 ## 5.1 Level 1: Whitebox Overall System
 
-```plantuml
-@startuml
-!theme plain
+```mermaid
+flowchart TB
+    subgraph apps
+        web
+        mobile
+        server
+    end
 
-package "apps" {
-  [web] as web
-  [mobile] as mobile
-  [server] as server
-}
+    subgraph packages
+        types[shared-types]
+        logic[game-logic]
+        ui[ui-shared]
+        assets[card-assets]
+    end
 
-package "packages" {
-  [shared-types] as types
-  [game-logic] as logic
-  [ui-shared] as ui
-  [card-assets] as assets
-}
+    web --> types
+    web --> logic
+    web --> ui
+    web --> assets
 
-web --> types
-web --> logic
-web --> ui
-web --> assets
+    mobile --> types
+    mobile --> logic
+    mobile --> assets
 
-mobile --> types
-mobile --> logic
-mobile --> assets
+    server --> types
+    server --> logic
 
-server --> types
-server --> logic
+    ui --> types
+    ui --> logic
 
-ui --> types
-ui --> logic
-
-logic --> types
-
-@enduml
+    logic --> types
 ```
 
 ### Package Overview
