@@ -15,7 +15,8 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./apps/server/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      # Note: Schema is now managed by postgres-migrations on server startup
+      # No initdb script needed - server will run migrations automatically
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U dabb -d dabb']
       interval: 10s

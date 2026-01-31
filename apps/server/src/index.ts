@@ -12,6 +12,7 @@ import type {
 
 import { env } from './config/env.js';
 import { closePool } from './db/pool.js';
+import { runMigrations } from './db/runMigrations.js';
 import { sessionsRouter } from './routes/sessions.js';
 import { eventsRouter, setSocketServer } from './routes/events.js';
 import { startCleanupScheduler, stopCleanupScheduler } from './scheduler/cleanupScheduler.js';
@@ -81,10 +82,17 @@ setSocketServer(io);
 // Start cleanup scheduler for inactive sessions
 startCleanupScheduler(io);
 
-// Start server
-httpServer.listen(env.PORT, () => {
-  logger.info({ port: env.PORT, corsOrigin, env: env.NODE_ENV }, 'Server started');
-});
+// Run migrations and start server
+runMigrations()
+  .then(() => {
+    httpServer.listen(env.PORT, () => {
+      logger.info({ port: env.PORT, corsOrigin, env: env.NODE_ENV }, 'Server started');
+    });
+  })
+  .catch((error) => {
+    logger.error({ error }, 'Failed to run migrations, exiting');
+    process.exit(1);
+  });
 
 // Graceful shutdown
 async function shutdown(signal: string) {

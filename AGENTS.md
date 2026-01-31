@@ -166,6 +166,13 @@ function MyComponent() {
 # Install dependencies
 pnpm install
 
+# Docker dev helper script
+./dev.sh start            # Start containers
+./dev.sh stop             # Stop containers
+./dev.sh logs             # Watch container logs (runs continuously until Ctrl+C)
+./dev.sh status           # Check container status
+./dev.sh reset            # Reset database
+
 # Build all packages
 pnpm run build
 
@@ -188,12 +195,8 @@ pnpm format               # Run Prettier
 pnpm format:check         # Check formatting
 pnpm clean                # Clean build artifacts
 
-# Docker development (requires Docker)
-pnpm docker:start         # Start PostgreSQL container
-pnpm docker:stop          # Stop containers
-pnpm docker:logs          # View container logs
-pnpm docker:status        # Check container status
-pnpm docker:reset         # Reset database
+# Database migrations (run automatically on server startup)
+pnpm --filter @dabb/server db:migrate  # Run manually if needed
 ```
 
 ## Key Files
@@ -233,6 +236,8 @@ pnpm docker:reset         # Reset database
 | `apps/server/src/services/cleanupService.ts`                 | Inactive session cleanup     |
 | `apps/server/src/scheduler/cleanupScheduler.ts`              | Cleanup background job       |
 | `apps/server/src/db/pool.ts`                                 | Database connection pool     |
+| `apps/server/src/db/runMigrations.ts`                        | Database migration runner    |
+| `apps/server/src/db/migrations/`                             | SQL migration files          |
 | `packages/i18n/src/locales/de.ts`                            | German translations          |
 | `packages/i18n/src/locales/en.ts`                            | English translations         |
 | `packages/i18n/src/types.ts`                                 | i18n types and config        |

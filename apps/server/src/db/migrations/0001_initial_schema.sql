@@ -1,7 +1,5 @@
--- Dabb (Binokel) Database Schema
---
--- NOTE: This file is for reference only. The actual schema is managed by
--- migrations in the ./migrations/ directory. See docs/DATABASE.md for details.
+-- Dabb (Binokel) Database Schema - Initial Migration
+-- This migration creates the base tables for the event-sourced game system
 
 -- Game sessions
 CREATE TABLE IF NOT EXISTS sessions (

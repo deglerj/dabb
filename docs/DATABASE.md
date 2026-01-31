@@ -84,45 +84,87 @@ Event store for game state (event sourcing pattern).
 
 ## Migrations
 
+Dabb uses [postgres-migrations](https://github.com/thomwright/postgres-migrations) to manage database schema changes. Migrations run automatically on server startup.
+
 ### Running Migrations
 
 ```bash
-# From project root
+# Migrations run automatically on server startup
+
+# To run manually (from project root):
 pnpm --filter @dabb/server db:migrate
 
-# Or from apps/server directory
+# Or from apps/server directory:
 pnpm db:migrate
 ```
 
 ### How Migrations Work
 
-The migration system is intentionally simple:
+1. Numbered SQL files in `apps/server/src/db/migrations/` (e.g., `0001_initial_schema.sql`)
+2. The `pgmigrations` table tracks which migrations have been applied
+3. On startup, the server runs any pending migrations in order
+4. Each migration runs in a transaction for safety
 
-1. The `migrate.ts` script reads `schema.sql`
-2. Executes the SQL against the database
-3. Uses `CREATE TABLE IF NOT EXISTS` for idempotency
-4. Uses `CREATE INDEX IF NOT EXISTS` for index creation
+### Migration Files
 
-### Creating Schema Changes
+Migration files follow the naming convention: `NNNN_description.sql`
 
-For schema modifications:
+| File                             | Purpose                                 |
+| -------------------------------- | --------------------------------------- |
+| `0001_initial_schema.sql`        | Base tables (sessions, players, events) |
+| `0002_add_terminated_status.sql` | Add 'terminated' status to sessions     |
 
-1. **Additive changes** (new tables, columns with defaults, indexes):
-   - Add to `schema.sql` using `IF NOT EXISTS` clauses
-   - Run migrations
+### Creating New Migrations
 
-2. **Breaking changes** (column removal, type changes):
-   - Create a new migration SQL file
-   - Update `migrate.ts` to run multiple files in order
-   - Or use a migration framework like `node-pg-migrate`
+1. Create a new SQL file with the next sequence number:
+
+   ```
+   apps/server/src/db/migrations/0003_your_description.sql
+   ```
+
+2. Write your SQL migration. For idempotent migrations, use:
+   - `CREATE TABLE IF NOT EXISTS` for new tables
+   - `CREATE INDEX IF NOT EXISTS` for indexes
+   - `DO $$ ... $$` blocks with conditionals for constraints
+
+3. Test locally:
+   ```bash
+   ./dev.sh reset  # Reset database
+   pnpm --filter @dabb/server dev  # Start server (runs migrations)
+   ```
 
 ### Example: Adding a New Column
 
 ```sql
--- In schema.sql, add after the CREATE TABLE:
+-- 0003_add_last_activity.sql
 ALTER TABLE sessions
 ADD COLUMN IF NOT EXISTS last_activity TIMESTAMPTZ DEFAULT NOW();
 ```
+
+### Example: Modifying a Constraint (Idempotent)
+
+```sql
+-- 0004_update_constraint.sql
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'my_constraint'
+    AND pg_get_constraintdef(oid) LIKE '%new_value%'
+  ) THEN
+    ALTER TABLE my_table DROP CONSTRAINT my_constraint;
+    ALTER TABLE my_table ADD CONSTRAINT my_constraint CHECK (...);
+  END IF;
+END $$;
+```
+
+### Baseline for Existing Databases
+
+If you have an existing database without the `pgmigrations` table:
+
+- The first migration (`0001_initial_schema.sql`) uses `IF NOT EXISTS` clauses
+- It will safely skip creating tables that already exist
+- Subsequent migrations will apply their changes
 
 ## Local Development
 
