@@ -138,19 +138,11 @@ function GamePage() {
         onExitClick={canExit ? handleExitClick : undefined}
       />
 
-      {/* Game Log - positioned absolutely */}
+      {/* Game Log - sidebar on desktop, bottom overlay on mobile */}
       <GameLog state={state} events={events} currentPlayerIndex={playerIndex as PlayerIndex} />
 
       {/* Middle: Game area */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flex: 1,
-        }}
-      >
+      <div className="game-main">
         {/* Phase indicator */}
         <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
           <PhaseIndicator phase={state.phase} trump={state.trump} />

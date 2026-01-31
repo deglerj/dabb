@@ -111,13 +111,26 @@ h3 {
 /* Game-specific styles */
 .game-board {
   display: grid;
+  grid-template-areas:
+    'scoreboard sidebar'
+    'main sidebar'
+    'hand sidebar';
+  grid-template-columns: 1fr 300px;
   grid-template-rows: auto 1fr auto;
   min-height: calc(100vh - 2rem);
   gap: 1rem;
-  position: relative;
+}
+
+.game-main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .player-hand {
+  grid-area: hand;
   display: flex;
   justify-content: center;
   padding: 1rem;
@@ -178,6 +191,7 @@ h3 {
 
 /* Scoreboard styles */
 .scoreboard {
+  grid-area: scoreboard;
   background: var(--bg-card);
   border-radius: 8px;
   overflow: hidden;
@@ -188,7 +202,6 @@ h3 {
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  padding-right: calc(280px + 2rem); /* Reserve space for game log on desktop */
   cursor: pointer;
   gap: 1rem;
 }
@@ -380,16 +393,15 @@ h3 {
 
 /* Game Log styles */
 .game-log {
-  position: absolute;
-  top: 0;
-  right: 1rem;
-  width: 280px;
-  max-width: calc(100% - 2rem);
+  grid-area: sidebar;
   background: var(--bg-card);
   border-radius: 8px;
   box-shadow: var(--card-shadow);
-  z-index: 100;
   overflow: hidden;
+  height: fit-content;
+  align-self: start;
+  position: sticky;
+  top: 1rem;
 }
 
 .game-log-header {
@@ -515,8 +527,18 @@ h3 {
   border-left: 2px solid var(--border);
 }
 
-/* Mobile: hide expanded history by default */
+/* Mobile: single-column layout with bottom game log overlay */
 @media (max-width: 767px) {
+  .game-board {
+    grid-template-areas:
+      'scoreboard'
+      'main'
+      'hand';
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    padding-bottom: 150px; /* Space for game log overlay */
+  }
+
   .scoreboard-history {
     display: none;
   }
@@ -539,10 +561,6 @@ h3 {
     padding: 0.4rem 0.5rem;
   }
 
-  .scoreboard-header {
-    padding-right: 1rem; /* Reset padding - game log is at bottom on mobile */
-  }
-
   /* Game log: bottom overlay on mobile */
   .game-log {
     position: fixed;
@@ -551,9 +569,10 @@ h3 {
     bottom: 0;
     left: 0;
     width: 100%;
-    max-width: 100%;
     border-radius: 12px 12px 0 0;
     max-height: 40vh;
+    height: auto;
+    align-self: auto;
   }
 
   .game-log-entries {
