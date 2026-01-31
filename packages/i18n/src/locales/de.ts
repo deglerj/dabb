@@ -118,6 +118,26 @@ const de: TranslationKeys = {
     unexpectedError:
       'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut oder lade die Seite neu.',
   },
+  gameLog: {
+    title: 'Spielverlauf',
+    showMore: 'Mehr anzeigen',
+    showLess: 'Weniger anzeigen',
+    noEntries: 'Noch keine Aktionen',
+    yourTurn: 'Du bist dran!',
+    gameStarted: 'Spiel gestartet ({{playerCount}} Spieler, Ziel: {{targetScore}})',
+    roundStarted: 'Runde {{round}} gestartet',
+    bidPlaced: '{{name}} bietet {{amount}}',
+    playerPassed: '{{name}} passt',
+    biddingWon: '{{name}} gewinnt das Reizen mit {{bid}}',
+    trumpDeclared: '{{name}} wählt {{suit}} als Trumpf',
+    meldsDeclared: '{{name}} meldet {{points}} Punkte',
+    meldsNone: '{{name}} hat keine Meldungen',
+    cardPlayed: '{{name}} spielt {{card}}',
+    trickWon: '{{name}} gewinnt den Stich ({{points}} Punkte)',
+    roundScored: 'Runde beendet',
+    gameFinished: '{{name}} gewinnt das Spiel!',
+    gameTerminated: '{{name}} hat das Spiel verlassen',
+  },
 };
 
 export default de;

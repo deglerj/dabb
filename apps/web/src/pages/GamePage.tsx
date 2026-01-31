@@ -11,6 +11,7 @@ import BiddingPanel from '../components/game/BiddingPanel';
 import TrumpSelector from '../components/game/TrumpSelector';
 import TrickArea from '../components/game/TrickArea';
 import ScoreBoard from '../components/game/ScoreBoard';
+import GameLog from '../components/game/GameLog';
 import SuitIcon from '../components/SuitIcon';
 import ConfirmModal from '../components/ConfirmModal';
 import GameTerminatedModal from '../components/game/GameTerminatedModal';
@@ -109,6 +110,9 @@ function GamePage() {
         currentPlayerIndex={state.currentPlayer}
         onExitClick={canExit ? handleExitClick : undefined}
       />
+
+      {/* Game Log - positioned absolutely */}
+      <GameLog state={state} events={events} currentPlayerIndex={playerIndex as PlayerIndex} />
 
       {/* Middle: Game area */}
       <div

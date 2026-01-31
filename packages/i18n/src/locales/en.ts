@@ -117,6 +117,26 @@ const en: TranslationKeys = {
     somethingWentWrong: 'Something went wrong',
     unexpectedError: 'An unexpected error occurred. Please try again or reload the page.',
   },
+  gameLog: {
+    title: 'Game Log',
+    showMore: 'Show more',
+    showLess: 'Show less',
+    noEntries: 'No actions yet',
+    yourTurn: "It's your turn!",
+    gameStarted: 'Game started ({{playerCount}} players, target: {{targetScore}})',
+    roundStarted: 'Round {{round}} started',
+    bidPlaced: '{{name}} bids {{amount}}',
+    playerPassed: '{{name}} passes',
+    biddingWon: '{{name}} wins bidding with {{bid}}',
+    trumpDeclared: '{{name}} declares {{suit}} as trump',
+    meldsDeclared: '{{name}} declares {{points}} points',
+    meldsNone: '{{name}} has no melds',
+    cardPlayed: '{{name}} plays {{card}}',
+    trickWon: '{{name}} wins the trick ({{points}} points)',
+    roundScored: 'Round ended',
+    gameFinished: '{{name}} wins the game!',
+    gameTerminated: '{{name}} left the game',
+  },
 };
 
 export default en;

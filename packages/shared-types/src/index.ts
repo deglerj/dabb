@@ -72,3 +72,22 @@ export type {
   ServerToClientEvents,
   SocketData,
 } from './socket.js';
+
+// Game log types
+export type {
+  GameLogEntry,
+  GameLogEntryData,
+  GameLogEntryType,
+  GameStartedLogData,
+  RoundStartedLogData,
+  BidPlacedLogData,
+  PlayerPassedLogData,
+  BiddingWonLogData,
+  TrumpDeclaredLogData,
+  MeldsDeclaredLogData,
+  CardPlayedLogData,
+  TrickWonLogData,
+  RoundScoredLogData,
+  GameFinishedLogData,
+  GameTerminatedLogData,
+} from './gameLog.js';

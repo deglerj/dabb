@@ -128,6 +128,27 @@ export interface TranslationKeys {
     somethingWentWrong: string;
     unexpectedError: string;
   };
+  gameLog: {
+    title: string;
+    showMore: string;
+    showLess: string;
+    noEntries: string;
+    yourTurn: string;
+    // Event messages
+    gameStarted: string;
+    roundStarted: string;
+    bidPlaced: string;
+    playerPassed: string;
+    biddingWon: string;
+    trumpDeclared: string;
+    meldsDeclared: string;
+    meldsNone: string;
+    cardPlayed: string;
+    trickWon: string;
+    roundScored: string;
+    gameFinished: string;
+    gameTerminated: string;
+  };
 }
 
 /**

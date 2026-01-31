@@ -84,6 +84,41 @@ The scoreboard displays round-by-round history computed client-side from events:
 - **Web**: Table-based layout in `apps/web/src/components/game/ScoreBoard.tsx`
 - **Mobile**: Compact header (`ScoreBoardHeader.tsx`) during play, full modal view when expanded
 
+### Game Log
+
+The game log displays player actions in real-time, helping players follow the game like they would at a physical table:
+
+- **Data source**: Uses `useGameLog` hook to convert game events to displayable log entries
+- **Visible entries**: Shows 5 latest entries by default, expandable to show full history with scrolling
+- **Your turn indicator**: Pulsing banner shown above log entries when it's the player's turn
+- **Meld details**: Meld declarations show total points with expandable breakdown of individual melds
+- **Web**: Right sidebar (300px) on desktop, bottom overlay on mobile (< 768px)
+- **Mobile**: Bottom overlay with semi-transparent background
+
+**Anti-cheat safety**: The following events are NOT logged because they contain secret card information:
+
+- `CARDS_DEALT` - Players' hole cards
+- `DABB_TAKEN` - Dabb cards picked up
+- `CARDS_DISCARDED` - Cards discarded to dabb
+- `MELDING_COMPLETE` - Redundant with `MELDS_DECLARED`
+
+**Event-to-log mapping**:
+
+| Event               | Log Message                                    |
+| ------------------- | ---------------------------------------------- |
+| `GAME_STARTED`      | "Game started (X players, target: Y)"          |
+| `NEW_ROUND_STARTED` | "Round X started"                              |
+| `BID_PLACED`        | "{name} bids {amount}"                         |
+| `PLAYER_PASSED`     | "{name} passes"                                |
+| `BIDDING_WON`       | "{name} wins bidding with {bid}"               |
+| `TRUMP_DECLARED`    | "{name} declares {suit} as trump"              |
+| `MELDS_DECLARED`    | "{name} declares {points} points" + expandable |
+| `CARD_PLAYED`       | "{name} plays {card}"                          |
+| `TRICK_WON`         | "{name} wins the trick ({points} points)"      |
+| `ROUND_SCORED`      | "Round ended"                                  |
+| `GAME_FINISHED`     | "{name} wins the game!"                        |
+| `GAME_TERMINATED`   | "{name} left the game"                         |
+
 ### Swabian Terminology
 
 Uses Swabian German card names:
@@ -167,6 +202,7 @@ pnpm docker:reset         # Reset database
 | `packages/shared-types/src/cards.ts`                         | Card types and constants     |
 | `packages/shared-types/src/game.ts`                          | Game state and meld types    |
 | `packages/shared-types/src/events.ts`                        | Event type definitions       |
+| `packages/shared-types/src/gameLog.ts`                       | Game log entry types         |
 | `packages/shared-types/src/api.ts`                           | API request/response types   |
 | `packages/shared-types/src/socket.ts`                        | Socket event types           |
 | `packages/game-logic/src/state/reducer.ts`                   | Event sourcing reducer       |
@@ -180,12 +216,15 @@ pnpm docker:reset         # Reset database
 | `packages/ui-shared/src/useGameState.ts`                     | Game state React hook        |
 | `packages/ui-shared/src/useSocket.ts`                        | Socket.IO React hook         |
 | `packages/ui-shared/src/useRoundHistory.ts`                  | Round history for scoreboard |
+| `packages/ui-shared/src/useGameLog.ts`                       | Game log entries hook        |
 | `packages/ui-shared/src/useLocalStorage.ts`                  | Session credentials hook     |
 | `apps/web/src/components/game/ScoreBoard.tsx`                | Web scoreboard component     |
+| `apps/web/src/components/game/GameLog.tsx`                   | Web game log component       |
 | `apps/web/src/components/ConfirmModal.tsx`                   | Reusable confirmation modal  |
 | `apps/web/src/components/game/GameTerminatedModal.tsx`       | Game terminated notification |
 | `apps/mobile/src/components/game/ScoreBoard.tsx`             | Mobile scoreboard component  |
 | `apps/mobile/src/components/game/ScoreBoardHeader.tsx`       | Mobile compact scoreboard    |
+| `apps/mobile/src/components/game/GameLog.tsx`                | Mobile game log component    |
 | `apps/server/src/socket/handlers.ts`                         | Socket.IO event handlers     |
 | `apps/server/src/services/eventService.ts`                   | Event persistence            |
 | `apps/server/src/services/gameService.ts`                    | Game logic service           |

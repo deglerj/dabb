@@ -14,6 +14,7 @@ import {
   TrickArea,
   ScoreBoard,
   ScoreBoardHeader,
+  GameLog,
 } from '../components/game';
 
 interface GameScreenProps {
@@ -219,6 +220,14 @@ function GameScreen({
           <Text style={styles.hint}>{t('game.tapAgainToPlay')}</Text>
         )}
       </View>
+
+      {/* Game Log overlay */}
+      <GameLog
+        state={state}
+        events={events}
+        currentPlayerIndex={playerIndex}
+        nicknames={nicknames}
+      />
 
       {/* Expanded scoreboard modal */}
       <Modal
