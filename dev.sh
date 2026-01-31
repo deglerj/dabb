@@ -108,6 +108,8 @@ cmd_start() {
     echo ""
     echo -e "${YELLOW}Waiting for services to be healthy...${NC}"
 
+    local failed=false
+
     # Wait for postgres
     echo -n "  PostgreSQL: "
     for i in {1..30}; do
@@ -117,6 +119,7 @@ cmd_start() {
         fi
         if [[ $i -eq 30 ]]; then
             echo -e "${RED}timeout${NC}"
+            failed=true
         fi
         sleep 1
     done
@@ -130,6 +133,7 @@ cmd_start() {
         fi
         if [[ $i -eq 60 ]]; then
             echo -e "${RED}timeout${NC}"
+            failed=true
         fi
         sleep 1
     done
@@ -143,12 +147,17 @@ cmd_start() {
         fi
         if [[ $i -eq 30 ]]; then
             echo -e "${RED}timeout${NC}"
+            failed=true
         fi
         sleep 1
     done
 
     echo ""
-    echo -e "${GREEN}Services started successfully!${NC}"
+    if [[ "$failed" == "true" ]]; then
+        echo -e "${RED}Some services failed to start. Check logs with: ./dev.sh logs${NC}"
+    else
+        echo -e "${GREEN}Services started successfully!${NC}"
+    fi
     echo ""
     echo "Access the application:"
     echo -e "  Web app:    ${BLUE}http://localhost:8080${NC}"

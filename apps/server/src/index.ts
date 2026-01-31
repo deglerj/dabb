@@ -82,17 +82,16 @@ setSocketServer(io);
 // Start cleanup scheduler for inactive sessions
 startCleanupScheduler(io);
 
-// Run migrations and start server
-runMigrations()
-  .then(() => {
-    httpServer.listen(env.PORT, () => {
-      logger.info({ port: env.PORT, corsOrigin, env: env.NODE_ENV }, 'Server started');
-    });
-  })
-  .catch((error) => {
+// Start server first (so health checks pass), then run migrations
+httpServer.listen(env.PORT, () => {
+  logger.info({ port: env.PORT, corsOrigin, env: env.NODE_ENV }, 'Server started');
+
+  // Run migrations after server is listening
+  runMigrations().catch((error) => {
     logger.error({ error }, 'Failed to run migrations, exiting');
     process.exit(1);
   });
+});
 
 // Graceful shutdown
 async function shutdown(signal: string) {
