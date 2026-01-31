@@ -125,6 +125,38 @@ export const MELD_BASE_POINTS: Record<MeldType, number> = {
   'acht-unter': 200,
 };
 
+// Meld display names (Swabian German - used in all languages)
+export const MELD_NAMES: Record<MeldType, string> = {
+  paar: 'Paar',
+  familie: 'Familie',
+  binokel: 'Binokel',
+  'doppel-binokel': 'Doppel-Binokel',
+  'vier-ass': 'Vier Asse',
+  'vier-koenig': 'Vier Könige',
+  'vier-ober': 'Vier Ober',
+  'vier-unter': 'Vier Buaben',
+  'acht-ass': 'Acht Asse',
+  'acht-koenig': 'Acht Könige',
+  'acht-ober': 'Acht Ober',
+  'acht-unter': 'Acht Buaben',
+};
+
+// Melds that require a suit prefix in their display name
+const SUIT_SPECIFIC_MELDS: MeldType[] = ['paar', 'familie'];
+
+/**
+ * Format a meld for display.
+ * For suit-specific melds (Paar, Familie), includes the suit name as prefix.
+ */
+export function formatMeldName(meld: Meld, suitNames: Record<string, string>): string {
+  const baseName = MELD_NAMES[meld.type];
+  if (SUIT_SPECIFIC_MELDS.includes(meld.type) && meld.suit) {
+    const suitName = suitNames[meld.suit] || meld.suit;
+    return `${suitName}-${baseName}`;
+  }
+  return baseName;
+}
+
 // Trump bonus for certain melds
 export const MELD_TRUMP_BONUS: Partial<Record<MeldType, number>> = {
   paar: 20, // 20 -> 40 in trump

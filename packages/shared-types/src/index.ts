@@ -21,7 +21,9 @@ export {
   BID_INCREMENT,
   CARDS_PER_PLAYER,
   DABB_SIZE,
+  formatMeldName,
   MELD_BASE_POINTS,
+  MELD_NAMES,
   MELD_TRUMP_BONUS,
   MIN_BID,
 } from './game.js';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { GameState, GameEvent, PlayerIndex, GameLogEntry, Meld } from '@dabb/shared-types';
-import { SUIT_NAMES, RANK_NAMES } from '@dabb/shared-types';
+import { formatMeldName, SUIT_NAMES, RANK_NAMES } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import { useGameLog } from '@dabb/ui-shared';
 
@@ -46,7 +46,7 @@ function GameLog({ state, events, currentPlayerIndex }: GameLogProps) {
   };
 
   const formatMelds = (melds: Meld[]): string => {
-    return melds.map((m) => `${m.type} (${m.points})`).join(', ');
+    return melds.map((m) => `${formatMeldName(m, SUIT_NAMES)} (${m.points})`).join(', ');
   };
 
   const renderEntryMessage = (entry: GameLogEntry): React.ReactNode => {

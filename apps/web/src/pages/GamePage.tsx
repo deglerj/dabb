@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Card, CardId, PlayerIndex, Suit } from '@dabb/shared-types';
-import { DABB_SIZE, SUITS, SUIT_NAMES } from '@dabb/shared-types';
+import { DABB_SIZE, formatMeldName, SUITS, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
 
@@ -343,7 +343,7 @@ function MeldPreview({ hand, trump }: { hand: Card[]; trump: Suit }) {
     <div style={{ marginTop: '1rem' }}>
       {melds.map((meld, i) => (
         <div key={i}>
-          {meld.type} ({meld.points} {t('game.points')})
+          {formatMeldName(meld, SUIT_NAMES)} ({meld.points} {t('game.points')})
         </div>
       ))}
       <div style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>
