@@ -109,6 +109,8 @@ export interface TranslationKeys {
     goOut: string;
     goOutIn: string;
     orGoOut: string;
+    goOutConfirmTitle: string;
+    goOutConfirmMessage: string;
   };
   phases: {
     waiting: string;

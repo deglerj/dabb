@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Card, CardId, PlayerIndex, Suit } from '@dabb/shared-types';
 import { DABB_SIZE, SUITS, SUIT_NAMES } from '@dabb/shared-types';
@@ -23,6 +23,7 @@ function GamePage() {
   const game = useGame(code || '');
   const [selectedCards, setSelectedCards] = useState<CardId[]>([]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [goOutConfirmSuit, setGoOutConfirmSuit] = useState<Suit | null>(null);
 
   const {
     state,
@@ -60,6 +61,21 @@ function GamePage() {
     navigate('/');
   };
 
+  const handleGoOutClick = useCallback((suit: Suit) => {
+    setGoOutConfirmSuit(suit);
+  }, []);
+
+  const handleGoOutConfirm = useCallback(() => {
+    if (goOutConfirmSuit) {
+      game.goOut(goOutConfirmSuit);
+      setGoOutConfirmSuit(null);
+    }
+  }, [game, goOutConfirmSuit]);
+
+  const handleGoOutCancel = useCallback(() => {
+    setGoOutConfirmSuit(null);
+  }, []);
+
   const handleDiscard = () => {
     if (selectedCards.length === dabbSize) {
       game.discard(selectedCards);
@@ -92,6 +108,17 @@ function GamePage() {
           confirmLabel={t('game.exitGame')}
           onConfirm={handleExitConfirm}
           onCancel={handleExitCancel}
+        />
+      )}
+
+      {/* Go out confirmation modal */}
+      {goOutConfirmSuit && (
+        <ConfirmModal
+          title={t('game.goOutConfirmTitle')}
+          message={t('game.goOutConfirmMessage')}
+          confirmLabel={t('game.goOutIn', { suit: SUIT_NAMES[goOutConfirmSuit] })}
+          onConfirm={handleGoOutConfirm}
+          onCancel={handleGoOutCancel}
         />
       )}
 
@@ -188,7 +215,7 @@ function GamePage() {
                     {SUITS.map((suit) => (
                       <button
                         key={suit}
-                        onClick={() => game.goOut(suit)}
+                        onClick={() => handleGoOutClick(suit)}
                         style={{
                           display: 'flex',
                           flexDirection: 'column',

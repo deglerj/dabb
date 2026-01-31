@@ -98,6 +98,9 @@ const de: TranslationKeys = {
     goOut: 'Abgehen',
     goOutIn: 'Ab in {{suit}}',
     orGoOut: 'Oder abgehen:',
+    goOutConfirmTitle: 'Abgehen?',
+    goOutConfirmMessage:
+      'Du verlierst dein Gebot und bekommst keine Meldungen. Die anderen Spieler bekommen ihre Meldungen plus 30 Punkte.',
   },
   phases: {
     waiting: 'Warten',
