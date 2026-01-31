@@ -119,6 +119,18 @@ function eventToLogEntry(event: GameEvent): GameLogEntry | null {
         },
       };
 
+    case 'GOING_OUT':
+      return {
+        id: event.id,
+        timestamp: event.timestamp,
+        type: 'going_out',
+        playerIndex: event.payload.playerIndex,
+        data: {
+          kind: 'going_out',
+          suit: event.payload.suit,
+        },
+      };
+
     case 'TRUMP_DECLARED':
       return {
         id: event.id,

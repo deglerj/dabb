@@ -16,6 +16,7 @@ import {
   createBiddingWonEvent,
   createDabbTakenEvent,
   createCardsDiscardedEvent,
+  createGoingOutEvent,
   createTrumpDeclaredEvent,
   createMeldsDeclaredEvent,
   createMeldingCompleteEvent,
@@ -54,6 +55,7 @@ interface PlayerActions {
   passes(): void;
   takesDabb(): void;
   discards(cards: Card[]): void;
+  goesOut(suit: Suit): void;
   declaresTrump(suit: Suit): void;
   declaresMelds(melds: Meld[]): void;
   plays(playedCard: Card): void;
@@ -132,6 +134,10 @@ export class GameTestHelper {
             cards.map((c) => c.id)
           )
         );
+      },
+
+      goesOut: (suit: Suit) => {
+        this.events.push(createGoingOutEvent(this.ctx(), playerIndex, suit));
       },
 
       declaresTrump: (suit: Suit) => {

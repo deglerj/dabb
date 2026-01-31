@@ -35,6 +35,7 @@ interface UseGameReturn {
   pass: () => void;
   takeDabb: () => void;
   discard: (cardIds: CardId[]) => void;
+  goOut: (suit: Suit) => void;
   declareTrump: (suit: Suit) => void;
   declareMelds: (melds: Meld[]) => void;
   playCard: (cardId: CardId) => void;
@@ -155,6 +156,13 @@ export function useGame(code: string): UseGameReturn {
     [socket]
   );
 
+  const goOut = useCallback(
+    (suit: Suit) => {
+      socket?.emit('game:goOut', { suit });
+    },
+    [socket]
+  );
+
   const declareTrump = useCallback(
     (suit: Suit) => {
       socket?.emit('game:declareTrump', { suit });
@@ -194,6 +202,7 @@ export function useGame(code: string): UseGameReturn {
     pass,
     takeDabb: takeDabbFn,
     discard,
+    goOut,
     declareTrump,
     declareMelds,
     playCard,

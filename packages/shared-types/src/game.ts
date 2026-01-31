@@ -82,6 +82,9 @@ export interface GameState {
 
   // Round number
   round: number;
+
+  // Whether bid winner chose to "go out" (forfeit round)
+  wentOut: boolean;
 }
 
 // Meld types

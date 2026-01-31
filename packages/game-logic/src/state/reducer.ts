@@ -42,6 +42,9 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
     case 'CARDS_DISCARDED':
       return handleCardsDiscarded(state, event);
 
+    case 'GOING_OUT':
+      return handleGoingOut(state, event);
+
     case 'TRUMP_DECLARED':
       return handleTrumpDeclared(state, event);
 
@@ -247,6 +250,19 @@ function handleCardsDiscarded(
     ...state,
     phase: 'trump',
     hands: newHands,
+  };
+}
+
+function handleGoingOut(
+  state: GameState,
+  event: Extract<GameEvent, { type: 'GOING_OUT' }>
+): GameState {
+  return {
+    ...state,
+    phase: 'melding',
+    trump: event.payload.suit,
+    wentOut: true,
+    declaredMelds: new Map(),
   };
 }
 

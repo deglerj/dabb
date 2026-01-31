@@ -85,7 +85,58 @@ web -> web : Update UI
 @enduml
 ```
 
-## 6.4 Reconnection
+## 6.4 Going Out (Forfeit Round)
+
+When the bid winner doesn't think they can make their bid after seeing the Dabb, they can choose to "go out".
+
+```plantuml
+@startuml
+!theme plain
+
+actor "Bid Winner" as winner
+actor "Opponent" as opponent
+participant "Server" as server
+database "DB" as db
+
+== Take Dabb ==
+winner -> server : game:takeDabb
+server -> db : INSERT DABB_TAKEN event
+server --> winner : game:events [DABB_TAKEN]
+
+== Go Out ==
+winner -> server : game:goOut { suit: 'schippe' }
+server -> server : Validate (is bid winner, in dabb phase, dabb taken)
+server -> db : INSERT GOING_OUT event
+server --> winner : game:events [GOING_OUT]
+server --> opponent : game:events [GOING_OUT]
+
+== Melding (Opponent Only) ==
+opponent -> server : game:declareMelds { melds }
+server -> db : INSERT MELDS_DECLARED
+server -> server : All opponents declared
+server -> db : INSERT MELDING_COMPLETE
+server -> server : Calculate going out scores
+note right
+  Bid winner: -bid amount
+  Opponent: melds + 30 bonus
+end note
+server -> db : INSERT ROUND_SCORED
+server -> db : INSERT NEW_ROUND_STARTED, CARDS_DEALT
+server --> winner : game:events [MELDS_DECLARED, MELDING_COMPLETE, ROUND_SCORED, NEW_ROUND_STARTED, CARDS_DEALT]
+server --> opponent : game:events [MELDS_DECLARED, MELDING_COMPLETE, ROUND_SCORED, NEW_ROUND_STARTED, CARDS_DEALT]
+
+@enduml
+```
+
+**Key Points:**
+
+- Bid winner can only go out after taking the dabb
+- Going out skips the trump declaration, tricks phase entirely
+- Bid winner cannot declare melds when going out
+- Opponents each get their melds + 30 bonus points
+- Bid winner loses their bid amount
+
+## 6.5 Reconnection
 
 ```plantuml
 @startuml

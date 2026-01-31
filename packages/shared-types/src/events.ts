@@ -72,6 +72,14 @@ export interface CardsDiscardedEvent extends BaseEvent {
   };
 }
 
+export interface GoingOutEvent extends BaseEvent {
+  type: 'GOING_OUT';
+  payload: {
+    playerIndex: PlayerIndex;
+    suit: Suit;
+  };
+}
+
 // Trump events
 export interface TrumpDeclaredEvent extends BaseEvent {
   type: 'TRUMP_DECLARED';
@@ -192,6 +200,7 @@ export type GameEvent =
   | BiddingWonEvent
   | DabbTakenEvent
   | CardsDiscardedEvent
+  | GoingOutEvent
   | TrumpDeclaredEvent
   | MeldsDeclaredEvent
   | MeldingCompleteEvent

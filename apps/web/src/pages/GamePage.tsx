@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Card, CardId, PlayerIndex, Suit } from '@dabb/shared-types';
-import { DABB_SIZE, SUIT_NAMES } from '@dabb/shared-types';
+import { DABB_SIZE, SUITS, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
 
@@ -165,6 +165,45 @@ function GamePage() {
                 <button onClick={handleDiscard} disabled={selectedCards.length !== dabbSize}>
                   {t('game.selectedCount', { selected: selectedCards.length, total: dabbSize })}
                 </button>
+
+                {/* Go Out option */}
+                <div
+                  style={{
+                    marginTop: '1.5rem',
+                    borderTop: '1px solid var(--border)',
+                    paddingTop: '1rem',
+                  }}
+                >
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                    {t('game.orGoOut')}
+                  </p>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      justifyContent: 'center',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {SUITS.map((suit) => (
+                      <button
+                        key={suit}
+                        onClick={() => game.goOut(suit)}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          minWidth: '70px',
+                          padding: '0.5rem',
+                        }}
+                      >
+                        <SuitIcon suit={suit} size={24} />
+                        <span style={{ fontSize: '0.75rem' }}>{SUIT_NAMES[suit]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </>
             )}
           </div>

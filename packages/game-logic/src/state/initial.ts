@@ -48,6 +48,9 @@ export function createInitialState(
 
     // Round number
     round: 0,
+
+    // Going out state
+    wentOut: false,
   };
 }
 
@@ -90,5 +93,8 @@ export function resetForNewRound(state: GameState): GameState {
 
     // Increment round
     round: state.round + 1,
+
+    // Reset going out state
+    wentOut: false,
   };
 }

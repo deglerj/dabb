@@ -95,6 +95,9 @@ const de: TranslationKeys = {
     gameTerminated: 'Spiel abgebrochen',
     gameTerminatedMessage: '{{name}} hat das Spiel verlassen.',
     backToHome: 'Zurück zum Start',
+    goOut: 'Abgehen',
+    goOutIn: 'Ab in {{suit}}',
+    orGoOut: 'Oder abgehen:',
   },
   phases: {
     waiting: 'Warten',
@@ -129,6 +132,7 @@ const de: TranslationKeys = {
     bidPlaced: '{{name}} bietet {{amount}}',
     playerPassed: '{{name}} passt',
     biddingWon: '{{name}} gewinnt das Reizen mit {{bid}}',
+    goingOut: '{{name}} geht ab in {{suit}}',
     trumpDeclared: '{{name}} wählt {{suit}} als Trumpf',
     meldsDeclared: '{{name}} meldet {{points}} Punkte',
     meldsNone: '{{name}} hat keine Meldungen',

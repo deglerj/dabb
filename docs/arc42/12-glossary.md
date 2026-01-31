@@ -2,15 +2,17 @@
 
 ## Game Terms
 
-| Term        | Definition                                   |
-| ----------- | -------------------------------------------- |
-| **Binokel** | A traditional Swabian trick-taking card game |
-| **Dabb**    | Extra cards that go to the bid winner        |
-| **Meld**    | A scoring combination of cards               |
-| **Paar**    | King + Ober of the same suit                 |
-| **Familie** | A-10-K-O-U of the same suit                  |
-| **Trick**   | A round where each player plays one card     |
-| **Trump**   | The suit that beats all other suits          |
+| Term          | Definition                                                               |
+| ------------- | ------------------------------------------------------------------------ |
+| **Abgehen**   | "Going out" - forfeiting a round after taking the dabb (German)          |
+| **Binokel**   | A traditional Swabian trick-taking card game                             |
+| **Dabb**      | Extra cards that go to the bid winner                                    |
+| **Going Out** | Forfeiting a round; bid winner loses bid, opponents get melds + 30 bonus |
+| **Meld**      | A scoring combination of cards                                           |
+| **Paar**      | King + Ober of the same suit                                             |
+| **Familie**   | A-10-K-O-U of the same suit                                              |
+| **Trick**     | A round where each player plays one card                                 |
+| **Trump**     | The suit that beats all other suits                                      |
 
 ## Card Terms (Swabian)
 

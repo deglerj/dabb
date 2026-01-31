@@ -18,6 +18,7 @@ import {
   createGameFinishedEvent,
   createGameStartedEvent,
   createGameTerminatedEvent,
+  createGoingOutEvent,
   createMeldingCompleteEvent,
   createMeldsDeclaredEvent,
   createNewRoundStartedEvent,
@@ -278,6 +279,39 @@ export async function discardCards(
   return events;
 }
 
+export async function goOut(
+  sessionId: string,
+  playerIndex: PlayerIndex,
+  suit: Suit
+): Promise<GameEvent[]> {
+  const state = await getGameState(sessionId);
+
+  if (state.phase !== 'dabb') {
+    throw new Error('Not in dabb phase');
+  }
+
+  if (state.bidWinner !== playerIndex) {
+    throw new Error('Only bid winner can go out');
+  }
+
+  if (state.dabb.length > 0) {
+    throw new Error('Must take dabb before going out');
+  }
+
+  const events: GameEvent[] = [];
+  let sequence = await getLastSequence(sessionId);
+  const ctx = () => ({ sessionId, sequence: ++sequence });
+
+  events.push(createGoingOutEvent(ctx(), playerIndex, suit));
+
+  for (const event of events) {
+    await saveEvent(event);
+    updateGameState(sessionId, event);
+  }
+
+  return events;
+}
+
 export async function declareTrump(
   sessionId: string,
   playerIndex: PlayerIndex,
@@ -318,6 +352,11 @@ export async function declareMelds(
     throw new Error('Not in melding phase');
   }
 
+  // Bid winner cannot meld when they went out
+  if (state.wentOut && playerIndex === state.bidWinner) {
+    throw new Error('Cannot meld when going out');
+  }
+
   if (state.declaredMelds.has(playerIndex)) {
     throw new Error('Already declared melds');
   }
@@ -329,21 +368,113 @@ export async function declareMelds(
   const totalPoints = calculateMeldPoints(melds);
   events.push(createMeldsDeclaredEvent(ctx(), playerIndex, melds, totalPoints));
 
-  // Check if all players have declared
+  // When going out, only playerCount - 1 players meld (bid winner doesn't meld)
+  const expectedMeldCount = state.wentOut ? state.playerCount - 1 : state.playerCount;
   const declaredCount = state.declaredMelds.size + 1;
-  if (declaredCount === state.playerCount) {
+
+  if (declaredCount === expectedMeldCount) {
     const meldScores = {} as Record<PlayerIndex, number>;
     state.declaredMelds.forEach((m, idx) => {
       meldScores[idx] = calculateMeldPoints(m);
     });
     meldScores[playerIndex] = totalPoints;
 
-    events.push(createMeldingCompleteEvent(ctx(), meldScores));
+    if (state.wentOut) {
+      // Going out: skip tricks phase, score immediately
+      // Bid winner gets 0 melds (they can't meld when going out)
+      const bidWinner = state.bidWinner!;
+      meldScores[bidWinner] = 0;
+
+      events.push(createMeldingCompleteEvent(ctx(), meldScores));
+
+      // Calculate going out scores
+      const goingOutEvents = await calculateGoingOutScores(state, meldScores, ctx);
+      events.push(...goingOutEvents);
+    } else {
+      events.push(createMeldingCompleteEvent(ctx(), meldScores));
+    }
   }
 
   for (const event of events) {
     await saveEvent(event);
     updateGameState(sessionId, event);
+  }
+
+  return events;
+}
+
+/**
+ * Calculate scores when bid winner goes out
+ * - Bid winner loses their bid amount
+ * - All other players get their melds + 30 bonus points
+ */
+async function calculateGoingOutScores(
+  state: GameState,
+  meldScores: Record<PlayerIndex, number>,
+  ctx: () => { sessionId: string; sequence: number }
+): Promise<GameEvent[]> {
+  const events: GameEvent[] = [];
+  const bidWinner = state.bidWinner!;
+  const winningBid = state.currentBid || 150;
+  const goingOutBonus = 30;
+
+  const scores = {} as Record<
+    PlayerIndex,
+    { melds: number; tricks: number; total: number; bidMet: boolean }
+  >;
+
+  for (let i = 0; i < state.playerCount; i++) {
+    const idx = i as PlayerIndex;
+    if (idx === bidWinner) {
+      // Bid winner loses bid amount, gets no points
+      scores[idx] = { melds: 0, tricks: 0, total: -winningBid, bidMet: false };
+    } else {
+      // Other players get their melds + 30 bonus
+      const melds = meldScores[idx] || 0;
+      scores[idx] = { melds, tricks: 0, total: melds + goingOutBonus, bidMet: true };
+    }
+  }
+
+  // Calculate new total scores
+  const totalScores = {} as Record<PlayerIndex, number>;
+  for (let i = 0; i < state.playerCount; i++) {
+    const idx = i as PlayerIndex;
+    const currentTotal = state.totalScores.get(idx) || 0;
+    totalScores[idx] = currentTotal + scores[idx].total;
+  }
+
+  events.push(createRoundScoredEvent(ctx(), scores, totalScores));
+
+  // Check if game is finished (someone reached target score)
+  const targetScore = state.targetScore;
+  let winner: PlayerIndex | null = null;
+  let highestScore = 0;
+
+  for (let i = 0; i < state.playerCount; i++) {
+    const idx = i as PlayerIndex;
+    if (totalScores[idx] >= targetScore && totalScores[idx] > highestScore) {
+      winner = idx;
+      highestScore = totalScores[idx];
+    }
+  }
+
+  if (winner !== null) {
+    events.push(createGameFinishedEvent(ctx(), winner, totalScores));
+  } else {
+    // Start new round
+    const newDealer = ((state.dealer + 1) % state.playerCount) as PlayerIndex;
+    events.push(createNewRoundStartedEvent(ctx(), state.round + 1, newDealer));
+
+    // Deal cards for new round
+    const deck = shuffleDeck(createDeck());
+    const { hands, dabb } = dealCards(deck, state.playerCount);
+
+    const handsRecord = {} as Record<PlayerIndex, Card[]>;
+    hands.forEach((cards, index) => {
+      handsRecord[index as PlayerIndex] = cards;
+    });
+
+    events.push(createCardsDealtEvent(ctx(), handsRecord, dabb));
   }
 
   return events;

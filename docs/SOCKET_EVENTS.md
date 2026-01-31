@@ -106,6 +106,35 @@ socket.emit('game:discard', { cardIds: ['card1', 'card2'] });
 
 ---
 
+### `game:goOut`
+
+Go out (forfeit the round) after taking the Dabb. This is an alternative to discarding and playing the round.
+
+```typescript
+socket.emit('game:goOut', { suit: 'schippe' });
+```
+
+**Payload:**
+
+| Field  | Type   | Description                                                      |
+| ------ | ------ | ---------------------------------------------------------------- |
+| `suit` | `Suit` | Trump suit to go out in: `kreuz`, `schippe`, `herz`, or `bollen` |
+
+**Requirements:**
+
+- Must be bid winner
+- Game must be in dabb phase
+- Must have already taken the dabb (dabb must be empty)
+
+**Effect:**
+
+- Bid winner loses points equal to their bid
+- Opponents get their melds + 30 bonus points each
+- Round ends immediately (no tricks phase)
+- New round starts automatically
+
+---
+
 ### `game:declareTrump`
 
 Declare the trump suit.
@@ -359,11 +388,12 @@ socket.on('error', ({ message, code }) => {
 
 **Error Codes:**
 
-| Code            | Description               |
-| --------------- | ------------------------- |
-| `SYNC_FAILED`   | Failed to sync game state |
-| `INVALID_MOVE`  | Invalid game action       |
-| `NOT_YOUR_TURN` | Not player's turn         |
+| Code            | Description                |
+| --------------- | -------------------------- |
+| `SYNC_FAILED`   | Failed to sync game state  |
+| `INVALID_MOVE`  | Invalid game action        |
+| `NOT_YOUR_TURN` | Not player's turn          |
+| `GOOUT_FAILED`  | Failed to go out (forfeit) |
 
 ---
 

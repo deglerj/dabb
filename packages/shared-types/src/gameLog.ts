@@ -14,6 +14,7 @@ export type GameLogEntryType =
   | 'bid_placed'
   | 'player_passed'
   | 'bidding_won'
+  | 'going_out'
   | 'trump_declared'
   | 'melds_declared'
   | 'card_played'
@@ -60,6 +61,14 @@ export interface PlayerPassedLogData {
 export interface BiddingWonLogData {
   kind: 'bidding_won';
   winningBid: number;
+}
+
+/**
+ * Data for going_out log entry
+ */
+export interface GoingOutLogData {
+  kind: 'going_out';
+  suit: Suit;
 }
 
 /**
@@ -136,6 +145,7 @@ export type GameLogEntryData =
   | BidPlacedLogData
   | PlayerPassedLogData
   | BiddingWonLogData
+  | GoingOutLogData
   | TrumpDeclaredLogData
   | MeldsDeclaredLogData
   | CardPlayedLogData

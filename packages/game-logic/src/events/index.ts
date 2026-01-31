@@ -8,6 +8,7 @@ export {
   createGameFinishedEvent,
   createGameStartedEvent,
   createGameTerminatedEvent,
+  createGoingOutEvent,
   createMeldingCompleteEvent,
   createMeldsDeclaredEvent,
   createNewRoundStartedEvent,

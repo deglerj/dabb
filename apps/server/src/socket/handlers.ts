@@ -14,6 +14,7 @@ import {
   passBid,
   takeDabb,
   discardCards,
+  goOut,
   declareTrump,
   declareMelds,
   playCard,
@@ -151,6 +152,17 @@ export function setupSocketHandlers(io: GameServer) {
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         socket.emit('error', { message, code: 'DISCARD_FAILED' });
+      }
+    });
+
+    // Handle going out
+    socket.on('game:goOut', async ({ suit }) => {
+      try {
+        const events = await goOut(sessionId, playerIndex, suit);
+        broadcastEvents(io, sessionId, events);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        socket.emit('error', { message, code: 'GOOUT_FAILED' });
       }
     });
 

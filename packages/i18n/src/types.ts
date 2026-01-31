@@ -106,6 +106,9 @@ export interface TranslationKeys {
     gameTerminated: string;
     gameTerminatedMessage: string;
     backToHome: string;
+    goOut: string;
+    goOutIn: string;
+    orGoOut: string;
   };
   phases: {
     waiting: string;
@@ -140,6 +143,7 @@ export interface TranslationKeys {
     bidPlaced: string;
     playerPassed: string;
     biddingWon: string;
+    goingOut: string;
     trumpDeclared: string;
     meldsDeclared: string;
     meldsNone: string;

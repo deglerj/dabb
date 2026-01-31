@@ -16,6 +16,7 @@ import {
   GameFinishedEvent,
   GameStartedEvent,
   GameTerminatedEvent,
+  GoingOutEvent,
   Meld,
   MeldingCompleteEvent,
   MeldsDeclaredEvent,
@@ -163,6 +164,18 @@ export function createCardsDiscardedEvent(
     ...createBaseEvent(ctx),
     type: 'CARDS_DISCARDED',
     payload: { playerIndex, discardedCards },
+  };
+}
+
+export function createGoingOutEvent(
+  ctx: EventContext,
+  playerIndex: PlayerIndex,
+  suit: Suit
+): GoingOutEvent {
+  return {
+    ...createBaseEvent(ctx),
+    type: 'GOING_OUT',
+    payload: { playerIndex, suit },
   };
 }
 

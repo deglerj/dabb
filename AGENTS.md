@@ -63,7 +63,7 @@ All game state is managed through events:
 
 - `GameStartedEvent`, `CardsDealtEvent` - Game lifecycle
 - `BidPlacedEvent`, `PlayerPassedEvent`, `BiddingWonEvent` - Bidding phase
-- `DabbTakenEvent`, `CardsDiscardedEvent`, `TrumpDeclaredEvent` - Dabb/Trump phases
+- `DabbTakenEvent`, `CardsDiscardedEvent`, `GoingOutEvent`, `TrumpDeclaredEvent` - Dabb/Trump phases
 - `MeldsDeclaredEvent`, `MeldingCompleteEvent` - Melding phase
 - `CardPlayedEvent`, `TrickWonEvent` - Tricks phase
 - `RoundScoredEvent`, `GameFinishedEvent` - Scoring/End
@@ -111,6 +111,7 @@ The game log displays player actions in real-time, helping players follow the ga
 | `BID_PLACED`        | "{name} bids {amount}"                         |
 | `PLAYER_PASSED`     | "{name} passes"                                |
 | `BIDDING_WON`       | "{name} wins bidding with {bid}"               |
+| `GOING_OUT`         | "{name} goes out in {suit}"                    |
 | `TRUMP_DECLARED`    | "{name} declares {suit} as trump"              |
 | `MELDS_DECLARED`    | "{name} declares {points} points" + expandable |
 | `CARD_PLAYED`       | "{name} plays {card}"                          |
@@ -300,3 +301,14 @@ See `README.md` for full game rules. Key points:
 - Melds score points (Paar: 20, Familie: 100, Binokel: 40)
 - Must follow suit, must beat, must trump
 - First to 1000 wins
+
+### Going Out (Abgehen)
+
+After taking the dabb, the bid winner can choose to "go out" if they don't think they can make their bid:
+
+- **When**: After taking dabb, before discarding
+- **Action**: Choose a trump suit to "go out in" (e.g., "Ab in Schippen")
+- **Bid winner**: Loses points equal to their bid (subtracted from score), cannot meld
+- **Opponents**: Each gets their melds + 30 bonus points
+- **Effect**: Round ends immediately (no tricks phase), new round starts
+- **State**: `wentOut: boolean` in GameState tracks this, reset on new round

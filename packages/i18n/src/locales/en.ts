@@ -95,6 +95,9 @@ const en: TranslationKeys = {
     gameTerminated: 'Game terminated',
     gameTerminatedMessage: '{{name}} has left the game.',
     backToHome: 'Back to home',
+    goOut: 'Go out',
+    goOutIn: 'Go out in {{suit}}',
+    orGoOut: 'Or go out:',
   },
   phases: {
     waiting: 'Waiting',
@@ -128,6 +131,7 @@ const en: TranslationKeys = {
     bidPlaced: '{{name}} bids {{amount}}',
     playerPassed: '{{name}} passes',
     biddingWon: '{{name}} wins bidding with {{bid}}',
+    goingOut: '{{name}} goes out in {{suit}}',
     trumpDeclared: '{{name}} declares {{suit}} as trump',
     meldsDeclared: '{{name}} declares {{points}} points',
     meldsNone: '{{name}} has no melds',

@@ -13,6 +13,7 @@ export interface ClientToServerEvents {
   'game:pass': () => void;
   'game:takeDabb': () => void;
   'game:discard': (data: { cardIds: CardId[] }) => void;
+  'game:goOut': (data: { suit: Suit }) => void;
   'game:declareTrump': (data: { suit: Suit }) => void;
   'game:declareMelds': (data: { melds: Meld[] }) => void;
   'game:playCard': (data: { cardId: CardId }) => void;

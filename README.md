@@ -67,11 +67,20 @@ Binokel is played with a **40-card deck** (two copies of each card). The goal is
 
 1. **Dealing** - Cards are dealt to players and the _Dabb_ (extra cards)
 2. **Bidding** - Players bid for the right to name trump (starts at 150)
-3. **Dabb** - Bid winner takes the Dabb and discards cards
+3. **Dabb** - Bid winner takes the Dabb and discards cards (or goes out)
 4. **Trump** - Bid winner declares the trump suit
 5. **Melding** - All players declare their melds for points
 6. **Tricks** - Play 11-15 rounds to win tricks
 7. **Scoring** - Calculate points and update scores
+
+### Going Out (Abgehen)
+
+After taking the Dabb, if the bid winner doesn't think they can make their bid, they can choose to **go out** (_Abgehen_):
+
+- Choose a trump suit to "go out in" (e.g., "Ab in Schippen")
+- **Bid winner** loses points equal to their bid
+- **Opponents** each get their melds + 30 bonus points
+- Round ends immediately (no tricks phase)
 
 ### Melds
 
