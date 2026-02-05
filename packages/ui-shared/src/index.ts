@@ -5,3 +5,5 @@ export { useRoundHistory } from './useRoundHistory.js';
 export type { RoundHistoryResult } from './useRoundHistory.js';
 export { useGameLog } from './useGameLog.js';
 export type { GameLogResult } from './useGameLog.js';
+export { useActionRequired, useActionRequiredCallback } from './useActionRequired.js';
+export type { ActionRequiredResult } from './useActionRequired.js';

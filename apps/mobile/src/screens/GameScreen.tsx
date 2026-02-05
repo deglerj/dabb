@@ -18,6 +18,7 @@ import {
   GameLog,
 } from '../components/game';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useTurnNotification } from '../hooks/useTurnNotification';
 
 interface GameScreenProps {
   state: GameState;
@@ -53,6 +54,9 @@ function GameScreen({
 
   const myHand = state.hands.get(playerIndex) || [];
   const sortedHand = useMemo(() => sortHand(myHand), [myHand]);
+
+  // Play notification sound when it's the player's turn
+  useTurnNotification(state, playerIndex);
 
   const isMyTurn = state.currentPlayer === playerIndex;
 

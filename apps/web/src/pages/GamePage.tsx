@@ -7,6 +7,7 @@ import { useTranslation } from '@dabb/i18n';
 import { Hand, Trash2, Check, LogOut } from 'lucide-react';
 
 import { useGame } from '../hooks/useGame';
+import { useTurnNotification } from '../hooks/useTurnNotification';
 import PlayerHand from '../components/game/PlayerHand';
 import BiddingPanel from '../components/game/BiddingPanel';
 import TrumpSelector from '../components/game/TrumpSelector';
@@ -40,6 +41,9 @@ function GamePage() {
 
   const myHand = state.hands.get(playerIndex as PlayerIndex) || [];
   const dabbSize = DABB_SIZE[state.playerCount];
+
+  // Play notification sound when it's the player's turn
+  useTurnNotification(state, playerIndex as PlayerIndex);
 
   // Check if we can show the exit button (only during active game phases)
   const activePhases = ['dealing', 'bidding', 'dabb', 'trump', 'melding', 'tricks', 'scoring'];
