@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { GameState, GameEvent, PlayerIndex, Team } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import { useRoundHistory } from '@dabb/ui-shared';
+import { ChevronDown, ChevronUp, LogOut } from 'lucide-react';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 interface ScoreBoardProps {
   state: GameState;
@@ -61,8 +63,12 @@ function ScoreBoard({ state, events, currentPlayerIndex, onExitClick }: ScoreBoa
 
         <div className="scoreboard-actions">
           <button className="scoreboard-toggle" type="button">
+            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}{' '}
             {isExpanded ? t('game.hideHistory') : t('game.showHistory')}
           </button>
+          <div onClick={(e) => e.stopPropagation()}>
+            <LanguageSwitcher />
+          </div>
           {onExitClick && (
             <button
               className="exit-button"
@@ -72,7 +78,7 @@ function ScoreBoard({ state, events, currentPlayerIndex, onExitClick }: ScoreBoa
                 onExitClick();
               }}
             >
-              {t('game.exitGame')}
+              <LogOut size={16} /> {t('game.exitGame')}
             </button>
           )}
         </div>

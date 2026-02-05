@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { PlayerCount } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
+import { Plus, UserPlus, ArrowLeft, Users, Loader2 } from 'lucide-react';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -127,9 +128,11 @@ function HomePage() {
         <h1 style={{ marginBottom: '2rem' }}>{t('home.title')}</h1>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>{t('home.subtitle')}</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <button onClick={() => setMode('create')}>{t('home.createGame')}</button>
+          <button onClick={() => setMode('create')}>
+            <Plus size={18} /> {t('home.createGame')}
+          </button>
           <button className="secondary" onClick={() => setMode('join')}>
-            {t('home.joinGame')}
+            <UserPlus size={18} /> {t('home.joinGame')}
           </button>
         </div>
       </div>
@@ -162,7 +165,7 @@ function HomePage() {
                 onClick={() => setPlayerCount(count)}
                 style={{ flex: 1 }}
               >
-                {count}
+                <Users size={16} /> {count}
               </button>
             ))}
           </div>
@@ -185,14 +188,26 @@ function HomePage() {
 
       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
         <button className="secondary" onClick={() => setMode('menu')}>
-          {t('common.back')}
+          <ArrowLeft size={16} /> {t('common.back')}
         </button>
         <button
           onClick={mode === 'create' ? handleCreate : handleJoin}
           disabled={loading}
           style={{ flex: 1 }}
         >
-          {loading ? t('common.loading') : mode === 'create' ? t('home.create') : t('home.join')}
+          {loading ? (
+            <>
+              <Loader2 size={16} className="animate-spin" /> {t('common.loading')}
+            </>
+          ) : mode === 'create' ? (
+            <>
+              <Plus size={16} /> {t('home.create')}
+            </>
+          ) : (
+            <>
+              <UserPlus size={16} /> {t('home.join')}
+            </>
+          )}
         </button>
       </div>
     </div>

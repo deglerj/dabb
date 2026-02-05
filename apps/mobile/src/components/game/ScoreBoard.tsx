@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import type { PlayerIndex, Team, GameEvent, GameState } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import { useRoundHistory } from '@dabb/ui-shared';
@@ -38,7 +39,10 @@ function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }
         <Text style={styles.title}>{t('game.scoreBoard')}</Text>
         {onCollapse && (
           <TouchableOpacity onPress={onCollapse} style={styles.collapseButton}>
-            <Text style={styles.collapseText}>{t('game.hideHistory')}</Text>
+            <View style={styles.collapseContent}>
+              <Feather name="chevron-down" size={12} color="#2563eb" />
+              <Text style={styles.collapseText}>{t('game.hideHistory')}</Text>
+            </View>
           </TouchableOpacity>
         )}
       </View>
@@ -210,6 +214,11 @@ const styles = StyleSheet.create({
   },
   collapseButton: {
     padding: 4,
+  },
+  collapseContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   collapseText: {
     fontSize: 12,

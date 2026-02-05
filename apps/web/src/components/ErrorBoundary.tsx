@@ -1,5 +1,6 @@
 import { Component, ReactNode } from 'react';
 import { useTranslation } from '@dabb/i18n';
+import { RefreshCw, RotateCcw } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -48,9 +49,11 @@ function ErrorView({ error, onRetry }: { error: Error | null; onRetry: () => voi
         </pre>
       )}
       <div style={{ display: 'flex', gap: '1rem' }}>
-        <button onClick={onRetry}>{t('common.retry')}</button>
+        <button onClick={onRetry}>
+          <RefreshCw size={16} /> {t('common.retry')}
+        </button>
         <button className="secondary" onClick={() => window.location.reload()}>
-          {t('common.reload')}
+          <RotateCcw size={16} /> {t('common.reload')}
         </button>
       </div>
     </div>

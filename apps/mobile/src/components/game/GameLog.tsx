@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import type { GameState, GameEvent, PlayerIndex, GameLogEntry, Meld } from '@dabb/shared-types';
 import { formatMeldName, SUIT_NAMES, RANK_NAMES } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
@@ -117,7 +118,7 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
               </Text>
               {hasMelds && (
                 <TouchableOpacity style={styles.meldToggle} onPress={() => toggleMelds(entry.id)}>
-                  <Text style={styles.meldToggleText}>{isOpen ? '-' : '+'}</Text>
+                  <Feather name={isOpen ? 'minus' : 'plus'} size={10} color="#6b7280" />
                 </TouchableOpacity>
               )}
             </View>
@@ -194,9 +195,16 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
         <Text style={styles.title}>{t('gameLog.title')}</Text>
         {hasMoreEntries && (
           <TouchableOpacity style={styles.toggleButton} onPress={() => setIsExpanded(!isExpanded)}>
-            <Text style={styles.toggleText}>
-              {isExpanded ? t('gameLog.showLess') : t('gameLog.showMore')}
-            </Text>
+            <View style={styles.toggleContent}>
+              <Feather
+                name={isExpanded ? 'chevron-down' : 'chevron-up'}
+                size={10}
+                color="#6b7280"
+              />
+              <Text style={styles.toggleText}>
+                {isExpanded ? t('gameLog.showLess') : t('gameLog.showMore')}
+              </Text>
+            </View>
           </TouchableOpacity>
         )}
       </View>
@@ -267,6 +275,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1,
     borderColor: '#d1d5db',
+  },
+  toggleContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   toggleText: {
     fontSize: 10,

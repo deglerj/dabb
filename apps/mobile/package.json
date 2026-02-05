@@ -17,6 +17,7 @@
     "@dabb/i18n": "workspace:*",
     "@dabb/shared-types": "workspace:*",
     "@dabb/ui-shared": "workspace:*",
+    "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~54.0.32",
     "expo-status-bar": "~3.0.9",

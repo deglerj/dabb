@@ -1,5 +1,6 @@
 import { getMinBid } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
+import { X } from 'lucide-react';
 
 interface BiddingPanelProps {
   currentBid: number;
@@ -28,7 +29,7 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
             </button>
           ))}
           <button className="secondary" onClick={onPass}>
-            {t('game.pass')}
+            <X size={16} /> {t('game.pass')}
           </button>
         </>
       )}

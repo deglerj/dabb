@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useTranslation } from '@dabb/i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
@@ -74,14 +75,20 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
             style={[styles.button, styles.primaryButton]}
             onPress={() => setMode('create')}
           >
-            <Text style={styles.buttonText}>{t('home.createGame')}</Text>
+            <View style={styles.buttonContent}>
+              <Feather name="plus" size={18} color="#fff" />
+              <Text style={styles.buttonText}>{t('home.createGame')}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.button, styles.secondaryButton]}
             onPress={() => setMode('join')}
           >
-            <Text style={styles.secondaryButtonText}>{t('home.joinGame')}</Text>
+            <View style={styles.buttonContent}>
+              <Feather name="user-plus" size={18} color="#2563eb" />
+              <Text style={styles.secondaryButtonText}>{t('home.joinGame')}</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </View>
@@ -114,14 +121,21 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
                 style={[styles.countButton, playerCount === count && styles.countButtonSelected]}
                 onPress={() => setPlayerCount(count)}
               >
-                <Text
-                  style={[
-                    styles.countButtonText,
-                    playerCount === count && styles.countButtonTextSelected,
-                  ]}
-                >
-                  {count}
-                </Text>
+                <View style={styles.countButtonContent}>
+                  <Feather
+                    name="users"
+                    size={14}
+                    color={playerCount === count ? '#2563eb' : '#6b7280'}
+                  />
+                  <Text
+                    style={[
+                      styles.countButtonText,
+                      playerCount === count && styles.countButtonTextSelected,
+                    ]}
+                  >
+                    {count}
+                  </Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -135,7 +149,10 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>{t('home.create')}</Text>
+                <View style={styles.buttonContent}>
+                  <Feather name="plus" size={16} color="#fff" />
+                  <Text style={styles.buttonText}>{t('home.create')}</Text>
+                </View>
               )}
             </TouchableOpacity>
 
@@ -144,7 +161,10 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
               onPress={() => setMode('menu')}
               disabled={loading}
             >
-              <Text style={styles.textButtonText}>{t('common.back')}</Text>
+              <View style={styles.buttonContent}>
+                <Feather name="arrow-left" size={16} color="#64748b" />
+                <Text style={styles.textButtonText}>{t('common.back')}</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -187,7 +207,10 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>{t('home.join')}</Text>
+              <View style={styles.buttonContent}>
+                <Feather name="user-plus" size={16} color="#fff" />
+                <Text style={styles.buttonText}>{t('home.join')}</Text>
+              </View>
             )}
           </TouchableOpacity>
 
@@ -196,7 +219,10 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
             onPress={() => setMode('menu')}
             disabled={loading}
           >
-            <Text style={styles.textButtonText}>{t('common.back')}</Text>
+            <View style={styles.buttonContent}>
+              <Feather name="arrow-left" size={16} color="#64748b" />
+              <Text style={styles.textButtonText}>{t('common.back')}</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </View>
@@ -211,6 +237,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     backgroundColor: '#f0f9ff',
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  countButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   languageSwitcherContainer: {
     position: 'absolute',

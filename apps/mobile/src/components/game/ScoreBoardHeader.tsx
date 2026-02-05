@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import type { GameEvent, PlayerIndex, Team, GameState } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import { useRoundHistory } from '@dabb/ui-shared';
@@ -55,9 +56,12 @@ function ScoreBoardHeader({ state, events, nicknames, onExpand }: ScoreBoardHead
 
       {/* Expand indicator */}
       <View style={styles.expandIndicator}>
-        <Text style={styles.expandText}>
-          {t('game.showHistory')} ({rounds.length})
-        </Text>
+        <View style={styles.expandContent}>
+          <Feather name="chevron-up" size={12} color="#9ca3af" />
+          <Text style={styles.expandText}>
+            {t('game.showHistory')} ({rounds.length})
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -101,6 +105,12 @@ const styles = StyleSheet.create({
   },
   expandIndicator: {
     marginTop: 4,
+  },
+  expandContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
   },
   expandText: {
     fontSize: 10,

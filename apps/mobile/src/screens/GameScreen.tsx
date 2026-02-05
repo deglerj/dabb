@@ -4,6 +4,7 @@
 
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Modal, TouchableOpacity } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import type { GameState, GameEvent, PlayerIndex, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
@@ -16,6 +17,7 @@ import {
   ScoreBoardHeader,
   GameLog,
 } from '../components/game';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface GameScreenProps {
   state: GameState;
@@ -190,11 +192,17 @@ function GameScreen({
             <Text style={styles.turnIndicator}>{t('game.yourTurn')}</Text>
           )}
         </View>
-        {canExit && onExitGame && (
-          <TouchableOpacity style={styles.exitButton} onPress={onExitGame}>
-            <Text style={styles.exitButtonText}>{t('game.exitGame')}</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.headerRight}>
+          <LanguageSwitcher compact />
+          {canExit && onExitGame && (
+            <TouchableOpacity style={styles.exitButton} onPress={onExitGame}>
+              <View style={styles.buttonContent}>
+                <Feather name="log-out" size={12} color="#fff" />
+                <Text style={styles.exitButtonText}>{t('game.exitGame')}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Compact scoreboard header during active play */}
@@ -255,6 +263,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0f766e',
   },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -265,6 +278,11 @@ const styles = StyleSheet.create({
   },
   headerLeft: {
     flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   phaseLabel: {
     color: '#fff',

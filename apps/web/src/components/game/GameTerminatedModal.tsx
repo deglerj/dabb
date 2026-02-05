@@ -1,4 +1,5 @@
 import { useTranslation } from '@dabb/i18n';
+import { Home } from 'lucide-react';
 
 interface GameTerminatedModalProps {
   terminatedBy: string | null;
@@ -17,7 +18,9 @@ function GameTerminatedModal({ terminatedBy, onGoHome }: GameTerminatedModalProp
             {t('game.gameTerminatedMessage', { name: terminatedBy })}
           </p>
         )}
-        <button onClick={onGoHome}>{t('game.backToHome')}</button>
+        <button onClick={onGoHome}>
+          <Home size={16} /> {t('game.backToHome')}
+        </button>
       </div>
     </div>
   );

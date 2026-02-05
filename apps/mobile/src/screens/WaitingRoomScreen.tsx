@@ -12,6 +12,7 @@ import {
   Share,
   Platform,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import type { PlayerIndex } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
@@ -54,7 +55,10 @@ function WaitingRoomScreen({
         <Text style={styles.codeLabel}>{t('waitingRoom.gameCode')}:</Text>
         <Text style={styles.code}>{sessionCode}</Text>
         <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-          <Text style={styles.shareButtonText}>{t('common.share')}</Text>
+          <View style={styles.buttonContent}>
+            <Feather name="share-2" size={14} color="#fff" />
+            <Text style={styles.shareButtonText}>{t('common.share')}</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -102,12 +106,22 @@ function WaitingRoomScreen({
             onPress={onStartGame}
             disabled={!canStart}
           >
-            <Text style={styles.buttonText}>{t('waitingRoom.startGame')}</Text>
+            <View style={styles.buttonContent}>
+              {canStart ? (
+                <Feather name="play" size={18} color="#fff" />
+              ) : (
+                <ActivityIndicator size="small" color="#fff" />
+              )}
+              <Text style={styles.buttonText}>{t('waitingRoom.startGame')}</Text>
+            </View>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity style={[styles.button, styles.leaveButton]} onPress={onLeave}>
-          <Text style={styles.leaveButtonText}>{t('common.leave')}</Text>
+          <View style={styles.buttonContent}>
+            <Feather name="log-out" size={16} color="#dc2626" />
+            <Text style={styles.leaveButtonText}>{t('common.leave')}</Text>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -119,6 +133,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     backgroundColor: '#f0f9ff',
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
     fontSize: 28,

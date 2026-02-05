@@ -7,6 +7,7 @@ import type {
   SessionInfoResponse,
 } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
+import { Copy, Share2, Play, Loader2 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -157,10 +158,10 @@ function WaitingRoomPage() {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button className="secondary" onClick={copyCode}>
-            {t('common.copy')}
+            <Copy size={16} /> {t('common.copy')}
           </button>
           <button className="secondary" onClick={shareUrl}>
-            {t('common.share')}
+            <Share2 size={16} /> {t('common.share')}
           </button>
         </div>
       </div>
@@ -205,11 +206,18 @@ function WaitingRoomPage() {
 
       {isHost && (
         <button onClick={handleStartGame} disabled={!canStart} style={{ width: '100%' }}>
-          {canStart
-            ? t('waitingRoom.startGame')
-            : t('waitingRoom.waitingForPlayersCount', {
+          {canStart ? (
+            <>
+              <Play size={16} /> {t('waitingRoom.startGame')}
+            </>
+          ) : (
+            <>
+              <Loader2 size={16} className="animate-spin" />{' '}
+              {t('waitingRoom.waitingForPlayersCount', {
                 count: session.playerCount - session.players.length,
               })}
+            </>
+          )}
         </button>
       )}
 

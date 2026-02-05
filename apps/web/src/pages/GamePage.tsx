@@ -4,6 +4,7 @@ import type { Card, CardId, PlayerIndex, Suit } from '@dabb/shared-types';
 import { DABB_SIZE, formatMeldName, SUITS, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
+import { Hand, Trash2, Check, LogOut } from 'lucide-react';
 
 import { useGame } from '../hooks/useGame';
 import PlayerHand from '../components/game/PlayerHand';
@@ -172,7 +173,7 @@ function GamePage() {
               <>
                 <h3>{t('game.takeDabb')}</h3>
                 <button onClick={game.takeDabb} style={{ marginTop: '1rem' }}>
-                  {t('game.takeDabbCards', { count: state.dabb.length })}
+                  <Hand size={16} /> {t('game.takeDabbCards', { count: state.dabb.length })}
                 </button>
               </>
             ) : (
@@ -182,6 +183,7 @@ function GamePage() {
                   {t('game.selectCardsToDiscard', { count: dabbSize })}
                 </p>
                 <button onClick={handleDiscard} disabled={selectedCards.length !== dabbSize}>
+                  <Trash2 size={16} />{' '}
                   {t('game.selectedCount', { selected: selectedCards.length, total: dabbSize })}
                 </button>
 
@@ -208,6 +210,7 @@ function GamePage() {
                       <button
                         key={suit}
                         onClick={() => handleGoOutClick(suit)}
+                        className="secondary"
                         style={{
                           display: 'flex',
                           flexDirection: 'column',
@@ -217,6 +220,7 @@ function GamePage() {
                           padding: '0.5rem',
                         }}
                       >
+                        <LogOut size={16} />
                         <SuitIcon suit={suit} size={24} />
                         <span style={{ fontSize: '0.75rem' }}>{SUIT_NAMES[suit]}</span>
                       </button>
@@ -253,7 +257,7 @@ function GamePage() {
                 <h3>{t('game.declareMelds')}</h3>
                 {state.trump && <MeldPreview hand={myHand} trump={state.trump} />}
                 <button onClick={handleDeclareMelds} style={{ marginTop: '1rem' }}>
-                  {t('game.confirmMelds')}
+                  <Check size={16} /> {t('game.confirmMelds')}
                 </button>
               </>
             ) : (

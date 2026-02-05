@@ -1,4 +1,5 @@
 import { useTranslation } from '@dabb/i18n';
+import { X, Check } from 'lucide-react';
 
 interface ConfirmModalProps {
   title: string;
@@ -26,9 +27,11 @@ function ConfirmModal({
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>{message}</p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
           <button className="secondary" onClick={onCancel}>
-            {cancelLabel || t('common.cancel')}
+            <X size={16} /> {cancelLabel || t('common.cancel')}
           </button>
-          <button onClick={onConfirm}>{confirmLabel || t('common.confirm')}</button>
+          <button onClick={onConfirm}>
+            <Check size={16} /> {confirmLabel || t('common.confirm')}
+          </button>
         </div>
       </div>
     </div>

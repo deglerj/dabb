@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useTranslation } from '@dabb/i18n';
 
 interface BiddingPanelProps {
@@ -52,7 +53,10 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
           style={styles.decrementButton}
           onPress={() => setSelectedBid((prev) => Math.max(prev - 10, currentBid + 10))}
         >
-          <Text style={styles.buttonText}>-10</Text>
+          <View style={styles.buttonContent}>
+            <Feather name="minus" size={14} color="#374151" />
+            <Text style={[styles.buttonText, { color: '#374151' }]}>10</Text>
+          </View>
         </TouchableOpacity>
 
         <Text style={styles.selectedBid}>{selectedBid}</Text>
@@ -64,7 +68,10 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
               style={styles.incrementButton}
               onPress={() => incrementBid(inc)}
             >
-              <Text style={styles.buttonText}>+{inc}</Text>
+              <View style={styles.buttonContent}>
+                <Feather name="plus" size={14} color="#fff" />
+                <Text style={styles.buttonText}>{inc}</Text>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -72,11 +79,17 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
 
       <View style={styles.actionButtons}>
         <TouchableOpacity style={[styles.button, styles.bidButton]} onPress={handleBid}>
-          <Text style={styles.buttonText}>{t('game.bid')}</Text>
+          <View style={styles.buttonContent}>
+            <Feather name="check" size={16} color="#fff" />
+            <Text style={styles.buttonText}>{t('game.bid')}</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.passButton]} onPress={onPass}>
-          <Text style={styles.passButtonText}>{t('game.pass')}</Text>
+          <View style={styles.buttonContent}>
+            <Feather name="x" size={16} color="#dc2626" />
+            <Text style={styles.passButtonText}>{t('game.pass')}</Text>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -94,6 +107,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   title: {
     fontSize: 18,
