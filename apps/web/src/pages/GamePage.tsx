@@ -17,6 +17,7 @@ import GameLog from '../components/game/GameLog';
 import SuitIcon from '../components/SuitIcon';
 import ConfirmModal from '../components/ConfirmModal';
 import GameTerminatedModal from '../components/game/GameTerminatedModal';
+import CelebrationOverlay from '../components/game/CelebrationOverlay';
 
 function GamePage() {
   const { t } = useTranslation();
@@ -134,6 +135,9 @@ function GamePage() {
           onGoHome={handleGoHome}
         />
       )}
+
+      {/* Celebration animations */}
+      <CelebrationOverlay events={events} playerIndex={playerIndex as PlayerIndex} />
 
       {/* Top: Scoreboard */}
       <ScoreBoard

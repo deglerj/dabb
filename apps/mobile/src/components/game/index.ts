@@ -6,3 +6,4 @@ export { default as TrickArea } from './TrickArea';
 export { default as ScoreBoard } from './ScoreBoard';
 export { default as ScoreBoardHeader } from './ScoreBoardHeader';
 export { default as GameLog } from './GameLog';
+export { default as CelebrationOverlay } from './CelebrationOverlay';

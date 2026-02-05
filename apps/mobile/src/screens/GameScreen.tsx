@@ -16,6 +16,7 @@ import {
   ScoreBoard,
   ScoreBoardHeader,
   GameLog,
+  CelebrationOverlay,
 } from '../components/game';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useTurnNotification } from '../hooks/useTurnNotification';
@@ -258,6 +259,9 @@ function GameScreen({
           />
         </View>
       </Modal>
+
+      {/* Celebration animations */}
+      <CelebrationOverlay events={events} playerIndex={playerIndex} />
     </SafeAreaView>
   );
 }

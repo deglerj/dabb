@@ -7,3 +7,5 @@ export { useGameLog } from './useGameLog.js';
 export type { GameLogResult } from './useGameLog.js';
 export { useActionRequired, useActionRequiredCallback } from './useActionRequired.js';
 export type { ActionRequiredResult } from './useActionRequired.js';
+export { useCelebration } from './useCelebration.js';
+export type { CelebrationResult } from './useCelebration.js';
