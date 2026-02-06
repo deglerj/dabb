@@ -346,10 +346,11 @@ export async function addAIPlayer(sessionId: string, aiNamePrefix: string = 'KI'
       playerIndex = (playerIndex + 1) as PlayerIndex;
     }
 
-    // Pick a unique AI name
+    // Pick a unique AI name at random
     const usedNames = new Set(playersResult.rows.map((r) => r.nickname));
+    const shuffledNames = [...AI_NAMES].sort(() => Math.random() - 0.5);
     let nickname = '';
-    for (const name of AI_NAMES) {
+    for (const name of shuffledNames) {
       const fullName = `${aiNamePrefix} ${name}`;
       if (!usedNames.has(fullName)) {
         nickname = fullName;
