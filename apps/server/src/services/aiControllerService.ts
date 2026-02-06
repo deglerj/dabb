@@ -234,6 +234,10 @@ async function executeAIAction(
     // Broadcast events to all players
     broadcastEvents(io, sessionId, events);
 
+    // Clear pending action before recursive check so the same player
+    // can act again in the same phase (e.g. takeDabb then discard)
+    pendingAIActions.delete(`${sessionId}:${playerIndex}:${state.phase}`);
+
     // Check if another AI needs to act
     await checkAndTriggerAI(sessionId, io);
   } catch (error) {
