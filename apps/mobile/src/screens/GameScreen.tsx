@@ -31,6 +31,7 @@ interface GameScreenProps {
   onDeclareTrump: (suit: Suit) => void;
   onPlayCard: (cardId: string) => void;
   onExitGame?: () => void;
+  onGoHome?: () => void;
 }
 
 function GameScreen({
@@ -43,6 +44,7 @@ function GameScreen({
   onDeclareTrump,
   onPlayCard,
   onExitGame,
+  onGoHome,
 }: GameScreenProps) {
   const { t } = useTranslation();
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -176,6 +178,14 @@ function GameScreen({
               nicknames={nicknames}
               currentPlayerIndex={playerIndex}
             />
+            {onGoHome && (
+              <TouchableOpacity style={styles.homeButton} onPress={onGoHome}>
+                <View style={styles.buttonContent}>
+                  <Feather name="home" size={16} color="#fff" />
+                  <Text style={styles.homeButtonText}>{t('game.backToHome')}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
         );
       }
@@ -338,6 +348,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#22c55e',
     marginBottom: 16,
+  },
+  homeButton: {
+    marginTop: 16,
+    backgroundColor: '#0f766e',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  homeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   handContainer: {
     backgroundColor: 'rgba(0,0,0,0.3)',

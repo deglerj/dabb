@@ -4,7 +4,7 @@ import type { Card, CardId, PlayerIndex, Suit } from '@dabb/shared-types';
 import { DABB_SIZE, formatMeldName, SUITS, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
-import { Hand, Trash2, Check, LogOut } from 'lucide-react';
+import { Hand, Trash2, Check, LogOut, Home } from 'lucide-react';
 
 import { useGame } from '../hooks/useGame';
 import { useTurnNotification } from '../hooks/useTurnNotification';
@@ -290,7 +290,20 @@ function GamePage() {
         {/* Finished */}
         {state.phase === 'finished' && (
           <div className="card" style={{ textAlign: 'center' }}>
-            <h3>{t('game.gameOver')}</h3>
+            {(() => {
+              const winner = Array.from(state.totalScores.entries()).find(
+                ([, score]) => score >= state.targetScore
+              );
+              const winnerName = winner
+                ? state.players.find((p) => p.playerIndex === winner[0])?.nickname
+                : null;
+              return (
+                <h3>{winnerName ? t('game.wins', { name: winnerName }) : t('game.gameOver')}</h3>
+              );
+            })()}
+            <button onClick={handleGoHome} style={{ marginTop: '1rem' }}>
+              <Home size={16} /> {t('game.backToHome')}
+            </button>
           </div>
         )}
       </div>

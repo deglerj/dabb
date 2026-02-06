@@ -357,6 +357,7 @@ function AppContent() {
           onDeclareTrump={handleDeclareTrump}
           onPlayCard={handlePlayCard}
           onExitGame={handleExitGame}
+          onGoHome={handleLeave}
         />
         <StatusBar style="light" />
       </>
