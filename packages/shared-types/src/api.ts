@@ -58,8 +58,17 @@ export interface SessionInfoResponse {
     playerIndex: PlayerIndex;
     team?: Team;
     connected: boolean;
+    isAI: boolean;
   }>;
   createdAt: string;
+}
+
+// Add AI player
+export interface AddAIPlayerResponse {
+  playerId: string;
+  playerIndex: PlayerIndex;
+  nickname: string;
+  team?: Team;
 }
 
 // Error response

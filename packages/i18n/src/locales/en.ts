@@ -45,6 +45,9 @@ const en: TranslationKeys = {
     waitingForHost: 'Waiting for the host...',
     startGame: 'Start game',
     host: 'Host',
+    addAIPlayer: 'Add AI',
+    removeAI: 'Remove',
+    aiPlayer: 'AI player',
   },
   game: {
     phase: 'Phase',
@@ -181,6 +184,12 @@ const en: TranslationKeys = {
     INVALID_PLAY: 'Invalid play',
     // Game termination errors
     CANNOT_TERMINATE_IN_CURRENT_PHASE: 'Game cannot be terminated in current phase',
+    // AI player errors
+    CANNOT_ADD_AI_WHEN_GAME_STARTED: 'Cannot add AI after the game has started',
+    CANNOT_REMOVE_AI_WHEN_GAME_STARTED: 'Cannot remove AI after the game has started',
+    PLAYER_NOT_AI: 'Player is not an AI player',
+    NO_AVAILABLE_SLOTS: 'No available slots',
+    NOT_HOST: 'Only the host can perform this action',
     // Generic fallback
     UNKNOWN_ERROR: 'Unknown error',
   },

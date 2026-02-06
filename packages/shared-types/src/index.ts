@@ -57,6 +57,7 @@ export type {
 
 // API types
 export type {
+  AddAIPlayerResponse,
   ApiError,
   CreateSessionRequest,
   CreateSessionResponse,
@@ -67,6 +68,20 @@ export type {
   SessionInfoResponse,
   SessionStatus,
 } from './api.js';
+
+// AI types
+export type {
+  AIAction,
+  AIBidAction,
+  AIDecisionContext,
+  AIDeclareMeldsAction,
+  AIDeclareTrumpAction,
+  AIDiscardAction,
+  AIGoOutAction,
+  AIPassAction,
+  AIPlayCardAction,
+  AITakeDabbAction,
+} from './ai.js';
 
 // Socket types
 export type {

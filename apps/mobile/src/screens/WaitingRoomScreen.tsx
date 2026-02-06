@@ -18,11 +18,14 @@ import { useTranslation } from '@dabb/i18n';
 
 interface WaitingRoomScreenProps {
   sessionCode: string;
-  players: Map<PlayerIndex, { nickname: string; connected: boolean }>;
+  players: Map<PlayerIndex, { nickname: string; connected: boolean; isAI: boolean }>;
   playerCount: number;
   isHost: boolean;
   onStartGame: () => void;
   onLeave: () => void;
+  onAddAI?: () => void;
+  onRemoveAI?: (playerIndex: PlayerIndex) => void;
+  isAddingAI?: boolean;
 }
 
 function WaitingRoomScreen({
@@ -32,6 +35,9 @@ function WaitingRoomScreen({
   isHost,
   onStartGame,
   onLeave,
+  onAddAI,
+  onRemoveAI,
+  isAddingAI = false,
 }: WaitingRoomScreenProps) {
   const { t } = useTranslation();
   const connectedPlayers = Array.from(players.values()).filter((p) => p.connected).length;
@@ -72,20 +78,49 @@ function WaitingRoomScreen({
             const player = players.get(index as PlayerIndex);
             return (
               <View key={index} style={styles.playerRow}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    player?.connected ? styles.statusOnline : styles.statusOffline,
-                  ]}
-                />
+                {player?.isAI ? (
+                  <Feather name="cpu" size={14} color="#64748b" style={styles.aiIcon} />
+                ) : (
+                  <View
+                    style={[
+                      styles.statusDot,
+                      player?.connected ? styles.statusOnline : styles.statusOffline,
+                    ]}
+                  />
+                )}
                 <Text style={styles.playerName}>
                   {player?.nickname || `${t('waitingRoom.waitingForPlayers')}...`}
                 </Text>
                 {index === 0 && <Text style={styles.hostBadge}>{t('waitingRoom.host')}</Text>}
+                {isHost && player?.isAI && onRemoveAI && (
+                  <TouchableOpacity
+                    style={styles.removeAIButton}
+                    onPress={() => onRemoveAI(index as PlayerIndex)}
+                  >
+                    <Feather name="x" size={14} color="#dc2626" />
+                  </TouchableOpacity>
+                )}
               </View>
             );
           })}
         </View>
+
+        {isHost && players.size < playerCount && onAddAI && (
+          <TouchableOpacity
+            style={[styles.addAIButton, isAddingAI && styles.disabledButton]}
+            onPress={onAddAI}
+            disabled={isAddingAI}
+          >
+            <View style={styles.buttonContent}>
+              {isAddingAI ? (
+                <ActivityIndicator size="small" color="#2563eb" />
+              ) : (
+                <Feather name="cpu" size={16} color="#2563eb" />
+              )}
+              <Text style={styles.addAIButtonText}>{t('waitingRoom.addAIPlayer')}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
 
       {!canStart && (
@@ -234,6 +269,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
+  },
+  aiIcon: {
+    marginRight: 12,
+  },
+  removeAIButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+  addAIButton: {
+    marginTop: 12,
+    backgroundColor: '#dbeafe',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  addAIButtonText: {
+    color: '#2563eb',
+    fontSize: 14,
+    fontWeight: '600',
   },
   waitingIndicator: {
     flexDirection: 'row',

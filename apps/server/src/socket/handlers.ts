@@ -29,6 +29,11 @@ import {
 } from '../services/sessionService.js';
 import { getEvents } from '../services/eventService.js';
 import { socketLogger } from '../utils/logger.js';
+import {
+  checkAndTriggerAI,
+  cleanupSession as cleanupAISession,
+  initializeAIPlayersFromSession,
+} from '../services/aiControllerService.js';
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 type GameServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -128,7 +133,7 @@ export function setupSocketHandlers(io: GameServer) {
     if (wasConnected) {
       socket.to(sessionId).emit('player:reconnected', { playerIndex });
     } else {
-      socket.to(sessionId).emit('player:joined', { playerIndex, nickname });
+      socket.to(sessionId).emit('player:joined', { playerIndex, nickname, isAI: false });
     }
 
     // Send current state
@@ -146,8 +151,14 @@ export function setupSocketHandlers(io: GameServer) {
         return;
       }
       try {
+        // Initialize AI players from session data
+        await initializeAIPlayersFromSession(sessionId);
+
         const events = await startGame(sessionId);
         broadcastEvents(io, sessionId, events);
+
+        // Check if first player is AI
+        await checkAndTriggerAI(sessionId, io);
       } catch (error) {
         emitError(socket, error);
       }
@@ -161,6 +172,7 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const events = await placeBid(sessionId, playerIndex, amount);
         broadcastEvents(io, sessionId, events);
+        await checkAndTriggerAI(sessionId, io);
       } catch (error) {
         emitError(socket, error);
       }
@@ -173,6 +185,7 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const events = await passBid(sessionId, playerIndex);
         broadcastEvents(io, sessionId, events);
+        await checkAndTriggerAI(sessionId, io);
       } catch (error) {
         emitError(socket, error);
       }
@@ -186,6 +199,7 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const events = await takeDabb(sessionId, playerIndex);
         broadcastEvents(io, sessionId, events);
+        await checkAndTriggerAI(sessionId, io);
       } catch (error) {
         emitError(socket, error);
       }
@@ -198,6 +212,7 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const events = await discardCards(sessionId, playerIndex, cardIds);
         broadcastEvents(io, sessionId, events);
+        await checkAndTriggerAI(sessionId, io);
       } catch (error) {
         emitError(socket, error);
       }
@@ -211,6 +226,7 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const events = await goOut(sessionId, playerIndex, suit);
         broadcastEvents(io, sessionId, events);
+        await checkAndTriggerAI(sessionId, io);
       } catch (error) {
         emitError(socket, error);
       }
@@ -224,6 +240,7 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const events = await declareTrump(sessionId, playerIndex, suit);
         broadcastEvents(io, sessionId, events);
+        await checkAndTriggerAI(sessionId, io);
       } catch (error) {
         emitError(socket, error);
       }
@@ -237,6 +254,7 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const events = await declareMelds(sessionId, playerIndex, melds);
         broadcastEvents(io, sessionId, events);
+        await checkAndTriggerAI(sessionId, io);
       } catch (error) {
         emitError(socket, error);
       }
@@ -250,6 +268,7 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const events = await playCard(sessionId, playerIndex, cardId);
         broadcastEvents(io, sessionId, events);
+        await checkAndTriggerAI(sessionId, io);
       } catch (error) {
         emitError(socket, error);
       }
@@ -277,6 +296,9 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const event = await terminateGame(sessionId, playerIndex);
         broadcastEvents(io, sessionId, [event]);
+
+        // Clean up AI players
+        cleanupAISession(sessionId);
 
         // Notify all players that the session was terminated
         io.to(sessionId).emit('session:terminated', {

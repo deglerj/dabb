@@ -48,8 +48,9 @@ function AppContent() {
   const [screen, setScreen] = useState<AppScreen>('loading');
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
   const [players, setPlayers] = useState<
-    Map<PlayerIndex, { nickname: string; connected: boolean }>
+    Map<PlayerIndex, { nickname: string; connected: boolean; isAI: boolean }>
   >(new Map());
+  const [isAddingAI, setIsAddingAI] = useState(false);
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
   const [apiLoading, setApiLoading] = useState(false);
 
@@ -76,25 +77,33 @@ function AppContent() {
     [applyEvents]
   );
 
-  const handlePlayerJoined = useCallback((playerIndex: number, nickname: string) => {
-    setPlayers((prev) => {
-      const updated = new Map(prev);
-      updated.set(playerIndex as PlayerIndex, { nickname, connected: true });
-      return updated;
-    });
-    setNicknames((prev) => {
-      const updated = new Map(prev);
-      updated.set(playerIndex as PlayerIndex, nickname);
-      return updated;
-    });
-  }, []);
+  const handlePlayerJoined = useCallback(
+    (playerIndex: number, nickname: string, isAI: boolean = false) => {
+      setPlayers((prev) => {
+        const updated = new Map(prev);
+        updated.set(playerIndex as PlayerIndex, { nickname, connected: true, isAI });
+        return updated;
+      });
+      setNicknames((prev) => {
+        const updated = new Map(prev);
+        updated.set(playerIndex as PlayerIndex, nickname);
+        return updated;
+      });
+    },
+    []
+  );
 
   const handlePlayerLeft = useCallback((playerIndex: number) => {
     setPlayers((prev) => {
       const updated = new Map(prev);
+      // For AI players being removed, delete them; for humans, mark as disconnected
       const player = updated.get(playerIndex as PlayerIndex);
       if (player) {
-        updated.set(playerIndex as PlayerIndex, { ...player, connected: false });
+        if (player.isAI) {
+          updated.delete(playerIndex as PlayerIndex);
+        } else {
+          updated.set(playerIndex as PlayerIndex, { ...player, connected: false });
+        }
       }
       return updated;
     });
@@ -208,7 +217,9 @@ function AppContent() {
       });
 
       // Add self to players
-      setPlayers(new Map([[playerIndex as PlayerIndex, { nickname, connected: true }]]));
+      setPlayers(
+        new Map([[playerIndex as PlayerIndex, { nickname, connected: true, isAI: false }]])
+      );
       setNicknames(new Map([[playerIndex as PlayerIndex, nickname]]));
 
       setScreen('waiting');
@@ -262,6 +273,80 @@ function AppContent() {
 
   const handleStartGame = () => {
     emit?.('game:start');
+  };
+
+  const handleAddAI = async () => {
+    if (!sessionInfo || !credentials || isAddingAI) {
+      return;
+    }
+
+    setIsAddingAI(true);
+    try {
+      const response = await fetch(`${SERVER_URL}/sessions/${sessionInfo.sessionCode}/ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Secret-Id': credentials.secretId,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        Alert.alert(t('common.error'), data.error || 'Failed to add AI player');
+        return;
+      }
+
+      const { playerIndex, nickname } = await response.json();
+      handlePlayerJoined(playerIndex, nickname, true);
+    } catch (err) {
+      Alert.alert(
+        t('common.error'),
+        err instanceof Error ? err.message : 'Failed to add AI player'
+      );
+    } finally {
+      setIsAddingAI(false);
+    }
+  };
+
+  const handleRemoveAI = async (playerIndex: PlayerIndex) => {
+    if (!sessionInfo || !credentials) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${SERVER_URL}/sessions/${sessionInfo.sessionCode}/ai/${playerIndex}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'X-Secret-Id': credentials.secretId,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        Alert.alert(t('common.error'), data.error || 'Failed to remove AI player');
+        return;
+      }
+
+      // Remove player from local state
+      setPlayers((prev) => {
+        const updated = new Map(prev);
+        updated.delete(playerIndex);
+        return updated;
+      });
+      setNicknames((prev) => {
+        const updated = new Map(prev);
+        updated.delete(playerIndex);
+        return updated;
+      });
+    } catch (err) {
+      Alert.alert(
+        t('common.error'),
+        err instanceof Error ? err.message : 'Failed to remove AI player'
+      );
+    }
   };
 
   const handleLeave = async () => {
@@ -338,6 +423,9 @@ function AppContent() {
           isHost={sessionInfo.isHost}
           onStartGame={handleStartGame}
           onLeave={handleLeave}
+          onAddAI={handleAddAI}
+          onRemoveAI={handleRemoveAI}
+          isAddingAI={isAddingAI}
         />
         <StatusBar style="auto" />
       </>

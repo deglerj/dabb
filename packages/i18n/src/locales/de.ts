@@ -45,6 +45,9 @@ const de: TranslationKeys = {
     waitingForHost: 'Warte auf den Gastgeber...',
     startGame: 'Spiel starten',
     host: 'Gastgeber',
+    addAIPlayer: 'KI hinzufügen',
+    removeAI: 'Entfernen',
+    aiPlayer: 'KI-Spieler',
   },
   game: {
     phase: 'Phase',
@@ -182,6 +185,14 @@ const de: TranslationKeys = {
     INVALID_PLAY: 'Ungültiger Spielzug',
     // Game termination errors
     CANNOT_TERMINATE_IN_CURRENT_PHASE: 'Spiel kann in dieser Phase nicht beendet werden',
+    // AI player errors
+    CANNOT_ADD_AI_WHEN_GAME_STARTED:
+      'KI kann nicht hinzugefügt werden nachdem das Spiel gestartet wurde',
+    CANNOT_REMOVE_AI_WHEN_GAME_STARTED:
+      'KI kann nicht entfernt werden nachdem das Spiel gestartet wurde',
+    PLAYER_NOT_AI: 'Spieler ist kein KI-Spieler',
+    NO_AVAILABLE_SLOTS: 'Keine freien Plätze verfügbar',
+    NOT_HOST: 'Nur der Gastgeber kann diese Aktion ausführen',
     // Generic fallback
     UNKNOWN_ERROR: 'Unbekannter Fehler',
   },

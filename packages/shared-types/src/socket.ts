@@ -25,7 +25,7 @@ export interface ClientToServerEvents {
 export interface ServerToClientEvents {
   'game:events': (data: { events: GameEvent[] }) => void;
   'game:state': (data: { events: GameEvent[] }) => void; // Full state sync
-  'player:joined': (data: { playerIndex: PlayerIndex; nickname: string }) => void;
+  'player:joined': (data: { playerIndex: PlayerIndex; nickname: string; isAI: boolean }) => void;
   'player:left': (data: { playerIndex: PlayerIndex }) => void;
   'player:reconnected': (data: { playerIndex: PlayerIndex }) => void;
   'session:terminated': (data: { message: string; terminatedBy?: string }) => void;

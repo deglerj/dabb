@@ -18,7 +18,7 @@ interface UseSocketOptions {
     code: string;
     params?: Record<string, string | number>;
   }) => void;
-  onPlayerJoined?: (playerIndex: number, nickname: string) => void;
+  onPlayerJoined?: (playerIndex: number, nickname: string, isAI: boolean) => void;
   onPlayerLeft?: (playerIndex: number) => void;
   onPlayerReconnected?: (playerIndex: number) => void;
   onSessionTerminated?: (terminatedBy?: string) => void;
@@ -111,8 +111,8 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
       callbacksRef.current.onError?.(err);
     });
 
-    newSocket.on('player:joined', ({ playerIndex, nickname }) => {
-      callbacksRef.current.onPlayerJoined?.(playerIndex, nickname);
+    newSocket.on('player:joined', ({ playerIndex, nickname, isAI }) => {
+      callbacksRef.current.onPlayerJoined?.(playerIndex, nickname, isAI);
     });
 
     newSocket.on('player:left', ({ playerIndex }) => {

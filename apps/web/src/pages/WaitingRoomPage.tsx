@@ -7,7 +7,7 @@ import type {
   SessionInfoResponse,
 } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
-import { Copy, Share2, Play, Loader2 } from 'lucide-react';
+import { Bot, Copy, Loader2, Play, Share2, X } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -21,6 +21,8 @@ function WaitingRoomPage() {
   const [socket, setSocket] = useState<GameSocket | null>(null);
   const [error, setError] = useState('');
   const [isHost, setIsHost] = useState(false);
+  const [secretId, setSecretId] = useState<string | null>(null);
+  const [isAddingAI, setIsAddingAI] = useState(false);
 
   useEffect(() => {
     if (!code) {
@@ -35,7 +37,8 @@ function WaitingRoomPage() {
       return;
     }
 
-    const { secretId, playerIndex } = JSON.parse(stored);
+    const { secretId: storedSecretId, playerIndex } = JSON.parse(stored);
+    setSecretId(storedSecretId);
     setIsHost(playerIndex === 0);
 
     // Fetch session info
@@ -46,7 +49,7 @@ function WaitingRoomPage() {
 
     // Connect socket
     const newSocket: GameSocket = io(API_URL, {
-      auth: { secretId, sessionId: code },
+      auth: { secretId: storedSecretId, sessionId: code },
     });
 
     newSocket.on('connect', () => {
@@ -94,6 +97,70 @@ function WaitingRoomPage() {
   const handleStartGame = () => {
     if (socket && session && session.players.length === session.playerCount) {
       socket.emit('game:start');
+    }
+  };
+
+  const handleAddAI = async () => {
+    if (!code || !secretId || isAddingAI) {
+      return;
+    }
+
+    setIsAddingAI(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_URL}/sessions/${code}/ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Secret-Id': secretId,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.error || 'Failed to add AI player');
+        return;
+      }
+
+      // Refresh session info
+      const sessionResponse = await fetch(`${API_URL}/sessions/${code}`);
+      const sessionData = await sessionResponse.json();
+      setSession(sessionData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add AI player');
+    } finally {
+      setIsAddingAI(false);
+    }
+  };
+
+  const handleRemoveAI = async (playerIndex: number) => {
+    if (!code || !secretId) {
+      return;
+    }
+
+    setError('');
+
+    try {
+      const response = await fetch(`${API_URL}/sessions/${code}/ai/${playerIndex}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Secret-Id': secretId,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.error || 'Failed to remove AI player');
+        return;
+      }
+
+      // Refresh session info
+      const sessionResponse = await fetch(`${API_URL}/sessions/${code}`);
+      const sessionData = await sessionResponse.json();
+      setSession(sessionData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove AI player');
     }
   };
 
@@ -187,19 +254,43 @@ function WaitingRoomPage() {
                   alignItems: 'center',
                 }}
               >
-                <span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {player?.isAI && <Bot size={16} style={{ color: 'var(--text-secondary)' }} />}
                   {player ? player.nickname : `(${t('waitingRoom.waitingForPlayers')})`}
                   {i === 0 && ` (${t('waitingRoom.host')})`}
                 </span>
-                {player?.connected && (
-                  <span style={{ color: 'var(--success)', fontSize: '0.75rem' }}>
-                    {t('common.connected')}
-                  </span>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {player?.connected && !player?.isAI && (
+                    <span style={{ color: 'var(--success)', fontSize: '0.75rem' }}>
+                      {t('common.connected')}
+                    </span>
+                  )}
+                  {isHost && player?.isAI && (
+                    <button
+                      className="secondary"
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                      onClick={() => handleRemoveAI(player.playerIndex)}
+                    >
+                      <X size={14} /> {t('waitingRoom.removeAI')}
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
+
+        {isHost && session.players.length < session.playerCount && (
+          <button
+            className="secondary"
+            onClick={handleAddAI}
+            disabled={isAddingAI}
+            style={{ marginTop: '0.5rem', width: '100%' }}
+          >
+            {isAddingAI ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />}{' '}
+            {t('waitingRoom.addAIPlayer')}
+          </button>
+        )}
       </div>
 
       {error && <p className="error">{error}</p>}

@@ -43,6 +43,12 @@ vi.mock('@dabb/game-logic', () => ({
   filterEventsForPlayer: vi.fn((events: unknown[]) => events),
 }));
 
+vi.mock('../services/aiControllerService.js', () => ({
+  checkAndTriggerAI: vi.fn().mockResolvedValue(undefined),
+  cleanupSession: vi.fn(),
+  initializeAIPlayersFromSession: vi.fn().mockResolvedValue(undefined),
+}));
+
 import {
   getPlayerBySecretId,
   getSessionByCode,
@@ -102,6 +108,7 @@ describe('Socket Handlers Integration', () => {
     playerIndex: mockPlayerIndex,
     team: 0 as const,
     connected: false,
+    isAI: false,
   };
 
   beforeEach(async () => {

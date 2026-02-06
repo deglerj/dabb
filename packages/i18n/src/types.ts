@@ -56,6 +56,9 @@ export interface TranslationKeys {
     waitingForHost: string;
     startGame: string;
     host: string;
+    addAIPlayer: string;
+    removeAI: string;
+    aiPlayer: string;
   };
   game: {
     phase: string;
@@ -192,6 +195,12 @@ export interface TranslationKeys {
     INVALID_PLAY: string;
     // Game termination errors
     CANNOT_TERMINATE_IN_CURRENT_PHASE: string;
+    // AI player errors
+    CANNOT_ADD_AI_WHEN_GAME_STARTED: string;
+    CANNOT_REMOVE_AI_WHEN_GAME_STARTED: string;
+    PLAYER_NOT_AI: string;
+    NO_AVAILABLE_SLOTS: string;
+    NOT_HOST: string;
     // Generic fallback
     UNKNOWN_ERROR: string;
   };
