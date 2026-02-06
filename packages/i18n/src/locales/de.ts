@@ -103,7 +103,7 @@ const de: TranslationKeys = {
     orGoOut: 'Oder abgehen:',
     goOutConfirmTitle: 'Abgehen?',
     goOutConfirmMessage:
-      'Du verlierst dein Gebot und bekommst keine Meldungen. Die anderen Spieler bekommen ihre Meldungen plus 30 Punkte.',
+      'Du verlierst dein Gebot und bekommst keine Meldungen. Die anderen Spieler bekommen ihre Meldungen plus 40 Punkte.',
   },
   phases: {
     waiting: 'Warten',

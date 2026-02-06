@@ -103,7 +103,7 @@ const en: TranslationKeys = {
     orGoOut: 'Or go out:',
     goOutConfirmTitle: 'Go out?',
     goOutConfirmMessage:
-      'You will lose your bid and get no melds. Other players will receive their melds plus 30 points.',
+      'You will lose your bid and get no melds. Other players will receive their melds plus 40 points.',
   },
   phases: {
     waiting: 'Waiting',
