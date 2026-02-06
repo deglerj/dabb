@@ -1,8 +1,10 @@
 /**
- * AI Player interface and stub implementation
+ * AI Player interface and default factory
  */
 
 import type { AIAction, AIDecisionContext } from '@dabb/shared-types';
+
+import { BinokelAIPlayer } from './BinokelAIPlayer.js';
 
 /**
  * Interface for AI player implementations
@@ -25,23 +27,13 @@ export interface AIPlayerFactory {
 }
 
 /**
- * Stub AI player that throws "not implemented" for all decisions.
- * This will be replaced with actual AI logic later.
+ * Factory that creates BinokelAIPlayer instances
  */
-export class StubAIPlayer implements AIPlayer {
-  async decide(_context: AIDecisionContext): Promise<AIAction> {
-    throw new Error('AI decision logic not yet implemented');
-  }
-}
-
-/**
- * Factory for creating stub AI players
- */
-export class StubAIPlayerFactory implements AIPlayerFactory {
+export class DefaultAIPlayerFactory implements AIPlayerFactory {
   create(_difficulty?: string): AIPlayer {
-    return new StubAIPlayer();
+    return new BinokelAIPlayer();
   }
 }
 
 // Default factory instance
-export const defaultAIPlayerFactory: AIPlayerFactory = new StubAIPlayerFactory();
+export const defaultAIPlayerFactory: AIPlayerFactory = new DefaultAIPlayerFactory();

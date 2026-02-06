@@ -31,6 +31,7 @@ _Play the traditional Swabian card game Binokel with friends online!_
 ### Key Features
 
 - **Real-time multiplayer** - Play with friends anywhere
+- **AI opponents** - Add AI players to fill empty seats or practice solo
 - **Cross-platform** - Web and Android support
 - **Multi-language** - German and English UI (Swabian card terms preserved)
 - **Event-sourced** - Reliable state management with reconnection support
@@ -161,6 +162,16 @@ Visit [your-deployment-url] to play instantly in your browser!
 2. Choose **player count** (2, 3, or 4)
 3. Enter your **nickname**
 4. Share the **game code** with friends
+
+### AI Players
+
+Don't have enough friends online? Add AI players to fill empty seats:
+
+1. In the **lobby**, click **Add AI Player**
+2. The AI will join with a random name and play all phases automatically
+3. You can mix human and AI players in any combination
+
+The AI plays a reasonable game — it evaluates melds for bidding, chooses trump strategically, and follows trick-taking rules with card-counting heuristics. See [`docs/AI_STRATEGY.md`](docs/AI_STRATEGY.md) for details on its decision logic.
 
 ---
 

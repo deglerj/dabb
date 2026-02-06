@@ -238,8 +238,7 @@ async function executeAIAction(
     await checkAndTriggerAI(sessionId, io);
   } catch (error) {
     console.error(`AI action failed for player ${playerIndex} in session ${sessionId}:`, error);
-    // AI failed to act - this is expected with StubAIPlayer
-    // In production, we might want to handle this differently
+    // AI failed to act - log and continue (next trigger will retry)
   }
 }
 

@@ -287,6 +287,7 @@ pnpm --filter @dabb/server db:migrate  # Run manually if needed
 | `apps/server/src/services/gameService.ts`                    | Game logic service             |
 | `apps/server/src/services/sessionService.ts`                 | Session management             |
 | `apps/server/src/services/cleanupService.ts`                 | Inactive session cleanup       |
+| `apps/server/src/ai/BinokelAIPlayer.ts`                      | AI player decision logic       |
 | `apps/server/src/scheduler/cleanupScheduler.ts`              | Cleanup background job         |
 | `apps/server/src/db/pool.ts`                                 | Database connection pool       |
 | `apps/server/src/db/runMigrations.ts`                        | Database migration runner      |
@@ -296,6 +297,7 @@ pnpm --filter @dabb/server db:migrate  # Run manually if needed
 | `packages/i18n/src/types.ts`                                 | i18n types and config          |
 | `packages/i18n/src/config.ts`                                | i18next initialization         |
 | `packages/i18n/src/components/I18nProvider.tsx`              | React i18n provider            |
+| `docs/AI_STRATEGY.md`                                        | AI decision strategy docs      |
 
 ## Testing
 

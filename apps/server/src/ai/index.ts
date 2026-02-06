@@ -3,4 +3,5 @@
  */
 
 export type { AIPlayer, AIPlayerFactory } from './AIPlayer.js';
-export { StubAIPlayer, StubAIPlayerFactory, defaultAIPlayerFactory } from './AIPlayer.js';
+export { DefaultAIPlayerFactory, defaultAIPlayerFactory } from './AIPlayer.js';
+export { BinokelAIPlayer } from './BinokelAIPlayer.js';
