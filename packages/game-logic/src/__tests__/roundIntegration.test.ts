@@ -168,7 +168,7 @@ describe('Two-Player Round Integration', () => {
     game.completeMelding();
 
     expect(game.state.phase).toBe('tricks');
-    expect(game.state.currentPlayer).toBe(0); // Bid winner leads
+    expect(game.state.currentPlayer).toBe(1); // First bidder (Bob) leads, not bid winner
 
     // ===== TRICK-TAKING =====
     // Get the hands after all setup

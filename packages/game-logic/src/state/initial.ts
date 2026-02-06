@@ -21,6 +21,7 @@ export function createInitialState(
     currentBid: 0,
     bidWinner: null,
     currentBidder: null,
+    firstBidder: null,
     passedPlayers: new Set(),
 
     // Trump state
@@ -70,6 +71,7 @@ export function resetForNewRound(state: GameState): GameState {
     currentBid: 0,
     bidWinner: null,
     currentBidder: null,
+    firstBidder: null,
     passedPlayers: new Set(),
 
     // Reset trump

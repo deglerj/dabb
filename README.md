@@ -131,6 +131,16 @@ If your local rules differ, we respectfully suggest that your ancestors may have
 
 That said, feel free to open an issue if you want to argue. We enjoy reading passionate defenses of objectively wrong rule variants.
 
+### Who plays the first card?
+
+The player who **started the bidding** (first bidder) plays the first card in the tricks phase - not the player who won the bidding. This follows the traditional rule that maintains the same turn order throughout the round:
+
+1. The dealer rotates each round (Player 0, then Player 1, then Player 2, ...)
+2. The player after the dealer starts the bidding (first bidder)
+3. After melds are declared, that same first bidder plays the first card
+
+This means even if you win the bid, you might not lead the first trick. The starting player advantage stays with whoever sat in the "first bidder" position for that round.
+
 ---
 
 ## Getting Started

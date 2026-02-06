@@ -59,6 +59,7 @@ export interface GameState {
   currentBid: number;
   bidWinner: PlayerIndex | null;
   currentBidder: PlayerIndex | null;
+  firstBidder: PlayerIndex | null; // Player who starts each round (plays first card in tricks)
   passedPlayers: Set<PlayerIndex>;
 
   // Trump state

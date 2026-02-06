@@ -165,6 +165,7 @@ function handleCardsDealt(
     hands,
     dabb: event.payload.dabb,
     currentBidder: firstBidder,
+    firstBidder, // Track first bidder for tricks phase
   };
 }
 
@@ -305,7 +306,7 @@ function handleMeldingComplete(
     ...state,
     phase: 'tricks',
     tricksTaken,
-    currentPlayer: state.bidWinner,
+    currentPlayer: state.firstBidder, // First bidder plays first card, not bid winner
     currentTrick: {
       cards: [],
       leadSuit: null,
