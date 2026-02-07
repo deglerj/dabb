@@ -6,24 +6,12 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import type { Suit } from '@dabb/shared-types';
 import { SUITS, SUIT_NAMES } from '@dabb/shared-types';
+import { SUIT_COLORS } from '@dabb/card-assets';
+import SuitIcon from '../SuitIcon';
 
 interface TrumpSelectorProps {
   onSelect: (suit: Suit) => void;
 }
-
-const SUIT_COLORS: Record<Suit, string> = {
-  kreuz: '#8B4513',
-  schippe: '#228B22',
-  herz: '#dc2626',
-  bollen: '#FFD700',
-};
-
-const SUIT_SYMBOLS: Record<Suit, string> = {
-  kreuz: '♣',
-  schippe: '♠',
-  herz: '❤️',
-  bollen: '♦',
-};
 
 function TrumpSelector({ onSelect }: TrumpSelectorProps) {
   return (
@@ -33,10 +21,10 @@ function TrumpSelector({ onSelect }: TrumpSelectorProps) {
         {SUITS.map((suit) => (
           <TouchableOpacity
             key={suit}
-            style={[styles.suitButton, { backgroundColor: SUIT_COLORS[suit] }]}
+            style={[styles.suitButton, { backgroundColor: SUIT_COLORS[suit].primary }]}
             onPress={() => onSelect(suit)}
           >
-            <Text style={styles.suitSymbol}>{SUIT_SYMBOLS[suit]}</Text>
+            <SuitIcon suit={suit} size={36} />
             <Text style={styles.suitName}>{SUIT_NAMES[suit]}</Text>
           </TouchableOpacity>
         ))}
@@ -80,10 +68,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
-  },
-  suitSymbol: {
-    fontSize: 32,
-    color: '#fff',
   },
   suitName: {
     fontSize: 12,

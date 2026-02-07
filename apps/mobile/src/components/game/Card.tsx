@@ -4,8 +4,9 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import type { Card as CardType, Suit, Rank } from '@dabb/shared-types';
+import type { Card as CardType, Rank } from '@dabb/shared-types';
 import { isHiddenCard } from '@dabb/game-logic';
+import SuitIcon from '../SuitIcon';
 
 interface CardProps {
   card: CardType;
@@ -14,13 +15,6 @@ interface CardProps {
   winner?: boolean;
   onPress?: () => void;
 }
-
-const SUIT_SYMBOLS: Record<Suit, string> = {
-  kreuz: '♣',
-  schippe: '♠',
-  herz: '❤️',
-  bollen: '♦',
-};
 
 const RANK_DISPLAY: Record<Rank, string> = {
   buabe: 'U',
@@ -48,15 +42,9 @@ function Card({ card, selected = false, valid = true, winner = false, onPress }:
       disabled={!valid || !onPress}
       activeOpacity={valid && onPress ? 0.7 : 1}
     >
-      <Text
-        style={[
-          styles.suitSymbol,
-          isRed ? styles.redText : styles.blackText,
-          !valid && styles.grayedText,
-        ]}
-      >
-        {SUIT_SYMBOLS[card.suit]}
-      </Text>
+      <View style={[!valid && styles.grayedIcon]}>
+        <SuitIcon suit={card.suit} size={24} />
+      </View>
       <Text
         style={[
           styles.rankText,
@@ -122,9 +110,8 @@ const styles = StyleSheet.create({
   hiddenSymbol: {
     fontSize: 32,
   },
-  suitSymbol: {
-    fontSize: 24,
-    color: '#1e3a5f',
+  grayedIcon: {
+    opacity: 0.4,
   },
   rankText: {
     fontSize: 18,
