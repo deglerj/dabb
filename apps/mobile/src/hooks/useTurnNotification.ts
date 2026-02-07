@@ -2,10 +2,13 @@
  * Hook to play a notification sound when it's the player's turn
  */
 
-import { useCallback, useRef, useEffect } from 'react';
-import { Audio } from 'expo-av';
+import { useCallback } from 'react';
+import { useAudioPlayer } from 'expo-audio';
 import type { GameState, PlayerIndex } from '@dabb/shared-types';
 import { useActionRequiredCallback } from '@dabb/ui-shared';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const notificationSound = require('../../assets/sounds/notification.ogg');
 
 /**
  * Plays a notification sound when the player needs to perform an action
@@ -14,56 +17,22 @@ export function useTurnNotification(
   state: GameState | null,
   currentPlayerIndex: PlayerIndex | null
 ): void {
-  const soundRef = useRef<Audio.Sound | null>(null);
-
-  // Load the sound on mount
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadSound() {
-      try {
-        const { sound } = await Audio.Sound.createAsync(
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('../../assets/sounds/notification.ogg'),
-          { volume: 0.5 }
-        );
-        if (mounted) {
-          soundRef.current = sound;
-        } else {
-          // Component unmounted before sound loaded, clean up
-          await sound.unloadAsync();
-        }
-      } catch (error) {
-        // Ignore errors loading sound
-        console.warn('Failed to load notification sound:', error);
-      }
-    }
-
-    loadSound();
-
-    return () => {
-      mounted = false;
-      if (soundRef.current) {
-        soundRef.current.unloadAsync();
-        soundRef.current = null;
-      }
-    };
-  }, []);
+  const player = useAudioPlayer(notificationSound);
 
   const playNotification = useCallback(async () => {
-    if (!soundRef.current) {
+    if (!player) {
       return;
     }
 
     try {
-      // Reset to beginning if already played
-      await soundRef.current.setPositionAsync(0);
-      await soundRef.current.playAsync();
+      player.volume = 0.5;
+      player.seekTo(0);
+      player.play();
     } catch (error) {
       // Ignore playback errors
       console.warn('Failed to play notification sound:', error);
     }
-  }, []);
+  }, [player]);
 
   useActionRequiredCallback(state, currentPlayerIndex, playNotification);
 }
