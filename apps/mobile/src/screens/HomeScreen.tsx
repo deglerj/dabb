@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
   languageSwitcherContainer: {
     position: 'absolute',
-    top: 60,
+    top: 16,
     right: 24,
   },
   title: {

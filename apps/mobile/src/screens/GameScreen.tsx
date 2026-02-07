@@ -3,7 +3,7 @@
  */
 
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import type { GameState, GameEvent, PlayerIndex, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
@@ -214,7 +214,7 @@ function GameScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.phaseLabel}>
@@ -290,7 +290,7 @@ function GameScreen({
 
       {/* Celebration animations */}
       <CelebrationOverlay events={events} playerIndex={playerIndex} />
-    </SafeAreaView>
+    </View>
   );
 }
 

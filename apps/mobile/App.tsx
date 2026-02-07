@@ -4,7 +4,8 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
+import { StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { PlayerIndex, GameEvent, PlayerCount, Suit } from '@dabb/shared-types';
 import {
@@ -380,30 +381,30 @@ function AppContent() {
 
   if (screen === 'loading') {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
         <StatusBar style="auto" />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (screen === 'home') {
     return (
-      <>
+      <SafeAreaView style={styles.safeArea}>
         <HomeScreen
           onCreateGame={handleCreateGame}
           onJoinGame={handleJoinGame}
           loading={apiLoading}
         />
         <StatusBar style="auto" />
-      </>
+      </SafeAreaView>
     );
   }
 
   if (screen === 'waiting' && sessionInfo) {
     return (
-      <>
+      <SafeAreaView style={styles.safeArea}>
         <WaitingRoomScreen
           sessionCode={sessionInfo.sessionCode}
           players={players}
@@ -416,13 +417,13 @@ function AppContent() {
           isAddingAI={isAddingAI}
         />
         <StatusBar style="auto" />
-      </>
+      </SafeAreaView>
     );
   }
 
   if (screen === 'game' && sessionInfo) {
     return (
-      <>
+      <SafeAreaView style={styles.gameSafeArea}>
         <GameScreen
           state={state}
           events={events}
@@ -436,15 +437,15 @@ function AppContent() {
           onGoHome={handleLeave}
         />
         <StatusBar style="light" />
-      </>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.loadingContainer}>
+    <SafeAreaView style={styles.loadingContainer}>
       <Text>{t('errors.somethingWentWrong')}</Text>
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -459,6 +460,14 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#64748b',
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f0f9ff',
+  },
+  gameSafeArea: {
+    flex: 1,
+    backgroundColor: '#0f766e',
   },
 });
 
@@ -475,16 +484,20 @@ export default function App() {
 
   if (languageLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
-        <StatusBar style="auto" />
-      </View>
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <StatusBar style="auto" />
+        </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <I18nProvider initialLanguage={initialLanguage}>
-      <AppContent />
-    </I18nProvider>
+    <SafeAreaProvider>
+      <I18nProvider initialLanguage={initialLanguage}>
+        <AppContent />
+      </I18nProvider>
+    </SafeAreaProvider>
   );
 }
