@@ -9,53 +9,12 @@ import Card from './Card';
 
 interface TrickAreaProps {
   trick: Trick;
-  playerCount: number;
-  currentPlayerIndex: PlayerIndex;
   nicknames: Map<PlayerIndex, string>;
   trump: Suit | null;
   winnerPlayerIndex?: PlayerIndex | null;
 }
 
-function TrickArea({
-  trick,
-  playerCount,
-  currentPlayerIndex,
-  nicknames,
-  trump,
-  winnerPlayerIndex,
-}: TrickAreaProps) {
-  const getPositionStyle = (playerIndex: number) => {
-    const relativePosition = (playerIndex - currentPlayerIndex + playerCount) % playerCount;
-
-    if (playerCount === 2) {
-      return relativePosition === 0 ? styles.bottom : styles.top;
-    }
-
-    if (playerCount === 3) {
-      switch (relativePosition) {
-        case 0:
-          return styles.bottom;
-        case 1:
-          return styles.topLeft;
-        case 2:
-          return styles.topRight;
-      }
-    }
-
-    switch (relativePosition) {
-      case 0:
-        return styles.bottom;
-      case 1:
-        return styles.left;
-      case 2:
-        return styles.top;
-      case 3:
-        return styles.right;
-    }
-
-    return {};
-  };
-
+function TrickArea({ trick, nicknames, trump, winnerPlayerIndex }: TrickAreaProps) {
   return (
     <View style={styles.container}>
       {trump && (
@@ -65,11 +24,8 @@ function TrickArea({
       )}
 
       <View style={styles.trickArea}>
-        {trick.cards.map((playedCard) => (
-          <View
-            key={playedCard.cardId}
-            style={[styles.cardPosition, getPositionStyle(playedCard.playerIndex)]}
-          >
+        {trick.cards.map((playedCard, index) => (
+          <View key={index} style={styles.cardWrapper}>
             <Card
               card={playedCard.card}
               winner={
@@ -109,34 +65,13 @@ const styles = StyleSheet.create({
     color: '#92400e',
   },
   trickArea: {
-    width: 200,
-    height: 200,
-    position: 'relative',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 12,
   },
-  cardPosition: {
-    position: 'absolute',
-  },
-  top: {
-    top: 0,
-  },
-  bottom: {
-    bottom: 0,
-  },
-  left: {
-    left: 0,
-  },
-  right: {
-    right: 0,
-  },
-  topLeft: {
-    top: 0,
-    left: 20,
-  },
-  topRight: {
-    top: 0,
-    right: 20,
+  cardWrapper: {
+    alignItems: 'center',
   },
   playerName: {
     fontSize: 10,

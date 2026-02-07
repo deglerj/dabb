@@ -286,7 +286,6 @@ function GamePage() {
         {(state.phase === 'tricks' || isTrickPaused) && (
           <TrickArea
             trick={displayTrick}
-            playerCount={state.playerCount}
             players={state.players}
             winnerPlayerIndex={winnerPlayerIndex}
           />

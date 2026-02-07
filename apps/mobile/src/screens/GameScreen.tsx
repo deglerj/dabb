@@ -148,8 +148,6 @@ function GameScreen({
         return (
           <TrickArea
             trick={displayTrick}
-            playerCount={state.playerCount}
-            currentPlayerIndex={playerIndex}
             nicknames={nicknames}
             trump={state.trump}
             winnerPlayerIndex={winnerPlayerIndex}
@@ -161,8 +159,6 @@ function GameScreen({
           return (
             <TrickArea
               trick={displayTrick}
-              playerCount={state.playerCount}
-              currentPlayerIndex={playerIndex}
               nicknames={nicknames}
               trump={state.trump}
               winnerPlayerIndex={winnerPlayerIndex}
