@@ -1,14 +1,14 @@
 /**
- * Hook to manage the 4-second trick display pause after a trick is completed.
+ * Hook to manage the 3-second trick display pause after a trick is completed.
  *
  * When a TRICK_WON event clears currentTrick, this hook keeps showing the
- * completed trick with the winning card highlighted for 4 seconds.
+ * completed trick with the winning card highlighted for 3 seconds.
  */
 
 import { useState, useEffect, useRef } from 'react';
 import type { CompletedTrick, GamePhase, PlayerIndex, Trick } from '@dabb/shared-types';
 
-const TRICK_DISPLAY_DURATION = 4000;
+const TRICK_DISPLAY_DURATION = 3000;
 
 export interface TrickDisplayResult {
   /** The trick to render (either the completed trick during pause, or the current trick) */
