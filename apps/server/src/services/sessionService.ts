@@ -307,7 +307,7 @@ export async function isHost(secretId: string, sessionId: string): Promise<boole
 /**
  * Add an AI player to a session
  */
-export async function addAIPlayer(sessionId: string, aiNamePrefix: string = 'KI'): Promise<Player> {
+export async function addAIPlayer(sessionId: string, aiNamePrefix: string = '🤖'): Promise<Player> {
   const client = await pool.connect();
 
   try {

@@ -245,10 +245,7 @@ router.post('/:code/ai', async (req, res) => {
       });
     }
 
-    // Get language preference from header (default to German)
-    const language = req.headers['accept-language']?.startsWith('en') ? 'AI' : 'KI';
-
-    const player = await addAIPlayer(session.id, language);
+    const player = await addAIPlayer(session.id);
 
     // Register AI in the controller
     registerAIPlayer(session.id, player.playerIndex);

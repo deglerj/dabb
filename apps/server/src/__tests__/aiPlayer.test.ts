@@ -128,7 +128,7 @@ describe('AI Player Session Service', () => {
               id: 'ai-player-1',
               session_id: 'session-1',
               secret_id: null,
-              nickname: 'KI Hans',
+              nickname: '🤖 Hans',
               player_index: 1,
               team: null,
               connected: true,
@@ -138,10 +138,10 @@ describe('AI Player Session Service', () => {
         })
         .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
-      const result = await addAIPlayer('session-1', 'KI');
+      const result = await addAIPlayer('session-1');
 
       expect(result.isAI).toBe(true);
-      expect(result.nickname).toBe('KI Hans');
+      expect(result.nickname).toBe('🤖 Hans');
       expect(result.playerIndex).toBe(1);
       expect(result.secretId).toBeNull();
     });
@@ -154,7 +154,7 @@ describe('AI Player Session Service', () => {
         .mockResolvedValueOnce({ rows: [] }) // Session not found
         .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
 
-      await expect(addAIPlayer('nonexistent', 'KI')).rejects.toThrow(GameError);
+      await expect(addAIPlayer('nonexistent')).rejects.toThrow(GameError);
     });
 
     it('throws error when game already started', async () => {
@@ -167,7 +167,7 @@ describe('AI Player Session Service', () => {
         })
         .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
 
-      await expect(addAIPlayer('session-1', 'KI')).rejects.toThrow(GameError);
+      await expect(addAIPlayer('session-1')).rejects.toThrow(GameError);
     });
 
     it('throws error when no slots available', async () => {
@@ -186,7 +186,7 @@ describe('AI Player Session Service', () => {
         })
         .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
 
-      await expect(addAIPlayer('session-1', 'KI')).rejects.toThrow(GameError);
+      await expect(addAIPlayer('session-1')).rejects.toThrow(GameError);
     });
 
     it('picks unique AI name not already in use', async () => {
@@ -200,7 +200,7 @@ describe('AI Player Session Service', () => {
         .mockResolvedValueOnce({
           rows: [
             { player_index: 0, nickname: 'Host' },
-            { player_index: 1, nickname: 'KI Hans' }, // Hans already taken
+            { player_index: 1, nickname: '🤖 Hans' }, // Hans already taken
           ],
         })
         .mockResolvedValueOnce({
@@ -209,7 +209,7 @@ describe('AI Player Session Service', () => {
               id: 'ai-player-2',
               session_id: 'session-1',
               secret_id: null,
-              nickname: 'KI Greta', // Should pick Greta instead
+              nickname: '🤖 Greta', // Should pick Greta instead
               player_index: 2,
               team: null,
               connected: true,
@@ -219,9 +219,9 @@ describe('AI Player Session Service', () => {
         })
         .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
-      const result = await addAIPlayer('session-1', 'KI');
+      const result = await addAIPlayer('session-1');
 
-      expect(result.nickname).toBe('KI Greta');
+      expect(result.nickname).toBe('🤖 Greta');
     });
   });
 
