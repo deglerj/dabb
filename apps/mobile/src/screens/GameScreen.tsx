@@ -69,7 +69,7 @@ function GameScreen({
     state.phase
   );
 
-  const isMyTurn = state.currentPlayer === playerIndex;
+  const isMyTurn = state.currentPlayer === playerIndex || state.currentBidder === playerIndex;
 
   const validCardIds = useMemo(() => {
     if (state.phase !== 'tricks' || !isMyTurn || !state.trump || isTrickPaused) {
