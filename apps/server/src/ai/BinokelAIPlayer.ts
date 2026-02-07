@@ -235,15 +235,23 @@ export class BinokelAIPlayer implements AIPlayer {
       const estimatedTotal = maxPoints + 50;
       const diff = estimatedTotal - minBid;
 
-      // Pass probability: exponential curve
-      // diff < 70: never pass (we can easily make the bid)
-      // diff >= 200: almost always pass (bid is way too high)
-      if (diff < 70) {
+      // diff > 0: we estimate we can make the bid
+      // diff < 0: the bid exceeds our estimate
+
+      // Comfortable margin: always keep bidding
+      if (diff >= 70) {
         return { type: 'bid', amount: minBid };
       }
 
-      // Exponential curve from 0% at diff=70 to ~90% at diff=200
-      const passProb = Math.min(0.9, Math.pow((diff - 70) / 130, 2) * 0.9);
+      // Bid exceeds estimate by a lot: always pass
+      if (diff <= -60) {
+        return { type: 'pass' };
+      }
+
+      // Transition zone (diff from 70 down to -60):
+      // Pass probability increases as diff decreases (bid gets riskier)
+      // At diff=70: passProb = 0%, at diff=-60: passProb = 90%
+      const passProb = Math.min(0.9, Math.pow((70 - diff) / 130, 2) * 0.9);
 
       if (Math.random() < passProb) {
         return { type: 'pass' };
