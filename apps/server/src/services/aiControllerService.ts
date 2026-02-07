@@ -108,8 +108,13 @@ function broadcastEvents(_io: GameServer, sessionId: string, events: GameEvent[]
 /**
  * Check if it's an AI's turn and trigger their decision
  * Called after each game event to check if AI needs to act
+ * @param afterTrickWon - if true, adds extra delay to allow clients to display the completed trick
  */
-export async function checkAndTriggerAI(sessionId: string, io: GameServer): Promise<void> {
+export async function checkAndTriggerAI(
+  sessionId: string,
+  io: GameServer,
+  afterTrickWon: boolean = false
+): Promise<void> {
   const sessionAIs = aiPlayers.get(sessionId);
   if (!sessionAIs || sessionAIs.size === 0) {
     return;
@@ -164,7 +169,10 @@ export async function checkAndTriggerAI(sessionId: string, io: GameServer): Prom
     pendingAIActions.add(actionKey);
 
     // Schedule AI action with a small delay for more natural feel
-    const delay = 500 + Math.random() * 500; // 500-1000ms
+    // After a trick is won, add extra delay so clients can display the completed trick
+    const delay = afterTrickWon
+      ? 4000 + 500 + Math.random() * 500 // 4500-5000ms (trick display pause + normal delay)
+      : 500 + Math.random() * 500; // 500-1000ms
     setTimeout(async () => {
       try {
         await executeAIAction(sessionId, activePlayer!, io);
@@ -239,7 +247,9 @@ async function executeAIAction(
     pendingAIActions.delete(`${sessionId}:${playerIndex}:${state.phase}`);
 
     // Check if another AI needs to act
-    await checkAndTriggerAI(sessionId, io);
+    // If a trick was just won, delay the next AI action to allow clients to display the trick
+    const trickWasWon = events.some((e) => e.type === 'TRICK_WON');
+    await checkAndTriggerAI(sessionId, io, trickWasWon);
   } catch (error) {
     console.error(`AI action failed for player ${playerIndex} in session ${sessionId}:`, error);
     // AI failed to act - log and continue (next trigger will retry)

@@ -40,6 +40,12 @@ export interface Trick {
   winnerIndex: PlayerIndex | null;
 }
 
+export interface CompletedTrick {
+  cards: PlayedCard[];
+  winnerIndex: PlayerIndex;
+  points: number;
+}
+
 export interface RoundScore {
   melds: number;
   tricks: number;
@@ -86,6 +92,9 @@ export interface GameState {
 
   // Whether bid winner chose to "go out" (forfeit round)
   wentOut: boolean;
+
+  // Last completed trick (for display pause)
+  lastCompletedTrick: CompletedTrick | null;
 }
 
 // Meld types

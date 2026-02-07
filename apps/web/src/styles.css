@@ -189,6 +189,11 @@ h3 {
   box-shadow: 0 0 0 3px var(--accent);
 }
 
+.playing-card.winner {
+  box-shadow: 0 0 12px 4px rgba(255, 215, 0, 0.8);
+  border: 2px solid gold;
+}
+
 .playing-card.herz,
 .playing-card.schell {
   color: #dc2626;

@@ -268,7 +268,9 @@ export function setupSocketHandlers(io: GameServer) {
       try {
         const events = await playCard(sessionId, playerIndex, cardId);
         broadcastEvents(io, sessionId, events);
-        await checkAndTriggerAI(sessionId, io);
+        // If a trick was won, delay AI to allow clients to display the completed trick
+        const trickWasWon = events.some((e) => e.type === 'TRICK_WON');
+        await checkAndTriggerAI(sessionId, io, trickWasWon);
       } catch (error) {
         emitError(socket, error);
       }

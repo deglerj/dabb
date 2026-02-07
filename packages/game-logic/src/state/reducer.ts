@@ -360,9 +360,14 @@ function handleTrickWon(
   const newTricksTaken = new Map(state.tricksTaken);
   newTricksTaken.set(event.payload.winnerIndex, [...winnerTricks, event.payload.cards]);
 
-  // Reset trick, winner leads next
+  // Save completed trick before clearing, then reset trick
   return {
     ...state,
+    lastCompletedTrick: {
+      cards: state.currentTrick.cards,
+      winnerIndex: event.payload.winnerIndex,
+      points: event.payload.points,
+    },
     tricksTaken: newTricksTaken,
     currentTrick: {
       cards: [],

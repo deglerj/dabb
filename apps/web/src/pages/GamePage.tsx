@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import type { Card, CardId, PlayerIndex, Suit } from '@dabb/shared-types';
 import { DABB_SIZE, formatMeldName, SUITS, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
+import { useTrickDisplay } from '@dabb/ui-shared';
 import { useTranslation } from '@dabb/i18n';
 import { Hand, Trash2, Check, LogOut, Home } from 'lucide-react';
 
@@ -45,6 +46,13 @@ function GamePage() {
 
   // Play notification sound when it's the player's turn
   useTurnNotification(state, playerIndex as PlayerIndex);
+
+  // Manage trick display with 4-second pause after completion
+  const { displayTrick, winnerPlayerIndex, isTrickPaused } = useTrickDisplay(
+    state.currentTrick,
+    state.lastCompletedTrick,
+    state.phase
+  );
 
   // Check if we can show the exit button (only during active game phases)
   const activePhases = ['dealing', 'bidding', 'dabb', 'trump', 'melding', 'tricks', 'scoring'];
@@ -274,13 +282,17 @@ function GamePage() {
           </div>
         )}
 
-        {/* Tricks phase */}
-        {state.phase === 'tricks' && (
-          <TrickArea trick={state.currentTrick} playerCount={state.playerCount} />
+        {/* Tricks phase (also show during trick pause even if phase changed to scoring) */}
+        {(state.phase === 'tricks' || isTrickPaused) && (
+          <TrickArea
+            trick={displayTrick}
+            playerCount={state.playerCount}
+            winnerPlayerIndex={winnerPlayerIndex}
+          />
         )}
 
-        {/* Scoring phase */}
-        {state.phase === 'scoring' && (
+        {/* Scoring phase (hidden during trick pause) */}
+        {state.phase === 'scoring' && !isTrickPaused && (
           <div className="card" style={{ textAlign: 'center' }}>
             <h3>{t('game.roundOver')}</h3>
             <p style={{ color: 'var(--text-secondary)' }}>{t('game.nextRoundStarting')}</p>
@@ -312,7 +324,9 @@ function GamePage() {
       <PlayerHand
         cards={myHand}
         validMoves={validMoves}
-        onPlayCard={state.phase === 'tricks' && isMyTurn ? game.playCard : undefined}
+        onPlayCard={
+          state.phase === 'tricks' && isMyTurn && !isTrickPaused ? game.playCard : undefined
+        }
         selectionMode={state.phase === 'dabb' && state.dabb.length === 0 ? 'multiple' : 'single'}
         selectedCount={dabbSize}
         onSelectionChange={setSelectedCards}

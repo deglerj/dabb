@@ -351,6 +351,7 @@ Example naming: `'authenticates when session code differs from session UUID (reg
    - `docs/SOCKET_EVENTS.md` for Socket.IO events
    - `docs/DATABASE.md` for database schema changes
    - This file (`CLAUDE.md`) for new key files or patterns
+7. **Fix linter errors** - Always run `pnpm lint` after making changes and fix any errors before finishing
 
 ## Game Rules Reference
 

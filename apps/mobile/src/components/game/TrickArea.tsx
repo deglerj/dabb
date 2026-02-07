@@ -12,9 +12,16 @@ interface TrickAreaProps {
   playerCount: number;
   currentPlayerIndex: PlayerIndex;
   trump: Suit | null;
+  winnerPlayerIndex?: PlayerIndex | null;
 }
 
-function TrickArea({ trick, playerCount, currentPlayerIndex, trump }: TrickAreaProps) {
+function TrickArea({
+  trick,
+  playerCount,
+  currentPlayerIndex,
+  trump,
+  winnerPlayerIndex,
+}: TrickAreaProps) {
   const getPositionStyle = (playerIndex: number) => {
     const relativePosition = (playerIndex - currentPlayerIndex + playerCount) % playerCount;
 
@@ -61,7 +68,14 @@ function TrickArea({ trick, playerCount, currentPlayerIndex, trump }: TrickAreaP
             key={playedCard.cardId}
             style={[styles.cardPosition, getPositionStyle(playedCard.playerIndex)]}
           >
-            <Card card={playedCard.card} />
+            <Card
+              card={playedCard.card}
+              winner={
+                winnerPlayerIndex !== null &&
+                winnerPlayerIndex !== undefined &&
+                playedCard.playerIndex === winnerPlayerIndex
+              }
+            />
           </View>
         ))}
 

@@ -4,6 +4,7 @@ export { RANKS, RANK_NAMES, RANK_POINTS, SUITS, SUIT_NAMES } from './cards.js';
 
 // Game types
 export type {
+  CompletedTrick,
   GamePhase,
   GameState,
   Meld,

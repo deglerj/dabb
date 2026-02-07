@@ -52,6 +52,9 @@ export function createInitialState(
 
     // Going out state
     wentOut: false,
+
+    // Last completed trick
+    lastCompletedTrick: null,
   };
 }
 
@@ -98,5 +101,8 @@ export function resetForNewRound(state: GameState): GameState {
 
     // Reset going out state
     wentOut: false,
+
+    // Reset last completed trick
+    lastCompletedTrick: null,
   };
 }

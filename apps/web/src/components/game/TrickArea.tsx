@@ -1,13 +1,14 @@
-import type { Trick } from '@dabb/shared-types';
+import type { PlayerIndex, Trick } from '@dabb/shared-types';
 
 import Card from './Card';
 
 interface TrickAreaProps {
   trick: Trick;
   playerCount: number;
+  winnerPlayerIndex?: PlayerIndex | null;
 }
 
-function TrickArea({ trick, playerCount }: TrickAreaProps) {
+function TrickArea({ trick, playerCount, winnerPlayerIndex }: TrickAreaProps) {
   const positions = getPositions(playerCount);
 
   return (
@@ -20,7 +21,14 @@ function TrickArea({ trick, playerCount }: TrickAreaProps) {
             ...positions[playedCard.playerIndex],
           }}
         >
-          <Card card={playedCard.card} />
+          <Card
+            card={playedCard.card}
+            winner={
+              winnerPlayerIndex !== null &&
+              winnerPlayerIndex !== undefined &&
+              playedCard.playerIndex === winnerPlayerIndex
+            }
+          />
         </div>
       ))}
 

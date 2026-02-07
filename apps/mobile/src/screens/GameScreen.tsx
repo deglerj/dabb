@@ -7,6 +7,7 @@ import { View, Text, StyleSheet, SafeAreaView, Modal, TouchableOpacity } from 'r
 import { Feather } from '@expo/vector-icons';
 import type { GameState, GameEvent, PlayerIndex, Suit } from '@dabb/shared-types';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
+import { useTrickDisplay } from '@dabb/ui-shared';
 import { useTranslation } from '@dabb/i18n';
 import {
   PlayerHand,
@@ -61,19 +62,26 @@ function GameScreen({
   // Play notification sound when it's the player's turn
   useTurnNotification(state, playerIndex);
 
+  // Manage trick display with 4-second pause after completion
+  const { displayTrick, winnerPlayerIndex, isTrickPaused } = useTrickDisplay(
+    state.currentTrick,
+    state.lastCompletedTrick,
+    state.phase
+  );
+
   const isMyTurn = state.currentPlayer === playerIndex;
 
   const validCardIds = useMemo(() => {
-    if (state.phase !== 'tricks' || !isMyTurn || !state.trump) {
+    if (state.phase !== 'tricks' || !isMyTurn || !state.trump || isTrickPaused) {
       return undefined;
     }
     const validCards = getValidPlays(myHand, state.currentTrick, state.trump);
     return validCards.map((c) => c.id);
-  }, [state.phase, isMyTurn, state.trump, myHand, state.currentTrick]);
+  }, [state.phase, isMyTurn, state.trump, myHand, state.currentTrick, isTrickPaused]);
 
   const handleCardSelect = useCallback(
     (cardId: string) => {
-      if (state.phase === 'tricks' && isMyTurn) {
+      if (state.phase === 'tricks' && isMyTurn && !isTrickPaused) {
         if (selectedCardId === cardId) {
           onPlayCard(cardId);
           setSelectedCardId(null);
@@ -82,7 +90,7 @@ function GameScreen({
         }
       }
     },
-    [state.phase, isMyTurn, selectedCardId, onPlayCard]
+    [state.phase, isMyTurn, isTrickPaused, selectedCardId, onPlayCard]
   );
 
   // Determine if we should show the compact header or full scoreboard
@@ -139,14 +147,26 @@ function GameScreen({
       case 'tricks':
         return (
           <TrickArea
-            trick={state.currentTrick}
+            trick={displayTrick}
             playerCount={state.playerCount}
             currentPlayerIndex={playerIndex}
             trump={state.trump}
+            winnerPlayerIndex={winnerPlayerIndex}
           />
         );
 
       case 'scoring':
+        if (isTrickPaused) {
+          return (
+            <TrickArea
+              trick={displayTrick}
+              playerCount={state.playerCount}
+              currentPlayerIndex={playerIndex}
+              trump={state.trump}
+              winnerPlayerIndex={winnerPlayerIndex}
+            />
+          );
+        }
         return (
           <View style={styles.phaseContainer}>
             <Text style={styles.phaseText}>{t('game.roundOver')}</Text>
