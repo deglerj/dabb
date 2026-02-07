@@ -552,10 +552,12 @@ export async function playCard(
         const idx = i as PlayerIndex;
         const melds = calculateMeldPoints(scoringState.declaredMelds.get(idx) || []);
         const tricksCards = scoringState.tricksTaken.get(idx) || [];
-        const tricks = tricksCards.reduce(
+        const tricksRaw = tricksCards.reduce(
           (sum, trickCards) => sum + calculateTrickPoints(trickCards),
           0
         );
+        // Binokel rule: trick points are rounded to the nearest 10 (5 rounds up)
+        const tricks = Math.round(tricksRaw / 10) * 10;
         const rawTotal = melds + tricks;
         const isBidWinner = idx === bidWinner;
         const bidMet = !isBidWinner || rawTotal >= winningBid;
