@@ -15,6 +15,7 @@
 #   db          Connect to PostgreSQL
 #   reset       Stop services and remove volumes (fresh start)
 #   build       Rebuild all images
+#   mobile      Start Expo mobile dev server
 #   help        Show this help message
 
 set -euo pipefail
@@ -165,6 +166,7 @@ cmd_start() {
     echo -e "  PostgreSQL: ${BLUE}postgresql://dabb:dabb_dev_password@localhost:5432/dabb${NC}"
     echo ""
     echo "Useful commands:"
+    echo "  ./dev.sh mobile   - Start Expo mobile dev server"
     echo "  ./dev.sh logs     - View logs"
     echo "  ./dev.sh status   - Check status"
     echo "  ./dev.sh stop     - Stop services"
@@ -293,6 +295,44 @@ cmd_build() {
     echo -e "${GREEN}Build complete.${NC}"
 }
 
+# Start Expo mobile dev server
+cmd_mobile() {
+    print_header
+
+    # Check that the server is running
+    echo -n "Checking server health... "
+    if ! curl -sf http://localhost:3000/health &> /dev/null; then
+        echo -e "${RED}not running${NC}"
+        echo ""
+        echo -e "${RED}Server is not running. Start it first with: ./dev.sh start${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}ok${NC}"
+
+    # Auto-detect LAN IP for physical device connectivity
+    local lan_ip=""
+    lan_ip=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1); exit}') \
+        || lan_ip=$(hostname -I 2>/dev/null | awk '{print $1}') \
+        || lan_ip=""
+
+    if [[ -z "$lan_ip" ]]; then
+        echo -e "${YELLOW}Warning: Could not detect LAN IP. Physical devices may not be able to connect.${NC}"
+        lan_ip="localhost"
+    fi
+
+    local server_url="http://${lan_ip}:3000"
+
+    echo ""
+    echo -e "LAN IP:     ${BLUE}${lan_ip}${NC}"
+    echo -e "Server URL: ${BLUE}${server_url}${NC}"
+    echo ""
+    echo -e "${YELLOW}Starting Expo dev server...${NC}"
+    echo ""
+
+    cd apps/mobile
+    EXPO_PUBLIC_SERVER_URL="$server_url" npx expo start --go
+}
+
 # Show help
 cmd_help() {
     print_header
@@ -312,6 +352,8 @@ Commands:
   reset       Stop services and remove volumes (fresh start)
   build       Rebuild all images
               Optional: ./dev.sh build --no-cache
+  mobile      Start Expo mobile dev server
+              Requires: ./dev.sh start (server must be running)
   help        Show this help message
 
 Examples:
@@ -320,6 +362,7 @@ Examples:
   ./dev.sh shell server       # Open shell in server container
   ./dev.sh db                 # Connect to PostgreSQL
   ./dev.sh reset              # Fresh start with empty database
+  ./dev.sh mobile             # Start Expo mobile dev server
 
 Environment:
   The following defaults are used for local development:
@@ -345,6 +388,7 @@ case "$COMMAND" in
     db)      cmd_db "$@" ;;
     reset)   cmd_reset "$@" ;;
     build)   cmd_build "$@" ;;
+    mobile)  cmd_mobile "$@" ;;
     help|-h|--help) cmd_help ;;
     *)
         echo -e "${RED}Unknown command: $COMMAND${NC}"
