@@ -158,7 +158,7 @@ function AppContent() {
     emit,
   } = useSocket({
     serverUrl: SERVER_URL,
-    sessionId: sessionInfo?.sessionId || '',
+    sessionId: sessionInfo?.sessionCode || '',
     secretId: credentials?.secretId || '',
     onEvents: handleEvents,
     onError: handleError,
@@ -185,32 +185,20 @@ function AppContent() {
       const response = await fetch(`${SERVER_URL}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerCount }),
+        body: JSON.stringify({ playerCount, nickname: nickname.trim() }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create game');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create game');
       }
 
-      const { sessionId, code } = await response.json();
-
-      // Join the game
-      const joinResponse = await fetch(`${SERVER_URL}/sessions/${code}/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname }),
-      });
-
-      if (!joinResponse.ok) {
-        throw new Error('Failed to join game');
-      }
-
-      const { secretId, playerIndex } = await joinResponse.json();
+      const { sessionId, sessionCode, secretId, playerIndex } = await response.json();
 
       await setCredentials({ secretId, sessionId, nickname });
       setSessionInfo({
         sessionId,
-        sessionCode: code,
+        sessionCode,
         playerIndex,
         playerCount,
         isHost: true,
