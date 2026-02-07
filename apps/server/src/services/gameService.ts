@@ -556,9 +556,10 @@ export async function playCard(
           (sum, trickCards) => sum + calculateTrickPoints(trickCards),
           0
         );
-        const total = melds + tricks;
+        const rawTotal = melds + tricks;
         const isBidWinner = idx === bidWinner;
-        const bidMet = !isBidWinner || total >= winningBid;
+        const bidMet = !isBidWinner || rawTotal >= winningBid;
+        const total = isBidWinner && !bidMet ? -2 * winningBid : rawTotal;
 
         scores[idx] = { melds, tricks, total, bidMet };
       }
@@ -570,12 +571,7 @@ export async function playCard(
         const currentTotal = scoringState.totalScores.get(idx) || 0;
         const roundScore = scores[idx];
 
-        if (idx === bidWinner && !roundScore.bidMet) {
-          // Bid winner failed to meet bid - lose bid amount
-          totalScores[idx] = currentTotal - winningBid;
-        } else {
-          totalScores[idx] = currentTotal + roundScore.total;
-        }
+        totalScores[idx] = currentTotal + roundScore.total;
       }
 
       events.push(createRoundScoredEvent(ctx(), scores, totalScores));

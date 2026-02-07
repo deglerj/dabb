@@ -129,10 +129,12 @@ function ScoreBoard({ state, events, currentPlayerIndex, onExitClick }: ScoreBoa
                         className={`score-cell ${!scoreData.bidMet ? 'bid-not-met' : ''}`}
                       >
                         <div className="score-total">{scoreData.total}</div>
-                        <div className="score-breakdown">
-                          {t('game.melds')}: {scoreData.melds} | {t('game.tricks')}:{' '}
-                          {scoreData.tricks}
-                        </div>
+                        {scoreData.bidMet && (
+                          <div className="score-breakdown">
+                            {t('game.melds')}: {scoreData.melds} | {t('game.tricks')}:{' '}
+                            {scoreData.tricks}
+                          </div>
+                        )}
                         {!scoreData.bidMet && (
                           <div className="bid-failed">{t('game.bidNotMet')}</div>
                         )}

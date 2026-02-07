@@ -138,12 +138,16 @@ function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }
                         style={[styles.tableCell, !scoreData.bidMet && styles.bidNotMetCell]}
                       >
                         <Text style={styles.cellTotal}>{scoreData.total}</Text>
-                        <Text style={styles.cellBreakdown}>
-                          {t('game.melds')}: {scoreData.melds}
-                        </Text>
-                        <Text style={styles.cellBreakdown}>
-                          {t('game.tricks')}: {scoreData.tricks}
-                        </Text>
+                        {scoreData.bidMet && (
+                          <>
+                            <Text style={styles.cellBreakdown}>
+                              {t('game.melds')}: {scoreData.melds}
+                            </Text>
+                            <Text style={styles.cellBreakdown}>
+                              {t('game.tricks')}: {scoreData.tricks}
+                            </Text>
+                          </>
+                        )}
                         {!scoreData.bidMet && (
                           <Text style={styles.bidNotMetText}>{t('game.bidNotMet')}</Text>
                         )}

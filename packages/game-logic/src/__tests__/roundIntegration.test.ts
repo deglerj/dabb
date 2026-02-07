@@ -243,8 +243,8 @@ describe('Two-Player Round Integration', () => {
     // Did Alice meet her bid?
     const aliceBidMet = aliceRoundTotal >= 160;
 
-    // If Alice didn't meet her bid, she gets negative points
-    const aliceScore = aliceBidMet ? aliceRoundTotal : -160;
+    // If Alice didn't meet her bid, she loses double her bid
+    const aliceScore = aliceBidMet ? aliceRoundTotal : -320;
     const bobScore = bobMeldPoints + bobActualTrickPoints;
 
     game.scoreRound({
@@ -424,5 +424,69 @@ describe('Two-Player Round Integration', () => {
 
     expect(familie).toBeDefined();
     expect(familie!.points).toBe(150); // 100 base + 50 trump bonus
+  });
+
+  it('applies double penalty when bid winner fails to meet bid (regression)', () => {
+    // Bug: bid winner who failed to meet their bid only lost the bid amount
+    // instead of twice the bid amount per Binokel rules
+    const game = GameTestHelper.create('test-session-penalty');
+
+    game.alice.joins();
+    game.bob.joins();
+    game.startGame({ playerCount: 2, targetScore: 1000, dealer: 0 as PlayerIndex });
+
+    const simpleHand = createHand([
+      ['herz', 'ass', 0],
+      ['herz', '10', 0],
+      ['herz', 'koenig', 0],
+      ['herz', 'ober', 0],
+      ['herz', 'buabe', 0],
+      ['kreuz', 'ass', 0],
+      ['kreuz', '10', 0],
+      ['kreuz', 'koenig', 0],
+      ['kreuz', 'ober', 0],
+      ['kreuz', 'buabe', 0],
+      ['schippe', 'ass', 0],
+      ['schippe', '10', 0],
+      ['schippe', 'koenig', 0],
+      ['schippe', 'ober', 0],
+      ['schippe', 'buabe', 0],
+      ['bollen', 'ass', 0],
+      ['bollen', '10', 0],
+      ['bollen', 'koenig', 0],
+    ]);
+
+    const dabb = createHand([
+      ['bollen', 'ober', 0],
+      ['bollen', 'buabe', 0],
+      ['bollen', 'ober', 1],
+      ['bollen', 'buabe', 1],
+    ]);
+
+    game.dealCards({ alice: simpleHand, bob: simpleHand, dabb });
+
+    // Alice wins bidding with 200
+    game.bob.bids(150);
+    game.alice.bids(200);
+    game.bob.passes();
+
+    // Alice fails to meet bid: melds=50, tricks=80, total=130 < 200
+    game.scoreRound({
+      scores: {
+        0: { melds: 50, tricks: 80, total: -400, bidMet: false },
+        1: { melds: 30, tricks: 60, total: 90, bidMet: true },
+        2: { melds: 0, tricks: 0, total: 0, bidMet: true },
+        3: { melds: 0, tricks: 0, total: 0, bidMet: true },
+      },
+      totalScores: {
+        0: -400, // Double penalty: -2 * 200 = -400
+        1: 90,
+        2: 0,
+        3: 0,
+      },
+    });
+
+    expect(game.state.totalScores.get(0 as PlayerIndex)).toBe(-400);
+    expect(game.state.totalScores.get(1 as PlayerIndex)).toBe(90);
   });
 });
