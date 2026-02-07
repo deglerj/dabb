@@ -248,6 +248,14 @@ function GameScreen({
         />
       )}
 
+      {/* Game Log below scoreboard header */}
+      <GameLog
+        state={state}
+        events={events}
+        currentPlayerIndex={playerIndex}
+        nicknames={nicknames}
+      />
+
       <View style={styles.gameArea}>{renderPhaseContent()}</View>
 
       <View style={styles.handContainer}>
@@ -261,14 +269,6 @@ function GameScreen({
           <Text style={styles.hint}>{t('game.tapAgainToPlay')}</Text>
         )}
       </View>
-
-      {/* Game Log overlay */}
-      <GameLog
-        state={state}
-        events={events}
-        currentPlayerIndex={playerIndex}
-        nicknames={nicknames}
-      />
 
       {/* Expanded scoreboard modal */}
       <Modal
