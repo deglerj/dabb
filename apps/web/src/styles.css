@@ -207,6 +207,13 @@ h3 {
   gap: 1rem;
 }
 
+.trick-area-player-name {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  white-space: nowrap;
+}
+
 .bidding-panel {
   display: flex;
   gap: 0.5rem;

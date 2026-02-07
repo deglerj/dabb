@@ -287,6 +287,7 @@ function GamePage() {
           <TrickArea
             trick={displayTrick}
             playerCount={state.playerCount}
+            players={state.players}
             winnerPlayerIndex={winnerPlayerIndex}
           />
         )}

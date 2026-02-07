@@ -150,6 +150,7 @@ function GameScreen({
             trick={displayTrick}
             playerCount={state.playerCount}
             currentPlayerIndex={playerIndex}
+            nicknames={nicknames}
             trump={state.trump}
             winnerPlayerIndex={winnerPlayerIndex}
           />
@@ -162,6 +163,7 @@ function GameScreen({
               trick={displayTrick}
               playerCount={state.playerCount}
               currentPlayerIndex={playerIndex}
+              nicknames={nicknames}
               trump={state.trump}
               winnerPlayerIndex={winnerPlayerIndex}
             />

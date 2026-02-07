@@ -11,6 +11,7 @@ interface TrickAreaProps {
   trick: Trick;
   playerCount: number;
   currentPlayerIndex: PlayerIndex;
+  nicknames: Map<PlayerIndex, string>;
   trump: Suit | null;
   winnerPlayerIndex?: PlayerIndex | null;
 }
@@ -19,6 +20,7 @@ function TrickArea({
   trick,
   playerCount,
   currentPlayerIndex,
+  nicknames,
   trump,
   winnerPlayerIndex,
 }: TrickAreaProps) {
@@ -76,6 +78,7 @@ function TrickArea({
                 playedCard.playerIndex === winnerPlayerIndex
               }
             />
+            <Text style={styles.playerName}>{nicknames.get(playedCard.playerIndex)}</Text>
           </View>
         ))}
 
@@ -134,6 +137,12 @@ const styles = StyleSheet.create({
   topRight: {
     top: 0,
     right: 20,
+  },
+  playerName: {
+    fontSize: 10,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginTop: 2,
   },
   emptyText: {
     color: '#9ca3af',
