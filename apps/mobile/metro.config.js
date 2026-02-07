@@ -14,6 +14,7 @@ const mobileModules = path.resolve(__dirname, 'node_modules');
 config.resolver.extraNodeModules = {
   react: path.resolve(mobileModules, 'react'),
   'react-native': path.resolve(mobileModules, 'react-native'),
+  buffer: path.resolve(mobileModules, 'buffer'),
 };
 
 module.exports = config;

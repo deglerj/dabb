@@ -19,6 +19,7 @@
     "@dabb/ui-shared": "workspace:*",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "buffer": "^6.0.3",
     "expo": "55.0.0-preview.9",
     "expo-audio": "~55.0.4",
     "expo-status-bar": "~55.0.2",
