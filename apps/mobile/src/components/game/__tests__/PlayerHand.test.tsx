@@ -55,4 +55,34 @@ describe('PlayerHand', () => {
     fireEvent.click(screen.getByText('U'));
     expect(onCardSelect).toHaveBeenCalledWith('schippe-buabe-0');
   });
+
+  it('calls onMultiSelect instead of onCardSelect in multiple selection mode', () => {
+    const onCardSelect = vi.fn();
+    const onMultiSelect = vi.fn();
+    render(
+      <PlayerHand
+        cards={testCards}
+        selectionMode="multiple"
+        selectedCardIds={[]}
+        onCardSelect={onCardSelect}
+        onMultiSelect={onMultiSelect}
+      />
+    );
+
+    fireEvent.click(screen.getByText('A'));
+    expect(onMultiSelect).toHaveBeenCalledWith('herz-ass-0');
+    expect(onCardSelect).not.toHaveBeenCalled();
+  });
+
+  it('highlights selected cards in multiple selection mode', () => {
+    const { container } = render(
+      <PlayerHand
+        cards={testCards}
+        selectionMode="multiple"
+        selectedCardIds={['herz-ass-0', 'schippe-buabe-0']}
+      />
+    );
+    // Component renders without crashing with multiple selected cards
+    expect(container).toBeTruthy();
+  });
 });

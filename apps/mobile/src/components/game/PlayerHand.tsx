@@ -12,14 +12,40 @@ interface PlayerHandProps {
   selectedCardId?: string | null;
   validCardIds?: string[];
   onCardSelect?: (cardId: string) => void;
+  selectionMode?: 'single' | 'multiple';
+  selectedCardIds?: string[];
+  onMultiSelect?: (cardId: string) => void;
 }
 
-function PlayerHand({ cards, selectedCardId, validCardIds, onCardSelect }: PlayerHandProps) {
+function PlayerHand({
+  cards,
+  selectedCardId,
+  validCardIds,
+  onCardSelect,
+  selectionMode = 'single',
+  selectedCardIds = [],
+  onMultiSelect,
+}: PlayerHandProps) {
   const isCardValid = (cardId: string) => {
     if (!validCardIds) {
       return true;
     }
     return validCardIds.includes(cardId);
+  };
+
+  const isSelected = (cardId: string) => {
+    if (selectionMode === 'multiple') {
+      return selectedCardIds.includes(cardId);
+    }
+    return selectedCardId === cardId;
+  };
+
+  const handlePress = (cardId: string) => {
+    if (selectionMode === 'multiple') {
+      onMultiSelect?.(cardId);
+    } else {
+      onCardSelect?.(cardId);
+    }
   };
 
   return (
@@ -32,9 +58,9 @@ function PlayerHand({ cards, selectedCardId, validCardIds, onCardSelect }: Playe
         <View key={card.id} style={[styles.cardWrapper, index > 0 && styles.overlappingCard]}>
           <Card
             card={card}
-            selected={selectedCardId === card.id}
+            selected={isSelected(card.id)}
             valid={isCardValid(card.id)}
-            onPress={() => onCardSelect?.(card.id)}
+            onPress={() => handlePress(card.id)}
           />
         </View>
       ))}

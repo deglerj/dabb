@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import GameScreen from '../GameScreen';
-import type { GameState, PlayerIndex, Trick, Card } from '@dabb/shared-types';
+import type { GameState, GamePhase, PlayerIndex, Trick, Card, Meld } from '@dabb/shared-types';
 
 // Mock sub-components that have complex native dependencies
 vi.mock('../../components/game/ScoreBoard', () => ({
@@ -83,7 +83,11 @@ describe('GameScreen', () => {
     nicknames,
     onBid: vi.fn(),
     onPass: vi.fn(),
+    onTakeDabb: vi.fn(),
+    onDiscard: vi.fn(),
+    onGoOut: vi.fn(),
     onDeclareTrump: vi.fn(),
+    onDeclareMelds: vi.fn(),
     onPlayCard: vi.fn(),
   };
 
@@ -93,7 +97,7 @@ describe('GameScreen', () => {
       currentBidder: 0 as PlayerIndex,
     });
     render(<GameScreen {...defaultProps} state={state} />);
-    expect(screen.getByText('Dein Gebot')).toBeInTheDocument();
+    expect(screen.getByText(/Aktuelles Gebot/)).toBeInTheDocument();
   });
 
   it('renders trump selector for bid winner', () => {
@@ -169,5 +173,128 @@ describe('GameScreen', () => {
 
     fireEvent.click(screen.getByText('A'));
     expect(screen.getByText('Tippe nochmal um zu spielen')).toBeInTheDocument();
+  });
+
+  // Dabb phase tests
+  it('renders dabb phase with take dabb button for bid winner', () => {
+    const state = createBaseState({
+      phase: 'dabb',
+      bidWinner: 0 as PlayerIndex,
+      dabb: [makeCard('herz', '10'), makeCard('bollen', 'buabe')],
+    });
+    render(<GameScreen {...defaultProps} state={state} />);
+    expect(screen.getByText('Dabb aufnehmen')).toBeInTheDocument();
+    expect(screen.getByText('Dabb aufnehmen (2 Karten)')).toBeInTheDocument();
+  });
+
+  it('calls onTakeDabb when take dabb button pressed', () => {
+    const onTakeDabb = vi.fn();
+    const state = createBaseState({
+      phase: 'dabb',
+      bidWinner: 0 as PlayerIndex,
+      dabb: [makeCard('herz', '10'), makeCard('bollen', 'buabe')],
+    });
+    render(<GameScreen {...defaultProps} state={state} onTakeDabb={onTakeDabb} />);
+    fireEvent.click(screen.getByText('Dabb aufnehmen (2 Karten)'));
+    expect(onTakeDabb).toHaveBeenCalled();
+  });
+
+  it('renders dabb phase discard UI after dabb taken', () => {
+    const state = createBaseState({
+      phase: 'dabb',
+      bidWinner: 0 as PlayerIndex,
+      dabb: [], // dabb taken (empty)
+    });
+    render(<GameScreen {...defaultProps} state={state} />);
+    expect(screen.getByText('Karten abwerfen')).toBeInTheDocument();
+    expect(screen.getByText(/Wähle .* Karten zum Abwerfen/)).toBeInTheDocument();
+    // Go out buttons should be visible
+    expect(screen.getByText('Kreuz')).toBeInTheDocument();
+    expect(screen.getByText('Schippe')).toBeInTheDocument();
+    expect(screen.getByText('Herz')).toBeInTheDocument();
+    expect(screen.getByText('Bollen')).toBeInTheDocument();
+  });
+
+  it('renders dabb phase waiting message for non-bid-winner', () => {
+    const state = createBaseState({
+      phase: 'dabb',
+      bidWinner: 1 as PlayerIndex,
+      dabb: [makeCard('herz', '10')],
+    });
+    render(<GameScreen {...defaultProps} state={state} />);
+    expect(screen.getByText('Warte auf Bob...')).toBeInTheDocument();
+  });
+
+  // Melding phase tests
+  it('renders melding phase with confirm button when melds not declared', () => {
+    const state = createBaseState({
+      phase: 'melding',
+      bidWinner: 1 as PlayerIndex,
+      trump: 'herz',
+      declaredMelds: new Map(),
+    });
+    render(<GameScreen {...defaultProps} state={state} />);
+    expect(screen.getByText('Meldungen ansagen')).toBeInTheDocument();
+    expect(screen.getByText('Meldungen bestätigen')).toBeInTheDocument();
+  });
+
+  it('calls onDeclareMelds when confirm button pressed', () => {
+    const onDeclareMelds = vi.fn();
+    const state = createBaseState({
+      phase: 'melding',
+      bidWinner: 1 as PlayerIndex,
+      trump: 'herz',
+      declaredMelds: new Map(),
+    });
+    render(<GameScreen {...defaultProps} state={state} onDeclareMelds={onDeclareMelds} />);
+    fireEvent.click(screen.getByText('Meldungen bestätigen'));
+    expect(onDeclareMelds).toHaveBeenCalled();
+  });
+
+  it('renders melding phase waiting message when melds already declared', () => {
+    const declaredMelds = new Map<PlayerIndex, Meld[]>([[0 as PlayerIndex, []]]);
+    const state = createBaseState({
+      phase: 'melding',
+      bidWinner: 1 as PlayerIndex,
+      trump: 'herz',
+      declaredMelds,
+    });
+    render(<GameScreen {...defaultProps} state={state} />);
+    expect(screen.getByText('Warte auf andere Spieler...')).toBeInTheDocument();
+  });
+
+  // Phase completeness test
+  it('all game phases render non-null content', () => {
+    const phases: GamePhase[] = [
+      'waiting',
+      'dealing',
+      'bidding',
+      'dabb',
+      'trump',
+      'melding',
+      'tricks',
+      'scoring',
+      'finished',
+    ];
+
+    for (const phase of phases) {
+      const state = createBaseState({
+        phase,
+        bidWinner: 0 as PlayerIndex,
+        trump: 'herz',
+        currentPlayer: 0 as PlayerIndex,
+        currentBidder: 0 as PlayerIndex,
+        dabb: phase === 'dabb' ? [makeCard('herz', '10')] : [],
+      });
+
+      const { container, unmount } = render(<GameScreen {...defaultProps} state={state} />);
+
+      // The game area should contain some rendered content for every phase.
+      // We check that the overall component renders without crashing and has text.
+      const allText = container.textContent || '';
+      expect(allText.length > 0, `Phase '${phase}' should render some text content`).toBe(true);
+
+      unmount();
+    }
   });
 });

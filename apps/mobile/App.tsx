@@ -7,7 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { PlayerIndex, GameEvent, PlayerCount, Suit } from '@dabb/shared-types';
+import type { PlayerIndex, GameEvent, PlayerCount, Suit, CardId } from '@dabb/shared-types';
+import { detectMelds } from '@dabb/game-logic';
 import {
   I18nProvider,
   setStorageAdapter,
@@ -363,6 +364,27 @@ function AppContent() {
     emit?.('game:playCard', { cardId });
   };
 
+  const handleTakeDabb = () => {
+    emit?.('game:takeDabb');
+  };
+
+  const handleDiscard = (cardIds: CardId[]) => {
+    emit?.('game:discard', { cardIds });
+  };
+
+  const handleGoOut = (suit: Suit) => {
+    emit?.('game:goOut', { suit });
+  };
+
+  const handleDeclareMelds = () => {
+    if (!state.trump || !sessionInfo) {
+      return;
+    }
+    const myHand = state.hands.get(sessionInfo.playerIndex) || [];
+    const melds = detectMelds(myHand, state.trump);
+    emit?.('game:declareMelds', { melds });
+  };
+
   const handleExitGame = () => {
     Alert.alert(t('game.exitGameConfirmTitle'), t('game.exitGameConfirmMessage'), [
       {
@@ -431,7 +453,11 @@ function AppContent() {
           nicknames={nicknames}
           onBid={handleBid}
           onPass={handlePass}
+          onTakeDabb={handleTakeDabb}
+          onDiscard={handleDiscard}
+          onGoOut={handleGoOut}
           onDeclareTrump={handleDeclareTrump}
+          onDeclareMelds={handleDeclareMelds}
           onPlayCard={handlePlayCard}
           onExitGame={handleExitGame}
           onGoHome={handleLeave}

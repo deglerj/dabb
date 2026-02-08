@@ -3,10 +3,11 @@
  */
 
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import type { GameState, GameEvent, PlayerIndex, Suit } from '@dabb/shared-types';
-import { getValidPlays, sortHand } from '@dabb/game-logic';
+import type { GameState, GameEvent, PlayerIndex, Suit, CardId } from '@dabb/shared-types';
+import { DABB_SIZE, formatMeldName, SUITS, SUIT_NAMES } from '@dabb/shared-types';
+import { getValidPlays, sortHand, detectMelds, calculateMeldPoints } from '@dabb/game-logic';
 import { useTrickDisplay } from '@dabb/ui-shared';
 import { useTranslation } from '@dabb/i18n';
 import {
@@ -29,7 +30,11 @@ interface GameScreenProps {
   nicknames: Map<PlayerIndex, string>;
   onBid: (amount: number) => void;
   onPass: () => void;
+  onTakeDabb: () => void;
+  onDiscard: (cardIds: CardId[]) => void;
+  onGoOut: (suit: Suit) => void;
   onDeclareTrump: (suit: Suit) => void;
+  onDeclareMelds: () => void;
   onPlayCard: (cardId: string) => void;
   onExitGame?: () => void;
   onGoHome?: () => void;
@@ -42,18 +47,26 @@ function GameScreen({
   nicknames,
   onBid,
   onPass,
+  onTakeDabb,
+  onDiscard,
+  onGoOut,
   onDeclareTrump,
+  onDeclareMelds,
   onPlayCard,
   onExitGame,
   onGoHome,
 }: GameScreenProps) {
   const { t } = useTranslation();
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [selectedCards, setSelectedCards] = useState<CardId[]>([]);
   const [showExpandedScoreboard, setShowExpandedScoreboard] = useState(false);
+
+  const dabbSize = DABB_SIZE[state.playerCount];
 
   // Clear selected card when phase changes (e.g., between rounds)
   useEffect(() => {
     setSelectedCardId(null);
+    setSelectedCards([]);
   }, [state.phase]);
 
   const myHand = state.hands.get(playerIndex) || [];
@@ -93,6 +106,42 @@ function GameScreen({
     [state.phase, isMyTurn, isTrickPaused, selectedCardId, onPlayCard]
   );
 
+  const handleMultiSelect = useCallback(
+    (cardId: string) => {
+      setSelectedCards((prev) => {
+        if (prev.includes(cardId)) {
+          return prev.filter((id) => id !== cardId);
+        }
+        if (prev.length >= dabbSize) {
+          return prev;
+        }
+        return [...prev, cardId];
+      });
+    },
+    [dabbSize]
+  );
+
+  const handleDiscard = useCallback(() => {
+    if (selectedCards.length === dabbSize) {
+      onDiscard(selectedCards);
+      setSelectedCards([]);
+    }
+  }, [selectedCards, dabbSize, onDiscard]);
+
+  const handleGoOutPress = useCallback(
+    (suit: Suit) => {
+      Alert.alert(t('game.goOutConfirmTitle'), t('game.goOutConfirmMessage'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('game.goOutIn', { suit: SUIT_NAMES[suit] }),
+          style: 'destructive',
+          onPress: () => onGoOut(suit),
+        },
+      ]);
+    },
+    [t, onGoOut]
+  );
+
   // Determine if we should show the compact header or full scoreboard
   const showScoreboardHeader =
     state.phase !== 'waiting' &&
@@ -130,6 +179,68 @@ function GameScreen({
           />
         );
 
+      case 'dabb':
+        if (state.bidWinner === playerIndex) {
+          if (state.dabb.length > 0) {
+            return (
+              <View style={styles.phaseContainer}>
+                <Text style={styles.phaseTitle}>{t('game.takeDabb')}</Text>
+                <TouchableOpacity style={styles.actionButton} onPress={onTakeDabb}>
+                  <Text style={styles.actionButtonText}>
+                    {t('game.takeDabbCards', { count: state.dabb.length })}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          }
+          return (
+            <View style={styles.phaseContainer}>
+              <Text style={styles.phaseTitle}>{t('game.discardCards')}</Text>
+              <Text style={styles.phaseText}>
+                {t('game.selectCardsToDiscard', { count: dabbSize })}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  selectedCards.length !== dabbSize && styles.actionButtonDisabled,
+                ]}
+                onPress={handleDiscard}
+                disabled={selectedCards.length !== dabbSize}
+              >
+                <Text style={styles.actionButtonText}>
+                  {t('game.selectedCount', {
+                    selected: selectedCards.length,
+                    total: dabbSize,
+                  })}
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.goOutSection}>
+                <Text style={styles.goOutLabel}>{t('game.orGoOut')}</Text>
+                <View style={styles.goOutButtons}>
+                  {SUITS.map((suit) => (
+                    <TouchableOpacity
+                      key={suit}
+                      style={styles.goOutButton}
+                      onPress={() => handleGoOutPress(suit)}
+                    >
+                      <Text style={styles.goOutButtonText}>{SUIT_NAMES[suit]}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          );
+        }
+        return (
+          <View style={styles.phaseContainer}>
+            <Text style={styles.phaseText}>
+              {t('game.waitingForPlayer', {
+                name: nicknames.get(state.bidWinner!) || t('common.player'),
+              })}
+            </Text>
+          </View>
+        );
+
       case 'trump':
         if (state.bidWinner === playerIndex) {
           return <TrumpSelector onSelect={onDeclareTrump} />;
@@ -141,6 +252,39 @@ function GameScreen({
                 name: nicknames.get(state.bidWinner!) || t('common.player'),
               })}
             </Text>
+          </View>
+        );
+
+      case 'melding':
+        if (!state.declaredMelds.has(playerIndex)) {
+          const melds = state.trump ? detectMelds(myHand, state.trump) : [];
+          const totalPoints = calculateMeldPoints(melds);
+          return (
+            <View style={styles.phaseContainer}>
+              <Text style={styles.phaseTitle}>{t('game.declareMelds')}</Text>
+              {melds.length === 0 ? (
+                <Text style={styles.phaseText}>{t('game.noMelds')}</Text>
+              ) : (
+                <View style={styles.meldList}>
+                  {melds.map((meld, i) => (
+                    <Text key={i} style={styles.meldItem}>
+                      {formatMeldName(meld, SUIT_NAMES)} ({meld.points} {t('game.points')})
+                    </Text>
+                  ))}
+                  <Text style={styles.meldTotal}>
+                    {t('game.total')}: {totalPoints} {t('game.points')}
+                  </Text>
+                </View>
+              )}
+              <TouchableOpacity style={styles.actionButton} onPress={onDeclareMelds}>
+                <Text style={styles.actionButtonText}>{t('game.confirmMelds')}</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        }
+        return (
+          <View style={styles.phaseContainer}>
+            <Text style={styles.phaseText}>{t('game.waitingForOtherPlayers')}</Text>
           </View>
         );
 
@@ -264,6 +408,13 @@ function GameScreen({
           selectedCardId={selectedCardId}
           validCardIds={validCardIds}
           onCardSelect={handleCardSelect}
+          selectionMode={
+            state.phase === 'dabb' && state.dabb.length === 0 && state.bidWinner === playerIndex
+              ? 'multiple'
+              : 'single'
+          }
+          selectedCardIds={selectedCards}
+          onMultiSelect={handleMultiSelect}
         />
         {state.phase === 'tricks' && selectedCardId && (
           <Text style={styles.hint}>{t('game.tapAgainToPlay')}</Text>
@@ -356,10 +507,80 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     maxWidth: '90%',
   },
+  phaseTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
   phaseText: {
     fontSize: 18,
     color: '#374151',
     textAlign: 'center',
+  },
+  actionButton: {
+    backgroundColor: '#0f766e',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  actionButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  goOutSection: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingTop: 12,
+    alignItems: 'center',
+  },
+  goOutLabel: {
+    color: '#6b7280',
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  goOutButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  goOutButton: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  goOutButtonText: {
+    color: '#374151',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  meldList: {
+    marginTop: 8,
+    marginBottom: 4,
+    alignItems: 'center',
+  },
+  meldItem: {
+    fontSize: 14,
+    color: '#374151',
+    marginVertical: 2,
+  },
+  meldTotal: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginTop: 8,
   },
   winnerText: {
     fontSize: 24,
