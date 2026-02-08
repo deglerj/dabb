@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import type { GameState, PlayerIndex } from '@dabb/shared-types';
+import type { GameState, PlayerIndex, RoundHistoryEntry } from '@dabb/shared-types';
 import { I18nProvider } from '@dabb/i18n';
 import ScoreBoard from '../ScoreBoard';
 
@@ -206,7 +206,7 @@ describe('ScoreBoard', () => {
             [0 as PlayerIndex]: { melds: 40, tricks: 180, total: 220, bidMet: true },
             [1 as PlayerIndex]: { melds: 20, tricks: 80, total: 100, bidMet: true },
             [2 as PlayerIndex]: { melds: 0, tricks: 30, total: 30, bidMet: true },
-          },
+          } as RoundHistoryEntry['scores'],
         },
       ],
       currentRound: null,
@@ -239,7 +239,7 @@ describe('ScoreBoard', () => {
             [0 as PlayerIndex]: { melds: 40, tricks: 180, total: 220, bidMet: true },
             [1 as PlayerIndex]: { melds: 20, tricks: 80, total: 100, bidMet: true },
             [2 as PlayerIndex]: { melds: 0, tricks: 30, total: 30, bidMet: true },
-          },
+          } as RoundHistoryEntry['scores'],
         },
       ],
       currentRound: null,
@@ -269,7 +269,7 @@ describe('ScoreBoard', () => {
             [0 as PlayerIndex]: { melds: 40, tricks: 100, total: -300, bidMet: false },
             [1 as PlayerIndex]: { melds: 20, tricks: 80, total: 100, bidMet: true },
             [2 as PlayerIndex]: { melds: 0, tricks: 30, total: 30, bidMet: true },
-          },
+          } as RoundHistoryEntry['scores'],
         },
       ],
       currentRound: null,
