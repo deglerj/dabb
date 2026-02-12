@@ -4,11 +4,10 @@
  */
 
 import React, { useEffect, useMemo, useRef } from 'react';
-import { View, Animated, StyleSheet, Dimensions } from 'react-native';
+import { View, Animated, StyleSheet, useWindowDimensions } from 'react-native';
 
 const COLORS = ['#ffd700', '#e94560', '#22c55e', '#14b8a6', '#ffffff'];
 const PARTICLE_COUNT = 50;
-const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type ParticleShape = 'rect' | 'circle' | 'diamond';
 
@@ -23,14 +22,14 @@ interface Particle {
   drift: number;
 }
 
-function generateParticles(): Particle[] {
+function generateParticles(screenWidth: number): Particle[] {
   const particles: Particle[] = [];
   const shapes: ParticleShape[] = ['rect', 'circle', 'diamond'];
 
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     particles.push({
       id: i,
-      x: Math.random() * SCREEN_WIDTH,
+      x: Math.random() * screenWidth,
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
       shape: shapes[Math.floor(Math.random() * shapes.length)],
       size: 10 + Math.random() * 8,
@@ -76,7 +75,13 @@ function ParticleView({
   }
 }
 
-function ConfettiParticle({ particle }: { particle: Particle }) {
+function ConfettiParticle({
+  particle,
+  screenHeight,
+}: {
+  particle: Particle;
+  screenHeight: number;
+}) {
   const animValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -93,7 +98,7 @@ function ConfettiParticle({ particle }: { particle: Particle }) {
 
   const translateY = animValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [-50, SCREEN_HEIGHT + 50],
+    outputRange: [-50, screenHeight + 50],
   });
 
   const translateX = animValue.interpolate({
@@ -128,12 +133,13 @@ function ConfettiParticle({ particle }: { particle: Particle }) {
 }
 
 function Confetti() {
-  const particles = useMemo(() => generateParticles(), []);
+  const { width, height } = useWindowDimensions();
+  const particles = useMemo(() => generateParticles(width), [width]);
 
   return (
     <View style={styles.container} pointerEvents="none">
       {particles.map((particle) => (
-        <ConfettiParticle key={particle.id} particle={particle} />
+        <ConfettiParticle key={particle.id} particle={particle} screenHeight={height} />
       ))}
     </View>
   );
@@ -147,6 +153,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 1100,
+    elevation: 1100,
     overflow: 'hidden',
   },
   particle: {

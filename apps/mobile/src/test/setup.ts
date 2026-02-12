@@ -140,6 +140,11 @@ vi.mock('react-native', () => {
     Share: {
       share: vi.fn(),
     },
+    Dimensions: {
+      get: () => ({ width: 375, height: 812 }),
+      addEventListener: vi.fn(() => ({ remove: vi.fn() })),
+    },
+    useWindowDimensions: () => ({ width: 375, height: 812, scale: 1, fontScale: 1 }),
     Platform: {
       OS: 'android',
       select: (obj: Record<string, unknown>) => obj.android,

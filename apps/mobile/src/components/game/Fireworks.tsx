@@ -4,11 +4,10 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Animated, StyleSheet, Dimensions } from 'react-native';
+import { View, Animated, StyleSheet, useWindowDimensions } from 'react-native';
 
 const COLORS = ['#ffd700', '#e94560', '#22c55e', '#14b8a6', '#ff6b6b', '#ffffff'];
 const SPARKS_PER_BURST = 12;
-const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Spark {
   id: number;
@@ -38,14 +37,19 @@ function generateSparks(): Spark[] {
   return sparks;
 }
 
-function generateBursts(count: number, baseId: number): Burst[] {
+function generateBursts(
+  count: number,
+  baseId: number,
+  screenWidth: number,
+  screenHeight: number
+): Burst[] {
   const bursts: Burst[] = [];
   for (let i = 0; i < count; i++) {
     const color = COLORS[Math.floor(Math.random() * COLORS.length)];
     bursts.push({
       id: baseId + i,
-      x: 0.15 * SCREEN_WIDTH + Math.random() * 0.7 * SCREEN_WIDTH,
-      y: 0.15 * SCREEN_HEIGHT + Math.random() * 0.5 * SCREEN_HEIGHT,
+      x: 0.15 * screenWidth + Math.random() * 0.7 * screenWidth,
+      y: 0.15 * screenHeight + Math.random() * 0.5 * screenHeight,
       color,
       sparks: generateSparks(),
       delay: i * 400,
@@ -100,10 +104,18 @@ function SparkComponent({
   );
 }
 
-function TrailComponent({ color, animValue }: { color: string; animValue: Animated.Value }) {
+function TrailComponent({
+  color,
+  animValue,
+  screenHeight,
+}: {
+  color: string;
+  animValue: Animated.Value;
+  screenHeight: number;
+}) {
   const translateY = animValue.interpolate({
     inputRange: [0, 0.5],
-    outputRange: [SCREEN_HEIGHT * 0.3, 0],
+    outputRange: [screenHeight * 0.3, 0],
     extrapolate: 'clamp',
   });
 
@@ -127,7 +139,7 @@ function TrailComponent({ color, animValue }: { color: string; animValue: Animat
   );
 }
 
-function BurstComponent({ burst }: { burst: Burst }) {
+function BurstComponent({ burst, screenHeight }: { burst: Burst; screenHeight: number }) {
   const animValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -144,7 +156,7 @@ function BurstComponent({ burst }: { burst: Burst }) {
 
   return (
     <View style={[styles.burstContainer, { left: burst.x, top: burst.y }]}>
-      <TrailComponent color={burst.color} animValue={animValue} />
+      <TrailComponent color={burst.color} animValue={animValue} screenHeight={screenHeight} />
       {burst.sparks.map((spark) => (
         <SparkComponent key={spark.id} spark={spark} color={burst.color} animValue={animValue} />
       ))}
@@ -153,17 +165,23 @@ function BurstComponent({ burst }: { burst: Burst }) {
 }
 
 function Fireworks() {
-  const [bursts, setBursts] = useState<Burst[]>(() => generateBursts(4, 0));
+  const { width, height } = useWindowDimensions();
+  const [bursts, setBursts] = useState<Burst[]>(() => generateBursts(4, 0, width, height));
   const [burstCounter, setBurstCounter] = useState(4);
 
   const addMoreBursts = useCallback(() => {
     setBursts((prev) => {
       const recentBursts = prev.slice(-8);
-      const newBursts = generateBursts(3 + Math.floor(Math.random() * 2), burstCounter);
+      const newBursts = generateBursts(
+        3 + Math.floor(Math.random() * 2),
+        burstCounter,
+        width,
+        height
+      );
       return [...recentBursts, ...newBursts];
     });
     setBurstCounter((c) => c + 4);
-  }, [burstCounter]);
+  }, [burstCounter, width, height]);
 
   useEffect(() => {
     const interval = setInterval(addMoreBursts, 2000);
@@ -173,7 +191,7 @@ function Fireworks() {
   return (
     <View style={styles.container} pointerEvents="none">
       {bursts.map((burst) => (
-        <BurstComponent key={burst.id} burst={burst} />
+        <BurstComponent key={burst.id} burst={burst} screenHeight={height} />
       ))}
     </View>
   );
@@ -187,6 +205,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 1100,
+    elevation: 1100,
     overflow: 'hidden',
   },
   burstContainer: {
