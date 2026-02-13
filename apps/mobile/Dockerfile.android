@@ -1,0 +1,47 @@
+# Android build environment for Dabb mobile app
+# Usage: Built and run via ./dev.sh apk (source is bind-mounted at runtime)
+
+FROM eclipse-temurin:17-jdk-jammy
+
+# Avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    git \
+    libc++-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 22
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable corepack and prepare pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Set up Android SDK
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=${ANDROID_HOME}
+ENV PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}"
+
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools \
+    && curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/cmdline-tools.zip \
+    && unzip -q /tmp/cmdline-tools.zip -d ${ANDROID_HOME}/cmdline-tools \
+    && mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest \
+    && rm /tmp/cmdline-tools.zip
+
+# Accept licenses and install SDK components
+RUN yes | sdkmanager --licenses > /dev/null 2>&1 \
+    && sdkmanager --install \
+    "build-tools;35.0.0" \
+    "build-tools;36.0.0" \
+    "platforms;android-36" \
+    "ndk;27.1.12297006" \
+    "cmake;3.22.1"
+
+WORKDIR /app
+
+ENTRYPOINT ["bash", "apps/mobile/scripts/build-apk.sh"]

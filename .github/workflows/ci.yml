@@ -195,77 +195,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Android builder image
+        uses: docker/build-push-action@v6
         with:
-          node-version: '22'
+          context: .
+          file: apps/mobile/Dockerfile.android
+          push: false
+          load: true
+          tags: dabb-android-builder:ci
+          cache-from: type=gha,scope=android-builder
+          cache-to: type=gha,mode=max,scope=android-builder
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install native build dependencies
-        run: sudo apt-get update && sudo apt-get install -y libc++-dev
-
-      - name: Cache pnpm dependencies
+      - name: Cache Gradle dependencies
         uses: actions/cache@v5
         with:
-          path: ~/.local/share/pnpm/store/v3
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: /tmp/gradle-cache
+          key: ${{ runner.os }}-gradle-${{ hashFiles('apps/mobile/package.json') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-
+            ${{ runner.os }}-gradle-
 
-      - name: Install dependencies
-        run: pnpm install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
-
-      - name: Build packages
-        run: pnpm run build
-
-      - name: Generate native Android project
-        working-directory: apps/mobile
-        run: npx expo prebuild --platform android --clean
-
-      - name: Fix Hermes path for pnpm
+      - name: Build APK in Docker
         run: |
-          # React Native looks for hermesc at react-native/sdks/hermesc/ but with pnpm
-          # the binary is in a separate hermes-compiler package. Create symlink.
-          RN_DIR=$(find node_modules/.pnpm -type d -name "react-native" -path "*react-native@*/node_modules/react-native" 2>/dev/null | head -1)
-          if [ -n "$RN_DIR" ]; then
-            echo "Found react-native at: $RN_DIR"
-            HERMES_COMPILER=$(dirname "$RN_DIR")/hermes-compiler
-            if [ -d "$HERMES_COMPILER" ]; then
-              echo "Found hermes-compiler at: $HERMES_COMPILER"
-              mkdir -p "$RN_DIR/sdks"
-              # Use relative path from symlink location: sdks/hermesc -> ../../hermes-compiler/hermesc
-              ln -sf "../../hermes-compiler/hermesc" "$RN_DIR/sdks/hermesc"
-              echo "Created symlink: $RN_DIR/sdks/hermesc -> ../../hermes-compiler/hermesc"
-              # Verify the symlink works
-              ls -la "$RN_DIR/sdks/hermesc/linux64-bin/hermesc"
-              chmod +x "$RN_DIR/sdks/hermesc/linux64-bin/hermesc"
-            else
-              echo "hermes-compiler not found at expected location"
-            fi
-          else
-            echo "react-native directory not found"
-          fi
-
-      - name: Build APK with Gradle
-        working-directory: apps/mobile/android
-        run: ./gradlew assembleRelease
-
-      - name: Move APK to build directory
-        working-directory: apps/mobile
-        run: |
-          mkdir -p build
-          cp android/app/build/outputs/apk/release/app-release.apk build/dabb.apk
+          mkdir -p /tmp/gradle-cache
+          docker run --rm \
+            -v "${{ github.workspace }}:/app" \
+            -v /tmp/gradle-cache:/gradle-cache \
+            -e GRADLE_USER_HOME=/gradle-cache \
+            dabb-android-builder:ci
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v6

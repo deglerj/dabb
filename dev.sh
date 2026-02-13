@@ -16,6 +16,7 @@
 #   reset       Stop services and remove volumes (fresh start)
 #   build       Rebuild all images
 #   mobile      Start Expo mobile dev server
+#   apk         Build Android APK in Docker
 #   help        Show this help message
 
 set -euo pipefail
@@ -333,6 +334,29 @@ cmd_mobile() {
     EXPO_PUBLIC_SERVER_URL="$server_url" npx expo start --go
 }
 
+# Build Android APK in Docker
+cmd_apk() {
+    print_header
+    echo -e "${YELLOW}Building Android APK in Docker...${NC}"
+    echo ""
+
+    echo -e "Building Docker image (this may take a while on first run)..."
+    $RUNTIME build -f apps/mobile/Dockerfile.android -t dabb-android-builder .
+
+    echo ""
+    echo -e "${YELLOW}Running APK build...${NC}"
+    echo ""
+
+    $RUNTIME run --rm \
+        -v "$(pwd):/app" \
+        -v dabb-gradle-cache:/gradle-cache \
+        -e GRADLE_USER_HOME=/gradle-cache \
+        dabb-android-builder
+
+    echo ""
+    echo -e "${GREEN}APK built successfully: apps/mobile/build/dabb.apk${NC}"
+}
+
 # Show help
 cmd_help() {
     print_header
@@ -354,6 +378,8 @@ Commands:
               Optional: ./dev.sh build --no-cache
   mobile      Start Expo mobile dev server
               Requires: ./dev.sh start (server must be running)
+  apk         Build Android APK in Docker container
+              Output: apps/mobile/build/dabb.apk
   help        Show this help message
 
 Examples:
@@ -363,6 +389,7 @@ Examples:
   ./dev.sh db                 # Connect to PostgreSQL
   ./dev.sh reset              # Fresh start with empty database
   ./dev.sh mobile             # Start Expo mobile dev server
+  ./dev.sh apk               # Build Android APK in Docker
 
 Environment:
   The following defaults are used for local development:
@@ -389,6 +416,7 @@ case "$COMMAND" in
     reset)   cmd_reset "$@" ;;
     build)   cmd_build "$@" ;;
     mobile)  cmd_mobile "$@" ;;
+    apk)     cmd_apk "$@" ;;
     help|-h|--help) cmd_help ;;
     *)
         echo -e "${RED}Unknown command: $COMMAND${NC}"
