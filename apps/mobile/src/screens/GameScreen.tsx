@@ -22,6 +22,7 @@ import {
 } from '../components/game';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useTurnNotification } from '../hooks/useTurnNotification';
+import { DropZoneProvider } from '../contexts/DropZoneContext';
 
 interface GameScreenProps {
   state: GameState;
@@ -358,90 +359,94 @@ function GameScreen({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.phaseLabel}>
-            {state.phase === 'bidding' && `${t('game.bid')}: ${state.currentBid}`}
-            {state.phase === 'tricks' && state.trump && `${t('game.trump')}: ${state.trump}`}
-          </Text>
-          {isMyTurn && state.phase !== 'waiting' && state.phase !== 'dealing' && (
-            <Text style={styles.turnIndicator}>{t('game.yourTurn')}</Text>
-          )}
+    <DropZoneProvider>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.phaseLabel}>
+              {state.phase === 'bidding' && `${t('game.bid')}: ${state.currentBid}`}
+              {state.phase === 'tricks' && state.trump && `${t('game.trump')}: ${state.trump}`}
+            </Text>
+            {isMyTurn && state.phase !== 'waiting' && state.phase !== 'dealing' && (
+              <Text style={styles.turnIndicator}>{t('game.yourTurn')}</Text>
+            )}
+          </View>
+          <View style={styles.headerRight}>
+            <LanguageSwitcher compact />
+            {canExit && onExitGame && (
+              <TouchableOpacity style={styles.exitButton} onPress={onExitGame}>
+                <View style={styles.buttonContent}>
+                  <Feather name="log-out" size={12} color="#fff" />
+                  <Text style={styles.exitButtonText}>{t('game.exitGame')}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-        <View style={styles.headerRight}>
-          <LanguageSwitcher compact />
-          {canExit && onExitGame && (
-            <TouchableOpacity style={styles.exitButton} onPress={onExitGame}>
-              <View style={styles.buttonContent}>
-                <Feather name="log-out" size={12} color="#fff" />
-                <Text style={styles.exitButtonText}>{t('game.exitGame')}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
 
-      {/* Compact scoreboard header during active play */}
-      {showScoreboardHeader && (
-        <ScoreBoardHeader
-          state={state}
-          events={events}
-          nicknames={nicknames}
-          onExpand={() => setShowExpandedScoreboard(true)}
-        />
-      )}
-
-      {/* Game Log below scoreboard header */}
-      <GameLog
-        state={state}
-        events={events}
-        currentPlayerIndex={playerIndex}
-        nicknames={nicknames}
-      />
-
-      <View style={styles.gameArea}>{renderPhaseContent()}</View>
-
-      <View style={styles.handContainer}>
-        <PlayerHand
-          cards={sortedHand}
-          selectedCardId={selectedCardId}
-          validCardIds={validCardIds}
-          onCardSelect={handleCardSelect}
-          selectionMode={
-            state.phase === 'dabb' && state.dabb.length === 0 && state.bidWinner === playerIndex
-              ? 'multiple'
-              : 'single'
-          }
-          selectedCardIds={selectedCards}
-          onMultiSelect={handleMultiSelect}
-        />
-        {state.phase === 'tricks' && selectedCardId && (
-          <Text style={styles.hint}>{t('game.tapAgainToPlay')}</Text>
-        )}
-      </View>
-
-      {/* Expanded scoreboard modal */}
-      <Modal
-        visible={showExpandedScoreboard}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowExpandedScoreboard(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <ScoreBoard
+        {/* Compact scoreboard header during active play */}
+        {showScoreboardHeader && (
+          <ScoreBoardHeader
             state={state}
             events={events}
             nicknames={nicknames}
-            currentPlayerIndex={playerIndex}
-            onCollapse={() => setShowExpandedScoreboard(false)}
+            onExpand={() => setShowExpandedScoreboard(true)}
           />
-        </View>
-      </Modal>
+        )}
 
-      {/* Celebration animations */}
-      <CelebrationOverlay events={events} playerIndex={playerIndex} />
-    </View>
+        {/* Game Log below scoreboard header */}
+        <GameLog
+          state={state}
+          events={events}
+          currentPlayerIndex={playerIndex}
+          nicknames={nicknames}
+        />
+
+        <View style={styles.gameArea}>{renderPhaseContent()}</View>
+
+        <View style={styles.handContainer}>
+          <PlayerHand
+            cards={sortedHand}
+            selectedCardId={selectedCardId}
+            validCardIds={validCardIds}
+            onCardSelect={handleCardSelect}
+            selectionMode={
+              state.phase === 'dabb' && state.dabb.length === 0 && state.bidWinner === playerIndex
+                ? 'multiple'
+                : 'single'
+            }
+            selectedCardIds={selectedCards}
+            onMultiSelect={handleMultiSelect}
+            draggable={state.phase === 'tricks' && isMyTurn && !isTrickPaused}
+            onPlayCard={onPlayCard}
+          />
+          {state.phase === 'tricks' && selectedCardId && (
+            <Text style={styles.hint}>{t('game.tapAgainToPlay')}</Text>
+          )}
+        </View>
+
+        {/* Expanded scoreboard modal */}
+        <Modal
+          visible={showExpandedScoreboard}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowExpandedScoreboard(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <ScoreBoard
+              state={state}
+              events={events}
+              nicknames={nicknames}
+              currentPlayerIndex={playerIndex}
+              onCollapse={() => setShowExpandedScoreboard(false)}
+            />
+          </View>
+        </Modal>
+
+        {/* Celebration animations */}
+        <CelebrationOverlay events={events} playerIndex={playerIndex} />
+      </View>
+    </DropZoneProvider>
   );
 }
 

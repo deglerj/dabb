@@ -1,11 +1,14 @@
 /**
- * Trick area component for React Native
+ * Trick area component for React Native.
+ * Acts as a drop zone for dragged cards during the tricks phase.
  */
 
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, type LayoutChangeEvent } from 'react-native';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import type { Trick, PlayerIndex, Suit } from '@dabb/shared-types';
 import Card from './Card';
+import { useDropZone } from '../../contexts/DropZoneContext';
 
 interface TrickAreaProps {
   trick: Trick;
@@ -15,8 +18,31 @@ interface TrickAreaProps {
 }
 
 function TrickArea({ trick, nicknames, trump, winnerPlayerIndex }: TrickAreaProps) {
+  const viewRef = useRef<View>(null);
+  const { registerBounds, isDragActive } = useDropZone();
+
+  const handleLayout = useCallback(
+    (_event: LayoutChangeEvent) => {
+      viewRef.current?.measureInWindow((x, y, width, height) => {
+        registerBounds({ x, y, width, height });
+      });
+    },
+    [registerBounds]
+  );
+
+  const dropZoneHighlightStyle = useAnimatedStyle(() => ({
+    borderWidth: isDragActive.value ? 2 : 0,
+    borderColor: isDragActive.value ? '#22c55e' : 'transparent',
+    borderStyle: 'dashed' as const,
+    backgroundColor: isDragActive.value ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
+  }));
+
   return (
-    <View style={styles.container}>
+    <Animated.View
+      ref={viewRef}
+      style={[styles.container, dropZoneHighlightStyle]}
+      onLayout={handleLayout}
+    >
       {trump && (
         <View style={styles.trumpIndicator}>
           <Text style={styles.trumpText}>Trumpf: {trump}</Text>
@@ -40,7 +66,7 @@ function TrickArea({ trick, nicknames, trump, winnerPlayerIndex }: TrickAreaProp
 
         {trick.cards.length === 0 && <Text style={styles.emptyText}>Spielbereich</Text>}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -49,6 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 12,
   },
   trumpIndicator: {
     position: 'absolute',

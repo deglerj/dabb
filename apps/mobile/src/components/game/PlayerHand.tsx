@@ -1,10 +1,13 @@
 /**
- * Player hand component for React Native
+ * Player hand component for React Native.
+ * Uses gesture-handler's ScrollView for compatibility with card drag gestures.
  */
 
 import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import type { Card as CardType } from '@dabb/shared-types';
+import DraggableCard from './DraggableCard';
 import Card from './Card';
 
 interface PlayerHandProps {
@@ -15,6 +18,8 @@ interface PlayerHandProps {
   selectionMode?: 'single' | 'multiple';
   selectedCardIds?: string[];
   onMultiSelect?: (cardId: string) => void;
+  draggable?: boolean;
+  onPlayCard?: (cardId: string) => void;
 }
 
 function PlayerHand({
@@ -25,6 +30,8 @@ function PlayerHand({
   selectionMode = 'single',
   selectedCardIds = [],
   onMultiSelect,
+  draggable = false,
+  onPlayCard,
 }: PlayerHandProps) {
   const isCardValid = (cardId: string) => {
     if (!validCardIds) {
@@ -56,12 +63,23 @@ function PlayerHand({
     >
       {cards.map((card, index) => (
         <View key={card.id} style={[styles.cardWrapper, index > 0 && styles.overlappingCard]}>
-          <Card
-            card={card}
-            selected={isSelected(card.id)}
-            valid={isCardValid(card.id)}
-            onPress={() => handlePress(card.id)}
-          />
+          {draggable ? (
+            <DraggableCard
+              card={card}
+              selected={isSelected(card.id)}
+              valid={isCardValid(card.id)}
+              draggable={draggable}
+              onPress={() => handlePress(card.id)}
+              onPlayCard={onPlayCard}
+            />
+          ) : (
+            <Card
+              card={card}
+              selected={isSelected(card.id)}
+              valid={isCardValid(card.id)}
+              onPress={() => handlePress(card.id)}
+            />
+          )}
         </View>
       ))}
     </ScrollView>

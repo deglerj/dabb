@@ -6,6 +6,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { PlayerIndex, GameEvent, PlayerCount, Suit, CardId } from '@dabb/shared-types';
 import { detectMelds } from '@dabb/game-logic';
@@ -510,20 +511,24 @@ export default function App() {
 
   if (languageLoading) {
     return (
-      <SafeAreaProvider>
-        <SafeAreaView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2563eb" />
-          <StatusBar style="auto" />
-        </SafeAreaView>
-      </SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <SafeAreaView style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#2563eb" />
+            <StatusBar style="auto" />
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <SafeAreaProvider>
-      <I18nProvider initialLanguage={initialLanguage}>
-        <AppContent />
-      </I18nProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <I18nProvider initialLanguage={initialLanguage}>
+          <AppContent />
+        </I18nProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

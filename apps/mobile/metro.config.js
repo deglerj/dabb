@@ -14,6 +14,8 @@ const mobileModules = path.resolve(__dirname, 'node_modules');
 config.resolver.extraNodeModules = {
   react: path.resolve(mobileModules, 'react'),
   'react-native': path.resolve(mobileModules, 'react-native'),
+  'react-native-gesture-handler': path.resolve(mobileModules, 'react-native-gesture-handler'),
+  'react-native-reanimated': path.resolve(mobileModules, 'react-native-reanimated'),
   buffer: path.resolve(mobileModules, 'buffer'),
 };
 

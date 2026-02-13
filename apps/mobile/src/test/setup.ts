@@ -258,5 +258,74 @@ vi.mock('@react-native-async-storage/async-storage', () => {
   };
 });
 
+// Mock react-native-gesture-handler
+vi.mock('react-native-gesture-handler', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+
+  const ScrollView = React.forwardRef((props: Record<string, unknown>, ref: unknown) => {
+    const {
+      children,
+      testID,
+      style: _style,
+      contentContainerStyle: _contentContainerStyle,
+      horizontal: _horizontal,
+      showsHorizontalScrollIndicator: _showsHorizontalScrollIndicator,
+      ...rest
+    } = props;
+    return React.createElement('div', { 'data-testid': testID, ref, ...rest }, children);
+  });
+  ScrollView.displayName = 'ScrollView';
+
+  const GestureDetector = ({ children }: { children: React.ReactNode }) => children;
+  const GestureHandlerRootView = React.forwardRef(
+    (props: Record<string, unknown>, ref: unknown) => {
+      const { children, ...rest } = props;
+      return React.createElement('div', { ref, ...rest }, children);
+    }
+  );
+
+  const createGesture = () => ({
+    enabled: () => createGesture(),
+    activeOffsetY: () => createGesture(),
+    failOffsetX: () => createGesture(),
+    failOffsetY: () => createGesture(),
+    onStart: () => createGesture(),
+    onUpdate: () => createGesture(),
+    onEnd: () => createGesture(),
+    onFinalize: () => createGesture(),
+  });
+
+  return {
+    ScrollView,
+    GestureDetector,
+    GestureHandlerRootView,
+    Gesture: {
+      Pan: () => createGesture(),
+      Tap: () => createGesture(),
+    },
+  };
+});
+
+// Mock react-native-reanimated
+vi.mock('react-native-reanimated', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+
+  const View = React.forwardRef((props: Record<string, unknown>, ref: unknown) => {
+    const { children, testID, style: _style, ...rest } = props;
+    return React.createElement('div', { 'data-testid': testID, ref, ...rest }, children);
+  });
+  View.displayName = 'Animated.View';
+
+  return {
+    default: { View },
+    useSharedValue: (initial: unknown) => ({ value: initial }),
+    useAnimatedStyle: (fn: () => unknown) => fn(),
+    withSpring: (val: unknown) => val,
+    runOnJS: (fn: (...args: unknown[]) => unknown) => fn,
+  };
+});
+
 // Mock the notification sound require
 vi.mock('../../assets/sounds/notification.ogg', () => ({}));
