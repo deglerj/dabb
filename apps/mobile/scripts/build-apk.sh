@@ -32,7 +32,7 @@ fi
 
 echo "==> Building APK with Gradle..."
 cd apps/mobile/android
-./gradlew assembleRelease
+./gradlew assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
 
 echo "==> Copying APK to output directory..."
 cd /app/apps/mobile
