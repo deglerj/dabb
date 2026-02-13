@@ -351,7 +351,13 @@ Example naming: `'authenticates when session code differs from session UUID (reg
    - `docs/SOCKET_EVENTS.md` for Socket.IO events
    - `docs/DATABASE.md` for database schema changes
    - This file (`CLAUDE.md`) for new key files or patterns
-7. **Fix linter errors** - Always run `pnpm lint` after making changes and fix any errors before finishing
+7. **Verify changes match CI before committing** - After making changes, always run the full CI verification locally and fix any errors before finishing:
+   ```bash
+   pnpm run build      # Builds all packages (includes tsc type-checking)
+   pnpm run lint        # ESLint across the entire repo
+   pnpm run test        # Runs all tests via Vitest
+   ```
+   **Why all three?** `pnpm run build` catches type errors (tsc), `pnpm run lint` catches code quality issues, and `pnpm run test` catches broken behavior. Vitest does NOT type-check (it uses esbuild), so passing tests alone do not guarantee type correctness. All three commands must pass — this is exactly what the GitHub CI runs.
 
 ## Game Rules Reference
 
