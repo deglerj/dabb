@@ -2,10 +2,11 @@
  * Bidding panel component for React Native
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from '@dabb/i18n';
+import { getMinBid } from '@dabb/game-logic';
 
 interface BiddingPanelProps {
   currentBid: number;
@@ -14,84 +15,42 @@ interface BiddingPanelProps {
   onPass: () => void;
 }
 
-const BID_INCREMENTS = [10, 20, 50];
-
 function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps) {
   const { t } = useTranslation();
-  const [selectedBid, setSelectedBid] = useState(currentBid + 10);
+  const minBid = getMinBid(currentBid);
 
-  const handleBid = () => {
-    if (selectedBid > currentBid) {
-      onBid(selectedBid);
-    }
-  };
-
-  const incrementBid = (amount: number) => {
-    setSelectedBid((prev) => Math.max(prev + amount, currentBid + 10));
-  };
-
-  if (!isMyTurn) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>{t('game.waitingForOtherPlayers')}</Text>
-        <Text style={styles.currentBid}>
-          {t('game.currentBid')}: {currentBid}
-        </Text>
-      </View>
-    );
-  }
+  const bidOptions = [minBid, minBid + 10, minBid + 20, minBid + 50];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('game.yourBid')}</Text>
       <Text style={styles.currentBid}>
-        {t('game.currentBid')}: {currentBid}
+        {t('game.currentBid')}: {currentBid || '-'}
       </Text>
 
-      <View style={styles.bidSelector}>
-        <TouchableOpacity
-          style={styles.decrementButton}
-          onPress={() => setSelectedBid((prev) => Math.max(prev - 10, currentBid + 10))}
-        >
-          <View style={styles.buttonContent}>
-            <Feather name="minus" size={14} color="#374151" />
-            <Text style={[styles.buttonText, { color: '#374151' }]}>10</Text>
+      {isMyTurn && (
+        <>
+          <View style={styles.bidOptions}>
+            {bidOptions.map((amount) => (
+              <TouchableOpacity
+                key={amount}
+                style={styles.bidOptionButton}
+                onPress={() => onBid(amount)}
+              >
+                <Text style={styles.bidOptionText}>{amount}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        </TouchableOpacity>
 
-        <Text style={styles.selectedBid}>{selectedBid}</Text>
+          <TouchableOpacity style={styles.passButton} onPress={onPass}>
+            <View style={styles.buttonContent}>
+              <Feather name="x" size={16} color="#dc2626" />
+              <Text style={styles.passButtonText}>{t('game.pass')}</Text>
+            </View>
+          </TouchableOpacity>
+        </>
+      )}
 
-        <View style={styles.incrementButtons}>
-          {BID_INCREMENTS.map((inc) => (
-            <TouchableOpacity
-              key={inc}
-              style={styles.incrementButton}
-              onPress={() => incrementBid(inc)}
-            >
-              <View style={styles.buttonContent}>
-                <Feather name="plus" size={14} color="#fff" />
-                <Text style={styles.buttonText}>{inc}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.actionButtons}>
-        <TouchableOpacity style={[styles.button, styles.bidButton]} onPress={handleBid}>
-          <View style={styles.buttonContent}>
-            <Feather name="check" size={16} color="#fff" />
-            <Text style={styles.buttonText}>{t('game.bid')}</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.button, styles.passButton]} onPress={onPass}>
-          <View style={styles.buttonContent}>
-            <Feather name="x" size={16} color="#dc2626" />
-            <Text style={styles.passButtonText}>{t('game.pass')}</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      {!isMyTurn && <Text style={styles.waitingText}>{t('game.waitingForOtherPlayers')}</Text>}
     </View>
   );
 }
@@ -108,79 +67,55 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
   currentBid: {
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
     marginBottom: 16,
   },
-  bidSelector: {
+  bidOptions: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
     marginBottom: 16,
   },
-  selectedBid: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginHorizontal: 16,
-    minWidth: 80,
-    textAlign: 'center',
-  },
-  decrementButton: {
-    backgroundColor: '#e5e7eb',
-    padding: 12,
-    borderRadius: 8,
-  },
-  incrementButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  incrementButton: {
+  bidOptionButton: {
     backgroundColor: '#2563eb',
-    padding: 12,
-    borderRadius: 8,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  button: {
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     borderRadius: 8,
-    minWidth: 100,
+    minWidth: 60,
     alignItems: 'center',
   },
-  bidButton: {
-    backgroundColor: '#22c55e',
+  bidOptionText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   passButton: {
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#dc2626',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    alignSelf: 'center',
   },
   passButtonText: {
     color: '#dc2626',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  waitingText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
   },
 });
 
