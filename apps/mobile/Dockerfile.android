@@ -5,6 +5,7 @@ FROM eclipse-temurin:17-jdk-jammy
 
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
+ENV CI=true
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
