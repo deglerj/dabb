@@ -51,6 +51,12 @@ android/build/
 ios/Pods/
 ios/build/
 
+# pnpm store
+.pnpm-store/
+
+# Claude Code memory
+memory/
+
 # Misc
 *.tsbuildinfo
 
