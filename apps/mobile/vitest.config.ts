@@ -1,15 +1,19 @@
 import { defineConfig } from 'vitest/config';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      'react-native': resolve(__dirname, 'src/test/react-native-stub.ts'),
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    server: {
-      deps: {
-        inline: ['@testing-library/react-native', 'react-native'],
-      },
-    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
