@@ -213,10 +213,6 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
     }
   };
 
-  if (entries.length === 0 && !isYourTurn) {
-    return null;
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>

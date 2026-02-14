@@ -31,7 +31,7 @@ function TrickArea({ trick, nicknames, trump, winnerPlayerIndex }: TrickAreaProp
   );
 
   const dropZoneHighlightStyle = useAnimatedStyle(() => ({
-    borderWidth: isDragActive.value ? 2 : 0,
+    borderWidth: 2,
     borderColor: isDragActive.value ? '#22c55e' : 'transparent',
     borderStyle: 'dashed' as const,
     backgroundColor: isDragActive.value ? 'rgba(34, 197, 94, 0.1)' : 'transparent',

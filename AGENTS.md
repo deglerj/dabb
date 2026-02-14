@@ -342,16 +342,20 @@ Example naming: `'authenticates when session code differs from session UUID (reg
 ## Conventions
 
 1. **No `any` types** - Use proper TypeScript types
-2. **Event sourcing** - All state changes through events
-3. **Swabian names** - Use Kreuz/Schippe/Herz/Bollen, Buabe not Unter
-4. **Strict mode** - TypeScript strict is enabled
-5. **Workspace imports** - Use `@dabb/*` package imports
-6. **Update documentation** - After adding/changing APIs, endpoints, or socket events, update:
+2. **Avoid mobile layout shifts** - On mobile, never conditionally mount/unmount UI sections that affect layout flow. Instead:
+   - Always render containers and use `opacity: 0` to hide content (reserves space)
+   - Use constant `borderWidth` and toggle `borderColor` to/from `transparent` (avoids N-px shifts)
+   - Show placeholder text in empty containers rather than returning `null`
+3. **Event sourcing** - All state changes through events
+4. **Swabian names** - Use Kreuz/Schippe/Herz/Bollen, Buabe not Unter
+5. **Strict mode** - TypeScript strict is enabled
+6. **Workspace imports** - Use `@dabb/*` package imports
+7. **Update documentation** - After adding/changing APIs, endpoints, or socket events, update:
    - `docs/API.md` for REST endpoints
    - `docs/SOCKET_EVENTS.md` for Socket.IO events
    - `docs/DATABASE.md` for database schema changes
    - This file (`CLAUDE.md`) for new key files or patterns
-7. **Verify changes match CI before committing** - After making changes, always run the full CI verification locally and fix any errors before finishing:
+8. **Verify changes match CI before committing** - After making changes, always run the full CI verification locally and fix any errors before finishing:
    ```bash
    pnpm run build      # Builds all packages (includes tsc type-checking)
    pnpm run lint        # ESLint across the entire repo

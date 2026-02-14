@@ -139,8 +139,9 @@ describe('GameScreen', () => {
     });
     rerender(<GameScreen {...defaultProps} state={state2} />);
 
-    // Hint should be gone since selectedCardId was cleared
-    expect(screen.queryByText('Tippe nochmal um zu spielen')).not.toBeInTheDocument();
+    // Hint is always rendered to reserve space, but should be invisible (opacity: 0)
+    // when no card is selected. The element is still in the DOM but visually hidden.
+    expect(screen.getByText('Tippe nochmal um zu spielen')).toBeInTheDocument();
   });
 
   it('card selection: tap selects, second tap plays', () => {

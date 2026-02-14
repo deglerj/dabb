@@ -143,13 +143,6 @@ function GameScreen({
     [t, onGoOut]
   );
 
-  // Determine if we should show the compact header or full scoreboard
-  const showScoreboardHeader =
-    state.phase !== 'waiting' &&
-    state.phase !== 'dealing' &&
-    state.phase !== 'scoring' &&
-    state.phase !== 'finished';
-
   // Check if we can show the exit button (only during active game phases)
   const activePhases = ['dealing', 'bidding', 'dabb', 'trump', 'melding', 'tricks', 'scoring'];
   const canExit = activePhases.includes(state.phase);
@@ -384,15 +377,13 @@ function GameScreen({
           </View>
         </View>
 
-        {/* Compact scoreboard header during active play */}
-        {showScoreboardHeader && (
-          <ScoreBoardHeader
-            state={state}
-            events={events}
-            nicknames={nicknames}
-            onExpand={() => setShowExpandedScoreboard(true)}
-          />
-        )}
+        {/* Compact scoreboard header - always rendered to avoid layout shifts */}
+        <ScoreBoardHeader
+          state={state}
+          events={events}
+          nicknames={nicknames}
+          onExpand={() => setShowExpandedScoreboard(true)}
+        />
 
         {/* Game Log below scoreboard header */}
         <GameLog
@@ -421,9 +412,11 @@ function GameScreen({
             draggable={state.phase === 'tricks' && isMyTurn && !isTrickPaused}
             onPlayCard={onPlayCard}
           />
-          {state.phase === 'tricks' && selectedCardId && (
-            <Text style={styles.hint}>{t('game.tapAgainToPlay')}</Text>
-          )}
+          <Text
+            style={[styles.hint, { opacity: state.phase === 'tricks' && selectedCardId ? 1 : 0 }]}
+          >
+            {t('game.tapAgainToPlay')}
+          </Text>
         </View>
 
         {/* Expanded scoreboard modal */}
