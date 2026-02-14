@@ -7,6 +7,7 @@ import Card from './Card';
 interface PlayerHandProps {
   cards: CardType[];
   validMoves: CardId[];
+  dabbCardIds?: CardId[];
   onPlayCard?: (cardId: CardId) => void;
   selectionMode?: 'single' | 'multiple';
   selectedCount?: number;
@@ -16,6 +17,7 @@ interface PlayerHandProps {
 function PlayerHand({
   cards,
   validMoves,
+  dabbCardIds,
   onPlayCard,
   selectionMode = 'single',
   selectedCount = 0,
@@ -56,6 +58,7 @@ function PlayerHand({
           card={card}
           selected={selected.has(card.id)}
           valid={validMoves.length === 0 || validMoves.includes(card.id)}
+          dabb={dabbCardIds?.includes(card.id)}
           onClick={() => handleClick(card)}
         />
       ))}

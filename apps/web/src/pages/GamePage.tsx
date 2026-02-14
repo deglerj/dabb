@@ -324,6 +324,7 @@ function GamePage() {
       <PlayerHand
         cards={myHand}
         validMoves={validMoves}
+        dabbCardIds={state.dabbCardIds}
         onPlayCard={
           state.phase === 'tricks' && isMyTurn && !isTrickPaused ? game.playCard : undefined
         }

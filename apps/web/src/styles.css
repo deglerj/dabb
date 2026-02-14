@@ -267,6 +267,11 @@ h3 {
   border: 2px solid gold;
 }
 
+.playing-card.dabb {
+  box-shadow: 0 0 10px 3px rgba(245, 158, 11, 0.6);
+  border: 2px solid #f59e0b;
+}
+
 .playing-card.herz,
 .playing-card.schell {
   color: #dc2626;

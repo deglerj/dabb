@@ -93,6 +93,9 @@ export interface GameState {
   // Whether bid winner chose to "go out" (forfeit round)
   wentOut: boolean;
 
+  // IDs of cards that came from the dabb (for highlighting)
+  dabbCardIds: CardId[];
+
   // Last completed trick (for display pause)
   lastCompletedTrick: CompletedTrick | null;
 }

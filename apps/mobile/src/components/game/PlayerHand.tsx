@@ -14,6 +14,7 @@ interface PlayerHandProps {
   cards: CardType[];
   selectedCardId?: string | null;
   validCardIds?: string[];
+  dabbCardIds?: string[];
   onCardSelect?: (cardId: string) => void;
   selectionMode?: 'single' | 'multiple';
   selectedCardIds?: string[];
@@ -26,6 +27,7 @@ function PlayerHand({
   cards,
   selectedCardId,
   validCardIds,
+  dabbCardIds,
   onCardSelect,
   selectionMode = 'single',
   selectedCardIds = [],
@@ -68,6 +70,7 @@ function PlayerHand({
               card={card}
               selected={isSelected(card.id)}
               valid={isCardValid(card.id)}
+              dabb={dabbCardIds?.includes(card.id)}
               draggable={draggable}
               onPress={() => handlePress(card.id)}
               onPlayCard={onPlayCard}
@@ -77,6 +80,7 @@ function PlayerHand({
               card={card}
               selected={isSelected(card.id)}
               valid={isCardValid(card.id)}
+              dabb={dabbCardIds?.includes(card.id)}
               onPress={() => handlePress(card.id)}
             />
           )}

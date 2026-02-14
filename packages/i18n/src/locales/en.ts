@@ -139,6 +139,7 @@ const en: TranslationKeys = {
     biddingWon: '{{name}} wins bidding with {{bid}}',
     goingOut: '{{name}} goes out in {{suit}}',
     trumpDeclared: '{{name}} declares {{suit}} as trump',
+    dabbTaken: '{{name}} picks up the Dabb',
     meldsDeclared: '{{name}} declares {{points}} points',
     meldsNone: '{{name}} has no melds',
     cardPlayed: '{{name}} plays {{card}}',

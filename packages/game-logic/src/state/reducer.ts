@@ -233,6 +233,7 @@ function handleDabbTaken(
     ...state,
     hands: newHands,
     dabb: [], // Dabb is now empty
+    dabbCardIds: event.payload.dabbCards.map((c) => c.id),
   };
 }
 
@@ -312,6 +313,7 @@ function handleMeldingComplete(
       leadSuit: null,
       winnerIndex: null,
     },
+    dabbCardIds: [], // Clear highlighting when melding is done
   };
 }
 

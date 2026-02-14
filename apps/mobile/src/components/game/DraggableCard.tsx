@@ -21,6 +21,7 @@ interface DraggableCardProps {
   card: CardType;
   selected?: boolean;
   valid?: boolean;
+  dabb?: boolean;
   draggable?: boolean;
   onPress?: () => void;
   onPlayCard?: (cardId: string) => void;
@@ -30,6 +31,7 @@ function DraggableCard({
   card,
   selected = false,
   valid = true,
+  dabb = false,
   draggable = false,
   onPress,
   onPlayCard,
@@ -106,13 +108,13 @@ function DraggableCard({
   }));
 
   if (!canDrag) {
-    return <Card card={card} selected={selected} valid={valid} onPress={onPress} />;
+    return <Card card={card} selected={selected} valid={valid} dabb={dabb} onPress={onPress} />;
   }
 
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.wrapper, animatedStyle]}>
-        <Card card={card} selected={selected} valid={valid} onPress={onPress} />
+        <Card card={card} selected={selected} valid={valid} dabb={dabb} onPress={onPress} />
       </Animated.View>
     </GestureDetector>
   );

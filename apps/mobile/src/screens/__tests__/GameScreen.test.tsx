@@ -65,6 +65,7 @@ function createBaseState(overrides: Partial<GameState> = {}): GameState {
     dealer: 0 as PlayerIndex,
     round: 1,
     wentOut: false,
+    dabbCardIds: [],
     lastCompletedTrick: null,
     ...overrides,
   };

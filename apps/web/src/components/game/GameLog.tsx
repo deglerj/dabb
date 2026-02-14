@@ -14,13 +14,13 @@ function GameLog({ state, events, currentPlayerIndex }: GameLogProps) {
   const { t } = useTranslation();
   const { entries, latestEntries, isYourTurn } = useGameLog(events, state, currentPlayerIndex);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [expandedMelds, setExpandedMelds] = useState<Set<string>>(new Set());
+  const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
 
   const displayEntries = isExpanded ? entries : latestEntries;
   const hasMoreEntries = entries.length > latestEntries.length;
 
-  const toggleMelds = (entryId: string) => {
-    setExpandedMelds((prev) => {
+  const toggleExpanded = (entryId: string) => {
+    setExpandedEntries((prev) => {
       const next = new Set(prev);
       if (next.has(entryId)) {
         next.delete(entryId);
@@ -76,12 +76,40 @@ function GameLog({ state, events, currentPlayerIndex }: GameLogProps) {
         return t('gameLog.trumpDeclared', { name, suit: suitName });
       }
 
+      case 'dabb_taken': {
+        const hasCards = entry.data.cards.length > 0;
+        const isDabbOpen = expandedEntries.has(entry.id);
+        return (
+          <span>
+            {t('gameLog.dabbTaken', { name })}
+            {hasCards && (
+              <>
+                <button
+                  className="game-log-meld-toggle"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleExpanded(entry.id);
+                  }}
+                >
+                  {isDabbOpen ? '-' : '+'}
+                </button>
+                {isDabbOpen && (
+                  <div className="game-log-meld-details">
+                    {entry.data.cards.map((c) => formatCard(c)).join(', ')}
+                  </div>
+                )}
+              </>
+            )}
+          </span>
+        );
+      }
+
       case 'melds_declared': {
         if (entry.data.totalPoints === 0) {
           return t('gameLog.meldsNone', { name });
         }
         const hasMelds = entry.data.melds.length > 0;
-        const isOpen = expandedMelds.has(entry.id);
+        const isOpen = expandedEntries.has(entry.id);
         return (
           <span>
             {t('gameLog.meldsDeclared', { name, points: entry.data.totalPoints })}
@@ -91,7 +119,7 @@ function GameLog({ state, events, currentPlayerIndex }: GameLogProps) {
                   className="game-log-meld-toggle"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleMelds(entry.id);
+                    toggleExpanded(entry.id);
                   }}
                 >
                   {isOpen ? '-' : '+'}

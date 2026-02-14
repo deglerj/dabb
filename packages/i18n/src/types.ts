@@ -150,6 +150,7 @@ export interface TranslationKeys {
     biddingWon: string;
     goingOut: string;
     trumpDeclared: string;
+    dabbTaken: string;
     meldsDeclared: string;
     meldsNone: string;
     cardPlayed: string;

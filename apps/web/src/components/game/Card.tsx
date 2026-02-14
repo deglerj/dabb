@@ -7,6 +7,7 @@ interface CardProps {
   selected?: boolean;
   valid?: boolean;
   winner?: boolean;
+  dabb?: boolean;
   onClick?: () => void;
 }
 
@@ -18,7 +19,14 @@ const RANK_DISPLAY: Record<Rank, string> = {
   ass: 'A',
 };
 
-function Card({ card, selected = false, valid = true, winner = false, onClick }: CardProps) {
+function Card({
+  card,
+  selected = false,
+  valid = true,
+  winner = false,
+  dabb = false,
+  onClick,
+}: CardProps) {
   if (isHiddenCard(card)) {
     return (
       <div
@@ -37,7 +45,7 @@ function Card({ card, selected = false, valid = true, winner = false, onClick }:
 
   return (
     <div
-      className={`playing-card ${card.suit} ${selected ? 'selected' : ''} ${winner ? 'winner' : ''}`}
+      className={`playing-card ${card.suit} ${selected ? 'selected' : ''} ${winner ? 'winner' : ''} ${dabb ? 'dabb' : ''}`}
       onClick={valid ? onClick : undefined}
       style={{
         filter: valid ? 'none' : 'grayscale(100%) brightness(0.7)',

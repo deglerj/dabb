@@ -140,6 +140,7 @@ const de: TranslationKeys = {
     biddingWon: '{{name}} gewinnt das Reizen mit {{bid}}',
     goingOut: '{{name}} geht ab in {{suit}}',
     trumpDeclared: '{{name}} wählt {{suit}} als Trumpf',
+    dabbTaken: '{{name}} nimmt den Dabb auf',
     meldsDeclared: '{{name}} meldet {{points}} Punkte',
     meldsNone: '{{name}} hat keine Meldungen',
     cardPlayed: '{{name}} spielt {{card}}',

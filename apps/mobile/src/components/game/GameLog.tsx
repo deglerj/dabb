@@ -22,13 +22,13 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
   const { t } = useTranslation();
   const { entries, latestEntries, isYourTurn } = useGameLog(events, state, currentPlayerIndex);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [expandedMelds, setExpandedMelds] = useState<Set<string>>(new Set());
+  const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
 
   const displayEntries = isExpanded ? entries : latestEntries;
   const hasMoreEntries = entries.length > latestEntries.length;
 
-  const toggleMelds = (entryId: string) => {
-    setExpandedMelds((prev) => {
+  const toggleExpanded = (entryId: string) => {
+    setExpandedEntries((prev) => {
       const next = new Set(prev);
       if (next.has(entryId)) {
         next.delete(entryId);
@@ -104,12 +104,37 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
         );
       }
 
+      case 'dabb_taken': {
+        const hasCards = entry.data.cards.length > 0;
+        const isDabbOpen = expandedEntries.has(entry.id);
+        return (
+          <View>
+            <View style={styles.meldRow}>
+              <Text style={styles.entryText}>{t('gameLog.dabbTaken', { name })}</Text>
+              {hasCards && (
+                <TouchableOpacity
+                  style={styles.meldToggle}
+                  onPress={() => toggleExpanded(entry.id)}
+                >
+                  <Feather name={isDabbOpen ? 'minus' : 'plus'} size={10} color="#6b7280" />
+                </TouchableOpacity>
+              )}
+            </View>
+            {isDabbOpen && (
+              <Text style={styles.meldDetails}>
+                {entry.data.cards.map((c) => formatCard(c)).join(', ')}
+              </Text>
+            )}
+          </View>
+        );
+      }
+
       case 'melds_declared': {
         if (entry.data.totalPoints === 0) {
           return <Text style={styles.entryText}>{t('gameLog.meldsNone', { name })}</Text>;
         }
         const hasMelds = entry.data.melds.length > 0;
-        const isOpen = expandedMelds.has(entry.id);
+        const isOpen = expandedEntries.has(entry.id);
         return (
           <View>
             <View style={styles.meldRow}>
@@ -117,7 +142,10 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
                 {t('gameLog.meldsDeclared', { name, points: entry.data.totalPoints })}
               </Text>
               {hasMelds && (
-                <TouchableOpacity style={styles.meldToggle} onPress={() => toggleMelds(entry.id)}>
+                <TouchableOpacity
+                  style={styles.meldToggle}
+                  onPress={() => toggleExpanded(entry.id)}
+                >
                   <Feather name={isOpen ? 'minus' : 'plus'} size={10} color="#6b7280" />
                 </TouchableOpacity>
               )}

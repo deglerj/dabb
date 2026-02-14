@@ -53,6 +53,9 @@ export function createInitialState(
     // Going out state
     wentOut: false,
 
+    // Dabb card IDs (for highlighting)
+    dabbCardIds: [],
+
     // Last completed trick
     lastCompletedTrick: null,
   };
@@ -101,6 +104,9 @@ export function resetForNewRound(state: GameState): GameState {
 
     // Reset going out state
     wentOut: false,
+
+    // Reset dabb card IDs
+    dabbCardIds: [],
 
     // Reset last completed trick
     lastCompletedTrick: null,

@@ -13,6 +13,7 @@ interface CardProps {
   selected?: boolean;
   valid?: boolean;
   winner?: boolean;
+  dabb?: boolean;
   onPress?: () => void;
 }
 
@@ -24,7 +25,14 @@ const RANK_DISPLAY: Record<Rank, string> = {
   ass: 'A',
 };
 
-function Card({ card, selected = false, valid = true, winner = false, onPress }: CardProps) {
+function Card({
+  card,
+  selected = false,
+  valid = true,
+  winner = false,
+  dabb = false,
+  onPress,
+}: CardProps) {
   if (isHiddenCard(card)) {
     return (
       <View style={[styles.card, styles.hiddenCard]}>
@@ -37,7 +45,12 @@ function Card({ card, selected = false, valid = true, winner = false, onPress }:
 
   return (
     <TouchableOpacity
-      style={[styles.card, selected && styles.selectedCard, winner && styles.winnerCard]}
+      style={[
+        styles.card,
+        selected && styles.selectedCard,
+        winner && styles.winnerCard,
+        dabb && styles.dabbCard,
+      ]}
       onPress={valid ? onPress : undefined}
       disabled={!valid || !onPress}
       activeOpacity={valid && onPress ? 0.7 : 1}
@@ -91,6 +104,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 8,
     elevation: 8,
+  },
+  dabbCard: {
+    borderColor: '#f59e0b',
+    borderWidth: 2,
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+    elevation: 6,
   },
   invalidOverlay: {
     position: 'absolute',

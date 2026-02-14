@@ -409,6 +409,7 @@ function GameScreen({
             cards={sortedHand}
             selectedCardId={selectedCardId}
             validCardIds={validCardIds}
+            dabbCardIds={state.dabbCardIds}
             onCardSelect={handleCardSelect}
             selectionMode={
               state.phase === 'dabb' && state.dabb.length === 0 && state.bidWinner === playerIndex

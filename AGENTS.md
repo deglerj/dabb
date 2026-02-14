@@ -98,7 +98,6 @@ The game log displays player actions in real-time, helping players follow the ga
 **Anti-cheat safety**: The following events are NOT logged because they contain secret card information:
 
 - `CARDS_DEALT` - Players' hole cards
-- `DABB_TAKEN` - Dabb cards picked up
 - `CARDS_DISCARDED` - Cards discarded to dabb
 - `MELDING_COMPLETE` - Redundant with `MELDS_DECLARED`
 
@@ -111,6 +110,7 @@ The game log displays player actions in real-time, helping players follow the ga
 | `BID_PLACED`        | "{name} bids {amount}"                         |
 | `PLAYER_PASSED`     | "{name} passes"                                |
 | `BIDDING_WON`       | "{name} wins bidding with {bid}"               |
+| `DABB_TAKEN`        | "{name} picks up the Dabb" + expandable cards  |
 | `GOING_OUT`         | "{name} goes out in {suit}"                    |
 | `TRUMP_DECLARED`    | "{name} declares {suit} as trump"              |
 | `MELDS_DECLARED`    | "{name} declares {points} points" + expandable |

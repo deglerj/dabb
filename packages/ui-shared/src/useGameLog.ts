@@ -18,7 +18,7 @@ export interface GameLogResult {
 
 /**
  * Converts game events to displayable log entries
- * Skips secret events (CARDS_DEALT, DABB_TAKEN, CARDS_DISCARDED, MELDING_COMPLETE)
+ * Skips secret events (CARDS_DEALT, CARDS_DISCARDED, MELDING_COMPLETE)
  */
 export function useGameLog(
   events: GameEvent[],
@@ -216,9 +216,20 @@ function eventToLogEntry(event: GameEvent): GameLogEntry | null {
         },
       };
 
+    case 'DABB_TAKEN':
+      return {
+        id: event.id,
+        timestamp: event.timestamp,
+        type: 'dabb_taken',
+        playerIndex: event.payload.playerIndex,
+        data: {
+          kind: 'dabb_taken',
+          cards: event.payload.dabbCards,
+        },
+      };
+
     // Secret events that shouldn't be logged
     case 'CARDS_DEALT':
-    case 'DABB_TAKEN':
     case 'CARDS_DISCARDED':
     case 'MELDING_COMPLETE':
     case 'PLAYER_JOINED':
