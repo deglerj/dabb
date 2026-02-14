@@ -13,7 +13,7 @@ function HomePage() {
   const [searchParams] = useSearchParams();
   const joinCodeFromUrl = searchParams.get('join');
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>(joinCodeFromUrl ? 'join' : 'menu');
-  const [nickname, setNickname] = useState('');
+  const [nickname, setNickname] = useState(() => localStorage.getItem('dabb-nickname') || '');
   const [playerCount, setPlayerCount] = useState<PlayerCount>(4);
   const [joinCode, setJoinCode] = useState(joinCodeFromUrl || '');
   const [error, setError] = useState('');
@@ -63,6 +63,7 @@ function HomePage() {
         })
       );
 
+      localStorage.setItem('dabb-nickname', nickname.trim());
       navigate(`/game/${data.sessionCode}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
@@ -111,6 +112,7 @@ function HomePage() {
         })
       );
 
+      localStorage.setItem('dabb-nickname', nickname.trim());
       navigate(`/game/${joinCode.trim()}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));

@@ -2,7 +2,7 @@
  * Home screen for creating or joining games
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { Feather } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
 import { useTranslation } from '@dabb/i18n';
 import { getRulesMarkdown, type SupportedLanguage } from '@dabb/i18n';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface HomeScreenProps {
@@ -36,6 +37,14 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(4);
   const [showRules, setShowRules] = useState(false);
 
+  useEffect(() => {
+    AsyncStorage.getItem('dabb-nickname').then((saved) => {
+      if (saved) {
+        setNickname(saved);
+      }
+    });
+  }, []);
+
   const handleCreate = async () => {
     if (!nickname.trim()) {
       Alert.alert(t('common.error'), t('errors.enterNickname'));
@@ -43,6 +52,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
     }
 
     try {
+      await AsyncStorage.setItem('dabb-nickname', nickname.trim());
       await onCreateGame(nickname.trim(), playerCount);
     } catch (_error) {
       Alert.alert(t('common.error'), t('errors.createFailed'));
@@ -60,6 +70,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
     }
 
     try {
+      await AsyncStorage.setItem('dabb-nickname', nickname.trim());
       await onJoinGame(sessionCode.trim().toLowerCase(), nickname.trim());
     } catch (_error) {
       Alert.alert(t('common.error'), t('errors.joinFailed'));
