@@ -4,21 +4,21 @@
 
 ### A Multiplayer Binokel Card Game
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-22-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Expo](https://img.shields.io/badge/Expo-54-000020.svg?logo=expo&logoColor=white)](https://expo.dev/)
+[![Expo](https://img.shields.io/badge/Expo-55-000020.svg?logo=expo&logoColor=white)](https://expo.dev/)
 [![Socket.IO](https://img.shields.io/badge/Socket.IO-4-010101.svg?logo=socket.io&logoColor=white)](https://socket.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1.svg?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Turborepo](https://img.shields.io/badge/Turborepo-2-EF4444.svg?logo=turborepo&logoColor=white)](https://turbo.build/)
 [![pnpm](https://img.shields.io/badge/pnpm-10-F69220.svg?logo=pnpm&logoColor=white)](https://pnpm.io/)
-[![Vitest](https://img.shields.io/badge/Vitest-3-6E9F18.svg?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-4-6E9F18.svg?logo=vitest&logoColor=white)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](LICENSE)
 [![AI Slop](https://img.shields.io/badge/AI%20Slop-100%25-blueviolet.svg?logo=openai&logoColor=white)](#ai-slop-history)
 
 _Play the traditional Swabian card game Binokel with friends online!_
 
-[Play Now](#getting-started) | [Game Rules](#game-rules) | [Development](#development)
+[Play Now](#getting-started) | [Game Rules](docs/RULES_EN.md) | [Development](#development)
 
 **New to Binokel?** Read the full rules: [English](docs/RULES_EN.md) | [Deutsch](docs/RULES_DE.md)
 
@@ -48,70 +48,6 @@ _Play the traditional Swabian card game Binokel with friends online!_
 
 ---
 
-## Game Rules
-
-### Overview
-
-Binokel is played with a **40-card deck** (two copies of each card). The goal is to score points through **melds** (card combinations) and **tricks** (winning rounds).
-
-### Cards
-
-| Rank | Name (Swabian) | Points |
-| ---- | -------------- | ------ |
-| A    | Ass            | 11     |
-| 10   | Zehn           | 10     |
-| K    | König          | 4      |
-| O    | Ober           | 3      |
-| U    | Buabe          | 2      |
-
-**Suits**: Kreuz (♣), Schippe (♠), Herz (♥), Bollen (♦)
-
-### Game Phases
-
-1. **Dealing** - Cards are dealt to players and the _Dabb_ (extra cards)
-2. **Bidding** - Players bid for the right to name trump (starts at 150)
-3. **Dabb** - Bid winner takes the Dabb and discards cards (or goes out)
-4. **Trump** - Bid winner declares the trump suit
-5. **Melding** - All players declare their melds for points
-6. **Tricks** - Play 11-15 rounds to win tricks
-7. **Scoring** - Calculate points and update scores
-
-### Going Out (Abgehen)
-
-After taking the Dabb, if the bid winner doesn't think they can make their bid, they can choose to **go out** (_Abgehen_):
-
-- Choose a trump suit to "go out in" (e.g., "Ab in Schippen")
-- **Bid winner** loses points equal to their bid
-- **Opponents** each get their melds + 40 bonus points
-- Round ends immediately (no tricks phase)
-
-### Melds
-
-| Meld           | Description                           | Points             |
-| -------------- | ------------------------------------- | ------------------ |
-| Paar           | King + Ober of same suit              | 20 (40 if trump)   |
-| Familie        | A-10-K-O-U of same suit               | 100 (150 if trump) |
-| Binokel        | Ober Schippe + Buabe Bollen           | 40                 |
-| Doppel-Binokel | Both Ober Schippe + both Buabe Bollen | 300                |
-| Vier Ass       | All four Asses                        | 100                |
-| Vier König     | All four Kings                        | 80                 |
-| Vier Ober      | All four Obers                        | 60                 |
-| Vier Buabe     | All four Buaben                       | 40                 |
-
-### Trick Rules
-
-1. **Must follow suit** if possible
-2. **Must beat** the highest card of the led suit if following
-3. **Must play trump** if unable to follow suit
-4. **Must beat** the highest trump if trumping
-5. Any card is valid only if you cannot follow or trump
-
-### Winning
-
-The first team/player to reach **1000 points** wins the game!
-
----
-
 ## FAQ
 
 ### "But that's not how we play it!"
@@ -129,20 +65,11 @@ Here's the thing: the rules implemented in this app are based on the one true tr
 | "All four 10s should be a valid meld!" | No. The 10 already gets 10 points per trick. It doesn't need more glory. |
 | "We call the Ober 'Unter'!"            | The Ober is above the Buabe. It's in the name. Geography matters.        |
 | "Going out gives others 30 points!"    | It's 40. Your opponents deserve proper compensation for your cowardice.  |
+| "The bid winner plays the first card!" | The player after the dealer leads — same one who started the bidding.    |
 
 If your local rules differ, we respectfully suggest that your ancestors may have misheard the rules at some point, and the error has been propagated through generations. It happens to the best of us.
 
 That said, feel free to open an issue if you want to argue. We enjoy reading passionate defenses of objectively wrong rule variants.
-
-### Who plays the first card?
-
-The player who **started the bidding** (first bidder) plays the first card in the tricks phase - not the player who won the bidding. This follows the traditional rule that maintains the same turn order throughout the round:
-
-1. The dealer rotates each round (Player 0, then Player 1, then Player 2, ...)
-2. The player after the dealer starts the bidding (first bidder)
-3. After melds are declared, that same first bidder plays the first card
-
-This means even if you win the bid, you might not lead the first trick. The starting player advantage stays with whoever sat in the "first bidder" position for that round.
 
 ---
 
