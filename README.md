@@ -18,9 +18,7 @@
 
 _Play the traditional Swabian card game Binokel with friends online!_
 
-[Play Now](#getting-started) | [Game Rules](docs/RULES_EN.md) | [Development](#development)
-
-**New to Binokel?** Read the full rules: [English](docs/RULES_EN.md) | [Deutsch](docs/RULES_DE.md)
+[Play Now](#getting-started) | [Development](#development)
 
 </div>
 
