@@ -20,6 +20,8 @@ _Play the traditional Swabian card game Binokel with friends online!_
 
 [Play Now](#getting-started) | [Game Rules](#game-rules) | [Development](#development)
 
+**New to Binokel?** Read the full rules: [English](docs/RULES_EN.md) | [Deutsch](docs/RULES_DE.md)
+
 </div>
 
 ---
@@ -80,7 +82,7 @@ After taking the Dabb, if the bid winner doesn't think they can make their bid, 
 
 - Choose a trump suit to "go out in" (e.g., "Ab in Schippen")
 - **Bid winner** loses points equal to their bid
-- **Opponents** each get their melds + 30 bonus points
+- **Opponents** each get their melds + 40 bonus points
 - Round ends immediately (no tricks phase)
 
 ### Melds
