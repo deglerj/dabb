@@ -13,9 +13,13 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import Markdown from 'react-native-markdown-display';
 import { useTranslation } from '@dabb/i18n';
+import { getRulesMarkdown, type SupportedLanguage } from '@dabb/i18n';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface HomeScreenProps {
@@ -25,11 +29,12 @@ interface HomeScreenProps {
 }
 
 function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu');
   const [nickname, setNickname] = useState('');
   const [sessionCode, setSessionCode] = useState('');
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(4);
+  const [showRules, setShowRules] = useState(false);
 
   const handleCreate = async () => {
     if (!nickname.trim()) {
@@ -90,7 +95,36 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
               <Text style={styles.secondaryButtonText}>{t('home.joinGame')}</Text>
             </View>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton]}
+            onPress={() => setShowRules(true)}
+          >
+            <View style={styles.buttonContent}>
+              <Feather name="book-open" size={18} color="#2563eb" />
+              <Text style={styles.secondaryButtonText}>{t('rules.title')}</Text>
+            </View>
+          </TouchableOpacity>
         </View>
+
+        <Modal visible={showRules} animationType="slide" onRequestClose={() => setShowRules(false)}>
+          <View style={styles.rulesModal}>
+            <View style={styles.rulesHeader}>
+              <Text style={styles.rulesTitle}>{t('rules.title')}</Text>
+              <TouchableOpacity onPress={() => setShowRules(false)}>
+                <Feather name="x" size={24} color="#1e3a5f" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={styles.rulesScroll}
+              contentContainerStyle={styles.rulesScrollContent}
+            >
+              <Markdown style={markdownStyles}>
+                {getRulesMarkdown(i18n.language as SupportedLanguage)}
+              </Markdown>
+            </ScrollView>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -345,6 +379,86 @@ const styles = StyleSheet.create({
   actionButtons: {
     marginTop: 16,
     gap: 12,
+  },
+  rulesModal: {
+    flex: 1,
+    backgroundColor: '#f0f9ff',
+  },
+  rulesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#d1d5db',
+  },
+  rulesTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1e3a5f',
+  },
+  rulesScroll: {
+    flex: 1,
+  },
+  rulesScrollContent: {
+    padding: 16,
+  },
+});
+
+const markdownStyles = StyleSheet.create({
+  heading1: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1e3a5f',
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  heading2: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1e3a5f',
+    marginBottom: 8,
+    marginTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#d1d5db',
+    paddingBottom: 4,
+  },
+  heading3: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: '#1e3a5f',
+    marginBottom: 6,
+    marginTop: 12,
+  },
+  body: {
+    fontSize: 15,
+    color: '#374151',
+    lineHeight: 22,
+  },
+  strong: {
+    fontWeight: 'bold',
+    color: '#1e3a5f',
+  },
+  table: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 4,
+    marginBottom: 12,
+  },
+  th: {
+    backgroundColor: '#e5e7eb',
+    padding: 8,
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  td: {
+    padding: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#d1d5db',
+    fontSize: 13,
+  },
+  list_item: {
+    marginBottom: 4,
   },
 });
 

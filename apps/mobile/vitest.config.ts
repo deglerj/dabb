@@ -8,6 +8,10 @@ export default defineConfig({
   resolve: {
     alias: {
       'react-native': resolve(__dirname, 'src/test/react-native-stub.ts'),
+      'react-native-markdown-display': resolve(
+        __dirname,
+        'src/test/react-native-markdown-display-stub.ts'
+      ),
     },
   },
   test: {

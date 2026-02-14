@@ -129,6 +129,79 @@ h3 {
   color: var(--success);
 }
 
+/* Rules page styles */
+.rules-page {
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+.rules-content h1 {
+  display: none;
+}
+
+.rules-content h2 {
+  color: var(--text-primary);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.rules-content h3 {
+  color: var(--text-primary);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.rules-content p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.rules-content ul,
+.rules-content ol {
+  color: var(--text-secondary);
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.rules-content li {
+  margin-bottom: 0.25rem;
+}
+
+.rules-content strong {
+  color: var(--text-primary);
+}
+
+.rules-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.rules-content th,
+.rules-content td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.rules-content th {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.rules-content td {
+  color: var(--text-primary);
+}
+
+.rules-content tbody tr:hover {
+  background: var(--bg-input);
+}
+
 /* Game-specific styles */
 .game-board {
   display: grid;

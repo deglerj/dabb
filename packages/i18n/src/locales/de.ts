@@ -148,6 +148,9 @@ const de: TranslationKeys = {
     gameFinished: '{{name}} gewinnt das Spiel!',
     gameTerminated: '{{name}} hat das Spiel verlassen',
   },
+  rules: {
+    title: 'Spielregeln',
+  },
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: 'Sitzung nicht gefunden',

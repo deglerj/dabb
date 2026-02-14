@@ -147,6 +147,9 @@ const en: TranslationKeys = {
     gameFinished: '{{name}} wins the game!',
     gameTerminated: '{{name}} left the game',
   },
+  rules: {
+    title: 'Game Rules',
+  },
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: 'Session not found',

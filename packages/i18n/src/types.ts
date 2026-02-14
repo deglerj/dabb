@@ -158,6 +158,9 @@ export interface TranslationKeys {
     gameFinished: string;
     gameTerminated: string;
   };
+  rules: {
+    title: string;
+  };
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: string;

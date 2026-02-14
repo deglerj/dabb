@@ -130,4 +130,27 @@ describe('HomeScreen', () => {
     // In menu mode, loading doesn't change anything visible
     expect(screen.getByText('Neues Spiel erstellen')).toBeInTheDocument();
   });
+
+  it('shows rules button on menu screen', () => {
+    render(<HomeScreen {...defaultProps} />);
+    expect(screen.getByText('Spielregeln')).toBeInTheDocument();
+  });
+
+  it('opens rules modal when rules button is tapped', () => {
+    render(<HomeScreen {...defaultProps} />);
+    fireEvent.click(screen.getByText('Spielregeln'));
+
+    // The modal should show the rules markdown content
+    expect(screen.getByTestId('markdown')).toBeInTheDocument();
+  });
+
+  it('closes rules modal when close button is tapped', () => {
+    render(<HomeScreen {...defaultProps} />);
+    fireEvent.click(screen.getByText('Spielregeln'));
+    expect(screen.getByTestId('markdown')).toBeInTheDocument();
+
+    // Tap the close button (the X icon)
+    fireEvent.click(screen.getByTestId('feather-x'));
+    expect(screen.queryByTestId('markdown')).not.toBeInTheDocument();
+  });
 });

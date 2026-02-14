@@ -26,6 +26,9 @@ export {
   type TranslationResource,
 } from './types.js';
 
+// Rules
+export { getRulesMarkdown, rulesDE, rulesEN } from './rules.js';
+
 // Locales
 export { de, en, resources } from './locales/index.js';
 

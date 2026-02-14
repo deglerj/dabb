@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { PlayerCount } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
-import { Plus, UserPlus, ArrowLeft, Users, Loader2 } from 'lucide-react';
+import { Plus, UserPlus, ArrowLeft, Users, Loader2, BookOpen } from 'lucide-react';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -133,6 +133,9 @@ function HomePage() {
           </button>
           <button className="secondary" onClick={() => setMode('join')}>
             <UserPlus size={18} /> {t('home.joinGame')}
+          </button>
+          <button className="secondary" onClick={() => navigate('/rules')}>
+            <BookOpen size={18} /> {t('rules.title')}
           </button>
         </div>
       </div>
