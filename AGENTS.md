@@ -188,15 +188,16 @@ Server errors are internationalized using error codes. The server sends structur
 
 **Error codes** are defined in `packages/shared-types/src/errors.ts`:
 
-| Category | Example Codes                                                                    |
-| -------- | -------------------------------------------------------------------------------- |
-| Session  | `SESSION_NOT_FOUND`, `SESSION_FULL`, `GAME_ALREADY_STARTED`                      |
-| Bidding  | `NOT_IN_BIDDING_PHASE`, `NOT_YOUR_TURN_TO_BID`, `FIRST_BIDDER_MUST_BID`          |
-| Dabb     | `NOT_IN_DABB_PHASE`, `ONLY_BID_WINNER_CAN_TAKE_DABB`, `MUST_DISCARD_EXACT_COUNT` |
-| Trump    | `NOT_IN_TRUMP_PHASE`, `ONLY_BID_WINNER_CAN_DECLARE_TRUMP`                        |
-| Melding  | `NOT_IN_MELDING_PHASE`, `ALREADY_DECLARED_MELDS`, `CANNOT_MELD_WHEN_GOING_OUT`   |
-| Tricks   | `NOT_IN_TRICKS_PHASE`, `INVALID_PLAY`, `CARD_NOT_IN_HAND`                        |
-| General  | `NOT_YOUR_TURN`, `UNKNOWN_ERROR`                                                 |
+| Category | Example Codes                                                                                                              |
+| -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Session  | `SESSION_NOT_FOUND`, `SESSION_FULL`, `GAME_ALREADY_STARTED`                                                                |
+| Bidding  | `NOT_IN_BIDDING_PHASE`, `NOT_YOUR_TURN_TO_BID`, `FIRST_BIDDER_MUST_BID`                                                    |
+| Dabb     | `NOT_IN_DABB_PHASE`, `ONLY_BID_WINNER_CAN_TAKE_DABB`, `MUST_DISCARD_EXACT_COUNT`                                           |
+| Trump    | `NOT_IN_TRUMP_PHASE`, `ONLY_BID_WINNER_CAN_DECLARE_TRUMP`                                                                  |
+| Melding  | `NOT_IN_MELDING_PHASE`, `ALREADY_DECLARED_MELDS`, `CANNOT_MELD_WHEN_GOING_OUT`                                             |
+| Tricks   | `NOT_IN_TRICKS_PHASE`, `INVALID_PLAY`, `CARD_NOT_IN_HAND`                                                                  |
+| AI       | `CANNOT_ADD_AI_WHEN_GAME_STARTED`, `CANNOT_REMOVE_AI_WHEN_GAME_STARTED`, `PLAYER_NOT_AI`, `NO_AVAILABLE_SLOTS`, `NOT_HOST` |
+| General  | `NOT_YOUR_TURN`, `UNKNOWN_ERROR`                                                                                           |
 
 **Adding a new error:**
 
@@ -258,6 +259,7 @@ pnpm --filter @dabb/server db:migrate  # Run manually if needed
 | `packages/shared-types/src/events.ts`                        | Event type definitions         |
 | `packages/shared-types/src/errors.ts`                        | Error codes and GameError      |
 | `packages/shared-types/src/gameLog.ts`                       | Game log entry types           |
+| `packages/shared-types/src/ai.ts`                            | AI player types                |
 | `packages/shared-types/src/api.ts`                           | API request/response types     |
 | `packages/shared-types/src/socket.ts`                        | Socket event types             |
 | `packages/game-logic/src/state/reducer.ts`                   | Event sourcing reducer         |
@@ -272,6 +274,9 @@ pnpm --filter @dabb/server db:migrate  # Run manually if needed
 | `packages/ui-shared/src/useSocket.ts`                        | Socket.IO React hook           |
 | `packages/ui-shared/src/useRoundHistory.ts`                  | Round history for scoreboard   |
 | `packages/ui-shared/src/useGameLog.ts`                       | Game log entries hook          |
+| `packages/ui-shared/src/useActionRequired.ts`                | Your-turn detection hook       |
+| `packages/ui-shared/src/useCelebration.ts`                   | Win celebration effects hook   |
+| `packages/ui-shared/src/useTrickDisplay.ts`                  | Trick display timing hook      |
 | `packages/ui-shared/src/useLocalStorage.ts`                  | Session credentials hook       |
 | `apps/web/src/hooks/useGame.ts`                              | Web game hook with i18n errors |
 | `apps/web/src/components/game/ScoreBoard.tsx`                | Web scoreboard component       |
@@ -287,7 +292,9 @@ pnpm --filter @dabb/server db:migrate  # Run manually if needed
 | `apps/server/src/services/gameService.ts`                    | Game logic service             |
 | `apps/server/src/services/sessionService.ts`                 | Session management             |
 | `apps/server/src/services/cleanupService.ts`                 | Inactive session cleanup       |
+| `apps/server/src/ai/AIPlayer.ts`                             | AI player interface & factory  |
 | `apps/server/src/ai/BinokelAIPlayer.ts`                      | AI player decision logic       |
+| `apps/server/src/services/aiControllerService.ts`            | AI player lifecycle management |
 | `apps/server/src/scheduler/cleanupScheduler.ts`              | Cleanup background job         |
 | `apps/server/src/db/pool.ts`                                 | Database connection pool       |
 | `apps/server/src/db/runMigrations.ts`                        | Database migration runner      |

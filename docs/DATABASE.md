@@ -27,7 +27,7 @@ const pool = new Pool({
 
 ## Schema
 
-The database schema is defined in `apps/server/src/db/schema.sql`.
+The database schema is defined through migration files in `apps/server/src/db/migrations/`.
 
 ### Tables
 
@@ -49,16 +49,17 @@ Stores game session metadata.
 
 Stores player information for each session.
 
-| Column         | Type        | Description                                 |
-| -------------- | ----------- | ------------------------------------------- |
-| `id`           | UUID        | Primary key                                 |
-| `session_id`   | UUID        | Foreign key to sessions                     |
-| `secret_id`    | UUID        | Secret identifier for reconnection          |
-| `nickname`     | VARCHAR(50) | Player's display name                       |
-| `player_index` | SMALLINT    | Player's position (0-3)                     |
-| `team`         | SMALLINT    | Team assignment (0 or 1, null for 3-player) |
-| `connected`    | BOOLEAN     | Connection status                           |
-| `created_at`   | TIMESTAMPTZ | Join timestamp                              |
+| Column         | Type        | Description                                          |
+| -------------- | ----------- | ---------------------------------------------------- |
+| `id`           | UUID        | Primary key                                          |
+| `session_id`   | UUID        | Foreign key to sessions                              |
+| `secret_id`    | UUID        | Secret identifier for reconnection (nullable for AI) |
+| `nickname`     | VARCHAR(50) | Player's display name                                |
+| `player_index` | SMALLINT    | Player's position (0-3)                              |
+| `team`         | SMALLINT    | Team assignment (0 or 1, null for 3-player)          |
+| `connected`    | BOOLEAN     | Connection status                                    |
+| `is_ai`        | BOOLEAN     | Whether this is an AI player (default: false)        |
+| `created_at`   | TIMESTAMPTZ | Join timestamp                                       |
 
 #### `events`
 
@@ -78,7 +79,7 @@ Event store for game state (event sourcing pattern).
 - `idx_sessions_code` - Fast lookup by join code
 - `idx_sessions_status` - Filter by session status
 - `idx_players_session_id` - Players by session
-- `idx_players_secret_id` - Player reconnection lookup
+- `idx_players_secret_id_unique` - Player reconnection lookup (unique, human players only)
 - `idx_events_session_id` - Events by session
 - `idx_events_session_sequence` - Event ordering
 
@@ -109,17 +110,18 @@ pnpm db:migrate
 
 Migration files follow the naming convention: `NNNN_description.sql`
 
-| File                             | Purpose                                 |
-| -------------------------------- | --------------------------------------- |
-| `0001_initial_schema.sql`        | Base tables (sessions, players, events) |
-| `0002_add_terminated_status.sql` | Add 'terminated' status to sessions     |
+| File                             | Purpose                                       |
+| -------------------------------- | --------------------------------------------- |
+| `0001_initial_schema.sql`        | Base tables (sessions, players, events)       |
+| `0002_add_terminated_status.sql` | Add 'terminated' status to sessions           |
+| `0003_add_ai_players.sql`        | Add `is_ai` column, make `secret_id` nullable |
 
 ### Creating New Migrations
 
 1. Create a new SQL file with the next sequence number:
 
    ```
-   apps/server/src/db/migrations/0003_your_description.sql
+   apps/server/src/db/migrations/0004_your_description.sql
    ```
 
 2. Write your SQL migration. For idempotent migrations, use:
@@ -218,14 +220,16 @@ Events follow the types defined in `@dabb/shared-types`:
 
 - `GAME_STARTED` - Game initialization
 - `CARDS_DEALT` - Initial card distribution
-- `BID_PLACED` / `BID_PASSED` - Bidding phase
-- `DABB_EXCHANGED` - Dabb exchange
+- `BID_PLACED` / `PLAYER_PASSED` / `BIDDING_WON` - Bidding phase
+- `DABB_TAKEN` / `CARDS_DISCARDED` / `GOING_OUT` - Dabb phase
 - `TRUMP_DECLARED` - Trump suit selection
-- `MELDS_ANNOUNCED` - Meld declarations
-- `CARD_PLAYED` - Trick play
-- `TRICK_COMPLETED` - Trick winner
-- `ROUND_ENDED` - Round scoring
-- `GAME_ENDED` - Final results
+- `MELDS_DECLARED` / `MELDING_COMPLETE` - Melding phase
+- `CARD_PLAYED` / `TRICK_WON` - Trick play
+- `ROUND_SCORED` - Round scoring
+- `NEW_ROUND_STARTED` - New round begins
+- `GAME_FINISHED` - Final results
+- `GAME_TERMINATED` - Game terminated by player exit
+- `PLAYER_JOINED` / `PLAYER_LEFT` / `PLAYER_RECONNECTED` - Player lifecycle
 
 ## Backup and Restore
 
@@ -253,7 +257,7 @@ psql -h localhost -U dabb -d dabb < backup.sql
 ### Migration Failures
 
 1. Check PostgreSQL logs
-2. Verify schema.sql syntax
+2. Verify migration SQL syntax
 3. Look for constraint violations
 4. Check for conflicting migrations
 

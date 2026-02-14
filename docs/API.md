@@ -105,13 +105,15 @@ curl http://localhost:3000/sessions/schnell-fuchs-42
       "nickname": "Hans",
       "playerIndex": 0,
       "team": null,
-      "connected": true
+      "connected": true,
+      "isAI": false
     },
     {
       "nickname": "Maria",
       "playerIndex": 1,
       "team": null,
-      "connected": true
+      "connected": true,
+      "isAI": false
     }
   ],
   "createdAt": "2024-01-23T12:00:00.000Z"
@@ -313,6 +315,101 @@ END OF LOG
 | 404    | `SESSION_NOT_FOUND`  | Session not found          |
 | 409    | `SESSION_TERMINATED` | Session already terminated |
 | 500    | `INTERNAL_ERROR`     | Server error               |
+
+---
+
+### Add AI Player
+
+```
+POST /sessions/:code/ai
+```
+
+Add an AI player to a session (host only).
+
+**URL Parameters:**
+
+| Parameter | Description  |
+| --------- | ------------ |
+| `code`    | Session code |
+
+**Headers:**
+
+| Header        | Description                        |
+| ------------- | ---------------------------------- |
+| `X-Secret-Id` | Host player's secret ID (required) |
+
+**Example Request:**
+
+```bash
+curl -X POST http://localhost:3000/sessions/schnell-fuchs-42/ai \
+  -H "X-Secret-Id: host-secret-uuid"
+```
+
+**Success Response (201):**
+
+```json
+{
+  "playerId": "ai-player-uuid",
+  "playerIndex": 2,
+  "nickname": "Bot Fritz",
+  "team": null
+}
+```
+
+**Error Responses:**
+
+| Status | Code                              | Description            |
+| ------ | --------------------------------- | ---------------------- |
+| 401    | `SECRET_ID_REQUIRED`              | Secret ID not provided |
+| 403    | `NOT_HOST`                        | Only host can add AI   |
+| 404    | `SESSION_NOT_FOUND`               | Session not found      |
+| 409    | `CANNOT_ADD_AI_WHEN_GAME_STARTED` | Game already started   |
+| 409    | `NO_AVAILABLE_SLOTS`              | All slots are taken    |
+| 500    | `INTERNAL_ERROR`                  | Server error           |
+
+---
+
+### Remove AI Player
+
+```
+DELETE /sessions/:code/ai/:playerIndex
+```
+
+Remove an AI player from a session (host only).
+
+**URL Parameters:**
+
+| Parameter     | Description             |
+| ------------- | ----------------------- |
+| `code`        | Session code            |
+| `playerIndex` | AI player's index (0-3) |
+
+**Headers:**
+
+| Header        | Description                        |
+| ------------- | ---------------------------------- |
+| `X-Secret-Id` | Host player's secret ID (required) |
+
+**Example Request:**
+
+```bash
+curl -X DELETE http://localhost:3000/sessions/schnell-fuchs-42/ai/2 \
+  -H "X-Secret-Id: host-secret-uuid"
+```
+
+**Success Response (204):** No content
+
+**Error Responses:**
+
+| Status | Code                                 | Description             |
+| ------ | ------------------------------------ | ----------------------- |
+| 400    | `INVALID_PLAYER_INDEX`               | Invalid player index    |
+| 401    | `SECRET_ID_REQUIRED`                 | Secret ID not provided  |
+| 403    | `NOT_HOST`                           | Only host can remove AI |
+| 404    | `SESSION_NOT_FOUND`                  | Session not found       |
+| 409    | `CANNOT_REMOVE_AI_WHEN_GAME_STARTED` | Game already started    |
+| 409    | `PLAYER_NOT_AI`                      | Player is not an AI     |
+| 500    | `INTERNAL_ERROR`                     | Server error            |
 
 ---
 

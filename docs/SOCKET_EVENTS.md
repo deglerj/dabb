@@ -102,7 +102,7 @@ socket.emit('game:discard', { cardIds: ['card1', 'card2'] });
 **Requirements:**
 
 - Must be bid winner
-- Number of cards must equal dabb size (4 for 4 players, 5 for 3, 6 for 2)
+- Number of cards must equal dabb size (4 for all player counts)
 
 ---
 
@@ -129,7 +129,7 @@ socket.emit('game:goOut', { suit: 'schippe' });
 **Effect:**
 
 - Bid winner loses points equal to their bid
-- Opponents get their melds + 30 bonus points each
+- Opponents get their melds + 40 bonus points each
 - Round ends immediately (no tricks phase)
 - New round starts automatically
 
@@ -289,17 +289,18 @@ socket.on('game:events', ({ events }) => {
 A player joined the session.
 
 ```typescript
-socket.on('player:joined', ({ playerIndex, nickname }) => {
-  console.log(`${nickname} joined as player ${playerIndex}`);
+socket.on('player:joined', ({ playerIndex, nickname, isAI }) => {
+  console.log(`${nickname} joined as player ${playerIndex}${isAI ? ' (AI)' : ''}`);
 });
 ```
 
 **Payload:**
 
-| Field         | Type     | Description           |
-| ------------- | -------- | --------------------- |
-| `playerIndex` | `number` | Player position (0-3) |
-| `nickname`    | `string` | Player display name   |
+| Field         | Type      | Description                  |
+| ------------- | --------- | ---------------------------- |
+| `playerIndex` | `number`  | Player position (0-3)        |
+| `nickname`    | `string`  | Player display name          |
+| `isAI`        | `boolean` | Whether this is an AI player |
 
 ---
 
@@ -374,26 +375,20 @@ socket.on('session:terminated', ({ message, terminatedBy }) => {
 An error occurred.
 
 ```typescript
-socket.on('error', ({ message, code }) => {
+socket.on('error', ({ message, code, params }) => {
   console.error(`Error [${code}]: ${message}`);
 });
 ```
 
 **Payload:**
 
-| Field     | Type     | Description   |
-| --------- | -------- | ------------- |
-| `message` | `string` | Error message |
-| `code`    | `string` | Error code    |
+| Field     | Type                               | Description                           |
+| --------- | ---------------------------------- | ------------------------------------- |
+| `message` | `string`                           | Error message                         |
+| `code`    | `string`                           | Error code (see `SERVER_ERROR_CODES`) |
+| `params`  | `Record<string, string \| number>` | (Optional) Interpolation params       |
 
-**Error Codes:**
-
-| Code            | Description                |
-| --------------- | -------------------------- |
-| `SYNC_FAILED`   | Failed to sync game state  |
-| `INVALID_MOVE`  | Invalid game action        |
-| `NOT_YOUR_TURN` | Not player's turn          |
-| `GOOUT_FAILED`  | Failed to go out (forfeit) |
+**Error Codes:** See `packages/shared-types/src/errors.ts` for the full list of `SERVER_ERROR_CODES`.
 
 ---
 
