@@ -202,6 +202,7 @@ vi.mock('expo-audio', () => ({
     seekTo: vi.fn(),
     volume: 1,
   })),
+  setAudioModeAsync: vi.fn(),
 }));
 
 // Mock react-native-svg

@@ -2,8 +2,8 @@
  * Hook to play a notification sound when it's the player's turn
  */
 
-import { useCallback } from 'react';
-import { useAudioPlayer } from 'expo-audio';
+import { useCallback, useEffect } from 'react';
+import { useAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import type { GameState, PlayerIndex } from '@dabb/shared-types';
 import { useActionRequiredCallback } from '@dabb/ui-shared';
 
@@ -17,6 +17,13 @@ export function useTurnNotification(
   state: GameState | null,
   currentPlayerIndex: PlayerIndex | null
 ): void {
+  useEffect(() => {
+    setAudioModeAsync({
+      interruptionMode: 'mixWithOthers',
+      interruptionModeAndroid: 'mixWithOthers',
+    });
+  }, []);
+
   const player = useAudioPlayer(notificationSound);
 
   const playNotification = useCallback(async () => {
