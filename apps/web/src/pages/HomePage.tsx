@@ -140,6 +140,11 @@ function HomePage() {
             <BookOpen size={18} /> {t('rules.title')}
           </button>
         </div>
+        <img
+          src="/ki-schlonz-stamp.svg"
+          alt="100% KI-Schlonz"
+          style={{ width: 120, height: 120, marginTop: '1.5rem', opacity: 0.9 }}
+        />
       </div>
     );
   }

@@ -220,6 +220,10 @@ vi.mock('react-native-svg', () => {
     Rect: createSvgComponent('rect'),
     Circle: createSvgComponent('circle'),
     Polygon: createSvgComponent('polygon'),
+    G: createSvgComponent('g'),
+    Line: createSvgComponent('line'),
+    Text: createSvgComponent('text'),
+    TextPath: createSvgComponent('textpath'),
   };
 });
 

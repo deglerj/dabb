@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <!-- Rough stamp edge effect -->
+    <filter id="roughen" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="turbulence" baseFrequency="0.04" numOctaves="4" seed="2" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="roughen-heavy" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="turbulence" baseFrequency="0.035" numOctaves="5" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+
+  <!-- Outer circle border -->
+  <circle cx="150" cy="150" r="135" fill="none" stroke="#b91c1c" stroke-width="8" filter="url(#roughen)" opacity="0.85"/>
+  <circle cx="150" cy="150" r="120" fill="none" stroke="#b91c1c" stroke-width="4" filter="url(#roughen)" opacity="0.85"/>
+
+  <!-- Stars between circles -->
+  <g fill="#b91c1c" opacity="0.85" filter="url(#roughen)">
+    <text x="70" y="48" font-family="serif" font-size="18" text-anchor="middle" dominant-baseline="middle">&#9733;</text>
+    <text x="230" y="48" font-family="serif" font-size="18" text-anchor="middle" dominant-baseline="middle">&#9733;</text>
+    <text x="70" y="258" font-family="serif" font-size="18" text-anchor="middle" dominant-baseline="middle">&#9733;</text>
+    <text x="230" y="258" font-family="serif" font-size="18" text-anchor="middle" dominant-baseline="middle">&#9733;</text>
+  </g>
+
+  <!-- Top curved text: "ZERTIFIZIERT" -->
+  <path id="topArc" d="M 55,150 A 95,95 0 0,1 245,150" fill="none"/>
+  <text font-family="'Georgia', 'Times New Roman', serif" font-size="16" fill="#b91c1c" font-weight="bold" letter-spacing="4" filter="url(#roughen)" opacity="0.85">
+    <textPath href="#topArc" startOffset="50%" text-anchor="middle">ZERTIFIZIERT</textPath>
+  </text>
+
+  <!-- Main text: "100%" -->
+  <text x="150" y="145" font-family="'Georgia', 'Times New Roman', serif" font-size="58" font-weight="bold" fill="#b91c1c" text-anchor="middle" dominant-baseline="middle" filter="url(#roughen-heavy)" opacity="0.85">100%</text>
+
+  <!-- Main text: "KI-Schlonz" -->
+  <text x="150" y="185" font-family="'Georgia', 'Times New Roman', serif" font-size="36" font-weight="bold" fill="#b91c1c" text-anchor="middle" dominant-baseline="middle" filter="url(#roughen-heavy)" opacity="0.85">KI-Schlonz</text>
+
+
+  <!-- Decorative line separators -->
+  <line x1="90" y1="115" x2="210" y2="115" stroke="#b91c1c" stroke-width="2" filter="url(#roughen)" opacity="0.85"/>
+  <line x1="90" y1="205" x2="210" y2="205" stroke="#b91c1c" stroke-width="2" filter="url(#roughen)" opacity="0.85"/>
+</svg>

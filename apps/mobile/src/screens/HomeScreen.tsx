@@ -22,6 +22,7 @@ import { useTranslation } from '@dabb/i18n';
 import { getRulesMarkdown, type SupportedLanguage } from '@dabb/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import KiSchlonzStamp from '../components/KiSchlonzStamp';
 
 interface HomeScreenProps {
   onCreateGame: (nickname: string, playerCount: 2 | 3 | 4) => Promise<void>;
@@ -116,6 +117,10 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
               <Text style={styles.secondaryButtonText}>{t('rules.title')}</Text>
             </View>
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.stampContainer}>
+          <KiSchlonzStamp size={100} />
         </View>
 
         <Modal visible={showRules} animationType="slide" onRequestClose={() => setShowRules(false)}>
@@ -312,6 +317,10 @@ const styles = StyleSheet.create({
   buttonGroup: {
     width: '100%',
     gap: 16,
+  },
+  stampContainer: {
+    marginTop: 24,
+    alignItems: 'center',
   },
   button: {
     paddingVertical: 16,
