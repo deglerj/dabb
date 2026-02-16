@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "db:migrate": "tsx src/db/runMigrations.standalone.ts"
+    "db:migrate": "tsx src/db/runMigrations.standalone.ts",
+    "simulate": "tsx src/simulation/runner.ts"
   },
   "dependencies": {
     "@dabb/game-logic": "workspace:*",

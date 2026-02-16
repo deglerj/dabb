@@ -21,6 +21,7 @@
     "docker:status": "./dev.sh status",
     "docker:health": "./dev.sh health",
     "docker:reset": "./dev.sh reset",
+    "simulate": "pnpm --filter @dabb/server simulate",
     "prepare": "husky"
   },
   "devDependencies": {

@@ -150,3 +150,55 @@ sequenceDiagram
     server-->>web: game:state { events }
     web->>web: Replay events
 ```
+
+## 6.6 AI Simulation (Offline)
+
+The simulation engine runs complete AI-vs-AI games in-memory, bypassing all server infrastructure. This is used for testing AI strategy and detecting game logic edge cases.
+
+```mermaid
+sequenceDiagram
+    participant runner as CLI Runner
+    participant engine as SimulationEngine
+    participant logic as Game Logic
+    participant ai as BinokelAIPlayer
+
+    runner->>engine: new SimulationEngine(options)
+    runner->>engine: run()
+
+    rect rgb(240, 240, 240)
+        Note over engine, ai: Initialize
+        engine->>logic: createPlayerJoinedEvent() × N
+        engine->>logic: createGameStartedEvent()
+        engine->>logic: shuffleDeck(), dealCards()
+        engine->>logic: createCardsDealtEvent()
+        engine->>logic: applyEvents(initEvents)
+    end
+
+    loop Until game finished
+        rect rgb(240, 240, 240)
+            Note over engine, ai: Game Loop
+            engine->>engine: Check phase
+            engine->>ai: decide(gameState, playerIndex)
+            ai-->>engine: AIAction (bid/pass/play/etc.)
+            engine->>logic: Create event from action
+            engine->>logic: applyEvent(state, event)
+            engine->>engine: Handle phase transitions & scoring
+        end
+    end
+
+    engine-->>runner: SimulationResult
+    runner->>runner: formatEventLog(events)
+    runner->>runner: Write .log file
+    runner->>runner: Print summary stats
+```
+
+**Key differences from live server flow:**
+
+| Aspect          | Live Server                         | Simulation                        |
+| --------------- | ----------------------------------- | --------------------------------- |
+| State storage   | PostgreSQL events + in-memory cache | In-memory only                    |
+| AI timing       | 500–4000ms delays for natural feel  | Instant (no delays)               |
+| Concurrency     | Async with Socket.IO event loop     | `Promise.allSettled` batches      |
+| Event broadcast | Filtered per-player via Socket.IO   | No broadcast (all-knowing)        |
+| Error handling  | Socket error emission to client     | Partial result with error log     |
+| Stuck detection | None (player timeouts planned)      | Action limit + wall-clock timeout |

@@ -248,6 +248,11 @@ pnpm clean                # Clean build artifacts
 
 # Database migrations (run automatically on server startup)
 pnpm --filter @dabb/server db:migrate  # Run manually if needed
+
+# AI simulation (runs AI-vs-AI games in-memory, no server/DB needed)
+pnpm simulate -- --players 3 --games 100 --concurrency 4
+pnpm simulate -- --players 2 --games 50
+pnpm simulate -- --players 4 --games 10 --target-score 500
 ```
 
 ## Key Files
@@ -304,6 +309,8 @@ pnpm --filter @dabb/server db:migrate  # Run manually if needed
 | `packages/i18n/src/types.ts`                                 | i18n types and config          |
 | `packages/i18n/src/config.ts`                                | i18next initialization         |
 | `packages/i18n/src/components/I18nProvider.tsx`              | React i18n provider            |
+| `apps/server/src/simulation/SimulationEngine.ts`             | In-memory AI game engine       |
+| `apps/server/src/simulation/runner.ts`                       | Simulation CLI entry point     |
 | `docs/AI_STRATEGY.md`                                        | AI decision strategy docs      |
 
 ## Testing
@@ -390,3 +397,26 @@ After taking the dabb, the bid winner can choose to "go out" if they don't think
 - **Opponents**: Each gets their melds + 40 bonus points
 - **Effect**: Round ends immediately (no tricks phase), new round starts
 - **State**: `wentOut: boolean` in GameState tracks this, reset on new round
+
+### AI Simulation
+
+A standalone CLI tool runs AI-only games entirely in-memory for testing and fine-tuning AI strategy:
+
+- **No infrastructure**: No database, server, or Socket.IO — uses pure `@dabb/game-logic` functions and `BinokelAIPlayer` directly
+- **Engine**: `SimulationEngine` accumulates events and updates state via `applyEvent()`, same pattern as `gameService.ts`
+- **Scoring**: Replicates `gameService.ts` scoring exactly (trick rounding, bid-not-met = -2x, going-out = bid loss + 40 bonus)
+- **Stuck detection**: Action count limit (default 10,000) and wall-clock timeout (default 30s)
+- **Error handling**: On failure, returns partial result with error; runner writes the event log + error details to `*.error.log`
+- **Output**: Human-readable log files via `formatEventLog()`, plus summary stats on stdout
+
+**CLI parameters:**
+
+| Flag             | Default              | Description                    |
+| ---------------- | -------------------- | ------------------------------ |
+| `--players`      | 3                    | Number of players (2, 3, or 4) |
+| `--games`        | 10                   | Number of games to simulate    |
+| `--concurrency`  | 1                    | Parallel games per batch       |
+| `--target-score` | 1000                 | Score needed to win            |
+| `--max-actions`  | 10000                | Max actions before aborting    |
+| `--timeout`      | 30000                | Max ms per game                |
+| `--output-dir`   | `simulation-results` | Directory for log files        |

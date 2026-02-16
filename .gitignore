@@ -60,6 +60,9 @@ memory/
 # Misc
 *.tsbuildinfo
 
+# Simulation output
+simulation-results/
+
 # Claude Code sandbox artifacts
 .bashrc
 .bash_profile

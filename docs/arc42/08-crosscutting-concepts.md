@@ -80,3 +80,26 @@ import type { Card } from '@dabb/shared-types';
 // Used in web
 import type { Card } from '@dabb/shared-types';
 ```
+
+## 8.6 In-Memory Simulation
+
+The simulation engine demonstrates a key architectural benefit of separating game logic into pure packages: the same `@dabb/game-logic` functions and `BinokelAIPlayer` class used in the live server can run entirely without infrastructure.
+
+```
+Live Server Path:
+  Socket.IO → handlers.ts → gameService.ts → game-logic → PostgreSQL
+
+Simulation Path:
+  runner.ts → SimulationEngine → game-logic (no DB, no network)
+```
+
+Both paths use the identical functions for:
+
+- **State management**: `applyEvent()`, `applyEvents()`
+- **Event generation**: `createBidPlacedEvent()`, `createCardPlayedEvent()`, etc.
+- **Game rules**: `isBiddingComplete()`, `determineTrickWinner()`, `isValidPlay()`
+- **Scoring**: `calculateMeldPoints()`, `calculateTrickPoints()`
+- **AI decisions**: `BinokelAIPlayer.decide()`
+- **Output formatting**: `formatEventLog()`
+
+This ensures that simulation results faithfully represent real game behavior, making the tool reliable for AI strategy tuning and regression detection.
