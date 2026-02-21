@@ -19,8 +19,8 @@ COPY packages/i18n/package.json ./packages/i18n/
 COPY packages/card-assets/package.json ./packages/card-assets/
 COPY apps/web/package.json ./apps/web/
 
-# Install dependencies with pnpm
-RUN pnpm install --frozen-lockfile
+# Install dependencies with pnpm (--ignore-scripts skips postinstall which requires the full workspace)
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source files
 COPY packages/shared-types ./packages/shared-types
