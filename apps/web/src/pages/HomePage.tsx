@@ -5,7 +5,7 @@ import { useTranslation } from '@dabb/i18n';
 import { Plus, UserPlus, ArrowLeft, Users, Loader2, BookOpen } from 'lucide-react';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
 function HomePage() {
   const { t } = useTranslation();

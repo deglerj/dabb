@@ -9,7 +9,7 @@ import type {
 import { useTranslation } from '@dabb/i18n';
 import { Bot, Copy, Loader2, Play, Share2, X } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
 type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
