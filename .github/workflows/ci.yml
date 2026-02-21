@@ -152,6 +152,15 @@ jobs:
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
 
+      - name: Validate required variables
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ -z "${{ vars.VITE_SERVER_URL }}" ]; then
+            echo "ERROR: VITE_SERVER_URL repository variable is not set."
+            echo "Set it in: Settings → Secrets and variables → Actions → Variables"
+            exit 1
+          fi
+
       - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
@@ -201,7 +210,7 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
           build-args: |
-            VITE_SERVER_URL=${{ vars.VITE_SERVER_URL || 'http://localhost:3000' }}
+            VITE_SERVER_URL=${{ vars.VITE_SERVER_URL }}
 
   build-mobile:
     name: Build Mobile APK
