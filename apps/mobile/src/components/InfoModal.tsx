@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, Linking } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from '@dabb/i18n';
-import OpenSourceLicensesModal from './OpenSourceLicensesModal.js';
+import OpenSourceLicensesModal from './OpenSourceLicensesModal';
 
 const GITHUB_URL = 'https://github.com/deglerj/dabb';
 const LICENSE_URL = 'https://github.com/deglerj/dabb/blob/main/LICENSE';
