@@ -63,6 +63,9 @@ memory/
 # Simulation output
 simulation-results/
 
+# Deploy scripts with secrets
+deploy/oci-instance-grabber.sh
+
 # Claude Code sandbox artifacts
 .bashrc
 .bash_profile
