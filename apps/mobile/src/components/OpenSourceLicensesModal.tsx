@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from '@dabb/i18n';
-import { licenseGroups } from '../generated/licenses.js';
+import { licenseGroups } from '../generated/licenses';
 
 interface OpenSourceLicensesModalProps {
   visible: boolean;
