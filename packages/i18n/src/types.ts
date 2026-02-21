@@ -164,7 +164,11 @@ export interface TranslationKeys {
   };
   info: {
     title: string;
+    description: string;
     version: string;
+    sourceCode: string;
+    license: string;
+    reportBug: string;
     close: string;
   };
   updateRequired: {

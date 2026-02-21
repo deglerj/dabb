@@ -153,7 +153,11 @@ const en: TranslationKeys = {
   },
   info: {
     title: 'About Dabb',
+    description: 'Play Binokel online – free and open source.',
     version: 'Version',
+    sourceCode: 'Source code on GitHub',
+    license: 'License (CC BY-NC 4.0)',
+    reportBug: 'Report a bug',
     close: 'Close',
   },
   updateRequired: {

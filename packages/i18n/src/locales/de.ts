@@ -154,7 +154,11 @@ const de: TranslationKeys = {
   },
   info: {
     title: 'Über Dabb',
+    description: 'Binokel online spielen – kostenlos und quelloffen.',
     version: 'Version',
+    sourceCode: 'Quellcode auf GitHub',
+    license: 'Lizenz (CC BY-NC 4.0)',
+    reportBug: 'Fehler melden',
     close: 'Schließen',
   },
   updateRequired: {
