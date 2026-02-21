@@ -18,7 +18,7 @@ function HomePage() {
   const joinCodeFromUrl = searchParams.get('join');
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>(joinCodeFromUrl ? 'join' : 'menu');
   const [nickname, setNickname] = useState(() => localStorage.getItem('dabb-nickname') || '');
-  const [playerCount, setPlayerCount] = useState<PlayerCount>(4);
+  const [playerCount, setPlayerCount] = useState<PlayerCount>(2);
   const [joinCode, setJoinCode] = useState(joinCodeFromUrl || '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

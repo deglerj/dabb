@@ -37,7 +37,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu');
   const [nickname, setNickname] = useState('');
   const [sessionCode, setSessionCode] = useState('');
-  const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(4);
+  const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(2);
   const [showRules, setShowRules] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const appVersion = Constants.expoConfig?.version ?? '0.0.0';
