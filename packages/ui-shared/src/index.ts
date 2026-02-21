@@ -11,3 +11,4 @@ export { useCelebration } from './useCelebration.js';
 export type { CelebrationResult } from './useCelebration.js';
 export { useTrickDisplay } from './useTrickDisplay.js';
 export type { TrickDisplayResult } from './useTrickDisplay.js';
+export { useVersionCheck } from './useVersionCheck.js';

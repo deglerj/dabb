@@ -162,6 +162,17 @@ export interface TranslationKeys {
   rules: {
     title: string;
   };
+  info: {
+    title: string;
+    version: string;
+    close: string;
+  };
+  updateRequired: {
+    title: string;
+    message: string;
+    reload: string;
+    update: string;
+  };
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: string;

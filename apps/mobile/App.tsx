@@ -8,6 +8,7 @@ import { StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import type { PlayerIndex, GameEvent, PlayerCount, Suit, CardId } from '@dabb/shared-types';
 import { detectMelds } from '@dabb/game-logic';
 import {
@@ -17,7 +18,7 @@ import {
   useTranslation,
   type SupportedLanguage,
 } from '@dabb/i18n';
-import { HomeScreen, WaitingRoomScreen, GameScreen } from './src/screens';
+import { HomeScreen, WaitingRoomScreen, GameScreen, UpdateRequiredScreen } from './src/screens';
 import { useSessionCredentials } from './src/hooks/useAsyncStorage';
 import { useSocket } from './src/hooks/useSocket';
 import { useGameState } from './src/hooks/useGameState';
@@ -30,7 +31,7 @@ setStorageAdapter({
 
 const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL || 'http://localhost:3000';
 
-type AppScreen = 'loading' | 'home' | 'waiting' | 'game';
+type AppScreen = 'loading' | 'home' | 'waiting' | 'game' | 'update-required';
 
 interface SessionInfo {
   sessionId: string;
@@ -171,14 +172,25 @@ function AppContent() {
     onSessionTerminated: handleSessionTerminated,
   });
 
-  // Initialize app screen based on credentials
+  // Initialize app screen based on credentials + version check
   useEffect(() => {
     if (!credentialsLoading) {
-      if (credentials && sessionInfo) {
-        setScreen('waiting');
-      } else {
-        setScreen('home');
-      }
+      const appVersion = Constants.expoConfig?.version ?? '0.0.0';
+      fetch(`${SERVER_URL}/version`)
+        .then((res) => res.json() as Promise<{ version: string }>)
+        .then(({ version: serverVersion }) => {
+          const clientMajor = parseInt(appVersion.split('.')[0], 10);
+          const serverMajor = parseInt(serverVersion.split('.')[0], 10);
+          if (serverMajor > clientMajor) {
+            setScreen('update-required');
+            return;
+          }
+          setScreen(credentials && sessionInfo ? 'waiting' : 'home');
+        })
+        .catch(() => {
+          // Version check failed — proceed normally
+          setScreen(credentials && sessionInfo ? 'waiting' : 'home');
+        });
     }
   }, [credentialsLoading, credentials, sessionInfo]);
 
@@ -407,6 +419,15 @@ function AppContent() {
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
+        <StatusBar style="auto" />
+      </SafeAreaView>
+    );
+  }
+
+  if (screen === 'update-required') {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <UpdateRequiredScreen />
         <StatusBar style="auto" />
       </SafeAreaView>
     );

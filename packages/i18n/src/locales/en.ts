@@ -151,6 +151,17 @@ const en: TranslationKeys = {
   rules: {
     title: 'Game Rules',
   },
+  info: {
+    title: 'About Dabb',
+    version: 'Version',
+    close: 'Close',
+  },
+  updateRequired: {
+    title: 'Update required',
+    message: 'A newer version of Dabb is available. Please update to continue.',
+    reload: 'Reload',
+    update: 'Please update the app',
+  },
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: 'Session not found',

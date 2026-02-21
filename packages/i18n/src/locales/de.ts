@@ -152,6 +152,17 @@ const de: TranslationKeys = {
   rules: {
     title: 'Spielregeln',
   },
+  info: {
+    title: 'Über Dabb',
+    version: 'Version',
+    close: 'Schließen',
+  },
+  updateRequired: {
+    title: 'Update erforderlich',
+    message: 'Eine neuere Version von Dabb ist verfügbar. Bitte aktualisiere, um fortzufahren.',
+    reload: 'Neu laden',
+    update: 'Bitte aktualisiere die App',
+  },
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: 'Sitzung nicht gefunden',

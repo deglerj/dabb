@@ -15,6 +15,7 @@ import { closePool } from './db/pool.js';
 import { runMigrations } from './db/runMigrations.js';
 import { sessionsRouter } from './routes/sessions.js';
 import { eventsRouter, setSocketServer } from './routes/events.js';
+import { versionRouter } from './routes/version.js';
 import { startCleanupScheduler, stopCleanupScheduler } from './scheduler/cleanupScheduler.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 import logger, { apiLogger } from './utils/logger.js';
@@ -62,6 +63,7 @@ app.get('/health', (_req, res) => {
 });
 
 // API routes
+app.use('/version', versionRouter);
 app.use('/sessions', sessionsRouter);
 app.use('/sessions', eventsRouter);
 

@@ -1,6 +1,6 @@
 {
   "name": "@dabb/mobile",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -25,6 +25,7 @@
     "buffer": "^6.0.3",
     "expo": "55.0.0-preview.10",
     "expo-audio": "~55.0.5",
+    "expo-constants": "~55.0.4",
     "expo-status-bar": "~55.0.2",
     "react": "19.2.4",
     "react-native": "0.83.1",
