@@ -47,7 +47,7 @@ function HomePage() {
     setError('');
 
     try {
-      const res = await fetch(`${API_URL}/sessions`, {
+      const res = await fetch(`${API_URL}/api/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -97,7 +97,7 @@ function HomePage() {
     setError('');
 
     try {
-      const res = await fetch(`${API_URL}/sessions/${joinCode.trim()}/join`, {
+      const res = await fetch(`${API_URL}/api/sessions/${joinCode.trim()}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

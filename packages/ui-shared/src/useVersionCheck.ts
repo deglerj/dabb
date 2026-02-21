@@ -22,7 +22,7 @@ export function useVersionCheck({
   useEffect(() => {
     const check = async () => {
       try {
-        const response = await fetch(`${serverBaseUrl}/version`);
+        const response = await fetch(`${serverBaseUrl}/api/version`);
         if (!response.ok) {
           return;
         }

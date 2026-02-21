@@ -176,7 +176,7 @@ function AppContent() {
   useEffect(() => {
     if (!credentialsLoading) {
       const appVersion = Constants.expoConfig?.version ?? '0.0.0';
-      fetch(`${SERVER_URL}/version`)
+      fetch(`${SERVER_URL}/api/version`)
         .then((res) => res.json() as Promise<{ version: string }>)
         .then(({ version: serverVersion }) => {
           const clientMajor = parseInt(appVersion.split('.')[0], 10);
@@ -197,7 +197,7 @@ function AppContent() {
   const handleCreateGame = async (nickname: string, playerCount: 2 | 3 | 4) => {
     setApiLoading(true);
     try {
-      const response = await fetch(`${SERVER_URL}/sessions`, {
+      const response = await fetch(`${SERVER_URL}/api/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerCount, nickname: nickname.trim() }),
@@ -237,7 +237,7 @@ function AppContent() {
     setApiLoading(true);
     try {
       // Get session info
-      const infoResponse = await fetch(`${SERVER_URL}/sessions/${sessionCode}`);
+      const infoResponse = await fetch(`${SERVER_URL}/api/sessions/${sessionCode}`);
       if (!infoResponse.ok) {
         throw new Error('Game not found');
       }
@@ -245,7 +245,7 @@ function AppContent() {
       const { playerCount } = await infoResponse.json();
 
       // Join the game
-      const joinResponse = await fetch(`${SERVER_URL}/sessions/${sessionCode}/join`, {
+      const joinResponse = await fetch(`${SERVER_URL}/api/sessions/${sessionCode}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nickname }),
@@ -285,7 +285,7 @@ function AppContent() {
 
     setIsAddingAI(true);
     try {
-      const response = await fetch(`${SERVER_URL}/sessions/${sessionInfo.sessionCode}/ai`, {
+      const response = await fetch(`${SERVER_URL}/api/sessions/${sessionInfo.sessionCode}/ai`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -318,7 +318,7 @@ function AppContent() {
 
     try {
       const response = await fetch(
-        `${SERVER_URL}/sessions/${sessionInfo.sessionCode}/ai/${playerIndex}`,
+        `${SERVER_URL}/api/sessions/${sessionInfo.sessionCode}/ai/${playerIndex}`,
         {
           method: 'DELETE',
           headers: {

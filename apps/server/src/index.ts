@@ -55,7 +55,7 @@ const limiter = rateLimit({
   },
 });
 
-app.use('/sessions', limiter);
+app.use('/api', limiter);
 
 // Health check (no rate limit)
 app.get('/health', (_req, res) => {
@@ -63,9 +63,9 @@ app.get('/health', (_req, res) => {
 });
 
 // API routes
-app.use('/version', versionRouter);
-app.use('/sessions', sessionsRouter);
-app.use('/sessions', eventsRouter);
+app.use('/api/version', versionRouter);
+app.use('/api/sessions', sessionsRouter);
+app.use('/api/sessions', eventsRouter);
 
 // Socket.IO setup
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(

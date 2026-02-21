@@ -42,7 +42,7 @@ function WaitingRoomPage() {
     setIsHost(playerIndex === 0);
 
     // Fetch session info
-    fetch(`${API_URL}/sessions/${code}`)
+    fetch(`${API_URL}/api/sessions/${code}`)
       .then((res) => res.json())
       .then((data) => setSession(data))
       .catch((err) => setError(err.message));
@@ -58,19 +58,19 @@ function WaitingRoomPage() {
 
     newSocket.on('player:joined', () => {
       // Refresh session info
-      fetch(`${API_URL}/sessions/${code}`)
+      fetch(`${API_URL}/api/sessions/${code}`)
         .then((res) => res.json())
         .then((data) => setSession(data));
     });
 
     newSocket.on('player:left', () => {
-      fetch(`${API_URL}/sessions/${code}`)
+      fetch(`${API_URL}/api/sessions/${code}`)
         .then((res) => res.json())
         .then((data) => setSession(data));
     });
 
     newSocket.on('player:reconnected', () => {
-      fetch(`${API_URL}/sessions/${code}`)
+      fetch(`${API_URL}/api/sessions/${code}`)
         .then((res) => res.json())
         .then((data) => setSession(data));
     });
@@ -109,7 +109,7 @@ function WaitingRoomPage() {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/sessions/${code}/ai`, {
+      const response = await fetch(`${API_URL}/api/sessions/${code}/ai`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ function WaitingRoomPage() {
       }
 
       // Refresh session info
-      const sessionResponse = await fetch(`${API_URL}/sessions/${code}`);
+      const sessionResponse = await fetch(`${API_URL}/api/sessions/${code}`);
       const sessionData = await sessionResponse.json();
       setSession(sessionData);
     } catch (err) {
@@ -142,7 +142,7 @@ function WaitingRoomPage() {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/sessions/${code}/ai/${playerIndex}`, {
+      const response = await fetch(`${API_URL}/api/sessions/${code}/ai/${playerIndex}`, {
         method: 'DELETE',
         headers: {
           'X-Secret-Id': secretId,
@@ -156,7 +156,7 @@ function WaitingRoomPage() {
       }
 
       // Refresh session info
-      const sessionResponse = await fetch(`${API_URL}/sessions/${code}`);
+      const sessionResponse = await fetch(`${API_URL}/api/sessions/${code}`);
       const sessionData = await sessionResponse.json();
       setSession(sessionData);
     } catch (err) {
