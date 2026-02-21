@@ -12,6 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Validate required secrets
+        run: |
+          if [ -z "$SERVER_HOST" ]; then
+            echo "ERROR: SERVER_HOST secret is not set."
+            echo "Set it in: Settings → Secrets and variables → Actions → Secrets (production environment)"
+            exit 1
+          fi
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "ERROR: SSH_PRIVATE_KEY secret is not set."
+            echo "Set it in: Settings → Secrets and variables → Actions → Secrets (production environment)"
+            exit 1
+          fi
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Deploy to Hetzner
         uses: appleboy/ssh-action@v1
         with:
