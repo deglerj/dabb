@@ -66,6 +66,13 @@ simulation-results/
 # Deploy scripts with secrets
 deploy/oci-instance-grabber.sh
 
+# OpenTofu / Terraform state and provider cache
+tofu/.terraform/
+tofu/terraform.tfstate*
+
+# Certbot certificates (generated on server, not committed)
+deploy/nginx/certbot/
+
 # Claude Code sandbox artifacts
 .bashrc
 .bash_profile

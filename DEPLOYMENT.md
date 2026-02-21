@@ -1,8 +1,18 @@
 # Dabb Deployment Guide
 
-This guide walks you through deploying Dabb to production using Oracle Cloud's Always Free tier with Coolify or Docker Compose.
+This guide walks you through deploying Dabb to production on a Hetzner CX23 server using OpenTofu for provisioning and GitHub Actions for automated deployments.
 
-The application runs on **Node.js** with **pnpm** for dependency management.
+## Architecture
+
+```
+Internet → nginx:80/443 → web:8080   (static React app)
+                        → server:3000 (Node.js + WebSockets)
+                          └─ postgres (internal network only)
+```
+
+- nginx is the only container exposed externally (ports 80, 443)
+- web and server containers stay on the internal Docker network
+- PostgreSQL is never exposed outside Docker
 
 ## Quick Start (Local Development)
 
@@ -17,276 +27,185 @@ docker compose up -d
 
 ---
 
-## Manual Setup Tasks Checklist
+## One-Time Setup Sequence
 
-### Phase 1: Account Setup
-
-- [ ] **Create Oracle Cloud account**
-  - Go to [oracle.com/cloud/free](https://www.oracle.com/cloud/free/)
-  - Sign up for Always Free tier (requires credit card for verification, won't be charged)
-  - Select your home region (closest to your users)
-
-- [ ] **Enable GitHub Container Registry**
-  - Ensure your GitHub repository is set up
-  - Container images will be pushed to `ghcr.io/<username>/dabb-server` and `ghcr.io/<username>/dabb-web`
-
-### Phase 2: Oracle Cloud Infrastructure Setup
-
-- [ ] **Create a compartment** (optional but recommended)
-  - Identity & Security → Compartments → Create Compartment
-  - Name: `dabb`
-
-- [ ] **Create VCN (Virtual Cloud Network)**
-  - Networking → Virtual Cloud Networks → Start VCN Wizard
-  - Choose "Create VCN with Internet Connectivity"
-  - Name: `dabb-vcn`
-
-- [ ] **Open firewall ports in Security List**
-  - VCN → Security Lists → Default Security List
-  - Add Ingress Rules:
-    | Port | Protocol | Source | Description |
-    |------|----------|--------|-------------|
-    | 80 | TCP | 0.0.0.0/0 | HTTP |
-    | 443 | TCP | 0.0.0.0/0 | HTTPS |
-    | 3000 | TCP | 0.0.0.0/0 | Server API |
-    | 8000 | TCP | 0.0.0.0/0 | Coolify (optional) |
-    | 8080 | TCP | 0.0.0.0/0 | Web App |
-
-- [ ] **Create ARM Compute Instance**
-  - Compute → Instances → Create Instance
-  - Shape: `VM.Standard.A1.Flex` (ARM)
-  - OCPUs: 2-4 (adjust based on needs)
-  - Memory: 12-24 GB
-  - Image: Ubuntu 22.04 (or latest LTS)
-  - Add SSH key (generate one if needed)
-  - Note: If you get "Out of capacity" error, try different availability domain or try again later
-
-- [ ] **Note the public IP address**
-  - You'll need this for DNS and SSH access
-
-### Phase 3: Domain Setup (Optional but Recommended)
-
-- [ ] **Register a domain** (if you don't have one)
-  - Options: Cloudflare Registrar, Namecheap, Porkbun, etc.
-
-- [ ] **Configure DNS records**
-      | Type | Name | Value |
-      |------|------|-------|
-      | A | @ | `<instance-public-ip>` |
-      | A | api | `<instance-public-ip>` |
-      | A | coolify | `<instance-public-ip>` |
-
-### Phase 4: Server Setup
-
-- [ ] **SSH into your instance**
-
-  ```bash
-  ssh ubuntu@<instance-public-ip>
-  ```
-
-- [ ] **Run the setup script**
-
-  ```bash
-  # From your local machine, run:
-  ssh ubuntu@<instance-public-ip> 'bash -s' < deploy/oracle-cloud-setup.sh
-  ```
-
-  Or manually:
-
-  ```bash
-  # Update system
-  sudo apt update && sudo apt upgrade -y
-
-  # Install Docker
-  curl -fsSL https://get.docker.com | sudo sh
-  sudo usermod -aG docker $USER
-
-  # Log out and back in for group changes
-  exit
-  ssh ubuntu@<instance-public-ip>
-
-  # Install Coolify
-  curl -fsSL https://cdn.coollabs.io/coolify/install.sh | sudo bash
-  ```
-
-- [ ] **Configure iptables firewall**
-  ```bash
-  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
-  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
-  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 3000 -j ACCEPT
-  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 8000 -j ACCEPT
-  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 8080 -j ACCEPT
-  sudo netfilter-persistent save
-  ```
-
-### Phase 5: Deploy with Coolify
-
-- [ ] **Access Coolify dashboard**
-  - Go to `http://<instance-public-ip>:8000`
-  - Create admin account
-
-- [ ] **Add your server as a resource**
-  - Servers → Add Server → Localhost
-
-- [ ] **Create a new project**
-  - Projects → Add Project → Name: `dabb`
-
-- [ ] **Add PostgreSQL database**
-  - Resources → Add Resource → Database → PostgreSQL
-  - Configure:
-    - Database: `dabb`
-    - User: `dabb`
-    - Password: (generate secure password)
-  - Note the internal connection string
-
-- [ ] **Add Server application**
-  - Resources → Add Resource → Application → Docker Compose
-  - Git repository: Your GitHub repo URL
-  - Branch: `main`
-  - Docker Compose file: `docker-compose.prod.yml`
-  - Or: Use Dockerfile at `apps/server/Dockerfile`
-
-- [ ] **Configure environment variables**
-  - Settings → Environment Variables
-
-  ```
-  DATABASE_URL=postgresql://dabb:<password>@<postgres-container>:5432/dabb
-  CLIENT_URL=https://your-domain.com
-  NODE_ENV=production
-  ```
-
-- [ ] **Add Web application**
-  - Similar process, use `apps/web/Dockerfile`
-  - Build argument: `VITE_SERVER_URL=https://api.your-domain.com`
-
-- [ ] **Configure SSL certificates**
-  - Coolify auto-provisions Let's Encrypt certificates
-  - Ensure domains are correctly configured
-
-- [ ] **Deploy!**
-  - Click Deploy on each resource
-
-### Phase 5 (Alternative): Deploy with Docker Compose
-
-If not using Coolify:
-
-- [ ] **Copy files to server**
-
-  ```bash
-  scp docker-compose.prod.yml ubuntu@<ip>:/opt/dabb/
-  scp deploy/.env.example ubuntu@<ip>:/opt/dabb/.env
-  ```
-
-- [ ] **Configure environment**
-
-  ```bash
-  ssh ubuntu@<ip>
-  cd /opt/dabb
-  nano .env  # Edit with your values
-  ```
-
-- [ ] **Deploy**
-
-  ```bash
-  docker compose -f docker-compose.prod.yml up -d
-  ```
-
-- [ ] **Set up reverse proxy for SSL** (if needed)
-  - Install Caddy or Traefik for automatic HTTPS
-
-### Phase 6: Post-Deployment
-
-- [ ] **Verify deployment**
-  - Web app loads at your domain
-  - Can create/join games
-  - WebSocket connection works (real-time updates)
-
-- [ ] **Set up monitoring** (optional)
-  - Create free account at [uptimerobot.com](https://uptimerobot.com)
-  - Add monitors for:
-    - `https://your-domain.com` (web)
-    - `https://api.your-domain.com/health` (server)
-
-- [ ] **Set up database backups**
-
-  ```bash
-  # Add to crontab for daily backups
-  0 3 * * * docker exec dabb-postgres pg_dump -U dabb dabb | gzip > /opt/dabb/backups/dabb-$(date +\%Y\%m\%d).sql.gz
-  ```
-
-- [ ] **Configure GitHub repository variables** (for CI/CD)
-  - Repository → Settings → Secrets and Variables → Variables
-  - Add: `VITE_SERVER_URL` = `https://api.your-domain.com`
-
----
-
-## Environment Variables Reference
-
-| Variable            | Required | Description                       |
-| ------------------- | -------- | --------------------------------- |
-| `DATABASE_URL`      | Yes      | PostgreSQL connection string      |
-| `CLIENT_URL`        | Yes      | Web app URL (for CORS)            |
-| `VITE_SERVER_URL`   | Yes      | Server URL (built into web app)   |
-| `POSTGRES_PASSWORD` | Yes      | Database password                 |
-| `PORT`              | No       | Server port (default: 3000)       |
-| `NODE_ENV`          | No       | Environment (default: production) |
-
----
-
-## Troubleshooting
-
-### "Out of Host Capacity" error on Oracle Cloud
-
-- ARM instances are in high demand
-- Try a different availability domain
-- Try creating instance at off-peak hours (early morning)
-- Consider upgrading to Pay-As-You-Go (you still won't be charged within free limits)
-
-### Container won't start
+### 1. Generate SSH deploy keypair
 
 ```bash
-# Check logs
-docker compose logs -f server
-docker compose logs -f web
-
-# Check health
-docker compose ps
+ssh-keygen -t ed25519 -f ~/.ssh/dabb-deploy -C "dabb-github-deploy"
 ```
 
-### WebSocket connection fails
+- `~/.ssh/dabb-deploy` → GitHub secret `SSH_PRIVATE_KEY`
+- `~/.ssh/dabb-deploy.pub` → OpenTofu variable `ssh_public_key`
 
-- Ensure port 3000 is open in Oracle Cloud security list
-- Ensure iptables allows the port
-- Check `CLIENT_URL` matches the actual web app origin
+### 2. Get Hetzner API token
 
-### Database connection refused
+1. Log in at [console.hetzner.cloud](https://console.hetzner.cloud)
+2. Go to project → **Security** → **API Tokens** → **Generate API Token**
+3. Grant **Read & Write** permissions and copy the token
 
-- Verify PostgreSQL container is running: `docker compose ps`
-- Check `DATABASE_URL` format
-- Ensure internal Docker network connectivity
+### 3. Provision server with OpenTofu
+
+[Install OpenTofu](https://opentofu.org/docs/intro/install/) (`brew install opentofu` on macOS), then:
+
+```bash
+cd tofu/
+tofu init
+tofu apply \
+  -var="hetzner_api_token=<YOUR_HETZNER_TOKEN>" \
+  -var="ssh_public_key=$(cat ~/.ssh/dabb-deploy.pub)"
+# Note the output: server_ip = "x.x.x.x"
+```
+
+### 4. Create DNS record at Alfahosting
+
+1. Log in at [Alfahosting Kundencenter](https://kundencenter.alfahosting.de)
+2. **Meine Verträge** → click the **Multi L** contract
+3. **Experten-Einstellungen** → **DNS-System**
+4. Select domain **degler.info**
+5. Add a new A record:
+   - **Hostname**: `dabb` (result: `dabb.degler.info`)
+   - **Type**: A
+   - **Value**: `<Hetzner server IP from step 3>`
+   - **TTL**: 3600
+6. Save — DNS propagation takes up to a few hours
+7. Verify: `nslookup dabb.degler.info` should return the Hetzner IP
+
+### 5. Copy files to server
+
+```bash
+SERVER=dabb@<server-ip>
+
+scp -i ~/.ssh/dabb-deploy docker-compose.prod.yml $SERVER:/opt/dabb/
+scp -i ~/.ssh/dabb-deploy -r deploy/ $SERVER:/opt/dabb/
+
+# Create .env with secrets
+ssh -i ~/.ssh/dabb-deploy $SERVER "cat > /opt/dabb/.env" <<EOF
+POSTGRES_PASSWORD=$(openssl rand -base64 32)
+CLIENT_URL=https://dabb.degler.info
+VITE_SERVER_URL=https://dabb.degler.info
+EOF
+```
+
+### 6. Initialize Let's Encrypt SSL
+
+Wait for DNS to propagate (verify with `nslookup`), then:
+
+```bash
+ssh -i ~/.ssh/dabb-deploy $SERVER \
+  "cd /opt/dabb && bash deploy/nginx/init-letsencrypt.sh dabb.degler.info"
+```
+
+This script:
+
+1. Starts nginx on port 80 to handle the ACME challenge
+2. Runs `certbot certonly --webroot` to obtain the certificate
+3. Restarts nginx with full HTTPS config
+
+### 7. Add GitHub Secrets
+
+In the GitHub repo → **Settings** → **Secrets and variables** → **Actions**:
+
+| Name                | Value                                |
+| ------------------- | ------------------------------------ |
+| `SERVER_HOST`       | Hetzner server IP                    |
+| `SSH_PRIVATE_KEY`   | Contents of `~/.ssh/dabb-deploy`     |
+| `POSTGRES_PASSWORD` | Same password as in `.env` on server |
+| `CLIENT_URL`        | `https://dabb.degler.info`           |
+
+Update the existing **variable** `VITE_SERVER_URL` → `https://dabb.degler.info`
+
+### 8. First deployment
+
+Push any change to `main` (or re-run the CI workflow manually). GitHub Actions will:
+
+1. Build and push Docker images to `ghcr.io`
+2. Trigger the deploy workflow → SSH in → `docker compose pull && up -d`
 
 ---
 
-## Security Checklist
+## Automated Maintenance
 
-- [ ] Strong PostgreSQL password (use `openssl rand -base64 32`)
-- [ ] SSH key authentication only (disable password auth)
-- [ ] Firewall configured (only necessary ports open)
-- [ ] SSL/TLS enabled for all public endpoints
-- [ ] Regular security updates: `sudo apt update && sudo apt upgrade`
-- [ ] Monitor GitHub Security tab for CVE alerts
+| Task                | Frequency            | Automated by        |
+| ------------------- | -------------------- | ------------------- |
+| SSL renewal         | Every 60 days        | certbot container   |
+| OS security patches | Daily                | unattended-upgrades |
+| App deployment      | Every push to `main` | GitHub Actions      |
+| Downtime alerts     | 5-minute intervals   | UptimeRobot (free)  |
+
+### UptimeRobot setup (optional)
+
+After deployment, add a free monitor at [uptimerobot.com](https://uptimerobot.com):
+
+- **URL**: `https://dabb.degler.info/health`
+- **Interval**: 5 minutes
+- **Alert**: email on downtime
 
 ---
 
 ## Cost Summary
 
-| Resource                   | Cost                    |
-| -------------------------- | ----------------------- |
-| Oracle Cloud ARM Instance  | Free (Always Free)      |
-| Oracle Cloud Block Storage | Free (up to 200GB)      |
-| Oracle Cloud Bandwidth     | Free (up to 10TB/month) |
-| Domain (optional)          | ~$10-15/year            |
-| **Total**                  | **$0 - $15/year**       |
+| Resource                             | Cost          |
+| ------------------------------------ | ------------- |
+| Hetzner CX23 (2 vCPU, 4 GB RAM)      | ~€3.49/month  |
+| Domain (degler.info via Alfahosting) | Already owned |
+| **Total**                            | **~€42/year** |
+
+---
+
+## Environment Variables Reference
+
+| Variable            | Required | Description                           |
+| ------------------- | -------- | ------------------------------------- |
+| `POSTGRES_PASSWORD` | Yes      | Database password                     |
+| `CLIENT_URL`        | Yes      | Web app URL (for CORS)                |
+| `VITE_SERVER_URL`   | Yes      | Server URL (built into web app)       |
+| `DATABASE_URL`      | No       | Override if using external PostgreSQL |
+| `PORT`              | No       | Server port (default: 3000)           |
+| `NODE_ENV`          | No       | Environment (default: production)     |
+
+---
+
+## Troubleshooting
+
+### Container won't start
+
+```bash
+# Check logs
+docker compose -f docker-compose.prod.yml logs -f server
+docker compose -f docker-compose.prod.yml logs -f web
+docker compose -f docker-compose.prod.yml logs -f nginx
+
+# Check status
+docker compose -f docker-compose.prod.yml ps
+```
+
+### WebSocket connection fails
+
+- Ensure nginx is forwarding `/socket.io/` with `Upgrade` headers (see `deploy/nginx/nginx.conf`)
+- Check `CLIENT_URL` matches the actual web app origin
+
+### SSL certificate not found
+
+- Verify DNS is pointing to the server: `nslookup dabb.degler.info`
+- Re-run the init script: `bash deploy/nginx/init-letsencrypt.sh dabb.degler.info`
+- Check certbot logs: `docker compose -f docker-compose.prod.yml logs certbot`
+
+### Database connection refused
+
+- Verify PostgreSQL container is running: `docker compose -f docker-compose.prod.yml ps`
+- Check `DATABASE_URL` format and `POSTGRES_PASSWORD` in `.env`
+
+---
+
+## Security Checklist
+
+- [x] Strong PostgreSQL password (`openssl rand -base64 32`)
+- [x] SSH key authentication (cloud-init disables password auth by default on Hetzner)
+- [x] Firewall configured via Hetzner Cloud — only ports 22, 80, 443 open
+- [x] SSL/TLS for all public endpoints (Let's Encrypt via certbot)
+- [x] Automatic OS security patches (unattended-upgrades)
+- [ ] Monitor GitHub Security tab for CVE alerts
 
 ---
 
@@ -294,5 +213,5 @@ docker compose ps
 
 - [Architecture: Deployment View](docs/arc42/07-deployment-view.md)
 - [ADR: Deployment Strategy](docs/adr/005-deployment-strategy.md)
-- [Oracle Cloud Free Tier FAQ](https://www.oracle.com/cloud/free/faq/)
-- [Coolify Documentation](https://coolify.io/docs/)
+- [OpenTofu Documentation](https://opentofu.org/docs/)
+- [Hetzner Cloud Docs](https://docs.hetzner.cloud/)

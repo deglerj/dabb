@@ -1,0 +1,30 @@
+#cloud-config
+
+packages:
+  - unattended-upgrades
+
+runcmd:
+  # Install Docker via official script (adds Docker apt repo, required for docker-compose-plugin)
+  - curl -fsSL https://get.docker.com | sh
+
+  # Enable and start Docker
+  - systemctl enable docker
+  - systemctl start docker
+
+  # Create dabb system user with bash shell (needed for SSH + docker compose commands)
+  - useradd --system --shell /bin/bash --home-dir /opt/dabb --create-home dabb
+
+  # Add dabb user to docker group so it can run containers
+  - usermod -aG docker dabb
+
+  # Set up SSH authorized_keys for dabb user (copy from root, added by Hetzner)
+  - mkdir -p /opt/dabb/.ssh
+  - chmod 700 /opt/dabb/.ssh
+  - cp /root/.ssh/authorized_keys /opt/dabb/.ssh/authorized_keys
+  - chmod 600 /opt/dabb/.ssh/authorized_keys
+
+  # Set correct ownership of the app directory
+  - chown -R dabb:dabb /opt/dabb
+
+  # Enable automatic security updates
+  - dpkg-reconfigure -f noninteractive unattended-upgrades

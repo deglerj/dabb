@@ -42,7 +42,7 @@ RUN cd packages/shared-types && pnpm run build && \
     cd ../../apps/web && pnpm run build
 
 # Stage 2: Production with nginx
-FROM nginx:alpine AS production
+FROM nginx:1.27-alpine AS production
 
 # Add non-root user capability
 RUN addgroup -g 1001 -S nginx-app && \
