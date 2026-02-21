@@ -11,98 +11,129 @@ flowchart TB
 
     internet((Internet))
 
-    subgraph oracle [Oracle Cloud - Always Free]
-        subgraph arm [ARM Instance - 4 vCPU, 24GB RAM]
-            orchestrator[Coolify / Docker Compose]
-            web[nginx - Web]
-            server[Node.js Server]
-            db[(PostgreSQL)]
+    subgraph hetzner [Hetzner Cloud - CX23]
+        subgraph docker [Docker - dabb-external network]
+            nginx[nginx:1.27-alpine\nports 80 + 443]
+            web[dabb-web\nnginx:8080]
+            server[dabb-server\nNode.js:3000]
+            certbot[certbot\nLet's Encrypt renewal]
+        end
+        subgraph internal [Docker - dabb-internal network]
+            db[(PostgreSQL 16\nport 5432)]
         end
     end
 
     browser --> internet
     android --> internet
-    internet -->|"HTTPS (8080)"| web
-    internet -->|"Socket.IO (3000)"| server
-    web -->|Internal| server
-    server -->|"TCP (5432)"| db
+    internet -->|"HTTP :80 → 301"| nginx
+    internet -->|"HTTPS :443"| nginx
+    nginx -->|"/socket.io/ + /api/ + /health"| server
+    nginx -->|"/"| web
+    server --> db
 ```
 
-## 7.2 Deployment Options
+**Live URL:** `https://dabb.degler.info`
 
-### Option A: Oracle Cloud + Coolify (Recommended)
+## 7.2 Hosting
 
-**Cost:** Free (Always Free tier)
-**Vendor Lock-in:** None (standard Docker containers)
+| Property       | Value                              |
+| -------------- | ---------------------------------- |
+| Provider       | Hetzner Cloud                      |
+| Server type    | CX23 (2 vCPU, 4 GB RAM, 40 GB SSD) |
+| Location       | Nuremberg, Germany (nbg1)          |
+| OS             | Ubuntu 24.04 LTS                   |
+| Cost           | ~€3.49/month                       |
+| Provisioned by | OpenTofu (`tofu/`)                 |
 
-Oracle Cloud provides generous Always Free resources:
+## 7.3 Network Architecture
 
-- 4 ARM vCPUs, 24GB RAM (split across up to 4 instances)
-- 200GB block storage
-- Free Kubernetes control plane
+nginx is the **only** container with external port bindings (80 and 443). All other containers communicate via internal Docker networks:
 
-Coolify provides a Heroku-like PaaS experience on your own infrastructure.
+| Network         | Members            | Purpose                   |
+| --------------- | ------------------ | ------------------------- |
+| `dabb-external` | nginx, web, server | nginx → app routing       |
+| `dabb-internal` | server, postgres   | DB access (never exposed) |
 
-### Option B: Oracle Cloud + Docker Compose
+### nginx Routing
 
-Direct Docker Compose deployment without Coolify for simpler setups.
+| Path                           | Upstream       | Notes                           |
+| ------------------------------ | -------------- | ------------------------------- |
+| `/.well-known/acme-challenge/` | certbot volume | Let's Encrypt ACME              |
+| `/socket.io/`                  | `server:3000`  | WebSocket with `Upgrade` header |
+| `/api/`                        | `server:3000`  | REST API                        |
+| `/health`                      | `server:3000`  | Health check endpoint           |
+| `/`                            | `web:8080`     | Static React SPA                |
 
-### Option C: Other Cloud Providers
+HTTP requests (port 80) are redirected to HTTPS with a 301.
 
-The Docker images are portable and can be deployed to:
+## 7.4 Container Architecture
 
-- **Fly.io**: 3GB RAM free, good for WebSocket apps
-- **Google Cloud Run**: Scale-to-zero, pay per request
-- **Render**: 750 hours/month free
-- **Any VPS**: Hetzner, DigitalOcean, Linode, etc.
+### nginx (`dabb-nginx`)
 
-## 7.3 Container Architecture
+- Image: `nginx:alpine` (latest)
+- Terminates TLS, routes to web and server
+- Config mounted from `deploy/nginx/nginx.conf`
+- Certbot volumes mounted read-only for TLS certificates
+
+### Web Container (`dabb-web`)
+
+```dockerfile
+FROM node:22-alpine AS builder    # Build React app
+FROM nginx:1.27-alpine            # Serve static files on :8080
+```
+
+- Pinned to `nginx:1.27-alpine` for predictable updates
+- Serves the pre-built React SPA
+- Healthcheck uses `127.0.0.1:8080` (not `localhost` — nginx only binds IPv4)
 
 ### Server Container (`dabb-server`)
 
 ```dockerfile
 FROM node:22-alpine
-# Multi-stage build with non-root user
-# Health check on /health endpoint
-# Node.js runtime
+# Multi-stage build, non-root user
+# Health check: GET /health
 EXPOSE 3000
 ```
 
-### Web Container (`dabb-web`)
+### Database (`dabb-postgres`)
 
-```dockerfile
-FROM node:22-alpine AS builder     # Build stage
-FROM nginx:alpine                   # Production stage
-# Static SPA with security headers
-# Gzip compression enabled
-EXPOSE 8080
+- PostgreSQL 16 Alpine
+- Persistent volume (`postgres_data`)
+- Internal network only — never exposed externally
+- Healthcheck: `pg_isready`
+
+### Certbot (`dabb-certbot`)
+
+- Runs `certbot renew` in a loop (every 12 hours)
+- Let's Encrypt certificates renewed automatically when <30 days to expiry
+- Stores certs in `deploy/nginx/certbot/conf/` (bind-mounted volume)
+
+## 7.5 Environment Variables
+
+| Variable            | Required | Description                   | Value                          |
+| ------------------- | -------- | ----------------------------- | ------------------------------ |
+| `POSTGRES_PASSWORD` | Yes      | Database password             | Strong random hex string       |
+| `CLIENT_URL`        | Yes      | Web app URL for CORS          | `https://dabb.degler.info`     |
+| `VITE_SERVER_URL`   | Yes      | Server URL for frontend       | `https://dabb.degler.info`     |
+| `DATABASE_URL`      | No       | Override DB connection string | Auto-constructed from password |
+| `PORT`              | No       | Server port (default: 3000)   | `3000`                         |
+| `NODE_ENV`          | No       | Environment                   | `production`                   |
+
+> **Important:** `POSTGRES_PASSWORD` must be URL-safe (no `#`, `@`, `:`, `/`). Use `openssl rand -hex 32` to generate it — hex encoding is safe in PostgreSQL connection URLs.
+
+## 7.6 CI/CD Pipeline
+
+```
+┌─────────────┐   ┌──────────┐   ┌────────────────┐   ┌─────────────┐   ┌─────────────┐
+│  Push/PR    │ → │  Build   │ → │ Security Scan  │ → │ Push Image  │ → │   Deploy    │
+│  to main    │   │  & Test  │   │ (Trivy + Audit)│   │ to GHCR     │   │  to Hetzner │
+└─────────────┘   └──────────┘   └────────────────┘   └─────────────┘   └─────────────┘
+                                                                          (main only,
+                                                                           after CI pass)
 ```
 
-### Database
-
-- PostgreSQL 16 (Alpine)
-- Persistent volume for data
-- Internal network only (not exposed)
-
-## 7.4 Environment Variables
-
-| Variable            | Required | Description                 | Example                                 |
-| ------------------- | -------- | --------------------------- | --------------------------------------- |
-| `DATABASE_URL`      | Yes      | PostgreSQL connection       | `postgresql://user:pass@host:5432/dabb` |
-| `PORT`              | No       | Server port (default: 3000) | `3000`                                  |
-| `CLIENT_URL`        | Yes      | Web app URL for CORS        | `https://dabb.example.com`              |
-| `NODE_ENV`          | No       | Environment                 | `production`                            |
-| `VITE_SERVER_URL`   | Yes      | Server URL for frontend     | `https://api.dabb.example.com`          |
-| `POSTGRES_PASSWORD` | Yes      | Database password           | `secure_random_string`                  |
-
-## 7.5 CI/CD Pipeline
-
-```
-┌─────────────┐   ┌──────────┐   ┌────────────────┐   ┌─────────────┐
-│  Push/PR    │ → │  Build   │ → │ Security Scan  │ → │ Push Image  │
-│  to main    │   │  & Test  │   │ (Trivy + Audit)│   │ to GHCR     │
-└─────────────┘   └──────────┘   └────────────────┘   └─────────────┘
-```
+- **CI** (`.github/workflows/ci.yml`): build, test, security scan, push Docker images to `ghcr.io`
+- **Deploy** (`.github/workflows/deploy.yml`): triggers via `workflow_run` after CI succeeds on `main`; SSHes into server as `dabb` user and runs `docker compose pull && up -d`
 
 Security scanning includes:
 
@@ -110,7 +141,27 @@ Security scanning includes:
 - Trivy for container image CVEs
 - Results uploaded to GitHub Security tab
 
-## 7.6 Deployment Commands
+## 7.7 SSL/TLS
+
+- Provider: Let's Encrypt (via certbot)
+- Certificate covers: `dabb.degler.info`
+- Initial issuance: manual one-time script (`deploy/nginx/init-letsencrypt.sh`)
+- Renewal: fully automatic via the certbot container (runs every 12h, renews when <30 days remaining)
+- Current expiry: 2026-05-22 (auto-renews before then)
+
+## 7.8 Health Checks
+
+| Service    | Method       | Endpoint                 | Interval | Timeout |
+| ---------- | ------------ | ------------------------ | -------- | ------- |
+| Server     | HTTP GET     | `/health`                | 30s      | 3s      |
+| Web        | HTTP GET     | `http://127.0.0.1:8080/` | 30s      | 3s      |
+| PostgreSQL | `pg_isready` | —                        | 10s      | 5s      |
+
+## 7.9 OS Maintenance
+
+`unattended-upgrades` is installed and configured via cloud-init. Security patches are applied automatically daily with no manual intervention required.
+
+## 7.10 Deployment Commands
 
 ### Local Development
 
@@ -120,65 +171,52 @@ docker compose up -d
 # Server: http://localhost:3000
 ```
 
-### Production
+### Production (manual)
 
 ```bash
-# Set environment variables
-export POSTGRES_PASSWORD=secure_password
-export CLIENT_URL=https://dabb.example.com
-export VITE_SERVER_URL=https://api.dabb.example.com
-
-# Deploy
+ssh -i ~/.ssh/dabb-deploy dabb@46.224.213.237
+cd /opt/dabb
+docker compose -f docker-compose.prod.yml pull server web
 docker compose -f docker-compose.prod.yml up -d
+docker image prune -f
 ```
 
-### Using Coolify
+### Re-provisioning the server
 
-1. Add Git repository in Coolify dashboard
-2. Configure environment variables
-3. Set build path and Dockerfile location
-4. Deploy
+```bash
+cd tofu/
+tofu apply \
+  -var="hetzner_api_token=<TOKEN>" \
+  -var="ssh_public_key=$(cat ~/.ssh/dabb-deploy.pub)"
+```
 
-## 7.7 Health Checks
+See `DEPLOYMENT.md` for the full one-time setup sequence.
 
-| Service    | Endpoint      | Interval | Timeout |
-| ---------- | ------------- | -------- | ------- |
-| Server     | `GET /health` | 30s      | 3s      |
-| Web        | `GET /`       | 30s      | 3s      |
-| PostgreSQL | `pg_isready`  | 10s      | 5s      |
+## 7.11 Monitoring
 
-## 7.8 Scaling Considerations
+- **Uptime:** UptimeRobot monitors `https://dabb.degler.info/health` every 5 minutes with email alerts
+- **Logs:** `docker compose -f docker-compose.prod.yml logs -f <service>`
+- **Container health:** `docker compose -f docker-compose.prod.yml ps`
 
-For low-traffic (target use case):
-
-- Single instance of each service is sufficient
-- PostgreSQL connection pooling not required
-- No load balancer needed
-
-For higher traffic:
-
-- Add reverse proxy (Traefik/nginx) for SSL termination
-- Consider managed PostgreSQL (Neon, Supabase)
-- Horizontal scaling via Docker Swarm or Kubernetes
-
-## 7.9 Backup Strategy
+## 7.12 Backup Strategy
 
 ### Database Backups
 
 ```bash
 # Manual backup
-docker exec dabb-postgres pg_dump -U dabb dabb > backup.sql
+docker exec dabb-postgres pg_dump -U dabb dabb > backup-$(date +%Y%m%d).sql
 
 # Restore
 docker exec -i dabb-postgres psql -U dabb dabb < backup.sql
 ```
 
-Recommended: Set up automated daily backups with retention policy.
+Recommended: set up a cron job on the server for automated daily backups.
 
-## 7.10 Monitoring
+## 7.13 Scaling Considerations
 
-Basic monitoring via Docker health checks. For production, consider:
+For current low-traffic usage, a single CX23 instance is more than sufficient. If traffic grows:
 
-- Uptime monitoring (UptimeRobot, Healthchecks.io - both have free tiers)
-- Log aggregation (Loki, or simple file logging)
-- Metrics (Prometheus + Grafana if needed)
+- **More resources**: Upgrade to CX33 (4 vCPU, 8GB) or CX43 via Hetzner console
+- **Managed DB**: Migrate PostgreSQL to Hetzner Managed Databases to remove backup burden
+- **Load balancing**: Add Hetzner Load Balancer + multiple CX23s
+- **Edge deployment**: Fly.io for multi-region WebSocket distribution

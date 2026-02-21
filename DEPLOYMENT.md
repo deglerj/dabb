@@ -80,8 +80,10 @@ scp -i ~/.ssh/dabb-deploy docker-compose.prod.yml $SERVER:/opt/dabb/
 scp -i ~/.ssh/dabb-deploy -r deploy/ $SERVER:/opt/dabb/
 
 # Create .env with secrets
+# IMPORTANT: use openssl rand -hex (not -base64) — base64 output can contain '#'
+# which breaks PostgreSQL connection URL parsing.
 ssh -i ~/.ssh/dabb-deploy $SERVER "cat > /opt/dabb/.env" <<EOF
-POSTGRES_PASSWORD=$(openssl rand -base64 32)
+POSTGRES_PASSWORD=$(openssl rand -hex 32)
 CLIENT_URL=https://dabb.degler.info
 VITE_SERVER_URL=https://dabb.degler.info
 EOF
@@ -104,7 +106,11 @@ This script:
 
 ### 7. Add GitHub Secrets
 
-In the GitHub repo → **Settings** → **Secrets and variables** → **Actions**:
+The deploy workflow uses `environment: production`, so secrets must be added to the
+**`production` environment** — not as repository secrets.
+
+1. Go to **Settings** → **Environments** → **production** (create it if it doesn't exist)
+2. Add these secrets inside the environment:
 
 | Name                | Value                                |
 | ------------------- | ------------------------------------ |
@@ -113,7 +119,8 @@ In the GitHub repo → **Settings** → **Secrets and variables** → **Actions*
 | `POSTGRES_PASSWORD` | Same password as in `.env` on server |
 | `CLIENT_URL`        | `https://dabb.degler.info`           |
 
-Update the existing **variable** `VITE_SERVER_URL` → `https://dabb.degler.info`
+The variable `VITE_SERVER_URL` is not sensitive — add/update it as a regular **repository
+variable** under **Settings** → **Secrets and variables** → **Actions** → **Variables** tab.
 
 ### 8. First deployment
 
