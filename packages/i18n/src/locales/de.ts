@@ -160,6 +160,10 @@ const de: TranslationKeys = {
     license: 'Lizenz (CC BY-NC 4.0)',
     reportBug: 'Fehler melden',
     close: 'Schließen',
+    openSourceLicenses: 'Open-Source-Lizenzen',
+  },
+  licenses: {
+    title: 'Open-Source-Lizenzen',
   },
   updateRequired: {
     title: 'Update erforderlich',

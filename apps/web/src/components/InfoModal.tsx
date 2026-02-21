@@ -1,5 +1,7 @@
-import { Bug, Code2, ScrollText, X } from 'lucide-react';
+import { useState } from 'react';
+import { Bug, Code2, Library, ScrollText, X } from 'lucide-react';
 import { useTranslation } from '@dabb/i18n';
+import OpenSourceLicensesModal from './OpenSourceLicensesModal.js';
 
 const GITHUB_URL = 'https://github.com/deglerj/dabb';
 const LICENSE_URL = 'https://github.com/deglerj/dabb/blob/main/LICENSE';
@@ -12,6 +14,11 @@ interface InfoModalProps {
 
 function InfoModal({ version, onClose }: InfoModalProps) {
   const { t } = useTranslation();
+  const [showLicenses, setShowLicenses] = useState(false);
+
+  if (showLicenses) {
+    return <OpenSourceLicensesModal onClose={() => setShowLicenses(false)} />;
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -76,6 +83,25 @@ function InfoModal({ version, onClose }: InfoModalProps) {
             <Bug size={16} />
             {t('info.reportBug')}
           </a>
+          <button
+            onClick={() => setShowLicenses(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: 'var(--primary)',
+              textDecoration: 'none',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              font: 'inherit',
+              fontSize: 'inherit',
+            }}
+          >
+            <Library size={16} />
+            {t('info.openSourceLicenses')}
+          </button>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button className="secondary" onClick={onClose}>

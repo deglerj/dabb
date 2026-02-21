@@ -22,6 +22,8 @@
     "docker:health": "./dev.sh health",
     "docker:reset": "./dev.sh reset",
     "simulate": "pnpm --filter @dabb/server simulate",
+    "generate-licenses": "node scripts/generate-licenses.mjs",
+    "postinstall": "node scripts/generate-licenses.mjs",
     "prepare": "husky"
   },
   "devDependencies": {

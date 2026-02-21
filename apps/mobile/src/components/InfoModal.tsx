@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, Linking } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from '@dabb/i18n';
+import OpenSourceLicensesModal from './OpenSourceLicensesModal.js';
 
 const GITHUB_URL = 'https://github.com/deglerj/dabb';
 const LICENSE_URL = 'https://github.com/deglerj/dabb/blob/main/LICENSE';
@@ -15,37 +16,45 @@ interface InfoModalProps {
 
 function InfoModal({ version, visible, onClose }: InfoModalProps) {
   const { t } = useTranslation();
+  const [showLicenses, setShowLicenses] = useState(false);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-          <Text style={styles.title}>{t('info.title')}</Text>
-          <Text style={styles.description}>{t('info.description')}</Text>
-          <Text style={styles.version}>
-            {t('info.version')}: {version}
-          </Text>
-          <View style={styles.links}>
-            <TouchableOpacity style={styles.link} onPress={() => Linking.openURL(GITHUB_URL)}>
-              <Feather name="github" size={16} color="#2563eb" />
-              <Text style={styles.linkText}>{t('info.sourceCode')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.link} onPress={() => Linking.openURL(LICENSE_URL)}>
-              <Feather name="file-text" size={16} color="#2563eb" />
-              <Text style={styles.linkText}>{t('info.license')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.link} onPress={() => Linking.openURL(ISSUES_URL)}>
-              <Feather name="alert-circle" size={16} color="#2563eb" />
-              <Text style={styles.linkText}>{t('info.reportBug')}</Text>
+    <>
+      <OpenSourceLicensesModal visible={showLicenses} onClose={() => setShowLicenses(false)} />
+      <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+        <View style={styles.overlay}>
+          <View style={styles.card}>
+            <Text style={styles.title}>{t('info.title')}</Text>
+            <Text style={styles.description}>{t('info.description')}</Text>
+            <Text style={styles.version}>
+              {t('info.version')}: {version}
+            </Text>
+            <View style={styles.links}>
+              <TouchableOpacity style={styles.link} onPress={() => Linking.openURL(GITHUB_URL)}>
+                <Feather name="github" size={16} color="#2563eb" />
+                <Text style={styles.linkText}>{t('info.sourceCode')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.link} onPress={() => Linking.openURL(LICENSE_URL)}>
+                <Feather name="file-text" size={16} color="#2563eb" />
+                <Text style={styles.linkText}>{t('info.license')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.link} onPress={() => Linking.openURL(ISSUES_URL)}>
+                <Feather name="alert-circle" size={16} color="#2563eb" />
+                <Text style={styles.linkText}>{t('info.reportBug')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.link} onPress={() => setShowLicenses(true)}>
+                <Feather name="book-open" size={16} color="#2563eb" />
+                <Text style={styles.linkText}>{t('info.openSourceLicenses')}</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Feather name="x" size={16} color="#2563eb" />
+              <Text style={styles.closeText}>{t('info.close')}</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Feather name="x" size={16} color="#2563eb" />
-            <Text style={styles.closeText}>{t('info.close')}</Text>
-          </TouchableOpacity>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+    </>
   );
 }
 

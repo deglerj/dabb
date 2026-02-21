@@ -170,6 +170,10 @@ export interface TranslationKeys {
     license: string;
     reportBug: string;
     close: string;
+    openSourceLicenses: string;
+  };
+  licenses: {
+    title: string;
   };
   updateRequired: {
     title: string;
