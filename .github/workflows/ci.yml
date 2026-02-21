@@ -83,6 +83,7 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     continue-on-error: true
     permissions:
       actions: read
@@ -110,6 +111,7 @@ jobs:
   build-docker:
     name: Build Docker Images
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     needs: [lint-and-typecheck, test]
     permissions:
       contents: read
