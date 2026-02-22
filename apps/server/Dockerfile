@@ -1,6 +1,8 @@
 # Multi-stage build for @dabb/server using Node.js
 # Stage 1: Build
-FROM node:25-alpine AS builder
+FROM cgr.dev/chainguard/node:latest-dev AS builder
+
+USER root
 
 # Install pnpm (corepack was removed from Node.js 25+; install pnpm directly)
 RUN npm install -g pnpm@latest
@@ -31,7 +33,9 @@ RUN cd packages/shared-types && pnpm run build && \
     cd ../../apps/server && pnpm run build
 
 # Stage 2: Production
-FROM node:25-alpine AS production
+FROM cgr.dev/chainguard/node:latest-dev AS production
+
+USER root
 
 # Install pnpm (corepack was removed from Node.js 25+; install pnpm directly)
 RUN npm install -g pnpm@latest
@@ -52,13 +56,8 @@ COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
 COPY --from=builder /app/packages/game-logic/dist ./packages/game-logic/dist
 COPY --from=builder /app/apps/server/dist ./apps/server/dist
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
-
-# Set ownership
-RUN chown -R nodejs:nodejs /app
-
-USER nodejs
+# Chainguard node already has a nonroot user (UID 65532) — no adduser/chown needed
+USER nonroot
 
 WORKDIR /app/apps/server
 
@@ -68,6 +67,6 @@ ENV PORT=3000
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+    CMD ["node", "-e", "require('http').get('http://localhost:3000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
 
 CMD ["node", "dist/index.js"]

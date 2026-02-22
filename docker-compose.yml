@@ -4,7 +4,7 @@
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: cgr.dev/chainguard/postgres:latest
     container_name: dabb-postgres
     restart: unless-stopped
     environment:
@@ -18,7 +18,7 @@ services:
       # Note: Schema is now managed by postgres-migrations on server startup
       # No initdb script needed - server will run migrations automatically
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U dabb -d dabb']
+      test: ['CMD', 'pg_isready', '-U', 'dabb', '-d', 'dabb']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,7 +40,13 @@ services:
     ports:
       - '3000:3000'
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/health']
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          'require("http").get("http://localhost:3000/health",r=>process.exit(r.statusCode===200?0:1)).on("error",()=>process.exit(1))',
+        ]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -58,7 +64,7 @@ services:
     ports:
       - '8080:8080'
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8080/']
+      test: ['CMD', 'nginx', '-t']
       interval: 30s
       timeout: 3s
       retries: 3

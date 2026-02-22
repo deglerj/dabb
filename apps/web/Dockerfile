@@ -1,6 +1,8 @@
 # Multi-stage build for @dabb/web using Node.js
 # Stage 1: Build
-FROM node:25-alpine AS builder
+FROM cgr.dev/chainguard/node:latest-dev AS builder
+
+USER root
 
 # Install pnpm (corepack was removed from Node.js 25+; install pnpm directly)
 RUN npm install -g pnpm@latest
@@ -43,30 +45,19 @@ RUN cd packages/shared-types && pnpm run build && \
     cd ../../apps/web && pnpm run build
 
 # Stage 2: Production with nginx
-FROM nginx:1.29-alpine AS production
+FROM cgr.dev/chainguard/nginx:latest AS production
 
-# Add non-root user capability
-RUN addgroup -g 1001 -S nginx-app && \
-    adduser -S nginx-app -u 1001
+# Chainguard nginx already runs as non-root (UID 65532) on port 8080 — no adduser/chown needed
 
 # Copy custom nginx config
 COPY apps/web/nginx.conf /etc/nginx/nginx.conf
 
-# Copy built static files
+# Copy built static files (world-readable permissions satisfy the non-root nginx user)
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
-
-# Set proper permissions
-RUN chown -R nginx-app:nginx-app /usr/share/nginx/html && \
-    chown -R nginx-app:nginx-app /var/cache/nginx && \
-    chown -R nginx-app:nginx-app /var/log/nginx && \
-    touch /var/run/nginx.pid && \
-    chown -R nginx-app:nginx-app /var/run/nginx.pid
-
-USER nginx-app
 
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1
+    CMD ["nginx", "-t"]
 
 CMD ["nginx", "-g", "daemon off;"]
