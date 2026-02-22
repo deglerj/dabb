@@ -84,5 +84,6 @@ deploy/nginx/certbot/
 .gitmodules
 .mcp.json
 .ripgreprc
-.claude/
+.claude/*
+!.claude/commands/
 .vscode
