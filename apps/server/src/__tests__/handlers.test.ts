@@ -50,6 +50,11 @@ vi.mock('../services/aiControllerService.js', () => ({
 }));
 
 import {
+  checkAndTriggerAI,
+  initializeAIPlayersFromSession,
+} from '../services/aiControllerService.js';
+
+import {
   getPlayerBySecretId,
   getSessionByCode,
   updatePlayerConnection,
@@ -70,6 +75,8 @@ const mockedGetPlayerBySecretId = vi.mocked(getPlayerBySecretId);
 const mockedGetSessionByCode = vi.mocked(getSessionByCode);
 const mockedUpdatePlayerConnection = vi.mocked(updatePlayerConnection);
 const mockedGetEvents = vi.mocked(getEvents);
+const mockedCheckAndTriggerAI = vi.mocked(checkAndTriggerAI);
+const mockedInitializeAIPlayersFromSession = vi.mocked(initializeAIPlayersFromSession);
 const mockedStartGame = vi.mocked(startGame);
 const mockedPlaceBid = vi.mocked(placeBid);
 const mockedPassBid = vi.mocked(passBid);
@@ -791,6 +798,55 @@ describe('Socket Handlers Integration', () => {
         expect(error.message).toBe(SERVER_ERROR_CODES.UNKNOWN_ERROR);
         expect(error.code).toBe(SERVER_ERROR_CODES.UNKNOWN_ERROR);
       });
+    });
+  });
+
+  // Regression: After a server restart, AI player instances (stored only in-memory) are
+  // lost. Previously, initializeAIPlayersFromSession was only called on game:start, so
+  // reconnecting to an active game left AI players unregistered — they would silently
+  // stop acting because checkAndTriggerAI returned early when the in-memory Map was empty.
+  describe('AI player restoration on reconnect to active game (regression)', () => {
+    beforeEach(() => {
+      mockedGetPlayerBySecretId.mockResolvedValue(mockPlayer);
+      mockedGetSessionByCode.mockResolvedValue(mockSession);
+      mockedUpdatePlayerConnection.mockResolvedValue();
+    });
+
+    it('re-initializes AI players and triggers AI turn check when connecting to an active game', async () => {
+      const mockEvents = [
+        {
+          id: 'e1',
+          type: 'GAME_STARTED',
+          sessionId: mockSessionId,
+          sequence: 1,
+          payload: {},
+          timestamp: Date.now(),
+        },
+      ];
+      mockedGetEvents.mockResolvedValue(mockEvents as never);
+
+      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
+
+      // Wait for game:state, then allow server-side async steps to complete
+      await new Promise<void>((resolve) => {
+        clientSocket.on('game:state', () => setTimeout(resolve, 50));
+      });
+
+      expect(mockedInitializeAIPlayersFromSession).toHaveBeenCalledWith(mockSessionId);
+      expect(mockedCheckAndTriggerAI).toHaveBeenCalledWith(mockSessionId, expect.anything());
+    });
+
+    it('does not call AI initialization when no active game exists yet', async () => {
+      mockedGetEvents.mockRejectedValue(new Error('Game not started'));
+
+      clientSocket = createClient({ secretId: mockSecretId, sessionId: mockSessionCode });
+
+      await new Promise<void>((resolve) => {
+        clientSocket.on('connect', () => setTimeout(resolve, 50));
+      });
+
+      expect(mockedInitializeAIPlayersFromSession).not.toHaveBeenCalled();
+      expect(mockedCheckAndTriggerAI).not.toHaveBeenCalled();
     });
   });
 
