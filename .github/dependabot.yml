@@ -4,6 +4,12 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    ignore:
+      # expo SDK 55 requires react-native 0.83.x; 0.84.0 broke the Kotlin
+      # Promise interface in a way expo-modules-core 55.x doesn't handle.
+      # Remove this ignore once expo SDK 56 (which supports RN 0.84+) is released.
+      - dependency-name: 'react-native'
+        versions: ['0.84.x']
     groups:
       dev-dependencies:
         patterns:

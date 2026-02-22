@@ -34,9 +34,25 @@ import {
   isBiddingComplete,
   shuffleDeck,
 } from '@dabb/game-logic';
-import type { Card, GameEvent, GameState, PlayerCount, PlayerIndex } from '@dabb/shared-types';
+import type {
+  Card,
+  GameEvent,
+  GameState,
+  PlayerCount,
+  PlayerIndex,
+  Team,
+} from '@dabb/shared-types';
 
 import { BinokelAIPlayer } from '../ai/BinokelAIPlayer.js';
+
+// Team scoring helpers for 4-player games
+function simGetPlayerTeam(state: GameState, playerIndex: PlayerIndex): Team {
+  return state.players.find((p) => p.playerIndex === playerIndex)!.team!;
+}
+
+function simGetTeamPlayerIndices(state: GameState, team: Team): PlayerIndex[] {
+  return state.players.filter((p) => p.team === team).map((p) => p.playerIndex);
+}
 
 export interface SimulationOptions {
   sessionId: string;
@@ -118,11 +134,24 @@ export class SimulationEngine {
       this.aiPlayers.set(i as PlayerIndex, new BinokelAIPlayer());
     }
 
+    // Assign random teams for 4-player games
+    let teamMap: Map<number, Team> | null = null;
+    if (playerCount === 4) {
+      const indices = [0, 1, 2, 3];
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      teamMap = new Map();
+      indices.forEach((idx, pos) => teamMap!.set(idx, (pos < 2 ? 0 : 1) as Team));
+    }
+
     // Build initialization events
     const initEvents: GameEvent[] = [];
     for (let i = 0; i < playerCount; i++) {
       const idx = i as PlayerIndex;
-      initEvents.push(createPlayerJoinedEvent(this.ctx(), `ai-${i}`, idx, AI_NAMES[i]));
+      const team = teamMap ? teamMap.get(i) : undefined;
+      initEvents.push(createPlayerJoinedEvent(this.ctx(), `ai-${i}`, idx, AI_NAMES[i], team));
     }
 
     const dealer = 0 as PlayerIndex;
@@ -317,17 +346,36 @@ export class SimulationEngine {
     const goingOutBonus = 40;
 
     const scores = {} as Record<
-      PlayerIndex,
+      PlayerIndex | Team,
       { melds: number; tricks: number; total: number; bidMet: boolean }
     >;
 
-    for (let i = 0; i < this.state.playerCount; i++) {
-      const idx = i as PlayerIndex;
-      if (idx === bidWinner) {
-        scores[idx] = { melds: 0, tricks: 0, total: -winningBid, bidMet: false };
-      } else {
-        const melds = meldScores[idx] || 0;
-        scores[idx] = { melds, tricks: 0, total: melds + goingOutBonus, bidMet: true };
+    if (this.state.playerCount === 4) {
+      const bidWinnerTeam = simGetPlayerTeam(this.state, bidWinner);
+      const opponentTeam = (1 - bidWinnerTeam) as Team;
+
+      scores[bidWinnerTeam] = { melds: 0, tricks: 0, total: -winningBid, bidMet: false };
+
+      const opponentIndices = simGetTeamPlayerIndices(this.state, opponentTeam);
+      const opponentMelds = opponentIndices.reduce(
+        (s: number, idx) => s + (meldScores[idx] || 0),
+        0
+      );
+      scores[opponentTeam] = {
+        melds: opponentMelds,
+        tricks: 0,
+        total: opponentMelds + goingOutBonus,
+        bidMet: true,
+      };
+    } else {
+      for (let i = 0; i < this.state.playerCount; i++) {
+        const idx = i as PlayerIndex;
+        if (idx === bidWinner) {
+          scores[idx] = { melds: 0, tricks: 0, total: -winningBid, bidMet: false };
+        } else {
+          const melds = meldScores[idx] || 0;
+          scores[idx] = { melds, tricks: 0, total: melds + goingOutBonus, bidMet: true };
+        }
       }
     }
 
@@ -339,52 +387,95 @@ export class SimulationEngine {
     const winningBid = this.state.currentBid || 150;
 
     const scores = {} as Record<
-      PlayerIndex,
+      PlayerIndex | Team,
       { melds: number; tricks: number; total: number; bidMet: boolean }
     >;
 
-    for (let i = 0; i < this.state.playerCount; i++) {
-      const idx = i as PlayerIndex;
-      const melds = calculateMeldPoints(this.state.declaredMelds.get(idx) || []);
-      const tricksCards = this.state.tricksTaken.get(idx) || [];
-      const tricksRaw = tricksCards.reduce(
-        (sum, trickCards) => sum + calculateTrickPoints(trickCards),
-        0
-      );
-      // Binokel rule: trick points rounded to nearest 10 (5 rounds up)
-      const tricks = Math.round(tricksRaw / 10) * 10;
-      const rawTotal = melds + tricks;
-      const isBidWinner = idx === bidWinner;
-      const bidMet = !isBidWinner || rawTotal >= winningBid;
-      const total = isBidWinner && !bidMet ? -2 * winningBid : rawTotal;
+    if (this.state.playerCount === 4) {
+      // Per-player intermediates
+      const playerMelds = new Map<PlayerIndex, number>();
+      const playerTricks = new Map<PlayerIndex, number>();
+      for (let i = 0; i < 4; i++) {
+        const idx = i as PlayerIndex;
+        const melds = calculateMeldPoints(this.state.declaredMelds.get(idx) || []);
+        const tricksCards = this.state.tricksTaken.get(idx) || [];
+        const tricksRaw = tricksCards.reduce((sum, tc) => sum + calculateTrickPoints(tc), 0);
+        playerMelds.set(idx, melds);
+        playerTricks.set(idx, Math.round(tricksRaw / 10) * 10);
+      }
 
-      scores[idx] = { melds, tricks, total, bidMet };
+      const bidWinnerTeam = simGetPlayerTeam(this.state, bidWinner);
+      for (const team of [0, 1] as Team[]) {
+        const indices = simGetTeamPlayerIndices(this.state, team);
+        const teamMelds = indices.reduce((s: number, idx) => s + playerMelds.get(idx)!, 0);
+        const teamTricks = indices.reduce((s: number, idx) => s + playerTricks.get(idx)!, 0);
+        const rawTotal = teamMelds + teamTricks;
+        const isBidWinnerTeam = team === bidWinnerTeam;
+        const bidMet = !isBidWinnerTeam || rawTotal >= winningBid;
+        const total = isBidWinnerTeam && !bidMet ? -2 * winningBid : rawTotal;
+        scores[team] = { melds: teamMelds, tricks: teamTricks, total, bidMet };
+      }
+    } else {
+      for (let i = 0; i < this.state.playerCount; i++) {
+        const idx = i as PlayerIndex;
+        const melds = calculateMeldPoints(this.state.declaredMelds.get(idx) || []);
+        const tricksCards = this.state.tricksTaken.get(idx) || [];
+        const tricksRaw = tricksCards.reduce((sum, tc) => sum + calculateTrickPoints(tc), 0);
+        // Binokel rule: trick points rounded to nearest 10 (5 rounds up)
+        const tricks = Math.round(tricksRaw / 10) * 10;
+        const rawTotal = melds + tricks;
+        const isBidWinner = idx === bidWinner;
+        const bidMet = !isBidWinner || rawTotal >= winningBid;
+        const total = isBidWinner && !bidMet ? -2 * winningBid : rawTotal;
+
+        scores[idx] = { melds, tricks, total, bidMet };
+      }
     }
 
     this.emitRoundScored(scores);
   }
 
   private emitRoundScored(
-    scores: Record<PlayerIndex, { melds: number; tricks: number; total: number; bidMet: boolean }>
+    scores: Record<
+      PlayerIndex | Team,
+      { melds: number; tricks: number; total: number; bidMet: boolean }
+    >
   ): void {
-    const totalScores = {} as Record<PlayerIndex, number>;
-    for (let i = 0; i < this.state.playerCount; i++) {
-      const idx = i as PlayerIndex;
-      const currentTotal = this.state.totalScores.get(idx) || 0;
-      totalScores[idx] = currentTotal + scores[idx].total;
+    const totalScores = {} as Record<PlayerIndex | Team, number>;
+
+    if (this.state.playerCount === 4) {
+      for (const team of [0, 1] as Team[]) {
+        const prev = this.state.totalScores.get(team) ?? 0;
+        totalScores[team] = prev + scores[team].total;
+      }
+    } else {
+      for (let i = 0; i < this.state.playerCount; i++) {
+        const idx = i as PlayerIndex;
+        const currentTotal = this.state.totalScores.get(idx) || 0;
+        totalScores[idx] = currentTotal + scores[idx].total;
+      }
     }
 
     this.emit(createRoundScoredEvent(this.ctx(), scores, totalScores));
 
     // Check if game is finished
-    let winner: PlayerIndex | null = null;
+    let winner: PlayerIndex | Team | null = null;
     let highestScore = 0;
 
-    for (let i = 0; i < this.state.playerCount; i++) {
-      const idx = i as PlayerIndex;
-      if (totalScores[idx] >= this.state.targetScore && totalScores[idx] > highestScore) {
-        winner = idx;
-        highestScore = totalScores[idx];
+    if (this.state.playerCount === 4) {
+      for (const team of [0, 1] as Team[]) {
+        if (totalScores[team] >= this.state.targetScore && totalScores[team] > highestScore) {
+          winner = team;
+          highestScore = totalScores[team];
+        }
+      }
+    } else {
+      for (let i = 0; i < this.state.playerCount; i++) {
+        const idx = i as PlayerIndex;
+        if (totalScores[idx] >= this.state.targetScore && totalScores[idx] > highestScore) {
+          winner = idx;
+          highestScore = totalScores[idx];
+        }
       }
     }
 
@@ -413,9 +504,9 @@ export class SimulationEngine {
 
   private buildResult(startTime: number, error?: Error): SimulationResult {
     const scores: Record<number, number> = {};
-    for (let i = 0; i < this.options.playerCount; i++) {
-      scores[i] = this.state.totalScores.get(i as PlayerIndex) || 0;
-    }
+    this.state.totalScores.forEach((score, key) => {
+      scores[key] = score;
+    });
 
     // Find winner from GAME_FINISHED event
     let winner: PlayerIndex | null = null;

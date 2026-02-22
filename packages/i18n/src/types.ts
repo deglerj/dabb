@@ -144,6 +144,7 @@ export interface TranslationKeys {
     yourTurn: string;
     // Event messages
     gameStarted: string;
+    teamsAnnounced: string;
     roundStarted: string;
     bidPlaced: string;
     playerPassed: string;
@@ -161,6 +162,25 @@ export interface TranslationKeys {
   };
   rules: {
     title: string;
+  };
+  info: {
+    title: string;
+    description: string;
+    version: string;
+    sourceCode: string;
+    license: string;
+    reportBug: string;
+    close: string;
+    openSourceLicenses: string;
+  };
+  licenses: {
+    title: string;
+  };
+  updateRequired: {
+    title: string;
+    message: string;
+    reload: string;
+    update: string;
   };
   serverErrors: {
     // Session errors

@@ -14,7 +14,7 @@ import { applyEvents, createInitialState, getValidPlays } from '@dabb/game-logic
 import { useTranslation } from '@dabb/i18n';
 import { updateDebugStore, setTerminateCallback } from '../utils/debug';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
 type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 

@@ -15,6 +15,13 @@
   --success: #22c55e;
   --border: #334155;
   --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --card-width: 80px;
+  --card-height: 120px;
+  --card-overlap: 20px;
+  --card-icon-size: 32px;
+  --card-rank-font: 1.25rem;
+  --card-hover-lift: 10px;
+  --card-selected-lift: 20px;
 }
 
 body {
@@ -232,9 +239,9 @@ h3 {
 }
 
 .playing-card {
-  width: 80px;
-  min-width: 80px;
-  height: 120px;
+  width: var(--card-width);
+  min-width: var(--card-width);
+  height: var(--card-height);
   background: white;
   border-radius: 8px;
   box-shadow: var(--card-shadow);
@@ -246,19 +253,29 @@ h3 {
   justify-content: center;
   font-size: 0.75rem;
   color: #333;
-  margin-left: -20px;
+  margin-left: calc(-1 * var(--card-overlap));
 }
 
 .playing-card:first-child {
   margin-left: 0;
 }
 
+.playing-card img {
+  width: var(--card-icon-size);
+  height: var(--card-icon-size);
+}
+
+.card-rank {
+  font-size: var(--card-rank-font);
+  font-weight: bold;
+}
+
 .playing-card:hover {
-  transform: translateY(-10px);
+  transform: translateY(calc(-1 * var(--card-hover-lift)));
 }
 
 .playing-card.selected {
-  transform: translateY(-20px);
+  transform: translateY(calc(-1 * var(--card-selected-lift)));
   box-shadow: 0 0 0 3px var(--accent);
 }
 
@@ -733,6 +750,16 @@ h3 {
 
 /* Mobile: single-column layout with bottom game log overlay */
 @media (max-width: 767px) {
+  :root {
+    --card-width: 60px;
+    --card-height: 90px;
+    --card-overlap: 15px;
+    --card-icon-size: 24px;
+    --card-rank-font: 1rem;
+    --card-hover-lift: 8px;
+    --card-selected-lift: 16px;
+  }
+
   .game-board {
     grid-template-areas:
       'scoreboard'
@@ -740,7 +767,11 @@ h3 {
       'hand';
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr auto;
-    padding-bottom: 150px; /* Space for game log overlay */
+    padding-bottom: calc(220px + env(safe-area-inset-bottom, 0px)); /* Space for game log overlay */
+  }
+
+  .trick-area {
+    min-height: 150px;
   }
 
   .scoreboard-history {
@@ -774,9 +805,11 @@ h3 {
     left: 0;
     width: 100%;
     border-radius: 12px 12px 0 0;
-    max-height: 40vh;
+    max-height: calc(40vh + env(safe-area-inset-bottom, 0px));
     height: auto;
     align-self: auto;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 100;
   }
 
   .game-log-entries {
@@ -785,5 +818,16 @@ h3 {
 
   .game-log-entries.expanded {
     max-height: calc(40vh - 80px);
+  }
+
+  .player-hand {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .game-main .card {
+    padding: 1rem;
   }
 }
