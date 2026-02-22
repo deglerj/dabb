@@ -6,6 +6,7 @@ dist/
 build/
 .next/
 out/
+web-dist/
 
 # Turbo
 .turbo/

@@ -59,6 +59,12 @@ function GameLog({ state, events, currentPlayerIndex }: GameLogProps) {
           targetScore: entry.data.targetScore,
         });
 
+      case 'teams_announced':
+        return t('gameLog.teamsAnnounced', {
+          team0: entry.data.team0.join(' & '),
+          team1: entry.data.team1.join(' & '),
+        });
+
       case 'round_started':
         return t('gameLog.roundStarted', { round: entry.data.round });
 

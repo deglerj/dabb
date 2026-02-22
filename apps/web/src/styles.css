@@ -767,7 +767,7 @@ h3 {
       'hand';
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr auto;
-    padding-bottom: 150px; /* Space for game log overlay */
+    padding-bottom: calc(220px + env(safe-area-inset-bottom, 0px)); /* Space for game log overlay */
   }
 
   .trick-area {
@@ -805,9 +805,11 @@ h3 {
     left: 0;
     width: 100%;
     border-radius: 12px 12px 0 0;
-    max-height: 40vh;
+    max-height: calc(40vh + env(safe-area-inset-bottom, 0px));
     height: auto;
     align-self: auto;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 100;
   }
 
   .game-log-entries {
@@ -816,5 +818,16 @@ h3 {
 
   .game-log-entries.expanded {
     max-height: calc(40vh - 80px);
+  }
+
+  .player-hand {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .game-main .card {
+    padding: 1rem;
   }
 }
