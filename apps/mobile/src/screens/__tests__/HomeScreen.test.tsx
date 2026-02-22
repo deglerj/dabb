@@ -102,7 +102,7 @@ describe('HomeScreen', () => {
     fireEvent.click(screen.getByText('Erstellen'));
 
     await waitFor(() => {
-      expect(onCreateGame).toHaveBeenCalledWith('TestPlayer', 4);
+      expect(onCreateGame).toHaveBeenCalledWith('TestPlayer', 2);
     });
   });
 

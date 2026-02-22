@@ -83,6 +83,7 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     continue-on-error: true
     permissions:
       actions: read
@@ -93,7 +94,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run OSV Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@v2.3.2
+        uses: google/osv-scanner-action/osv-scanner-action@v2.3.3
         with:
           scan-args: |-
             --lockfile=pnpm-lock.yaml
@@ -110,6 +111,7 @@ jobs:
   build-docker:
     name: Build Docker Images
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     needs: [lint-and-typecheck, test]
     permissions:
       contents: read
@@ -149,6 +151,15 @@ jobs:
             type=ref,event=pr
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Validate required variables
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ -z "${{ vars.VITE_SERVER_URL }}" ]; then
+            echo "ERROR: VITE_SERVER_URL repository variable is not set."
+            echo "Set it in: Settings → Secrets and variables → Actions → Variables"
+            exit 1
+          fi
 
       - name: Build Docker image
         uses: docker/build-push-action@v6
@@ -199,7 +210,7 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
           build-args: |
-            VITE_SERVER_URL=${{ vars.VITE_SERVER_URL || 'http://localhost:3000' }}
+            VITE_SERVER_URL=${{ vars.VITE_SERVER_URL }}
 
   build-mobile:
     name: Build Mobile APK

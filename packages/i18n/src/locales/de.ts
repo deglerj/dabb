@@ -134,6 +134,7 @@ const de: TranslationKeys = {
     noEntries: 'Noch keine Aktionen',
     yourTurn: 'Du bist dran!',
     gameStarted: 'Spiel gestartet ({{playerCount}} Spieler, Ziel: {{targetScore}})',
+    teamsAnnounced: 'Teams: {{team0}} vs {{team1}}',
     roundStarted: 'Runde {{round}} gestartet',
     bidPlaced: '{{name}} bietet {{amount}}',
     playerPassed: '{{name}} passt',
@@ -151,6 +152,25 @@ const de: TranslationKeys = {
   },
   rules: {
     title: 'Spielregeln',
+  },
+  info: {
+    title: 'Über Dabb',
+    description: 'Binokel online spielen – kostenlos und quelloffen.',
+    version: 'Version',
+    sourceCode: 'Quellcode auf GitHub',
+    license: 'Lizenz (CC BY-NC 4.0)',
+    reportBug: 'Fehler melden',
+    close: 'Schließen',
+    openSourceLicenses: 'Open-Source-Lizenzen',
+  },
+  licenses: {
+    title: 'Open-Source-Lizenzen',
+  },
+  updateRequired: {
+    title: 'Update erforderlich',
+    message: 'Eine neuere Version von Dabb ist verfügbar. Bitte aktualisiere, um fortzufahren.',
+    reload: 'Neu laden',
+    update: 'Bitte aktualisiere die App',
   },
   serverErrors: {
     // Session errors

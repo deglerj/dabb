@@ -3,7 +3,7 @@
  */
 
 import { useMemo } from 'react';
-import type { GameEvent, GameLogEntry, GameState, PlayerIndex } from '@dabb/shared-types';
+import type { GameEvent, GameLogEntry, GameState, PlayerIndex, Team } from '@dabb/shared-types';
 
 const DEFAULT_VISIBLE_ENTRIES = 5;
 
@@ -27,11 +27,39 @@ export function useGameLog(
 ): GameLogResult {
   return useMemo(() => {
     const entries: GameLogEntry[] = [];
+    const playerTeamData = new Map<PlayerIndex, { nickname: string; team: Team }>();
 
     for (const event of events) {
+      // Track player team data from PLAYER_JOINED events
+      if (event.type === 'PLAYER_JOINED' && event.payload.team !== undefined) {
+        playerTeamData.set(event.payload.playerIndex, {
+          nickname: event.payload.nickname,
+          team: event.payload.team,
+        });
+      }
+
       const logEntry = eventToLogEntry(event);
       if (logEntry) {
         entries.push(logEntry);
+      }
+
+      // After GAME_STARTED in 4-player, emit team announcement
+      if (event.type === 'GAME_STARTED' && event.payload.playerCount === 4) {
+        const team0 = [...playerTeamData.values()]
+          .filter((p) => p.team === 0)
+          .map((p) => p.nickname);
+        const team1 = [...playerTeamData.values()]
+          .filter((p) => p.team === 1)
+          .map((p) => p.nickname);
+        if (team0.length > 0 && team1.length > 0) {
+          entries.push({
+            id: `${event.id}-teams`,
+            timestamp: event.timestamp,
+            type: 'teams_announced',
+            playerIndex: null,
+            data: { kind: 'teams_announced', team0, team1 },
+          });
+        }
       }
     }
 

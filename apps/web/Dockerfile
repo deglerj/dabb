@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY scripts ./scripts
 
 # Copy all package.json files for dependency resolution
 COPY packages/shared-types/package.json ./packages/shared-types/
@@ -18,8 +19,8 @@ COPY packages/i18n/package.json ./packages/i18n/
 COPY packages/card-assets/package.json ./packages/card-assets/
 COPY apps/web/package.json ./apps/web/
 
-# Install dependencies with pnpm
-RUN pnpm install --frozen-lockfile
+# Install dependencies with pnpm (--ignore-scripts skips postinstall which requires the full workspace)
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source files
 COPY packages/shared-types ./packages/shared-types
@@ -42,7 +43,7 @@ RUN cd packages/shared-types && pnpm run build && \
     cd ../../apps/web && pnpm run build
 
 # Stage 2: Production with nginx
-FROM nginx:1.27-alpine AS production
+FROM nginx:1.29-alpine AS production
 
 # Add non-root user capability
 RUN addgroup -g 1001 -S nginx-app && \

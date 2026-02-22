@@ -9,14 +9,15 @@ WORKDIR /app
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY scripts ./scripts
 
 # Copy all package.json files for dependency resolution
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/game-logic/package.json ./packages/game-logic/
 COPY apps/server/package.json ./apps/server/
 
-# Install dependencies with pnpm
-RUN pnpm install --frozen-lockfile
+# Install dependencies with pnpm (--ignore-scripts skips postinstall which requires the full workspace)
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source files
 COPY packages/shared-types ./packages/shared-types
