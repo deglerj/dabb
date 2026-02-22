@@ -194,6 +194,15 @@ vi.mock('@expo/vector-icons', () => {
   };
 });
 
+// Mock expo-constants
+vi.mock('expo-constants', () => ({
+  default: {
+    expoConfig: {
+      version: '1.0.0',
+    },
+  },
+}));
+
 // Mock expo-audio
 vi.mock('expo-audio', () => ({
   useAudioPlayer: vi.fn(() => ({
@@ -220,6 +229,10 @@ vi.mock('react-native-svg', () => {
     Rect: createSvgComponent('rect'),
     Circle: createSvgComponent('circle'),
     Polygon: createSvgComponent('polygon'),
+    G: createSvgComponent('g'),
+    Line: createSvgComponent('line'),
+    Text: createSvgComponent('text'),
+    TextPath: createSvgComponent('textpath'),
   };
 });
 

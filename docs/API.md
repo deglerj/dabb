@@ -25,6 +25,24 @@ Returns server status.
 
 ---
 
+### Version
+
+```
+GET /version
+```
+
+Returns the current server version. Used by clients to detect when a major update is required.
+
+**Response:**
+
+```json
+{
+  "version": "1.0.0"
+}
+```
+
+---
+
 ### Create Session
 
 ```

@@ -22,6 +22,9 @@ import { useTranslation } from '@dabb/i18n';
 import { getRulesMarkdown, type SupportedLanguage } from '@dabb/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import KiSchlonzStamp from '../components/KiSchlonzStamp';
+import InfoModal from '../components/InfoModal';
+import Constants from 'expo-constants';
 
 interface HomeScreenProps {
   onCreateGame: (nickname: string, playerCount: 2 | 3 | 4) => Promise<void>;
@@ -34,8 +37,10 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu');
   const [nickname, setNickname] = useState('');
   const [sessionCode, setSessionCode] = useState('');
-  const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(4);
+  const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(2);
   const [showRules, setShowRules] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const appVersion = Constants.expoConfig?.version ?? '0.0.0';
 
   useEffect(() => {
     AsyncStorage.getItem('dabb-nickname').then((saved) => {
@@ -116,7 +121,23 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
               <Text style={styles.secondaryButtonText}>{t('rules.title')}</Text>
             </View>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton]}
+            onPress={() => setShowInfo(true)}
+          >
+            <View style={styles.buttonContent}>
+              <Feather name="info" size={18} color="#2563eb" />
+              <Text style={styles.secondaryButtonText}>{t('info.title')}</Text>
+            </View>
+          </TouchableOpacity>
         </View>
+
+        <View style={styles.stampContainer}>
+          <KiSchlonzStamp size={100} />
+        </View>
+
+        <InfoModal version={appVersion} visible={showInfo} onClose={() => setShowInfo(false)} />
 
         <Modal visible={showRules} animationType="slide" onRequestClose={() => setShowRules(false)}>
           <View style={styles.rulesModal}>
@@ -312,6 +333,10 @@ const styles = StyleSheet.create({
   buttonGroup: {
     width: '100%',
     gap: 16,
+  },
+  stampContainer: {
+    marginTop: 24,
+    alignItems: 'center',
   },
   button: {
     paddingVertical: 16,
