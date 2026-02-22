@@ -1,7 +1,7 @@
 # Android build environment for Dabb mobile app
 # Usage: Built and run via ./dev.sh apk (source is bind-mounted at runtime)
 
-FROM eclipse-temurin:17-jdk-jammy
+FROM eclipse-temurin:21-jdk-jammy
 
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive

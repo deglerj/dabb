@@ -56,7 +56,7 @@ function Card({
     >
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <SuitIcon suit={card.suit} size={32} />
-        <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{RANK_DISPLAY[card.rank]}</span>
+        <span className="card-rank">{RANK_DISPLAY[card.rank]}</span>
       </div>
     </div>
   );

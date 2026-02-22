@@ -8,6 +8,7 @@ import { StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import type { PlayerIndex, GameEvent, PlayerCount, Suit, CardId } from '@dabb/shared-types';
 import { detectMelds } from '@dabb/game-logic';
 import {
@@ -17,7 +18,7 @@ import {
   useTranslation,
   type SupportedLanguage,
 } from '@dabb/i18n';
-import { HomeScreen, WaitingRoomScreen, GameScreen } from './src/screens';
+import { HomeScreen, WaitingRoomScreen, GameScreen, UpdateRequiredScreen } from './src/screens';
 import { useSessionCredentials } from './src/hooks/useAsyncStorage';
 import { useSocket } from './src/hooks/useSocket';
 import { useGameState } from './src/hooks/useGameState';
@@ -30,7 +31,7 @@ setStorageAdapter({
 
 const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL || 'http://localhost:3000';
 
-type AppScreen = 'loading' | 'home' | 'waiting' | 'game';
+type AppScreen = 'loading' | 'home' | 'waiting' | 'game' | 'update-required';
 
 interface SessionInfo {
   sessionId: string;
@@ -171,21 +172,32 @@ function AppContent() {
     onSessionTerminated: handleSessionTerminated,
   });
 
-  // Initialize app screen based on credentials
+  // Initialize app screen based on credentials + version check
   useEffect(() => {
     if (!credentialsLoading) {
-      if (credentials && sessionInfo) {
-        setScreen('waiting');
-      } else {
-        setScreen('home');
-      }
+      const appVersion = Constants.expoConfig?.version ?? '0.0.0';
+      fetch(`${SERVER_URL}/api/version`)
+        .then((res) => res.json() as Promise<{ version: string }>)
+        .then(({ version: serverVersion }) => {
+          const clientMajor = parseInt(appVersion.split('.')[0], 10);
+          const serverMajor = parseInt(serverVersion.split('.')[0], 10);
+          if (serverMajor > clientMajor) {
+            setScreen('update-required');
+            return;
+          }
+          setScreen(credentials && sessionInfo ? 'waiting' : 'home');
+        })
+        .catch(() => {
+          // Version check failed — proceed normally
+          setScreen(credentials && sessionInfo ? 'waiting' : 'home');
+        });
     }
   }, [credentialsLoading, credentials, sessionInfo]);
 
   const handleCreateGame = async (nickname: string, playerCount: 2 | 3 | 4) => {
     setApiLoading(true);
     try {
-      const response = await fetch(`${SERVER_URL}/sessions`, {
+      const response = await fetch(`${SERVER_URL}/api/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerCount, nickname: nickname.trim() }),
@@ -225,7 +237,7 @@ function AppContent() {
     setApiLoading(true);
     try {
       // Get session info
-      const infoResponse = await fetch(`${SERVER_URL}/sessions/${sessionCode}`);
+      const infoResponse = await fetch(`${SERVER_URL}/api/sessions/${sessionCode}`);
       if (!infoResponse.ok) {
         throw new Error('Game not found');
       }
@@ -233,7 +245,7 @@ function AppContent() {
       const { playerCount } = await infoResponse.json();
 
       // Join the game
-      const joinResponse = await fetch(`${SERVER_URL}/sessions/${sessionCode}/join`, {
+      const joinResponse = await fetch(`${SERVER_URL}/api/sessions/${sessionCode}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nickname }),
@@ -273,7 +285,7 @@ function AppContent() {
 
     setIsAddingAI(true);
     try {
-      const response = await fetch(`${SERVER_URL}/sessions/${sessionInfo.sessionCode}/ai`, {
+      const response = await fetch(`${SERVER_URL}/api/sessions/${sessionInfo.sessionCode}/ai`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -306,7 +318,7 @@ function AppContent() {
 
     try {
       const response = await fetch(
-        `${SERVER_URL}/sessions/${sessionInfo.sessionCode}/ai/${playerIndex}`,
+        `${SERVER_URL}/api/sessions/${sessionInfo.sessionCode}/ai/${playerIndex}`,
         {
           method: 'DELETE',
           headers: {
@@ -407,6 +419,15 @@ function AppContent() {
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
+        <StatusBar style="auto" />
+      </SafeAreaView>
+    );
+  }
+
+  if (screen === 'update-required') {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <UpdateRequiredScreen />
         <StatusBar style="auto" />
       </SafeAreaView>
     );

@@ -141,6 +141,9 @@ export function setupSocketHandlers(io: GameServer) {
       const events = await getEvents(sessionId);
       const filteredEvents = filterEventsForPlayer(events, playerIndex);
       socket.emit('game:state', { events: filteredEvents });
+      // Re-initialize AI players in case the server restarted (instances are in-memory only)
+      await initializeAIPlayersFromSession(sessionId);
+      await checkAndTriggerAI(sessionId, io);
     } catch {
       // Game not started yet, that's ok
     }

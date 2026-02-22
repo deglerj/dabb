@@ -133,6 +133,7 @@ const en: TranslationKeys = {
     noEntries: 'No actions yet',
     yourTurn: "It's your turn!",
     gameStarted: 'Game started ({{playerCount}} players, target: {{targetScore}})',
+    teamsAnnounced: 'Teams: {{team0}} vs {{team1}}',
     roundStarted: 'Round {{round}} started',
     bidPlaced: '{{name}} bids {{amount}}',
     playerPassed: '{{name}} passes',
@@ -150,6 +151,25 @@ const en: TranslationKeys = {
   },
   rules: {
     title: 'Game Rules',
+  },
+  info: {
+    title: 'About Dabb',
+    description: 'Play Binokel online – free and open source.',
+    version: 'Version',
+    sourceCode: 'Source code on GitHub',
+    license: 'License (CC BY-NC 4.0)',
+    reportBug: 'Report a bug',
+    close: 'Close',
+    openSourceLicenses: 'Open Source Licenses',
+  },
+  licenses: {
+    title: 'Open Source Licenses',
+  },
+  updateRequired: {
+    title: 'Update required',
+    message: 'A newer version of Dabb is available. Please update to continue.',
+    reload: 'Reload',
+    update: 'Please update the app',
   },
   serverErrors: {
     // Session errors

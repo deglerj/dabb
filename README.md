@@ -75,7 +75,7 @@ That said, feel free to open an issue if you want to argue. We enjoy reading pas
 
 ### Play Online
 
-Visit [your-deployment-url] to play instantly in your browser!
+Visit [dabb.degler.info](https://dabb.degler.info) to play instantly in your browser!
 
 ### Join a Game
 

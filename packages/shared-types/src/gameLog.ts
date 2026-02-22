@@ -10,6 +10,7 @@ import type { Meld, PlayerIndex, Team } from './game.js';
  */
 export type GameLogEntryType =
   | 'game_started'
+  | 'teams_announced'
   | 'round_started'
   | 'bid_placed'
   | 'player_passed'
@@ -31,6 +32,15 @@ export interface GameStartedLogData {
   kind: 'game_started';
   playerCount: number;
   targetScore: number;
+}
+
+/**
+ * Data for teams_announced log entry
+ */
+export interface TeamsAnnouncedLogData {
+  kind: 'teams_announced';
+  team0: string[]; // Nicknames of Team 0 members
+  team1: string[]; // Nicknames of Team 1 members
 }
 
 /**
@@ -150,6 +160,7 @@ export interface GameTerminatedLogData {
  */
 export type GameLogEntryData =
   | GameStartedLogData
+  | TeamsAnnouncedLogData
   | RoundStartedLogData
   | BidPlacedLogData
   | PlayerPassedLogData

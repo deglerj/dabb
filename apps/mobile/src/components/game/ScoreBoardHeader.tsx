@@ -21,6 +21,12 @@ function ScoreBoardHeader({ state, events, nicknames, onExpand }: ScoreBoardHead
   const { currentRound, rounds } = useRoundHistory(events);
 
   const getName = (playerOrTeam: PlayerIndex | Team): string => {
+    if (state.playerCount === 4) {
+      const teamPlayers = state.players.filter((p) => p.team === playerOrTeam);
+      if (teamPlayers.length > 0) {
+        return teamPlayers.map((p) => p.nickname).join(' & ');
+      }
+    }
     const nickname = nicknames.get(playerOrTeam as PlayerIndex);
     if (nickname) {
       return nickname;

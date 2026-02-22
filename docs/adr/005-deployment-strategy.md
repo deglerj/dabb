@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR 007](007-hetzner-hosting.md) and [ADR 008](008-opentofu-infrastructure.md)
 
 ## Date
 

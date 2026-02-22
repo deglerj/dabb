@@ -15,6 +15,7 @@ import { closePool } from './db/pool.js';
 import { runMigrations } from './db/runMigrations.js';
 import { sessionsRouter } from './routes/sessions.js';
 import { eventsRouter, setSocketServer } from './routes/events.js';
+import { versionRouter } from './routes/version.js';
 import { startCleanupScheduler, stopCleanupScheduler } from './scheduler/cleanupScheduler.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 import logger, { apiLogger } from './utils/logger.js';
@@ -54,7 +55,7 @@ const limiter = rateLimit({
   },
 });
 
-app.use('/sessions', limiter);
+app.use('/api', limiter);
 
 // Health check (no rate limit)
 app.get('/health', (_req, res) => {
@@ -62,8 +63,9 @@ app.get('/health', (_req, res) => {
 });
 
 // API routes
-app.use('/sessions', sessionsRouter);
-app.use('/sessions', eventsRouter);
+app.use('/api/version', versionRouter);
+app.use('/api/sessions', sessionsRouter);
+app.use('/api/sessions', eventsRouter);
 
 // Socket.IO setup
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(

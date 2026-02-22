@@ -404,3 +404,27 @@ A standalone CLI tool runs AI-only games entirely in-memory for testing and fine
 | `--max-actions`  | 10000                | Max actions before aborting    |
 | `--timeout`      | 30000                | Max ms per game                |
 | `--output-dir`   | `simulation-results` | Directory for log files        |
+
+## Versioning & Changelog
+
+### Version sources of truth
+
+- **Root `package.json` `version`** — canonical for web and server.
+- **`apps/mobile/app.json` `expo.version`** — canonical for mobile.
+- Both must always be kept in sync.
+
+### How to bump the version
+
+1. **Determine bump type:**
+   - MAJOR — breaking API/protocol change (force-update required)
+   - MINOR — new user-facing feature
+   - PATCH — bug fix or internal change
+2. **Update version in all five places:**
+   - `package.json` (root)
+   - `apps/web/package.json`
+   - `apps/server/package.json`
+   - `apps/mobile/package.json`
+   - `apps/mobile/app.json` (`expo.version`)
+3. **Add an entry to `CHANGELOG.md`** in user-friendly language (no technical jargon).
+   - PATCH with only internal changes: `"Improved stability and overall game experience"`
+   - MAJOR bumps: explicitly note that users must update the app.

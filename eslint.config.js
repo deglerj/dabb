@@ -71,6 +71,7 @@ export default tseslint.config(
       '**/.expo/**',
       '**/coverage/**',
       'apps/mobile/.expo/**',
+      'web-dist/**',
     ],
   }
 );

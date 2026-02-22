@@ -6,6 +6,12 @@ set -euo pipefail
 echo "==> Installing dependencies..."
 pnpm install --frozen-lockfile
 
+echo "==> Patching foojay-resolver-convention for Gradle 9 + JDK 21 compatibility..."
+# @react-native/gradle-plugin ships foojay-resolver-convention 0.5.0 which references
+# JvmVendorSpec.IBM_SEMERU — removed in Gradle 9. Upgrade to 1.0.0 to fix the build.
+sed -i 's/foojay-resolver-convention").version("0.5.0")/foojay-resolver-convention").version("1.0.0")/' \
+    node_modules/@react-native/gradle-plugin/settings.gradle.kts
+
 echo "==> Building workspace packages..."
 pnpm run build
 

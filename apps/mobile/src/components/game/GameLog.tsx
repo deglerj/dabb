@@ -71,6 +71,16 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
           </Text>
         );
 
+      case 'teams_announced':
+        return (
+          <Text style={styles.entryText}>
+            {t('gameLog.teamsAnnounced', {
+              team0: entry.data.team0.join(' & '),
+              team1: entry.data.team1.join(' & '),
+            })}
+          </Text>
+        );
+
       case 'round_started':
         return (
           <Text style={styles.entryText}>
