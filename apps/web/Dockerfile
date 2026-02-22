@@ -1,9 +1,9 @@
 # Multi-stage build for @dabb/web using Node.js
 # Stage 1: Build
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 
-# Enable corepack for pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm (corepack was removed from Node.js 25+; install pnpm directly)
+RUN npm install -g pnpm@latest
 
 WORKDIR /app
 
