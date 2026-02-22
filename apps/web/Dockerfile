@@ -2,8 +2,8 @@
 # Stage 1: Build
 FROM node:25-alpine AS builder
 
-# Enable corepack for pnpm (corepack is no longer bundled with Node.js 25+)
-RUN npm install -g corepack && corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm (corepack was removed from Node.js 25+; install pnpm directly)
+RUN npm install -g pnpm@latest
 
 WORKDIR /app
 
