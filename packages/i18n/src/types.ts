@@ -144,6 +144,7 @@ export interface TranslationKeys {
     yourTurn: string;
     // Event messages
     gameStarted: string;
+    teamsAnnounced: string;
     roundStarted: string;
     bidPlaced: string;
     playerPassed: string;

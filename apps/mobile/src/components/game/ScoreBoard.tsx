@@ -22,11 +22,29 @@ function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }
   const { rounds, currentRound, gameWinner } = useRoundHistory(events);
 
   const getName = (playerOrTeam: PlayerIndex | Team): string => {
+    if (state.playerCount === 4) {
+      const teamPlayers = state.players.filter((p) => p.team === playerOrTeam);
+      if (teamPlayers.length > 0) {
+        return teamPlayers.map((p) => p.nickname).join(' & ');
+      }
+    }
     const nickname = nicknames.get(playerOrTeam as PlayerIndex);
     if (nickname) {
       return nickname;
     }
     return `${t('common.player')} ${(playerOrTeam as number) + 1}`;
+  };
+
+  const getMeldForEntity = (entity: PlayerIndex | Team): number | undefined => {
+    if (state.playerCount === 4) {
+      const members = state.players.filter((p) => p.team === entity);
+      const vals = members.map((p) => currentRound?.meldScores?.[p.playerIndex]);
+      if (vals.every((v) => v === undefined)) {
+        return undefined;
+      }
+      return vals.reduce((sum: number, v) => sum + (v ?? 0), 0);
+    }
+    return currentRound?.meldScores?.[entity as PlayerIndex];
   };
 
   const scoringEntities = Array.from(state.totalScores.keys());
@@ -167,7 +185,7 @@ function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }
                     </Text>
                   </View>
                   {scoringEntities.map((entity) => {
-                    const meldScore = currentRound.meldScores?.[entity as PlayerIndex];
+                    const meldScore = getMeldForEntity(entity);
                     if (meldScore === undefined) {
                       return (
                         <View key={entity} style={styles.tableCell}>

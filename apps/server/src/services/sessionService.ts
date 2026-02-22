@@ -107,7 +107,7 @@ export async function createSession(
       `INSERT INTO players (session_id, secret_id, nickname, player_index, team)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, session_id, secret_id, nickname, player_index, team, connected, is_ai`,
-      [session.id, secretId, hostNickname, 0, playerCount === 4 ? 0 : null]
+      [session.id, secretId, hostNickname, 0, null]
     );
 
     const player: Player = {
@@ -213,16 +213,13 @@ export async function joinSession(sessionId: string, nickname: string): Promise<
       playerIndex = (playerIndex + 1) as PlayerIndex;
     }
 
-    // Determine team for 4-player games
-    const team = playerCount === 4 ? ((playerIndex % 2) as Team) : null;
-
     // Create player
     const secretId = uuidv4();
     const playerResult = await client.query(
       `INSERT INTO players (session_id, secret_id, nickname, player_index, team)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, session_id, secret_id, nickname, player_index, team, connected, is_ai`,
-      [sessionId, secretId, nickname, playerIndex, team]
+      [sessionId, secretId, nickname, playerIndex, null]
     );
 
     await client.query('COMMIT');
@@ -363,15 +360,12 @@ export async function addAIPlayer(sessionId: string, aiNamePrefix: string = 'ðŸ¤
       nickname = `${aiNamePrefix} ${playerIndex + 1}`;
     }
 
-    // Determine team for 4-player games
-    const team = playerCount === 4 ? ((playerIndex % 2) as Team) : null;
-
     // Create AI player (no secret_id needed)
     const playerResult = await client.query(
       `INSERT INTO players (session_id, secret_id, nickname, player_index, team, is_ai, connected)
        VALUES ($1, NULL, $2, $3, $4, true, true)
        RETURNING id, session_id, secret_id, nickname, player_index, team, connected, is_ai`,
-      [sessionId, nickname, playerIndex, team]
+      [sessionId, nickname, playerIndex, null]
     );
 
     await client.query('COMMIT');

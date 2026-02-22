@@ -134,6 +134,7 @@ const de: TranslationKeys = {
     noEntries: 'Noch keine Aktionen',
     yourTurn: 'Du bist dran!',
     gameStarted: 'Spiel gestartet ({{playerCount}} Spieler, Ziel: {{targetScore}})',
+    teamsAnnounced: 'Teams: {{team0}} vs {{team1}}',
     roundStarted: 'Runde {{round}} gestartet',
     bidPlaced: '{{name}} bietet {{amount}}',
     playerPassed: '{{name}} passt',
