@@ -6,6 +6,12 @@ set -euo pipefail
 echo "==> Installing dependencies..."
 pnpm install --frozen-lockfile
 
+echo "==> Patching foojay-resolver-convention for Gradle 9 + JDK 21 compatibility..."
+# @react-native/gradle-plugin ships foojay-resolver-convention 0.5.0 which references
+# JvmVendorSpec.IBM_SEMERU — removed in Gradle 9. Upgrade to 1.0.0 to fix the build.
+sed -i 's/foojay-resolver-convention").version("0.5.0")/foojay-resolver-convention").version("1.0.0")/' \
+    node_modules/@react-native/gradle-plugin/settings.gradle.kts
+
 echo "==> Building workspace packages..."
 pnpm run build
 
@@ -13,26 +19,8 @@ echo "==> Generating native Android project..."
 cd apps/mobile
 npx expo prebuild --platform android --clean
 
-echo "==> Fixing foojay-resolver-convention for Gradle 9 + JDK 21 compatibility..."
-# foojay-resolver-convention 0.5.0 (shipped by react-native-gradle-plugin) references
-# JvmVendorSpec.IBM_SEMERU which was removed in Gradle 9. Force version 1.0.0.
-cd /app
-awk '/^pluginManagement \{/ && !done {
-    print "pluginManagement {"
-    print "  resolutionStrategy {"
-    print "    eachPlugin {"
-    print "      if (requested.id.id == \"org.gradle.toolchains.foojay-resolver-convention\") {"
-    print "        useVersion(\"1.0.0\")"
-    print "      }"
-    print "    }"
-    print "  }"
-    done=1
-    next
-}
-{print}' apps/mobile/android/settings.gradle > /tmp/settings.gradle.tmp \
-    && mv /tmp/settings.gradle.tmp apps/mobile/android/settings.gradle
-
 echo "==> Fixing Hermes path for pnpm..."
+cd /app
 RN_DIR=$(find node_modules/.pnpm -type d -name "react-native" -path "*react-native@*/node_modules/react-native" 2>/dev/null | head -1)
 if [ -n "$RN_DIR" ]; then
     HERMES_COMPILER=$(dirname "$RN_DIR")/hermes-compiler
