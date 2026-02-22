@@ -1,9 +1,9 @@
 # Multi-stage build for @dabb/server using Node.js
 # Stage 1: Build
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 
-# Enable corepack for pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Enable corepack for pnpm (corepack is no longer bundled with Node.js 25+)
+RUN npm install -g corepack && corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
@@ -31,10 +31,10 @@ RUN cd packages/shared-types && pnpm run build && \
     cd ../../apps/server && pnpm run build
 
 # Stage 2: Production
-FROM node:22-alpine AS production
+FROM node:25-alpine AS production
 
-# Enable corepack for pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Enable corepack for pnpm (corepack is no longer bundled with Node.js 25+)
+RUN npm install -g corepack && corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
