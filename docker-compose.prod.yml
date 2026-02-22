@@ -96,6 +96,30 @@ services:
           cpus: '0.1'
           memory: 32M
 
+  cert-perms:
+    # One-shot service that opens Let's Encrypt directory permissions so the
+    # non-root Chainguard nginx user (UID/GID 65532) can read the cert files.
+    # Runs once at every "docker compose up" before nginx starts.
+    image: alpine:latest
+    volumes:
+      - ./deploy/nginx/certbot/conf:/etc/letsencrypt
+    command:
+      - sh
+      - -c
+      - |
+        if [ -d /etc/letsencrypt/archive ]; then
+          chmod 0755 /etc/letsencrypt/live /etc/letsencrypt/archive
+          find /etc/letsencrypt/live -maxdepth 1 -mindepth 1 -type d -exec chmod 0755 {} +
+          find /etc/letsencrypt/archive -maxdepth 1 -mindepth 1 -type d -exec chmod 0755 {} +
+          find /etc/letsencrypt/archive -name '*.pem' -exec chmod 0644 {} +
+          find /etc/letsencrypt/archive -name 'privkey*.pem' -exec chmod 0640 {} +
+          chown -R root:65532 /etc/letsencrypt/archive
+          echo "Cert permissions fixed for Chainguard nginx (UID/GID 65532)"
+        else
+          echo "No certificates yet, skipping permission fix"
+        fi
+    restart: 'no'
+
   nginx:
     image: cgr.dev/chainguard/nginx:latest
     container_name: dabb-nginx
@@ -112,8 +136,12 @@ services:
     networks:
       - dabb-external
     depends_on:
-      - web
-      - server
+      cert-perms:
+        condition: service_completed_successfully
+      web:
+        condition: service_started
+      server:
+        condition: service_started
     restart: unless-stopped
 
   certbot:

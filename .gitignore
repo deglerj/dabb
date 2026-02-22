@@ -71,8 +71,12 @@ deploy/oci-instance-grabber.sh
 tofu/.terraform/
 tofu/terraform.tfstate*
 
-# Certbot certificates (generated on server, not committed)
-deploy/nginx/certbot/
+# Certbot certificates and data (generated on server, not committed)
+deploy/nginx/certbot/conf/accounts/
+deploy/nginx/certbot/conf/archive/
+deploy/nginx/certbot/conf/live/
+deploy/nginx/certbot/conf/renewal/
+deploy/nginx/certbot/www/
 
 # Claude Code sandbox artifacts
 .bashrc

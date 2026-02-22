@@ -62,6 +62,17 @@ docker compose -f docker-compose.prod.yml run --rm certbot \
 kill "$NGINX_PID" 2>/dev/null || true
 rm -f "$TMP_CONF"
 
+# Open cert permissions for the non-root Chainguard nginx user (UID/GID 65532).
+# certbot deploy hooks don't run on the initial issuance, so we fix here.
+echo "==> Fixing certificate permissions for Chainguard nginx..."
+CERTBOT_CONF="$CERTBOT_DIR/conf"
+chmod 0755 "$CERTBOT_CONF/live" "$CERTBOT_CONF/archive"
+find "$CERTBOT_CONF/live" -maxdepth 1 -mindepth 1 -type d -exec chmod 0755 {} +
+find "$CERTBOT_CONF/archive" -maxdepth 1 -mindepth 1 -type d -exec chmod 0755 {} +
+find "$CERTBOT_CONF/archive" -name '*.pem' -exec chmod 0644 {} +
+find "$CERTBOT_CONF/archive" -name 'privkey*.pem' -exec chmod 0640 {} +
+chown -R root:65532 "$CERTBOT_CONF/archive"
+
 echo "==> Certificate obtained. Starting nginx with full HTTPS config..."
 docker compose -f docker-compose.prod.yml up -d nginx certbot
 
