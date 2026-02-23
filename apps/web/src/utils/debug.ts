@@ -99,6 +99,7 @@ function exportGameLog(): string {
 async function copyGameLog(): Promise<void> {
   const log = exportGameLog();
   await navigator.clipboard.writeText(log);
+  // eslint-disable-next-line no-console
   console.log('Game log copied to clipboard!');
 }
 
@@ -116,6 +117,7 @@ function downloadGameLog(): void {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  // eslint-disable-next-line no-console
   console.log('Game log downloaded!');
 }
 
@@ -124,6 +126,7 @@ function downloadGameLog(): void {
  */
 function printGameLog(): void {
   const log = exportGameLog();
+  // eslint-disable-next-line no-console
   console.log(log);
 }
 
@@ -154,6 +157,7 @@ export function initDebug(): void {
     getState: withTermination(() => store.state),
   };
 
+  // eslint-disable-next-line no-console
   console.log(
     '%c🎴 Dabb Debug Commands Available',
     'font-size: 14px; font-weight: bold; color: #4a9eff'
@@ -162,6 +166,7 @@ export function initDebug(): void {
     '%c⚠️ WARNING: Using any of these commands will terminate your current game!',
     'font-size: 12px; font-weight: bold; color: #ff4444'
   );
+  // eslint-disable-next-line no-console
   console.log(
     '%c  dabb.printLog()    - Print game event log to console\n' +
       '  dabb.copyLog()     - Copy game log to clipboard\n' +
