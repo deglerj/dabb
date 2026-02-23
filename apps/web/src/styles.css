@@ -475,6 +475,11 @@ h3 {
 
 /* Card-to-trick play animation */
 .trick-card-wrapper {
+  transform: rotate(var(--card-rotation, 0deg));
+}
+
+/* Only newly played cards get the fly-in animation */
+.trick-card-wrapper--new {
   animation: card-play-in 0.3s ease-out both;
 }
 
