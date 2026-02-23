@@ -374,5 +374,129 @@ describe('Event Formatter', () => {
 
       expect(log).toContain('[0] CustomName (Team 0)');
     });
+
+    it('formats dabb events (DABB_TAKEN and CARDS_DISCARDED)', () => {
+      const events: GameEvent[] = [
+        {
+          ...baseEvent(1),
+          type: 'GAME_STARTED',
+          payload: { playerCount: 2, targetScore: 1500, dealer: 0 as PlayerIndex },
+        },
+        {
+          ...baseEvent(2),
+          type: 'PLAYER_JOINED',
+          payload: { playerId: 'p1', playerIndex: 0 as PlayerIndex, nickname: 'Hans' },
+        },
+        {
+          ...baseEvent(3),
+          type: 'DABB_TAKEN',
+          payload: {
+            playerIndex: 0 as PlayerIndex,
+            dabbCards: [card('herz', 'ass'), card('bollen', 'koenig')],
+          },
+        },
+        {
+          ...baseEvent(4),
+          type: 'CARDS_DISCARDED',
+          payload: {
+            playerIndex: 0 as PlayerIndex,
+            discardedCards: ['herz-ass-0', 'bollen-koenig-0'],
+          },
+        },
+      ];
+
+      const log = formatEventLog(events);
+
+      expect(log).toContain('DABB');
+      expect(log).toContain('Hans [0] took dabb');
+      expect(log).toContain('CARDS_DISCARDED');
+      expect(log).toContain('Hans [0] discarded');
+    });
+
+    it('formats ROUND_SCORED event', () => {
+      const events: GameEvent[] = [
+        {
+          ...baseEvent(1),
+          type: 'GAME_STARTED',
+          payload: { playerCount: 2, targetScore: 1500, dealer: 0 as PlayerIndex },
+        },
+        {
+          ...baseEvent(2),
+          type: 'ROUND_SCORED',
+          payload: {
+            scores: {
+              0: { melds: 60, tricks: 90, total: 150, bidMet: true },
+              1: { melds: 20, tricks: 30, total: 50, bidMet: false },
+            } as Record<
+              PlayerIndex,
+              { melds: number; tricks: number; total: number; bidMet: boolean }
+            >,
+            totalScores: { 0: 150, 1: 50 } as Record<PlayerIndex, number>,
+          },
+        },
+      ];
+
+      const log = formatEventLog(events);
+
+      expect(log).toContain('SCORING');
+      expect(log).toContain('ROUND_SCORED');
+      expect(log).toContain('melds=60, tricks=90, total=150');
+      expect(log).toContain('bid not met');
+    });
+
+    it('formats GAME_FINISHED event', () => {
+      const events: GameEvent[] = [
+        {
+          ...baseEvent(1),
+          type: 'GAME_STARTED',
+          payload: { playerCount: 2, targetScore: 1500, dealer: 0 as PlayerIndex },
+        },
+        {
+          ...baseEvent(2),
+          type: 'PLAYER_JOINED',
+          payload: { playerId: 'p1', playerIndex: 0 as PlayerIndex, nickname: 'Hans' },
+        },
+        {
+          ...baseEvent(3),
+          type: 'GAME_FINISHED',
+          payload: {
+            winner: 0 as PlayerIndex,
+            finalScores: { 0: 1050, 1: 400 } as Record<PlayerIndex, number>,
+          },
+        },
+      ];
+
+      const log = formatEventLog(events);
+
+      expect(log).toContain('GAME END');
+      expect(log).toContain('GAME_FINISHED');
+      expect(log).toContain('Winner: 0');
+      expect(log).toContain('1050');
+    });
+
+    it('formats GOING_OUT event (falls through to default section = null)', () => {
+      const events: GameEvent[] = [
+        {
+          ...baseEvent(1),
+          type: 'GAME_STARTED',
+          payload: { playerCount: 2, targetScore: 1500, dealer: 0 as PlayerIndex },
+        },
+        {
+          ...baseEvent(2),
+          type: 'PLAYER_JOINED',
+          payload: { playerId: 'p1', playerIndex: 0 as PlayerIndex, nickname: 'Hans' },
+        },
+        {
+          ...baseEvent(3),
+          type: 'GOING_OUT',
+          payload: { playerIndex: 0 as PlayerIndex, suit: 'herz' },
+        },
+      ];
+
+      const log = formatEventLog(events);
+
+      // GOING_OUT has no section header (default returns null)
+      expect(log).toContain('GOING_OUT');
+    });
   });
 });
