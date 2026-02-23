@@ -56,8 +56,8 @@ COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
 COPY --from=builder /app/packages/game-logic/dist ./packages/game-logic/dist
 COPY --from=builder /app/apps/server/dist ./apps/server/dist
 
-# Chainguard node already has a nonroot user (UID 65532) — no adduser/chown needed
-USER nonroot
+# Use numeric UID 65532 (nonroot) — more robust than username-based USER
+USER 65532
 
 WORKDIR /app/apps/server
 
@@ -69,4 +69,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD ["node", "-e", "require('http').get('http://localhost:3000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
 
-CMD ["node", "dist/index.js"]
+# Chainguard node ENTRYPOINT is already /usr/bin/node — pass only the script
+CMD ["dist/index.js"]
