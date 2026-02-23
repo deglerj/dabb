@@ -5,7 +5,7 @@
  * completed trick with the winning card highlighted for 3 seconds.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import type { CompletedTrick, GamePhase, PlayerIndex, Trick } from '@dabb/shared-types';
 
 const TRICK_DISPLAY_DURATION = 3000;
@@ -30,7 +30,10 @@ export function useTrickDisplay(
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialLoadRef = useRef(true);
 
-  useEffect(() => {
+  // Use useLayoutEffect so that the pause state is set synchronously after the DOM commit,
+  // before the browser paints. This prevents the one-frame flicker where currentTrick is
+  // empty (after TRICK_WON clears it) but the completed-trick display hasn't started yet.
+  useLayoutEffect(() => {
     if (!lastCompletedTrick) {
       // No completed trick, nothing to show
       if (initialLoadRef.current) {
