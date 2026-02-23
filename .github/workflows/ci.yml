@@ -18,17 +18,16 @@ jobs:
       mobile: ${{ steps.filter.outputs.mobile }}
     steps:
       - uses: actions/checkout@v6
-      - uses: step-security/paths-filter@v3
-        id: filter
         with:
-          filters: |
-            mobile:
-              - 'apps/mobile/**'
-              - 'packages/**'
-              - 'pnpm-lock.yaml'
-              - 'package.json'
-              - 'turbo.json'
-              - 'pnpm-workspace.yaml'
+          fetch-depth: 2
+      - name: Check for mobile-related changes
+        id: filter
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -qE '^(apps/mobile|packages)/|^(pnpm-lock\.yaml|package\.json|turbo\.json|pnpm-workspace\.yaml)$'; then
+            echo "mobile=true" >> $GITHUB_OUTPUT
+          else
+            echo "mobile=false" >> $GITHUB_OUTPUT
+          fi
 
   lint-and-typecheck:
     name: Lint & Typecheck
