@@ -246,8 +246,9 @@ h3 {
 
 .language-switcher {
   font-family: 'Caveat', cursive;
-  font-size: 0.85rem;
-  color: var(--ink-faint);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink-mid);
   background: transparent;
   border: none;
   padding: 0.25rem;
@@ -857,7 +858,8 @@ h3 {
 .game-log-entry {
   padding: 0.35rem 0.5rem;
   font-family: 'Caveat', cursive;
-  font-size: var(--font-xs);
+  font-size: var(--font-small);
+  font-weight: 700;
   border-radius: 4px;
   margin-bottom: 0.25rem;
   color: var(--ink-dark);
@@ -887,7 +889,7 @@ h3 {
   text-align: center;
   padding: 1rem;
   color: var(--ink-faint);
-  font-size: 0.75rem;
+  font-size: var(--font-small);
 }
 
 .game-log-meld-toggle {
@@ -913,8 +915,9 @@ h3 {
 .game-log-meld-details {
   margin-top: 0.25rem;
   padding-left: 0.5rem;
-  font-size: 0.7rem;
-  color: var(--ink-faint);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-mid);
   border-left: 2px solid var(--paper-edge);
 }
 
