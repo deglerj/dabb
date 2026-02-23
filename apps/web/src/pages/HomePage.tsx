@@ -134,14 +134,33 @@ function HomePage() {
   if (mode === 'menu') {
     return (
       <>
-        <div className="card" style={{ maxWidth: 400, margin: '4rem auto', textAlign: 'center' }}>
+        <div
+          className="card"
+          style={{
+            maxWidth: 380,
+            margin: '4rem auto',
+            textAlign: 'center',
+            padding: '2rem 2rem 2.5rem',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
             <LanguageSwitcher />
           </div>
-          <h1 style={{ marginBottom: '2rem' }}>{t('home.title')}</h1>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-            {t('home.subtitle')}
-          </p>
+          <img
+            src="/ki-schlonz-stamp.svg"
+            alt="100% KI-Schlonz"
+            style={{
+              width: 120,
+              height: 120,
+              marginBottom: '1rem',
+              opacity: 0.9,
+              filter: 'drop-shadow(1px 2px 3px rgba(60, 30, 0, 0.3))',
+            }}
+          />
+          <h1 className="home-title" style={{ marginBottom: '2rem' }}>
+            {t('home.title')}
+          </h1>
+          <p style={{ color: 'var(--ink-mid)', marginBottom: '2rem' }}>{t('home.subtitle')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <button onClick={() => setMode('create')}>
               <Plus size={18} /> {t('home.createGame')}
@@ -156,11 +175,6 @@ function HomePage() {
               <Info size={18} /> {t('info.title')}
             </button>
           </div>
-          <img
-            src="/ki-schlonz-stamp.svg"
-            alt="100% KI-Schlonz"
-            style={{ width: 120, height: 120, marginTop: '1.5rem', opacity: 0.9 }}
-          />
         </div>
         {showInfo && <InfoModal version={APP_VERSION} onClose={() => setShowInfo(false)} />}
         <UpdateRequiredOverlay visible={needsUpdate} />

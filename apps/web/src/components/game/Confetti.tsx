@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 
-const COLORS = ['#ffd700', '#e94560', '#22c55e', '#14b8a6', '#ffffff'];
+const COLORS = ['#d4890a', '#f0a830', '#c0392b', '#b8834a', '#faf8f2'];
 const PARTICLE_COUNT = 50;
 
 type ParticleShape = 'rect' | 'circle' | 'diamond';

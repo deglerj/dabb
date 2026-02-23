@@ -1,6 +1,9 @@
 import type { Card as CardType, Rank } from '@dabb/shared-types';
 import { isHiddenCard } from '@dabb/game-logic';
 import SuitIcon from '../SuitIcon';
+import KoenigFace from './CardFaces/KoenigFace';
+import OberFace from './CardFaces/OberFace';
+import BuabeFace from './CardFaces/BuabeFace';
 
 interface CardProps {
   card: CardType;
@@ -32,16 +35,31 @@ function Card({
       <div
         className="playing-card"
         style={{
-          background: 'linear-gradient(135deg, #1e3a5f 0%, #0f2942 100%)',
-          color: '#4a7eb8',
+          background: `
+            repeating-linear-gradient(
+              45deg,
+              rgba(200, 120, 50, 0.25) 0px,
+              rgba(200, 120, 50, 0.25) 1px,
+              transparent 1px,
+              transparent 8px
+            ),
+            repeating-linear-gradient(
+              -45deg,
+              rgba(200, 120, 50, 0.25) 0px,
+              rgba(200, 120, 50, 0.25) 1px,
+              transparent 1px,
+              transparent 8px
+            ),
+            #5c2e0a
+          `,
+          cursor: 'default',
         }}
-      >
-        <span style={{ fontSize: '2rem' }}>🃏</span>
-      </div>
+      />
     );
   }
 
   const isRed = card.suit === 'herz' || card.suit === 'bollen';
+  const suitColor = isRed ? 'var(--card-red)' : 'var(--card-black)';
 
   return (
     <div
@@ -50,13 +68,97 @@ function Card({
       style={{
         filter: valid ? 'none' : 'grayscale(100%) brightness(0.7)',
         cursor: valid && onClick ? 'pointer' : 'default',
-        color: isRed ? '#dc2626' : '#1e3a5f',
+        color: isRed ? 'var(--card-red)' : 'var(--card-black)',
         zIndex: valid ? 1 : 0,
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <SuitIcon suit={card.suit} size={32} />
-        <span className="card-rank">{RANK_DISPLAY[card.rank]}</span>
+      {/* Top-left corner */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 3,
+          left: 4,
+          textAlign: 'center',
+          lineHeight: 1,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'IM Fell English SC', serif",
+            fontSize: '0.7rem',
+            fontWeight: 'normal',
+          }}
+        >
+          {RANK_DISPLAY[card.rank]}
+        </div>
+        <SuitIcon suit={card.suit} size={10} />
+      </div>
+
+      {/* Center */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {card.rank === 'koenig' && <KoenigFace color={suitColor} />}
+        {card.rank === 'ober' && <OberFace color={suitColor} />}
+        {card.rank === 'buabe' && <BuabeFace color={suitColor} />}
+        {card.rank === 'ass' && (
+          <>
+            {/* Thin inset decorative border */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: '8px',
+                border: '1px solid currentColor',
+                opacity: 0.2,
+                borderRadius: '2px',
+                pointerEvents: 'none',
+              }}
+            />
+            <SuitIcon suit={card.suit} size={44} />
+          </>
+        )}
+        {card.rank === '10' && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "'IM Fell English SC', serif",
+                fontSize: '1.1rem',
+                lineHeight: 1,
+              }}
+            >
+              10
+            </span>
+            <SuitIcon suit={card.suit} size={28} />
+          </div>
+        )}
+      </div>
+
+      {/* Bottom-right corner */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 3,
+          right: 4,
+          textAlign: 'center',
+          lineHeight: 1,
+          transform: 'rotate(180deg)',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'IM Fell English SC', serif",
+            fontSize: '0.7rem',
+            fontWeight: 'normal',
+          }}
+        >
+          {RANK_DISPLAY[card.rank]}
+        </div>
+        <SuitIcon suit={card.suit} size={10} />
       </div>
     </div>
   );

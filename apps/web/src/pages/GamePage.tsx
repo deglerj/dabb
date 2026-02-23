@@ -1,14 +1,15 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Card, CardId, PlayerIndex, Suit } from '@dabb/shared-types';
 import { DABB_SIZE, formatMeldName, SUITS, SUIT_NAMES } from '@dabb/shared-types';
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
 import { useTrickDisplay } from '@dabb/ui-shared';
 import { useTranslation } from '@dabb/i18n';
-import { Hand, Trash2, Check, LogOut, Home } from 'lucide-react';
+import { Hand, Trash2, Check, LogOut, Home, Volume2, VolumeX } from 'lucide-react';
 
 import { useGame } from '../hooks/useGame';
 import { useTurnNotification } from '../hooks/useTurnNotification';
+import { preloadSounds, playSound, setMuted } from '../utils/sounds';
 import PlayerHand from '../components/game/PlayerHand';
 import BiddingPanel from '../components/game/BiddingPanel';
 import TrumpSelector from '../components/game/TrumpSelector';
@@ -28,6 +29,8 @@ function GamePage() {
   const [selectedCards, setSelectedCards] = useState<CardId[]>([]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [goOutConfirmSuit, setGoOutConfirmSuit] = useState<Suit | null>(null);
+  const [muted, setMutedState] = useState(false);
+  const lastEventCountRef = useRef(0);
 
   const {
     state,
@@ -46,6 +49,49 @@ function GamePage() {
 
   // Play notification sound when it's the player's turn
   useTurnNotification(state, playerIndex as PlayerIndex);
+
+  // Preload sounds on mount and restore mute state
+  useEffect(() => {
+    preloadSounds();
+    const stored = localStorage.getItem('dabb-muted');
+    if (stored !== null) {
+      const isMuted = stored === 'true';
+      setMuted(isMuted);
+      setMutedState(isMuted);
+    }
+  }, []);
+
+  // Trigger sounds for new game events
+  useEffect(() => {
+    if (events.length <= lastEventCountRef.current) {
+      return;
+    }
+    const newEvents = events.slice(lastEventCountRef.current);
+    lastEventCountRef.current = events.length;
+
+    for (const event of newEvents) {
+      switch (event.type) {
+        case 'CARDS_DEALT':
+          playSound('card-deal');
+          break;
+        case 'CARD_PLAYED':
+          playSound('card-play');
+          break;
+        case 'BID_PLACED':
+          playSound('bid-place');
+          break;
+        case 'PLAYER_PASSED':
+          playSound('pass');
+          break;
+        case 'TRICK_WON':
+          playSound('trick-win');
+          break;
+        case 'GAME_FINISHED':
+          playSound('game-win');
+          break;
+      }
+    }
+  }, [events]);
 
   // Manage trick display with 4-second pause after completion
   const { displayTrick, winnerPlayerIndex, isTrickPaused } = useTrickDisplay(
@@ -104,6 +150,13 @@ function GamePage() {
     }
   };
 
+  const handleToggleMute = () => {
+    const newMuted = !muted;
+    setMutedState(newMuted);
+    setMuted(newMuted);
+    localStorage.setItem('dabb-muted', String(newMuted));
+  };
+
   if (!connected) {
     return (
       <div className="card" style={{ textAlign: 'center', marginTop: '4rem' }}>
@@ -160,9 +213,25 @@ function GamePage() {
 
       {/* Middle: Game area */}
       <div className="game-main">
-        {/* Phase indicator */}
-        <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
+        {/* Phase indicator + mute toggle */}
+        <div
+          style={{
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+          }}
+        >
           <PhaseIndicator phase={state.phase} trump={state.trump} />
+          <button
+            className="secondary"
+            onClick={handleToggleMute}
+            style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem' }}
+            aria-label={muted ? 'Unmute' : 'Mute'}
+          >
+            {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+          </button>
         </div>
 
         {/* Error message */}
@@ -195,7 +264,7 @@ function GamePage() {
             ) : (
               <>
                 <h3>{t('game.discardCards')}</h3>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                <p style={{ color: 'var(--ink-mid)', marginBottom: '1rem' }}>
                   {t('game.selectCardsToDiscard', { count: dabbSize })}
                 </p>
                 <button onClick={handleDiscard} disabled={selectedCards.length !== dabbSize}>
@@ -207,11 +276,11 @@ function GamePage() {
                 <div
                   style={{
                     marginTop: '1.5rem',
-                    borderTop: '1px solid var(--border)',
+                    borderTop: '1px solid var(--paper-edge)',
                     paddingTop: '1rem',
                   }}
                 >
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                  <p style={{ color: 'var(--ink-mid)', marginBottom: '0.5rem' }}>
                     {t('game.orGoOut')}
                   </p>
                   <div
@@ -249,7 +318,7 @@ function GamePage() {
         )}
 
         {state.phase === 'dabb' && state.bidWinner !== playerIndex && (
-          <p style={{ color: 'var(--text-secondary)' }}>
+          <p style={{ color: 'var(--ink-mid)' }}>
             {t('game.waitingForPlayer', {
               name: state.players.find((p) => p.playerIndex === state.bidWinner)?.nickname,
             })}
@@ -262,7 +331,7 @@ function GamePage() {
         )}
 
         {state.phase === 'trump' && state.bidWinner !== playerIndex && (
-          <p style={{ color: 'var(--text-secondary)' }}>{t('game.waitingForTrump')}</p>
+          <p style={{ color: 'var(--ink-mid)' }}>{t('game.waitingForTrump')}</p>
         )}
 
         {/* Melding phase */}
@@ -277,7 +346,7 @@ function GamePage() {
                 </button>
               </>
             ) : (
-              <p style={{ color: 'var(--text-secondary)' }}>{t('game.waitingForOtherPlayers')}</p>
+              <p style={{ color: 'var(--ink-mid)' }}>{t('game.waitingForOtherPlayers')}</p>
             )}
           </div>
         )}
@@ -295,7 +364,7 @@ function GamePage() {
         {state.phase === 'scoring' && !isTrickPaused && (
           <div className="card" style={{ textAlign: 'center' }}>
             <h3>{t('game.roundOver')}</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>{t('game.nextRoundStarting')}</p>
+            <p style={{ color: 'var(--ink-mid)' }}>{t('game.nextRoundStarting')}</p>
           </div>
         )}
 
@@ -342,8 +411,8 @@ function PhaseIndicator({ phase, trump }: { phase: string; trump: string | null 
   const phaseKey = `phases.${phase}` as const;
 
   return (
-    <div>
-      <span style={{ color: 'var(--text-secondary)' }}>{t('game.phase')}: </span>
+    <div className="phase-indicator">
+      <span style={{ color: 'var(--ink-mid)' }}>{t('game.phase')}: </span>
       <strong>{t(phaseKey)}</strong>
       {trump && (
         <span
@@ -368,7 +437,7 @@ function MeldPreview({ hand, trump }: { hand: Card[]; trump: Suit }) {
   const totalPoints = calculateMeldPoints(melds);
 
   if (melds.length === 0) {
-    return <p style={{ color: 'var(--text-secondary)' }}>{t('game.noMelds')}</p>;
+    return <p style={{ color: 'var(--ink-mid)' }}>{t('game.noMelds')}</p>;
   }
 
   return (

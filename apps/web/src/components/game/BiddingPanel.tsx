@@ -24,18 +24,23 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
       {isMyTurn && (
         <>
           {bidOptions.map((amount) => (
-            <button key={amount} onClick={() => onBid(amount)} style={{ minWidth: '60px' }}>
+            <button
+              key={amount}
+              className="secondary"
+              onClick={() => onBid(amount)}
+              style={{ minWidth: '60px' }}
+            >
               {amount}
             </button>
           ))}
-          <button className="secondary" onClick={onPass}>
+          <button className="danger" onClick={onPass}>
             <X size={16} /> {t('game.pass')}
           </button>
         </>
       )}
 
       {!isMyTurn && (
-        <span style={{ color: 'var(--text-secondary)' }}>{t('game.waitingForOtherPlayers')}</span>
+        <span style={{ color: 'var(--ink-mid)' }}>{t('game.waitingForOtherPlayers')}</span>
       )}
     </div>
   );

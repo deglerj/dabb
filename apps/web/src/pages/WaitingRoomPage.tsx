@@ -206,22 +206,10 @@ function WaitingRoomPage() {
     <div className="card" style={{ maxWidth: 500, margin: '4rem auto' }}>
       <h2>{t('waitingRoom.title')}</h2>
 
-      <div
-        style={{
-          background: 'var(--bg-input)',
-          padding: '1rem',
-          borderRadius: '8px',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
+      <div className="waiting-code-block">
         <div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            {t('waitingRoom.gameCode')}
-          </p>
-          <p style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{code}</p>
+          <p className="waiting-code-label">{t('waitingRoom.gameCode')}</p>
+          <p className="waiting-code-value">{code}</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button className="secondary" onClick={copyCode}>
@@ -237,27 +225,23 @@ function WaitingRoomPage() {
         <h3>
           {t('common.players')} ({session.players.length}/{session.playerCount})
         </h3>
-        <div
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}
-        >
+        <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
           {Array.from({ length: session.playerCount }).map((_, i) => {
             const player = session.players.find((p) => p.playerIndex === i);
             return (
-              <div
-                key={i}
-                style={{
-                  background: 'var(--bg-input)',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
+              <div key={i} className="player-entry">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {player?.isAI && <Bot size={16} style={{ color: 'var(--text-secondary)' }} />}
-                  {player ? player.nickname : `(${t('waitingRoom.waitingForPlayers')})`}
-                  {i === 0 && ` (${t('waitingRoom.host')})`}
+                  {player?.isAI && <Bot size={16} style={{ color: 'var(--ink-faint)' }} />}
+                  {player ? (
+                    <span>
+                      {player.nickname}
+                      {i === 0 && ` (${t('waitingRoom.host')})`}
+                    </span>
+                  ) : (
+                    <span className="player-entry-empty">
+                      {`(${t('waitingRoom.waitingForPlayers')})`}
+                    </span>
+                  )}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {player?.connected && !player?.isAI && (
@@ -313,7 +297,7 @@ function WaitingRoomPage() {
       )}
 
       {!isHost && (
-        <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+        <p style={{ textAlign: 'center', color: 'var(--ink-mid)' }}>
           {t('waitingRoom.waitingForHost')}
         </p>
       )}

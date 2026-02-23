@@ -13,18 +13,7 @@ function LanguageSwitcher() {
   };
 
   return (
-    <select
-      value={i18n.language}
-      onChange={handleChange}
-      style={{
-        padding: '0.5rem',
-        borderRadius: '4px',
-        border: '1px solid var(--border)',
-        background: 'var(--bg-card)',
-        color: 'var(--text)',
-        cursor: 'pointer',
-      }}
-    >
+    <select value={i18n.language} onChange={handleChange} className="language-switcher">
       {SUPPORTED_LANGUAGES.map((lang) => (
         <option key={lang} value={lang}>
           {LANGUAGE_LABELS[lang as SupportedLanguage]}

@@ -140,7 +140,7 @@ function ScoreBoard({ state, events, currentPlayerIndex, onExitClick }: ScoreBoa
 
       {/* Expanded history table */}
       {isExpanded && (rounds.length > 0 || currentRound) && (
-        <div className="scoreboard-history">
+        <div className="scoreboard-history notebook">
           <table>
             <thead>
               <tr>

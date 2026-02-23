@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Card as CardType, CardId } from '@dabb/shared-types';
 import { sortHand } from '@dabb/game-logic';
+import { playSound } from '../../utils/sounds';
 
 import Card from './Card';
 
@@ -33,6 +34,8 @@ function PlayerHand({
   }, [selectionMode]);
 
   const handleClick = (card: CardType) => {
+    playSound('card-select');
+
     if (selectionMode === 'single' && onPlayCard) {
       onPlayCard(card.id);
       return;

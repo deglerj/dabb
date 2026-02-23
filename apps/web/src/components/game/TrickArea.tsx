@@ -8,11 +8,22 @@ interface TrickAreaProps {
   winnerPlayerIndex?: PlayerIndex | null;
 }
 
+const CARD_ROTATIONS = [-4, 3, -2, 5];
+
 function TrickArea({ trick, players, winnerPlayerIndex }: TrickAreaProps) {
   return (
     <div className="trick-area">
       {trick.cards.map((playedCard, index) => (
-        <div key={index} style={{ textAlign: 'center' }}>
+        <div
+          key={`${playedCard.playerIndex}-${playedCard.card.id}`}
+          className="trick-card-wrapper"
+          style={
+            {
+              textAlign: 'center',
+              '--card-rotation': `${CARD_ROTATIONS[index % 4]}deg`,
+            } as React.CSSProperties
+          }
+        >
           <Card
             card={playedCard.card}
             winner={

@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-const COLORS = ['#ffd700', '#e94560', '#22c55e', '#14b8a6', '#ff6b6b', '#ffffff'];
+const COLORS = ['#d4890a', '#f0a830', '#c0392b', '#b8834a', '#d4a264', '#faf8f2'];
 const SPARKS_PER_BURST = 12;
 
 interface Spark {

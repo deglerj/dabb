@@ -12,24 +12,37 @@ vi.mock('../../SuitIcon', () => ({
   ),
 }));
 
+// Mock CardFaces to avoid SVG complexity in tests
+vi.mock('../CardFaces/KoenigFace', () => ({
+  default: ({ color }: { color: string }) => <div data-testid="koenig-face" data-color={color} />,
+}));
+vi.mock('../CardFaces/OberFace', () => ({
+  default: ({ color }: { color: string }) => <div data-testid="ober-face" data-color={color} />,
+}));
+vi.mock('../CardFaces/BuabeFace', () => ({
+  default: ({ color }: { color: string }) => <div data-testid="buabe-face" data-color={color} />,
+}));
+
 const visibleCard: CardType = { id: 'herz-ass-0', suit: 'herz', rank: 'ass', copy: 0 };
 const hiddenCard: CardType = { id: 'hidden-0', suit: 'herz', rank: 'ass', copy: 0 };
 
 describe('Card', () => {
   it('renders a visible card with rank and suit', () => {
-    const { container, getByTestId } = render(<Card card={visibleCard} />);
+    const { container, getAllByTestId } = render(<Card card={visibleCard} />);
 
-    expect(getByTestId('suit-icon-herz')).toBeInTheDocument();
+    // Ass card renders suit icon in top-left corner, center, and bottom-right corner
+    expect(getAllByTestId('suit-icon-herz').length).toBeGreaterThan(0);
     expect(container.querySelector('.playing-card')).toBeInTheDocument();
     expect(container.textContent).toContain('A'); // Ass -> 'A'
   });
 
-  it('renders a hidden card with card-back style', () => {
-    const { container } = render(<Card card={hiddenCard} />);
+  it('renders a hidden card without suit icons', () => {
+    const { container, queryByTestId } = render(<Card card={hiddenCard} />);
 
     const cardEl = container.querySelector('.playing-card');
     expect(cardEl).toBeInTheDocument();
-    expect(cardEl?.textContent).toContain('🃏');
+    // Hidden card has no text content — just a background pattern
+    expect(queryByTestId('suit-icon-herz')).not.toBeInTheDocument();
   });
 
   it('applies selected class when selected', () => {
@@ -83,32 +96,32 @@ describe('Card', () => {
     expect(cardEl.style.filter).toContain('grayscale');
   });
 
-  it('uses red color for herz and bollen suits', () => {
+  it('uses card-red CSS variable for herz and bollen suits', () => {
     const { container: herzContainer } = render(
       <Card card={{ id: 'herz-ass-0', suit: 'herz', rank: 'ass', copy: 0 }} />
     );
     const herzCard = herzContainer.querySelector('.playing-card') as HTMLElement;
-    expect(herzCard.style.color).toBe('rgb(220, 38, 38)');
+    expect(herzCard.style.color).toBe('var(--card-red)');
 
     const { container: bollenContainer } = render(
       <Card card={{ id: 'bollen-ass-0', suit: 'bollen', rank: 'ass', copy: 0 }} />
     );
     const bollenCard = bollenContainer.querySelector('.playing-card') as HTMLElement;
-    expect(bollenCard.style.color).toBe('rgb(220, 38, 38)');
+    expect(bollenCard.style.color).toBe('var(--card-red)');
   });
 
-  it('uses blue color for kreuz and schippe suits', () => {
+  it('uses card-black CSS variable for kreuz and schippe suits', () => {
     const { container: kreuzContainer } = render(
       <Card card={{ id: 'kreuz-ass-0', suit: 'kreuz', rank: 'ass', copy: 0 }} />
     );
     const kreuzCard = kreuzContainer.querySelector('.playing-card') as HTMLElement;
-    expect(kreuzCard.style.color).toBe('rgb(30, 58, 95)');
+    expect(kreuzCard.style.color).toBe('var(--card-black)');
 
     const { container: schippeContainer } = render(
       <Card card={{ id: 'schippe-ass-0', suit: 'schippe', rank: 'ass', copy: 0 }} />
     );
     const schippeCard = schippeContainer.querySelector('.playing-card') as HTMLElement;
-    expect(schippeCard.style.color).toBe('rgb(30, 58, 95)');
+    expect(schippeCard.style.color).toBe('var(--card-black)');
   });
 
   it('displays correct rank abbreviations', () => {
@@ -140,5 +153,26 @@ describe('Card', () => {
 
     fireEvent.click(container.querySelector('.playing-card')!);
     expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it('renders König face for koenig rank', () => {
+    const { getByTestId } = render(
+      <Card card={{ id: 'herz-koenig-0', suit: 'herz', rank: 'koenig', copy: 0 }} />
+    );
+    expect(getByTestId('koenig-face')).toBeInTheDocument();
+  });
+
+  it('renders Ober face for ober rank', () => {
+    const { getByTestId } = render(
+      <Card card={{ id: 'herz-ober-0', suit: 'herz', rank: 'ober', copy: 0 }} />
+    );
+    expect(getByTestId('ober-face')).toBeInTheDocument();
+  });
+
+  it('renders Buabe face for buabe rank', () => {
+    const { getByTestId } = render(
+      <Card card={{ id: 'herz-buabe-0', suit: 'herz', rank: 'buabe', copy: 0 }} />
+    );
+    expect(getByTestId('buabe-face')).toBeInTheDocument();
   });
 });

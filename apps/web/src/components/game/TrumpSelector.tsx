@@ -13,11 +13,12 @@ function TrumpSelector({ onSelect }: TrumpSelectorProps) {
 
   return (
     <div className="card" style={{ textAlign: 'center' }}>
-      <h3>{t('game.chooseTrump')}</h3>
+      <h3 className="panel-heading">{t('game.chooseTrump')}</h3>
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
         {SUITS.map((suit) => (
           <button
             key={suit}
+            className="secondary"
             onClick={() => onSelect(suit)}
             style={{
               display: 'flex',
