@@ -102,22 +102,7 @@ function Card({
         {card.rank === 'koenig' && <KoenigFace color={suitColor} />}
         {card.rank === 'ober' && <OberFace color={suitColor} />}
         {card.rank === 'buabe' && <BuabeFace color={suitColor} />}
-        {card.rank === 'ass' && (
-          <>
-            {/* Thin inset decorative border */}
-            <div
-              style={{
-                position: 'absolute',
-                inset: '8px',
-                border: '1px solid currentColor',
-                opacity: 0.2,
-                borderRadius: '2px',
-                pointerEvents: 'none',
-              }}
-            />
-            <SuitIcon suit={card.suit} size={44} />
-          </>
-        )}
+        {card.rank === 'ass' && <SuitIcon suit={card.suit} size={44} />}
         {card.rank === '10' && (
           <div
             style={{

@@ -130,7 +130,7 @@ describe('ScoreBoard', () => {
   it('renders exit button when onExitClick is provided', () => {
     mockUseRoundHistory.mockReturnValue({ rounds: [], currentRound: null, gameWinner: null });
 
-    renderWithI18n(
+    const { container } = renderWithI18n(
       <ScoreBoard
         state={createState()}
         events={[]}
@@ -139,25 +139,24 @@ describe('ScoreBoard', () => {
       />
     );
 
-    const exitButton = screen.getByText(/Spiel verlassen/);
-    expect(exitButton).toBeInTheDocument();
+    expect(container.querySelector('.exit-button')).toBeInTheDocument();
   });
 
   it('does not render exit button when onExitClick is not provided', () => {
     mockUseRoundHistory.mockReturnValue({ rounds: [], currentRound: null, gameWinner: null });
 
-    renderWithI18n(
+    const { container } = renderWithI18n(
       <ScoreBoard state={createState()} events={[]} currentPlayerIndex={0 as PlayerIndex} />
     );
 
-    expect(screen.queryByText(/Spiel verlassen/)).not.toBeInTheDocument();
+    expect(container.querySelector('.exit-button')).not.toBeInTheDocument();
   });
 
   it('calls onExitClick when exit button is clicked', () => {
     mockUseRoundHistory.mockReturnValue({ rounds: [], currentRound: null, gameWinner: null });
 
     const onExitClick = vi.fn();
-    renderWithI18n(
+    const { container } = renderWithI18n(
       <ScoreBoard
         state={createState()}
         events={[]}
@@ -166,7 +165,7 @@ describe('ScoreBoard', () => {
       />
     );
 
-    fireEvent.click(screen.getByText(/Spiel verlassen/));
+    fireEvent.click(container.querySelector('.exit-button')!);
     expect(onExitClick).toHaveBeenCalledOnce();
   });
 

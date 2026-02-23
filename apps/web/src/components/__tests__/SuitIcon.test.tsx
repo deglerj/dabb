@@ -16,16 +16,16 @@ describe('SuitIcon', () => {
 
   it('uses default size of 24', () => {
     const { container } = render(<SuitIcon suit="herz" />);
-    const img = container.querySelector('img');
-    expect(img?.width).toBe(24);
-    expect(img?.height).toBe(24);
+    const img = container.querySelector('img') as HTMLElement;
+    expect(img.style.width).toBe('24px');
+    expect(img.style.height).toBe('24px');
   });
 
   it('accepts custom size', () => {
     const { container } = render(<SuitIcon suit="herz" size={40} />);
-    const img = container.querySelector('img');
-    expect(img?.width).toBe(40);
-    expect(img?.height).toBe(40);
+    const img = container.querySelector('img') as HTMLElement;
+    expect(img.style.width).toBe('40px');
+    expect(img.style.height).toBe('40px');
   });
 
   it('applies className when provided', () => {

@@ -109,10 +109,6 @@ function ScoreBoard({ state, events, currentPlayerIndex, onExitClick }: ScoreBoa
         </div>
 
         <div className="scoreboard-actions">
-          <button className="scoreboard-toggle" type="button">
-            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}{' '}
-            {isExpanded ? t('game.hideHistory') : t('game.showHistory')}
-          </button>
           <div onClick={(e) => e.stopPropagation()}>
             <LanguageSwitcher />
           </div>
@@ -125,7 +121,7 @@ function ScoreBoard({ state, events, currentPlayerIndex, onExitClick }: ScoreBoa
                 onExitClick();
               }}
             >
-              <LogOut size={16} /> {t('game.exitGame')}
+              <LogOut size={16} />
             </button>
           )}
         </div>
@@ -242,6 +238,11 @@ function ScoreBoard({ state, events, currentPlayerIndex, onExitClick }: ScoreBoa
           {currentRound.winningBid}
         </div>
       )}
+
+      {/* Toggle indicator at bottom */}
+      <button className="scoreboard-toggle" type="button" onClick={toggleExpanded}>
+        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
     </div>
   );
 }

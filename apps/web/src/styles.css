@@ -606,17 +606,21 @@ h3 {
 }
 
 .scoreboard-toggle {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 0;
   background: var(--paper-face);
-  border: 1px solid var(--paper-edge);
-  color: var(--ink-mid);
-  box-shadow: 0 1px 0 var(--paper-edge);
-  white-space: nowrap;
+  border: none;
+  border-top: 1px solid var(--paper-edge);
+  color: var(--ink-faint);
+  cursor: pointer;
 }
 
 .scoreboard-toggle:hover {
   background: var(--paper-aged);
+  color: var(--ink-mid);
 }
 
 .scoreboard .exit-button {
@@ -1069,7 +1073,6 @@ h3 {
     font-size: 1.25rem;
   }
 
-  .scoreboard-toggle,
   .scoreboard .exit-button {
     font-size: 0.65rem;
     padding: 0.4rem 0.5rem;

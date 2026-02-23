@@ -23,10 +23,8 @@ function SuitIcon({ suit, size = 24, className }: SuitIconProps) {
     <img
       src={SUIT_ICONS[suit]}
       alt={suit}
-      width={size}
-      height={size}
       className={className}
-      style={{ display: 'inline-block', verticalAlign: 'middle' }}
+      style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }}
     />
   );
 }
