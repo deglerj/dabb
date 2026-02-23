@@ -308,6 +308,25 @@ background-image:
   );
 ```
 
+### Card Highlighting — Glow Effects
+
+Use distinct glow colors so each highlight has a clear meaning. **Do not reuse amber for multiple highlight types.**
+
+| State    | Color | CSS value | Scope / when shown                                        |
+| -------- | ----- | --------- | --------------------------------------------------------- |
+| Selected | Amber | `#d4890a` | Card chosen by the player (always)                        |
+| Winner   | Gold  | `#f0c040` | Card that won a trick (trick area)                        |
+| Trump    | Green | `#22c55e` | Card belongs to the trump suit (player hand)              |
+| Dabb     | Blue  | `#60a5fa` | Card came from the dabb (dabb, trump, and melding phases) |
+
+Implementation:
+
+- Glow via CSS `box-shadow` (web) or `shadowColor` + `elevation` (React Native)
+- Apply a matching colored `border` to reinforce the glow
+- **Overlapping cards**: give highlighted cards `z-index: 2` (web) / higher `zIndex` (RN) so their glow renders above adjacent non-highlighted cards
+
+---
+
 ### Face Card Illustrations (König, Ober, Buabe)
 
 **Style**: Folk-art / linocut. Bold 2px outlines, flat fills, no gradients. Simple geometric faces. Think hand-stamped woodblock print — charming and slightly naive, not photorealistic.

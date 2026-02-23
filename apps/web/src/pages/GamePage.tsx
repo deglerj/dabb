@@ -393,7 +393,10 @@ function GamePage() {
       <PlayerHand
         cards={myHand}
         validMoves={validMoves}
-        dabbCardIds={state.dabbCardIds}
+        trumpSuit={state.trump ?? undefined}
+        dabbCardIds={
+          ['dabb', 'trump', 'melding'].includes(state.phase) ? state.dabbCardIds : undefined
+        }
         onPlayCard={
           state.phase === 'tricks' && isMyTurn && !isTrickPaused ? game.playCard : undefined
         }

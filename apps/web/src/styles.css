@@ -31,6 +31,14 @@
   --amber-light: #f0a830;
   --amber-glow: rgba(212, 137, 10, 0.25);
 
+  /* Card highlight glows — distinct colors per meaning */
+  --glow-winner: rgba(240, 192, 64, 0.55);        /* gold — card won a trick */
+  --glow-winner-border: #f0c040;
+  --glow-trump: rgba(34, 197, 94, 0.5);           /* green — trump suit card */
+  --glow-trump-border: #22c55e;
+  --glow-dabb: rgba(96, 165, 250, 0.5);           /* blue — card from the dabb (melding phase) */
+  --glow-dabb-border: #60a5fa;
+
   /* Feedback */
   --success: #3a7d44;
   --error: #a32020;
@@ -450,13 +458,18 @@ h3 {
 }
 
 .playing-card.winner {
-  box-shadow: 0 0 12px 4px var(--amber-glow);
-  border: 1px solid var(--amber);
+  box-shadow: 0 0 14px 4px var(--glow-winner);
+  border: 1px solid var(--glow-winner-border);
+}
+
+.playing-card.trump {
+  box-shadow: 0 0 12px 3px var(--glow-trump);
+  border: 1px solid var(--glow-trump-border);
 }
 
 .playing-card.dabb {
-  box-shadow: 0 0 8px 2px var(--amber-glow);
-  border: 1px solid var(--amber-light);
+  box-shadow: 0 0 12px 3px var(--glow-dabb);
+  border: 1px solid var(--glow-dabb-border);
 }
 
 .trick-area {

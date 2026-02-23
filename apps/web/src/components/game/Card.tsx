@@ -10,6 +10,7 @@ interface CardProps {
   selected?: boolean;
   valid?: boolean;
   winner?: boolean;
+  trump?: boolean;
   dabb?: boolean;
   onClick?: () => void;
 }
@@ -27,6 +28,7 @@ function Card({
   selected = false,
   valid = true,
   winner = false,
+  trump = false,
   dabb = false,
   onClick,
 }: CardProps) {
@@ -63,13 +65,14 @@ function Card({
 
   return (
     <div
-      className={`playing-card ${card.suit} ${selected ? 'selected' : ''} ${winner ? 'winner' : ''} ${dabb ? 'dabb' : ''}`}
+      className={`playing-card ${card.suit} ${selected ? 'selected' : ''} ${winner ? 'winner' : ''} ${trump ? 'trump' : ''} ${dabb ? 'dabb' : ''}`}
       onClick={valid ? onClick : undefined}
       style={{
         filter: valid ? 'none' : 'grayscale(100%) brightness(0.7)',
         cursor: valid && onClick ? 'pointer' : 'default',
         color: isRed ? 'var(--card-red)' : 'var(--card-black)',
-        zIndex: valid ? 1 : 0,
+        // Highlighted cards get a higher z-index so their glow isn't clipped by adjacent overlapping cards
+        zIndex: winner || trump || dabb ? 2 : valid ? 1 : 0,
       }}
     >
       {/* Top-left corner */}

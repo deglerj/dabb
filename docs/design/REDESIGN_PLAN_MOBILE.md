@@ -238,9 +238,23 @@ Update `apps/mobile/src/components/game/Card.tsx`:
 
 ### Step M2.3 — Card states
 
-- Selected: amber border + lift (use `transform: [{ translateY: -16 }]`)
-- Winner: amber glow (add border + slight elevation increase)
-- Invalid: `opacity: 0.5` (simpler than grayscale filter on RN)
+Use **distinct glow colors** for each highlight type — never reuse amber across multiple meanings:
+
+| State    | Color | Hex       | When shown                                                |
+| -------- | ----- | --------- | --------------------------------------------------------- |
+| Selected | Amber | `#d4890a` | Card chosen by the player (always)                        |
+| Winner   | Gold  | `#f0c040` | Card that won a trick (trick area only)                   |
+| Trump    | Green | `#22c55e` | Card belongs to the trump suit (hand)                     |
+| Dabb     | Blue  | `#60a5fa` | Card came from the dabb (dabb, trump, and melding phases) |
+| Invalid  | —     | —         | `opacity: 0.5` (simpler than grayscale filter on RN)      |
+
+Implementation notes:
+
+- **Selected**: amber border + lift (`transform: [{ translateY: -16 }]`)
+- **Winner**, **Trump**, **Dabb**: glow via `shadowColor` + elevated `elevation` / `shadowRadius`; add a colored `borderColor` matching the glow
+- **Overlapping cards**: give highlighted cards a higher `zIndex` (e.g. `2`) than plain cards (`1`) so their glow renders on top of adjacent cards and isn't clipped
+- **Dabb highlighting** is active during the dabb, trump, and melding phases — pass `dabbCardIds` to `PlayerHand` conditionally: `['dabb', 'trump', 'melding'].includes(state.phase) ? state.dabbCardIds : undefined`
+- **Trump highlighting**: pass the trump suit down to `PlayerHand` and compare each card's suit — `card.suit === trumpSuit`
 
 **Verify**: All rank/suit combinations render. Face cards display correctly at mobile card size (60×90px). Card back shows hatch pattern.
 

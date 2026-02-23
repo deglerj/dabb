@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Card as CardType, CardId } from '@dabb/shared-types';
+import type { Card as CardType, CardId, Suit } from '@dabb/shared-types';
 import { sortHand } from '@dabb/game-logic';
 import { playSound } from '../../utils/sounds';
 
@@ -8,6 +8,7 @@ import Card from './Card';
 interface PlayerHandProps {
   cards: CardType[];
   validMoves: CardId[];
+  trumpSuit?: Suit;
   dabbCardIds?: CardId[];
   onPlayCard?: (cardId: CardId) => void;
   selectionMode?: 'single' | 'multiple';
@@ -18,6 +19,7 @@ interface PlayerHandProps {
 function PlayerHand({
   cards,
   validMoves,
+  trumpSuit,
   dabbCardIds,
   onPlayCard,
   selectionMode = 'single',
@@ -61,6 +63,7 @@ function PlayerHand({
           card={card}
           selected={selected.has(card.id)}
           valid={validMoves.length === 0 || validMoves.includes(card.id)}
+          trump={trumpSuit !== undefined && card.suit === trumpSuit}
           dabb={dabbCardIds?.includes(card.id)}
           onClick={() => handleClick(card)}
         />

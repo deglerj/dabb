@@ -66,6 +66,13 @@ describe('Card', () => {
     expect(cardEl?.classList.contains('winner')).toBe(true);
   });
 
+  it('applies trump class when trump', () => {
+    const { container } = render(<Card card={visibleCard} trump={true} />);
+
+    const cardEl = container.querySelector('.playing-card');
+    expect(cardEl?.classList.contains('trump')).toBe(true);
+  });
+
   it('applies suit class to the card', () => {
     const { container } = render(<Card card={visibleCard} />);
 
