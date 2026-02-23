@@ -11,15 +11,6 @@ const SOUNDS = [
 type SoundName = (typeof SOUNDS)[number];
 
 const cache: Partial<Record<SoundName, HTMLAudioElement>> = {};
-let muted = false;
-
-export function setMuted(value: boolean) {
-  muted = value;
-}
-
-export function isMuted() {
-  return muted;
-}
 
 export function preloadSounds() {
   SOUNDS.forEach((name) => {
@@ -30,9 +21,6 @@ export function preloadSounds() {
 }
 
 export function playSound(name: SoundName) {
-  if (muted) {
-    return;
-  }
   try {
     const source = cache[name];
     if (source) {

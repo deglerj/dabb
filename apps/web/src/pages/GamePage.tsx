@@ -5,11 +5,11 @@ import { DABB_SIZE, formatMeldName, SUITS, SUIT_NAMES } from '@dabb/shared-types
 import { detectMelds, calculateMeldPoints } from '@dabb/game-logic';
 import { useTrickDisplay } from '@dabb/ui-shared';
 import { useTranslation } from '@dabb/i18n';
-import { Hand, Trash2, Check, LogOut, Home, Volume2, VolumeX } from 'lucide-react';
+import { Hand, Trash2, Check, LogOut, Home } from 'lucide-react';
 
 import { useGame } from '../hooks/useGame';
 import { useTurnNotification } from '../hooks/useTurnNotification';
-import { preloadSounds, playSound, setMuted } from '../utils/sounds';
+import { preloadSounds, playSound } from '../utils/sounds';
 import PlayerHand from '../components/game/PlayerHand';
 import BiddingPanel from '../components/game/BiddingPanel';
 import TrumpSelector from '../components/game/TrumpSelector';
@@ -29,7 +29,6 @@ function GamePage() {
   const [selectedCards, setSelectedCards] = useState<CardId[]>([]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [goOutConfirmSuit, setGoOutConfirmSuit] = useState<Suit | null>(null);
-  const [muted, setMutedState] = useState(false);
   const lastEventCountRef = useRef(0);
 
   const {
@@ -50,15 +49,9 @@ function GamePage() {
   // Play notification sound when it's the player's turn
   useTurnNotification(state, playerIndex as PlayerIndex);
 
-  // Preload sounds on mount and restore mute state
+  // Preload sounds on mount
   useEffect(() => {
     preloadSounds();
-    const stored = localStorage.getItem('dabb-muted');
-    if (stored !== null) {
-      const isMuted = stored === 'true';
-      setMuted(isMuted);
-      setMutedState(isMuted);
-    }
   }, []);
 
   // Trigger sounds for new game events
@@ -150,13 +143,6 @@ function GamePage() {
     }
   };
 
-  const handleToggleMute = () => {
-    const newMuted = !muted;
-    setMutedState(newMuted);
-    setMuted(newMuted);
-    localStorage.setItem('dabb-muted', String(newMuted));
-  };
-
   if (!connected) {
     return (
       <div className="card" style={{ textAlign: 'center', marginTop: '4rem' }}>
@@ -213,25 +199,9 @@ function GamePage() {
 
       {/* Middle: Game area */}
       <div className="game-main">
-        {/* Phase indicator + mute toggle */}
-        <div
-          style={{
-            marginBottom: '1rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem',
-          }}
-        >
+        {/* Phase indicator */}
+        <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
           <PhaseIndicator phase={state.phase} trump={state.trump} />
-          <button
-            className="secondary"
-            onClick={handleToggleMute}
-            style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem' }}
-            aria-label={muted ? 'Unmute' : 'Mute'}
-          >
-            {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-          </button>
         </div>
 
         {/* Error message */}
