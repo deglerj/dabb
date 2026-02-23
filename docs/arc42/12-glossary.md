@@ -7,7 +7,7 @@
 | **Abgehen**   | "Going out" - forfeiting a round after taking the dabb (German)          |
 | **Binokel**   | A traditional Swabian trick-taking card game                             |
 | **Dabb**      | Extra cards that go to the bid winner                                    |
-| **Going Out** | Forfeiting a round; bid winner loses bid, opponents get melds + 30 bonus |
+| **Going Out** | Forfeiting a round; bid winner loses bid, opponents get melds + 40 bonus |
 | **Meld**      | A scoring combination of cards                                           |
 | **Paar**      | King + Ober of the same suit                                             |
 | **Familie**   | A-10-K-O-U of the same suit                                              |

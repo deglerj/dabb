@@ -4,6 +4,8 @@ This document describes the HTTP API for session management.
 
 **Base URL:** `http://localhost:3000` (or your deployed server URL)
 
+> **Note:** All API endpoints (except `/health`) are prefixed with `/api/`. In production, nginx routes `/api/` to the server container.
+
 ## Endpoints
 
 ### Health Check
@@ -12,7 +14,7 @@ This document describes the HTTP API for session management.
 GET /health
 ```
 
-Returns server status.
+Returns server status. This endpoint is NOT under the `/api/` prefix.
 
 **Response:**
 
@@ -28,7 +30,7 @@ Returns server status.
 ### Version
 
 ```
-GET /version
+GET /api/version
 ```
 
 Returns the current server version. Used by clients to detect when a major update is required.
@@ -46,7 +48,7 @@ Returns the current server version. Used by clients to detect when a major updat
 ### Create Session
 
 ```
-POST /sessions
+POST /api/sessions
 ```
 
 Create a new game session.
@@ -62,7 +64,7 @@ Create a new game session.
 **Example Request:**
 
 ```bash
-curl -X POST http://localhost:3000/sessions \
+curl -X POST http://localhost:3000/api/sessions \
   -H "Content-Type: application/json" \
   -d '{"playerCount": 4, "nickname": "Hans"}'
 ```
@@ -92,7 +94,7 @@ curl -X POST http://localhost:3000/sessions \
 ### Get Session Info
 
 ```
-GET /sessions/:code
+GET /api/sessions/:code
 ```
 
 Get information about a session.
@@ -106,7 +108,7 @@ Get information about a session.
 **Example Request:**
 
 ```bash
-curl http://localhost:3000/sessions/schnell-fuchs-42
+curl http://localhost:3000/api/sessions/schnell-fuchs-42
 ```
 
 **Success Response (200):**
@@ -159,7 +161,7 @@ curl http://localhost:3000/sessions/schnell-fuchs-42
 ### Join Session
 
 ```
-POST /sessions/:code/join
+POST /api/sessions/:code/join
 ```
 
 Join an existing session.
@@ -179,7 +181,7 @@ Join an existing session.
 **Example Request:**
 
 ```bash
-curl -X POST http://localhost:3000/sessions/schnell-fuchs-42/join \
+curl -X POST http://localhost:3000/api/sessions/schnell-fuchs-42/join \
   -H "Content-Type: application/json" \
   -d '{"nickname": "Maria"}'
 ```
@@ -216,7 +218,7 @@ curl -X POST http://localhost:3000/sessions/schnell-fuchs-42/join \
 ### Reconnect to Session
 
 ```
-POST /sessions/:code/reconnect
+POST /api/sessions/:code/reconnect
 ```
 
 Reconnect to a session after disconnection.
@@ -236,7 +238,7 @@ Reconnect to a session after disconnection.
 **Example Request:**
 
 ```bash
-curl -X POST http://localhost:3000/sessions/schnell-fuchs-42/reconnect \
+curl -X POST http://localhost:3000/api/sessions/schnell-fuchs-42/reconnect \
   -H "Content-Type: application/json" \
   -d '{"secretId": "secret-uuid"}'
 ```
@@ -267,12 +269,12 @@ Use `lastEventSequence` to request missed events via Socket.IO.
 ### Export Game Events
 
 ```
-GET /sessions/:code/events/export
+GET /api/sessions/:code/events/export
 ```
 
 Export all game events in human-readable text format for debugging and bug reporting.
 
-**⚠️ Warning:** This endpoint reveals ALL cards (bypassing anti-cheat) and **terminates the session** to prevent cheating. All connected players will be disconnected.
+**Warning:** This endpoint reveals ALL cards (bypassing anti-cheat) and **terminates the session** to prevent cheating. All connected players will be disconnected.
 
 **URL Parameters:**
 
@@ -283,7 +285,7 @@ Export all game events in human-readable text format for debugging and bug repor
 **Example Request:**
 
 ```bash
-curl http://localhost:3000/sessions/schnell-fuchs-42/events/export \
+curl http://localhost:3000/api/sessions/schnell-fuchs-42/events/export \
   -o game-log.txt
 ```
 
@@ -339,7 +341,7 @@ END OF LOG
 ### Add AI Player
 
 ```
-POST /sessions/:code/ai
+POST /api/sessions/:code/ai
 ```
 
 Add an AI player to a session (host only).
@@ -359,7 +361,7 @@ Add an AI player to a session (host only).
 **Example Request:**
 
 ```bash
-curl -X POST http://localhost:3000/sessions/schnell-fuchs-42/ai \
+curl -X POST http://localhost:3000/api/sessions/schnell-fuchs-42/ai \
   -H "X-Secret-Id: host-secret-uuid"
 ```
 
@@ -390,7 +392,7 @@ curl -X POST http://localhost:3000/sessions/schnell-fuchs-42/ai \
 ### Remove AI Player
 
 ```
-DELETE /sessions/:code/ai/:playerIndex
+DELETE /api/sessions/:code/ai/:playerIndex
 ```
 
 Remove an AI player from a session (host only).
@@ -411,7 +413,7 @@ Remove an AI player from a session (host only).
 **Example Request:**
 
 ```bash
-curl -X DELETE http://localhost:3000/sessions/schnell-fuchs-42/ai/2 \
+curl -X DELETE http://localhost:3000/api/sessions/schnell-fuchs-42/ai/2 \
   -H "X-Secret-Id: host-secret-uuid"
 ```
 
@@ -456,7 +458,7 @@ All error responses follow this format:
    const socket = io('http://localhost:3000', {
      auth: {
        secretId: 'your-secret-id',
-       sessionId: 'session-id',
+       sessionId: 'schnell-fuchs-42', // session code (NOT the UUID)
      },
    });
    ```

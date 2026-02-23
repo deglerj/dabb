@@ -10,7 +10,7 @@ Connect to the server with authentication:
 const socket = io('http://localhost:3000', {
   auth: {
     secretId: 'player-secret-id',
-    sessionId: 'game-session-id',
+    sessionId: 'schnell-fuchs-42', // session code (e.g. from POST /api/sessions), NOT the UUID
   },
 });
 ```

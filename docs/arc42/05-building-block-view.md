@@ -15,16 +15,19 @@ flowchart TB
         logic[game-logic]
         ui[ui-shared]
         assets[card-assets]
+        i18n[i18n]
     end
 
     web --> types
     web --> logic
     web --> ui
     web --> assets
+    web --> i18n
 
     mobile --> types
     mobile --> logic
     mobile --> assets
+    mobile --> i18n
 
     server --> types
     server --> logic
@@ -43,6 +46,7 @@ flowchart TB
 | `@dabb/game-logic`   | Core game rules, state reducer, meld detection |
 | `@dabb/ui-shared`    | React hooks for socket and state management    |
 | `@dabb/card-assets`  | SVG card graphics and utilities                |
+| `@dabb/i18n`         | Internationalization (German, English)         |
 | `@dabb/web`          | React web application                          |
 | `@dabb/mobile`       | React Native mobile application                |
 | `@dabb/server`       | Express + Socket.IO backend                    |
@@ -83,6 +87,11 @@ src/
 ├── useSocket.ts           # Socket.IO connection hook
 ├── useGameState.ts        # Event-sourced state management
 ├── useRoundHistory.ts     # Round history computation for scoreboard
+├── useGameLog.ts          # Game log entries hook
+├── useActionRequired.ts   # Your-turn detection hook
+├── useCelebration.ts      # Win celebration effects hook
+├── useTrickDisplay.ts     # Trick display timing hook
+├── useVersionCheck.ts     # Server version check hook
 └── useLocalStorage.ts     # Session credential persistence
 ```
 
@@ -91,7 +100,9 @@ src/
 ```
 src/
 ├── routes/
-│   └── sessions.ts   # REST API routes
+│   ├── sessions.ts   # Session management REST API routes
+│   ├── events.ts     # Event export REST API route
+│   └── version.ts    # Version check REST API route
 ├── services/
 │   ├── sessionService.ts          # Session/player management
 │   ├── eventService.ts            # Event persistence
@@ -140,18 +151,22 @@ function gameReducer(state: GameState, event: GameEvent, playerIndex: PlayerInde
 
 ### Event Types
 
-| Event           | Phase    | Description             |
-| --------------- | -------- | ----------------------- |
-| GAME_STARTED    | dealing  | Game initialized        |
-| CARDS_DEALT     | dealing  | Cards distributed       |
-| BID_PLACED      | bidding  | Player placed bid       |
-| BID_PASSED      | bidding  | Player passed           |
-| BIDDING_WON     | bidding  | Winner determined       |
-| DABB_TAKEN      | dabb     | Winner took dabb        |
-| CARDS_DISCARDED | dabb     | Cards discarded         |
-| TRUMP_DECLARED  | trump    | Trump suit set          |
-| MELDS_DECLARED  | melding  | Melds announced         |
-| CARD_PLAYED     | tricks   | Card played to trick    |
-| TRICK_WON       | tricks   | Trick completed         |
-| ROUND_ENDED     | scoring  | Round scores calculated |
-| GAME_ENDED      | finished | Final winner            |
+| Event             | Phase    | Description             |
+| ----------------- | -------- | ----------------------- |
+| GAME_STARTED      | dealing  | Game initialized        |
+| CARDS_DEALT       | dealing  | Cards distributed       |
+| NEW_ROUND_STARTED | dealing  | New round begins        |
+| BID_PLACED        | bidding  | Player placed bid       |
+| PLAYER_PASSED     | bidding  | Player passed           |
+| BIDDING_WON       | bidding  | Winner determined       |
+| DABB_TAKEN        | dabb     | Winner took dabb        |
+| CARDS_DISCARDED   | dabb     | Cards discarded         |
+| GOING_OUT         | dabb     | Bid winner forfeits     |
+| TRUMP_DECLARED    | trump    | Trump suit set          |
+| MELDS_DECLARED    | melding  | Melds announced         |
+| MELDING_COMPLETE  | melding  | All melds declared      |
+| CARD_PLAYED       | tricks   | Card played to trick    |
+| TRICK_WON         | tricks   | Trick completed         |
+| ROUND_SCORED      | scoring  | Round scores calculated |
+| GAME_FINISHED     | finished | Final winner            |
+| GAME_TERMINATED   | —        | Game terminated by exit |

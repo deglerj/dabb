@@ -115,7 +115,7 @@ sequenceDiagram
         server->>server: All opponents declared
         server->>db: INSERT MELDING_COMPLETE
         server->>server: Calculate going out scores
-        Note right of server: Bid winner: -bid amount<br/>Opponent: melds + 30 bonus
+        Note right of server: Bid winner: -bid amount<br/>Opponent: melds + 40 bonus
         server->>db: INSERT ROUND_SCORED
         server->>db: INSERT NEW_ROUND_STARTED, CARDS_DEALT
         server-->>winner: game:events [...]
@@ -128,7 +128,7 @@ sequenceDiagram
 - Bid winner can only go out after taking the dabb
 - Going out skips the trump declaration, tricks phase entirely
 - Bid winner cannot declare melds when going out
-- Opponents each get their melds + 30 bonus points
+- Opponents each get their melds + 40 bonus points
 - Bid winner loses their bid amount
 
 ## 6.5 Reconnection

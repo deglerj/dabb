@@ -15,7 +15,7 @@
 
 | Constraint     | Background                               |
 | -------------- | ---------------------------------------- |
-| Open Source    | MIT License, publicly available          |
+| Open Source    | CC BY-NC 4.0 License, publicly available |
 | Small Team     | Designed for solo/small team development |
 | Cost-effective | Prefer free/cheap hosting solutions      |
 

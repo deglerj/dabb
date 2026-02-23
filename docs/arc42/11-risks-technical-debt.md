@@ -20,13 +20,14 @@
 
 ### Resolved Items
 
-| Item          | Description                                 | Resolution Date |
-| ------------- | ------------------------------------------- | --------------- |
-| Test Coverage | Integration tests for socket handlers added | 2026-01-24      |
+| Item                 | Description                                          | Resolution Date |
+| -------------------- | ---------------------------------------------------- | --------------- |
+| Test Coverage        | Integration tests for socket handlers added          | 2026-01-24      |
+| AI Opponent          | AI players implemented (BinokelAIPlayer)             | 2026-02         |
+| Internationalization | German and English UI support via @dabb/i18n package | 2026-02         |
 
 ## 11.3 Future Improvements
 
-- **AI Opponent**: Single-player mode with AI
 - **Tournament Mode**: Support for organized play
-- **Internationalization**: Support for multiple languages
 - **iOS Support**: Expo build for iOS
+- **Player Timeouts**: Auto-skip inactive human players in-game
