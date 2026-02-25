@@ -1,4 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <!-- Heart (Herz) symbol - Royal Red -->
-  <path d="M50 88 C20 60 10 30 30 20 C40 15 50 25 50 35 C50 25 60 15 70 20 C90 30 80 60 50 88" fill="#C41E3A"/>
+  <!-- Herz (Heart) — traditional German playing card heart -->
+  <path d="M50,86
+           C22,65 5,50 5,33
+           C5,19 15,10 28,10
+           C37,10 45,15 50,24
+           C55,15 63,10 72,10
+           C85,10 95,19 95,33
+           C95,50 78,65 50,86Z"
+        fill="#C41E3A"/>
 </svg>

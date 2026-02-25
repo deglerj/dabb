@@ -5,10 +5,10 @@
 import type { Suit, Rank } from '@dabb/shared-types';
 
 export const SUIT_COLORS: Record<Suit, { primary: string; secondary: string }> = {
-  kreuz: { primary: '#D2B48C', secondary: '#C3A67A' }, // Peanut colored
-  schippe: { primary: '#228B22', secondary: '#1E7B1E' }, // Leaf Green
+  kreuz: { primary: '#C4941A', secondary: '#3C5E26' }, // Acorn golden / olive green
+  schippe: { primary: '#1E7B1E', secondary: '#145A14' }, // Leaf forest green
   herz: { primary: '#C41E3A', secondary: '#A01830' }, // Royal Red
-  bollen: { primary: '#FFD700', secondary: '#228B22' }, // Gold with Green accent
+  bollen: { primary: '#9B1515', secondary: '#C89000' }, // Quartered ball: crimson / gold
 };
 
 export const SUIT_SYMBOLS: Record<Suit, string> = {
