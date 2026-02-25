@@ -59,6 +59,7 @@ export type {
 // API types
 export type {
   AddAIPlayerResponse,
+  AIDifficulty,
   ApiError,
   CreateSessionRequest,
   CreateSessionResponse,

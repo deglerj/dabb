@@ -43,7 +43,7 @@ import type {
   Team,
 } from '@dabb/shared-types';
 
-import { BinokelAIPlayer } from '../ai/BinokelAIPlayer.js';
+import { defaultAIPlayerFactory, type AIPlayer, type AIDifficulty } from '../ai/index.js';
 
 // Team scoring helpers for 4-player games
 function simGetPlayerTeam(state: GameState, playerIndex: PlayerIndex): Team {
@@ -60,6 +60,8 @@ export interface SimulationOptions {
   targetScore: number;
   maxActions: number;
   timeoutMs: number;
+  /** AI difficulty for all players in the simulation (default: 'medium') */
+  difficulty?: AIDifficulty;
 }
 
 export interface SimulationResult {
@@ -80,7 +82,7 @@ export class SimulationEngine {
   private events: GameEvent[] = [];
   private state!: GameState;
   private sequence = 0;
-  private aiPlayers: Map<PlayerIndex, BinokelAIPlayer> = new Map();
+  private aiPlayers: Map<PlayerIndex, AIPlayer> = new Map();
   private actionCount = 0;
 
   constructor(private readonly options: SimulationOptions) {}
@@ -129,9 +131,10 @@ export class SimulationEngine {
   private initialize(): void {
     const { playerCount, targetScore } = this.options;
 
-    // Create AI instances
+    // Create AI instances with configured difficulty
+    const difficulty = this.options.difficulty ?? 'medium';
     for (let i = 0; i < playerCount; i++) {
-      this.aiPlayers.set(i as PlayerIndex, new BinokelAIPlayer());
+      this.aiPlayers.set(i as PlayerIndex, defaultAIPlayerFactory.create(difficulty));
     }
 
     // Assign random teams for 4-player games
@@ -192,7 +195,7 @@ export class SimulationEngine {
     }
   }
 
-  private getAI(playerIndex: PlayerIndex): BinokelAIPlayer {
+  private getAI(playerIndex: PlayerIndex): AIPlayer {
     const ai = this.aiPlayers.get(playerIndex);
     if (!ai) {
       throw new Error(`No AI player for index ${playerIndex}`);
@@ -495,9 +498,10 @@ export class SimulationEngine {
       });
       this.emit(createCardsDealtEvent(this.ctx(), handsRecord, dabb));
 
-      // Reset AI instances for new round (clear precomputed trump)
+      // Reset AI instances for new round (clear any per-round state)
+      const difficulty = this.options.difficulty ?? 'medium';
       for (let i = 0; i < this.state.playerCount; i++) {
-        this.aiPlayers.set(i as PlayerIndex, new BinokelAIPlayer());
+        this.aiPlayers.set(i as PlayerIndex, defaultAIPlayerFactory.create(difficulty));
       }
     }
   }

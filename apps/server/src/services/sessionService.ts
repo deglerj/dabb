@@ -25,6 +25,7 @@ export interface Player {
   team?: Team;
   connected: boolean;
   isAI: boolean;
+  aiDifficulty?: string;
 }
 
 // German boomer generation first names for AI players
@@ -267,7 +268,7 @@ export async function getPlayerBySecretId(secretId: string): Promise<Player | nu
 
 export async function getSessionPlayers(sessionId: string): Promise<Player[]> {
   const result = await pool.query(
-    `SELECT id, session_id, secret_id, nickname, player_index, team, connected, is_ai
+    `SELECT id, session_id, secret_id, nickname, player_index, team, connected, is_ai, ai_difficulty
      FROM players WHERE session_id = $1
      ORDER BY player_index`,
     [sessionId]
@@ -282,6 +283,7 @@ export async function getSessionPlayers(sessionId: string): Promise<Player[]> {
     team: row.team ?? undefined,
     connected: row.connected,
     isAI: row.is_ai,
+    aiDifficulty: row.ai_difficulty ?? undefined,
   }));
 }
 
@@ -304,7 +306,11 @@ export async function isHost(secretId: string, sessionId: string): Promise<boole
 /**
  * Add an AI player to a session
  */
-export async function addAIPlayer(sessionId: string, aiNamePrefix: string = 'ðŸ¤–'): Promise<Player> {
+export async function addAIPlayer(
+  sessionId: string,
+  aiDifficulty: string = 'medium',
+  aiNamePrefix: string = 'ðŸ¤–'
+): Promise<Player> {
   const client = await pool.connect();
 
   try {
@@ -362,10 +368,10 @@ export async function addAIPlayer(sessionId: string, aiNamePrefix: string = 'ðŸ¤
 
     // Create AI player (no secret_id needed)
     const playerResult = await client.query(
-      `INSERT INTO players (session_id, secret_id, nickname, player_index, team, is_ai, connected)
-       VALUES ($1, NULL, $2, $3, $4, true, true)
-       RETURNING id, session_id, secret_id, nickname, player_index, team, connected, is_ai`,
-      [sessionId, nickname, playerIndex, null]
+      `INSERT INTO players (session_id, secret_id, nickname, player_index, team, is_ai, connected, ai_difficulty)
+       VALUES ($1, NULL, $2, $3, $4, true, true, $5)
+       RETURNING id, session_id, secret_id, nickname, player_index, team, connected, is_ai, ai_difficulty`,
+      [sessionId, nickname, playerIndex, null, aiDifficulty]
     );
 
     await client.query('COMMIT');
@@ -379,6 +385,7 @@ export async function addAIPlayer(sessionId: string, aiNamePrefix: string = 'ðŸ¤
       team: playerResult.rows[0].team ?? undefined,
       connected: playerResult.rows[0].connected,
       isAI: playerResult.rows[0].is_ai,
+      aiDifficulty: playerResult.rows[0].ai_difficulty ?? undefined,
     };
   } catch (error) {
     await client.query('ROLLBACK');

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type {
   AddAIPlayerResponse,
+  AIDifficulty,
   CreateSessionRequest,
   CreateSessionResponse,
   JoinSessionRequest,
@@ -93,6 +94,7 @@ router.get('/:code', async (req, res) => {
         team: p.team,
         connected: p.connected,
         isAI: p.isAI,
+        aiDifficulty: p.aiDifficulty as AIDifficulty | undefined,
       })),
       createdAt: session.createdAt.toISOString(),
     };
@@ -245,16 +247,24 @@ router.post('/:code/ai', async (req, res) => {
       });
     }
 
-    const player = await addAIPlayer(session.id);
+    // Validate and extract difficulty from body (default 'medium')
+    const rawDifficulty = req.body?.difficulty;
+    const validDifficulties: AIDifficulty[] = ['easy', 'medium', 'hard'];
+    const difficulty: AIDifficulty = validDifficulties.includes(rawDifficulty)
+      ? (rawDifficulty as AIDifficulty)
+      : 'medium';
 
-    // Register AI in the controller
-    registerAIPlayer(session.id, player.playerIndex);
+    const player = await addAIPlayer(session.id, difficulty);
+
+    // Register AI in the controller with difficulty
+    registerAIPlayer(session.id, player.playerIndex, difficulty);
 
     const response: AddAIPlayerResponse = {
       playerId: player.id,
       playerIndex: player.playerIndex,
       nickname: player.nickname,
       team: player.team,
+      aiDifficulty: player.aiDifficulty as AIDifficulty | undefined,
     };
 
     res.status(201).json(response);

@@ -9,7 +9,14 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import type { PlayerIndex, GameEvent, PlayerCount, Suit, CardId } from '@dabb/shared-types';
+import type {
+  AIDifficulty,
+  PlayerIndex,
+  GameEvent,
+  PlayerCount,
+  Suit,
+  CardId,
+} from '@dabb/shared-types';
 import { detectMelds } from '@dabb/game-logic';
 import {
   I18nProvider,
@@ -52,9 +59,13 @@ function AppContent() {
   const [screen, setScreen] = useState<AppScreen>('loading');
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
   const [players, setPlayers] = useState<
-    Map<PlayerIndex, { nickname: string; connected: boolean; isAI: boolean }>
+    Map<
+      PlayerIndex,
+      { nickname: string; connected: boolean; isAI: boolean; aiDifficulty?: AIDifficulty }
+    >
   >(new Map());
   const [isAddingAI, setIsAddingAI] = useState(false);
+  const [addAIDifficulty, setAddAIDifficulty] = useState<AIDifficulty>('medium');
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
   const [apiLoading, setApiLoading] = useState(false);
 
@@ -82,10 +93,10 @@ function AppContent() {
   );
 
   const handlePlayerJoined = useCallback(
-    (playerIndex: number, nickname: string, isAI: boolean = false) => {
+    (playerIndex: number, nickname: string, isAI: boolean = false, aiDifficulty?: AIDifficulty) => {
       setPlayers((prev) => {
         const updated = new Map(prev);
-        updated.set(playerIndex as PlayerIndex, { nickname, connected: true, isAI });
+        updated.set(playerIndex as PlayerIndex, { nickname, connected: true, isAI, aiDifficulty });
         return updated;
       });
       setNicknames((prev) => {
@@ -291,6 +302,7 @@ function AppContent() {
           'Content-Type': 'application/json',
           'X-Secret-Id': credentials.secretId,
         },
+        body: JSON.stringify({ difficulty: addAIDifficulty }),
       });
 
       if (!response.ok) {
@@ -299,8 +311,8 @@ function AppContent() {
         return;
       }
 
-      const { playerIndex, nickname } = await response.json();
-      handlePlayerJoined(playerIndex, nickname, true);
+      const { playerIndex, nickname, aiDifficulty } = await response.json();
+      handlePlayerJoined(playerIndex, nickname, true, aiDifficulty as AIDifficulty | undefined);
     } catch (err) {
       Alert.alert(
         t('common.error'),
@@ -459,6 +471,8 @@ function AppContent() {
           onAddAI={handleAddAI}
           onRemoveAI={handleRemoveAI}
           isAddingAI={isAddingAI}
+          selectedAIDifficulty={addAIDifficulty}
+          onSelectAIDifficulty={setAddAIDifficulty}
         />
         <StatusBar style="auto" />
       </SafeAreaView>

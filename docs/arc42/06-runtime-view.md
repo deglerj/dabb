@@ -160,7 +160,7 @@ sequenceDiagram
     participant runner as CLI Runner
     participant engine as SimulationEngine
     participant logic as Game Logic
-    participant ai as BinokelAIPlayer
+    participant ai as MediumBinokelAIPlayer
 
     runner->>engine: new SimulationEngine(options)
     runner->>engine: run()

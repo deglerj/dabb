@@ -12,6 +12,7 @@ import { formatEventLog } from '@dabb/game-logic';
 import type { PlayerCount } from '@dabb/shared-types';
 
 import { SimulationEngine, type SimulationResult } from './SimulationEngine.js';
+import type { AIDifficulty } from '../ai/index.js';
 
 interface RunnerOptions {
   players: PlayerCount;
@@ -21,6 +22,7 @@ interface RunnerOptions {
   maxActions: number;
   timeout: number;
   outputDir: string;
+  difficulty: AIDifficulty;
 }
 
 function parseArgs(): RunnerOptions {
@@ -33,6 +35,7 @@ function parseArgs(): RunnerOptions {
     maxActions: 10000,
     timeout: 30000,
     outputDir: 'simulation-results',
+    difficulty: 'hard',
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -68,6 +71,14 @@ function parseArgs(): RunnerOptions {
         break;
       case '--output-dir':
         options.outputDir = next;
+        i++;
+        break;
+      case '--difficulty':
+        if (!['easy', 'medium', 'hard'].includes(next)) {
+          console.error(`Invalid difficulty: ${next}. Must be easy, medium, or hard.`);
+          process.exit(1);
+        }
+        options.difficulty = next as AIDifficulty;
         i++;
         break;
       default:
@@ -144,6 +155,7 @@ async function main(): Promise<void> {
   console.log(`Target Score: ${options.targetScore}`);
   console.log(`Max Actions:  ${options.maxActions}`);
   console.log(`Timeout:      ${options.timeout}ms`);
+  console.log(`Difficulty:   ${options.difficulty}`);
   console.log(`Output Dir:   ${options.outputDir}`);
   console.log('');
 
@@ -166,6 +178,7 @@ async function main(): Promise<void> {
         targetScore: options.targetScore,
         maxActions: options.maxActions,
         timeoutMs: options.timeout,
+        difficulty: options.difficulty,
       });
       batch.push(engine.run());
     }

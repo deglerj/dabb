@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import type {
+  AIDifficulty,
   ClientToServerEvents,
   ServerToClientEvents,
   SessionInfoResponse,
@@ -13,6 +14,8 @@ const API_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
 type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
+const AI_DIFFICULTIES: AIDifficulty[] = ['easy', 'medium', 'hard'];
+
 function WaitingRoomPage() {
   const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
@@ -23,6 +26,7 @@ function WaitingRoomPage() {
   const [isHost, setIsHost] = useState(false);
   const [secretId, setSecretId] = useState<string | null>(null);
   const [isAddingAI, setIsAddingAI] = useState(false);
+  const [addAIDifficulty, setAddAIDifficulty] = useState<AIDifficulty>('medium');
 
   useEffect(() => {
     if (!code) {
@@ -115,6 +119,7 @@ function WaitingRoomPage() {
           'Content-Type': 'application/json',
           'X-Secret-Id': secretId,
         },
+        body: JSON.stringify({ difficulty: addAIDifficulty }),
       });
 
       if (!response.ok) {
@@ -236,6 +241,17 @@ function WaitingRoomPage() {
                     <span>
                       {player.nickname}
                       {i === 0 && ` (${t('waitingRoom.host')})`}
+                      {player.isAI && player.aiDifficulty && (
+                        <span
+                          style={{
+                            fontSize: '0.7rem',
+                            color: 'var(--ink-faint)',
+                            marginLeft: '0.25rem',
+                          }}
+                        >
+                          ({player.aiDifficulty})
+                        </span>
+                      )}
                     </span>
                   ) : (
                     <span className="player-entry-empty">
@@ -265,15 +281,29 @@ function WaitingRoomPage() {
         </div>
 
         {isHost && session.players.length < session.playerCount && (
-          <button
-            className="secondary"
-            onClick={handleAddAI}
-            disabled={isAddingAI}
-            style={{ marginTop: '0.5rem', width: '100%' }}
-          >
-            {isAddingAI ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />}{' '}
-            {t('waitingRoom.addAIPlayer')}
-          </button>
+          <div style={{ marginTop: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '0.5rem' }}>
+              {AI_DIFFICULTIES.map((diff) => (
+                <button
+                  key={diff}
+                  className={addAIDifficulty === diff ? '' : 'secondary'}
+                  style={{ flex: 1, padding: '0.375rem 0.5rem', fontSize: '0.8rem' }}
+                  onClick={() => setAddAIDifficulty(diff)}
+                >
+                  {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                </button>
+              ))}
+            </div>
+            <button
+              className="secondary"
+              onClick={handleAddAI}
+              disabled={isAddingAI}
+              style={{ width: '100%' }}
+            >
+              {isAddingAI ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />}{' '}
+              {t('waitingRoom.addAIPlayer')}
+            </button>
+          </div>
         )}
       </div>
 

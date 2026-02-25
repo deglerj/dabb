@@ -23,7 +23,7 @@
 | Item                 | Description                                          | Resolution Date |
 | -------------------- | ---------------------------------------------------- | --------------- |
 | Test Coverage        | Integration tests for socket handlers added          | 2026-01-24      |
-| AI Opponent          | AI players implemented (BinokelAIPlayer)             | 2026-02         |
+| AI Opponent          | AI players implemented (MediumBinokelAIPlayer)       | 2026-02         |
 | Internationalization | German and English UI support via @dabb/i18n package | 2026-02         |
 
 ## 11.3 Future Improvements

@@ -288,7 +288,7 @@ pnpm simulate -- --players 4 --games 10 --target-score 500
 | `apps/server/src/services/sessionService.ts`                 | Session management             |
 | `apps/server/src/services/cleanupService.ts`                 | Inactive session cleanup       |
 | `apps/server/src/ai/AIPlayer.ts`                             | AI player interface & factory  |
-| `apps/server/src/ai/BinokelAIPlayer.ts`                      | AI player decision logic       |
+| `apps/server/src/ai/MediumBinokelAIPlayer.ts`                | AI player decision logic       |
 | `apps/server/src/services/aiControllerService.ts`            | AI player lifecycle management |
 | `apps/server/src/scheduler/cleanupScheduler.ts`              | Cleanup background job         |
 | `apps/server/src/db/pool.ts`                                 | Database connection pool       |
@@ -386,7 +386,7 @@ After taking the dabb, the bid winner can choose to "go out" if they don't think
 
 A standalone CLI tool runs AI-only games entirely in-memory for testing and fine-tuning AI strategy:
 
-- **No infrastructure**: No database, server, or Socket.IO — uses pure `@dabb/game-logic` functions and `BinokelAIPlayer` directly
+- **No infrastructure**: No database, server, or Socket.IO — uses pure `@dabb/game-logic` functions and `MediumBinokelAIPlayer` directly
 - **Engine**: `SimulationEngine` accumulates events and updates state via `applyEvent()`, same pattern as `gameService.ts`
 - **Scoring**: Replicates `gameService.ts` scoring exactly (trick rounding, bid-not-met = -2x, going-out = bid loss + 40 bonus)
 - **Stuck detection**: Action count limit (default 10,000) and wall-clock timeout (default 30s)

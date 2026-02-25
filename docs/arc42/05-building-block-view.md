@@ -111,7 +111,7 @@ src/
 │   └── cleanupService.ts         # Inactive session cleanup
 ├── ai/
 │   ├── AIPlayer.ts               # AI player interface & factory
-│   └── BinokelAIPlayer.ts        # AI decision logic
+│   └── MediumBinokelAIPlayer.ts  # AI decision logic
 ├── simulation/
 │   ├── SimulationEngine.ts       # In-memory AI game engine
 │   └── runner.ts                 # CLI entry point
@@ -122,7 +122,7 @@ src/
 
 #### Simulation Module
 
-The simulation module provides a standalone CLI tool for running AI-vs-AI games entirely in-memory, without requiring a database, HTTP server, or Socket.IO connections. It reuses the same `@dabb/game-logic` pure functions and `BinokelAIPlayer` that the live server uses, ensuring simulation behavior matches production.
+The simulation module provides a standalone CLI tool for running AI-vs-AI games entirely in-memory, without requiring a database, HTTP server, or Socket.IO connections. It reuses the same `@dabb/game-logic` pure functions and `MediumBinokelAIPlayer` that the live server uses, ensuring simulation behavior matches production.
 
 | Component          | Responsibility                                                          |
 | ------------------ | ----------------------------------------------------------------------- |

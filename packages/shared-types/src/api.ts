@@ -4,6 +4,8 @@
 
 import type { PlayerCount, PlayerIndex, Team } from './game.js';
 
+export type AIDifficulty = 'easy' | 'medium' | 'hard';
+
 // Session creation
 export interface CreateSessionRequest {
   playerCount: PlayerCount;
@@ -59,6 +61,7 @@ export interface SessionInfoResponse {
     team?: Team;
     connected: boolean;
     isAI: boolean;
+    aiDifficulty?: AIDifficulty;
   }>;
   createdAt: string;
 }
@@ -69,6 +72,7 @@ export interface AddAIPlayerResponse {
   playerIndex: PlayerIndex;
   nickname: string;
   team?: Team;
+  aiDifficulty?: AIDifficulty;
 }
 
 // Error response

@@ -13,12 +13,15 @@ import {
   Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import type { PlayerIndex } from '@dabb/shared-types';
+import type { AIDifficulty, PlayerIndex } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
 interface WaitingRoomScreenProps {
   sessionCode: string;
-  players: Map<PlayerIndex, { nickname: string; connected: boolean; isAI: boolean }>;
+  players: Map<
+    PlayerIndex,
+    { nickname: string; connected: boolean; isAI: boolean; aiDifficulty?: AIDifficulty }
+  >;
   playerCount: number;
   isHost: boolean;
   onStartGame: () => void;
@@ -26,7 +29,11 @@ interface WaitingRoomScreenProps {
   onAddAI?: () => void;
   onRemoveAI?: (playerIndex: PlayerIndex) => void;
   isAddingAI?: boolean;
+  selectedAIDifficulty?: AIDifficulty;
+  onSelectAIDifficulty?: (difficulty: AIDifficulty) => void;
 }
+
+const AI_DIFFICULTIES: AIDifficulty[] = ['easy', 'medium', 'hard'];
 
 function WaitingRoomScreen({
   sessionCode,
@@ -38,6 +45,8 @@ function WaitingRoomScreen({
   onAddAI,
   onRemoveAI,
   isAddingAI = false,
+  selectedAIDifficulty = 'medium',
+  onSelectAIDifficulty,
 }: WaitingRoomScreenProps) {
   const { t } = useTranslation();
   const connectedPlayers = Array.from(players.values()).filter((p) => p.connected).length;
@@ -91,6 +100,9 @@ function WaitingRoomScreen({
                 <Text style={styles.playerName}>
                   {player?.nickname || `${t('waitingRoom.waitingForPlayers')}...`}
                 </Text>
+                {player?.isAI && player.aiDifficulty && (
+                  <Text style={styles.difficultyBadge}>{player.aiDifficulty}</Text>
+                )}
                 {index === 0 && <Text style={styles.hostBadge}>{t('waitingRoom.host')}</Text>}
                 {isHost && player?.isAI && onRemoveAI && (
                   <TouchableOpacity
@@ -106,20 +118,43 @@ function WaitingRoomScreen({
         </View>
 
         {isHost && players.size < playerCount && onAddAI && (
-          <TouchableOpacity
-            style={[styles.addAIButton, isAddingAI && styles.disabledButton]}
-            onPress={onAddAI}
-            disabled={isAddingAI}
-          >
-            <View style={styles.buttonContent}>
-              {isAddingAI ? (
-                <ActivityIndicator size="small" color="#2563eb" />
-              ) : (
-                <Feather name="cpu" size={16} color="#2563eb" />
-              )}
-              <Text style={styles.addAIButtonText}>{t('waitingRoom.addAIPlayer')}</Text>
+          <View>
+            <View style={styles.difficultyRow}>
+              {AI_DIFFICULTIES.map((diff) => (
+                <TouchableOpacity
+                  key={diff}
+                  style={[
+                    styles.difficultyButton,
+                    selectedAIDifficulty === diff && styles.difficultyButtonSelected,
+                  ]}
+                  onPress={() => onSelectAIDifficulty?.(diff)}
+                >
+                  <Text
+                    style={[
+                      styles.difficultyButtonText,
+                      selectedAIDifficulty === diff && styles.difficultyButtonTextSelected,
+                    ]}
+                  >
+                    {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.addAIButton, isAddingAI && styles.disabledButton]}
+              onPress={onAddAI}
+              disabled={isAddingAI}
+            >
+              <View style={styles.buttonContent}>
+                {isAddingAI ? (
+                  <ActivityIndicator size="small" color="#2563eb" />
+                ) : (
+                  <Feather name="cpu" size={16} color="#2563eb" />
+                )}
+                <Text style={styles.addAIButtonText}>{t('waitingRoom.addAIPlayer')}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
@@ -270,6 +305,15 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
   },
+  difficultyBadge: {
+    fontSize: 11,
+    color: '#64748b',
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginRight: 4,
+  },
   aiIcon: {
     marginRight: 12,
   },
@@ -277,8 +321,33 @@ const styles = StyleSheet.create({
     padding: 4,
     marginLeft: 8,
   },
-  addAIButton: {
+  difficultyRow: {
+    flexDirection: 'row',
+    gap: 8,
     marginTop: 12,
+    marginBottom: 8,
+  },
+  difficultyButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2563eb',
+    backgroundColor: 'transparent',
+  },
+  difficultyButtonSelected: {
+    backgroundColor: '#2563eb',
+  },
+  difficultyButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2563eb',
+  },
+  difficultyButtonTextSelected: {
+    color: '#fff',
+  },
+  addAIButton: {
     backgroundColor: '#dbeafe',
     paddingVertical: 12,
     borderRadius: 8,

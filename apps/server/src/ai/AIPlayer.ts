@@ -16,6 +16,14 @@ export interface AIPlayer {
   decide(context: AIDecisionContext): Promise<AIAction>;
 }
 
+export type AIDifficulty = 'easy' | 'medium' | 'hard';
+
+const MISTAKE_PROBABILITIES: Record<AIDifficulty, number> = {
+  hard: 0,
+  medium: 0.15,
+  easy: 0.35,
+};
+
 /**
  * Factory interface for creating AI players
  */
@@ -23,15 +31,15 @@ export interface AIPlayerFactory {
   /**
    * Create a new AI player instance
    */
-  create(difficulty?: string): AIPlayer;
+  create(difficulty?: AIDifficulty): AIPlayer;
 }
 
 /**
- * Factory that creates BinokelAIPlayer instances
+ * Factory that creates BinokelAIPlayer instances with the given difficulty
  */
 export class DefaultAIPlayerFactory implements AIPlayerFactory {
-  create(_difficulty?: string): AIPlayer {
-    return new BinokelAIPlayer();
+  create(difficulty: AIDifficulty = 'medium'): AIPlayer {
+    return new BinokelAIPlayer(MISTAKE_PROBABILITIES[difficulty]);
   }
 }
 

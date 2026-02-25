@@ -18,7 +18,7 @@ import type {
 } from '@dabb/shared-types';
 import { filterEventsForPlayer } from '@dabb/game-logic';
 
-import { defaultAIPlayerFactory, type AIPlayer } from '../ai/index.js';
+import { defaultAIPlayerFactory, type AIPlayer, type AIDifficulty } from '../ai/index.js';
 import { sessionSockets } from '../socket/handlers.js';
 import {
   declareMelds,
@@ -44,14 +44,18 @@ const pendingAIActions = new Set<string>();
 /**
  * Register an AI player for a session
  */
-export function registerAIPlayer(sessionId: string, playerIndex: PlayerIndex): void {
+export function registerAIPlayer(
+  sessionId: string,
+  playerIndex: PlayerIndex,
+  difficulty: AIDifficulty = 'medium'
+): void {
   if (!aiPlayers.has(sessionId)) {
     aiPlayers.set(sessionId, new Map());
   }
 
   const sessionAIs = aiPlayers.get(sessionId)!;
   if (!sessionAIs.has(playerIndex)) {
-    const ai = defaultAIPlayerFactory.create();
+    const ai = defaultAIPlayerFactory.create(difficulty);
     sessionAIs.set(playerIndex, ai);
   }
 }
@@ -263,7 +267,11 @@ export async function initializeAIPlayersFromSession(sessionId: string): Promise
   const players = await getSessionPlayers(sessionId);
   for (const player of players) {
     if (player.isAI) {
-      registerAIPlayer(sessionId, player.playerIndex);
+      registerAIPlayer(
+        sessionId,
+        player.playerIndex,
+        (player.aiDifficulty as AIDifficulty) ?? 'medium'
+      );
     }
   }
 }
