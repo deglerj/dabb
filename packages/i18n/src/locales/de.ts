@@ -48,6 +48,11 @@ const de: TranslationKeys = {
     addAIPlayer: 'KI hinzufügen',
     removeAI: 'Entfernen',
     aiPlayer: 'KI-Spieler',
+    aiDifficulty: {
+      easy: 'Einfach',
+      medium: 'Mittel',
+      hard: 'Schwer',
+    },
   },
   game: {
     phase: 'Phase',

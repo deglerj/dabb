@@ -59,6 +59,11 @@ export interface TranslationKeys {
     addAIPlayer: string;
     removeAI: string;
     aiPlayer: string;
+    aiDifficulty: {
+      easy: string;
+      medium: string;
+      hard: string;
+    };
   };
   game: {
     phase: string;

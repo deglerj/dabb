@@ -101,7 +101,9 @@ function WaitingRoomScreen({
                   {player?.nickname || `${t('waitingRoom.waitingForPlayers')}...`}
                 </Text>
                 {player?.isAI && player.aiDifficulty && (
-                  <Text style={styles.difficultyBadge}>{player.aiDifficulty}</Text>
+                  <Text style={styles.difficultyBadge}>
+                    {t(`waitingRoom.aiDifficulty.${player.aiDifficulty}`)}
+                  </Text>
                 )}
                 {index === 0 && <Text style={styles.hostBadge}>{t('waitingRoom.host')}</Text>}
                 {isHost && player?.isAI && onRemoveAI && (
@@ -135,7 +137,7 @@ function WaitingRoomScreen({
                       selectedAIDifficulty === diff && styles.difficultyButtonTextSelected,
                     ]}
                   >
-                    {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                    {t(`waitingRoom.aiDifficulty.${diff}`)}
                   </Text>
                 </TouchableOpacity>
               ))}

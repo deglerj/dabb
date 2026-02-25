@@ -249,7 +249,7 @@ function WaitingRoomPage() {
                             marginLeft: '0.25rem',
                           }}
                         >
-                          ({player.aiDifficulty})
+                          ({t(`waitingRoom.aiDifficulty.${player.aiDifficulty}`)})
                         </span>
                       )}
                     </span>
@@ -290,7 +290,7 @@ function WaitingRoomPage() {
                   style={{ flex: 1, padding: '0.375rem 0.5rem', fontSize: '0.8rem' }}
                   onClick={() => setAddAIDifficulty(diff)}
                 >
-                  {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                  {t(`waitingRoom.aiDifficulty.${diff}`)}
                 </button>
               ))}
             </div>
