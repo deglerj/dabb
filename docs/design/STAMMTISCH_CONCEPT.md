@@ -135,29 +135,31 @@ box-shadow: var(--shadow-panel);
 border-radius: 3px; /* slight rounding — like a piece of paper, not a UI card */
 ```
 
-### Ruled notebook lines (.notebook class)
+### Graph notebook grid (.notebook class)
 
 Used for: scoreboard, log background.
 
 ```css
 background-color: var(--paper-face);
 background-image:
-  /* horizontal ruled lines */
-  repeating-linear-gradient(
-    to bottom,
-    transparent,
-    transparent 27px,
-    var(--paper-lines) 27px,
-    var(--paper-lines) 28px
-  ),
-  /* left margin line */
+  /* horizontal grid lines */
   linear-gradient(
-      to right,
-      transparent 38px,
-      rgba(220, 180, 180, 0.4) 38px,
-      rgba(220, 180, 180, 0.4) 39px,
-      transparent 39px
+    transparent 27px,
+    rgba(180, 180, 180, 0.25) 27px,
+    rgba(180, 180, 180, 0.25) 28px,
+    transparent 28px
+  ),
+  /* vertical grid lines */
+  linear-gradient(
+      90deg,
+      transparent 27px,
+      rgba(180, 180, 180, 0.25) 27px,
+      rgba(180, 180, 180, 0.25) 28px,
+      transparent 28px
     );
+background-size:
+  28px 28px,
+  28px 28px;
 ```
 
 ---

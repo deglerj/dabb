@@ -653,26 +653,26 @@ h3 {
   font-size: 0.875rem;
 }
 
-/* Notebook ruled-lines effect */
+/* Notebook graph-paper effect */
 .notebook {
   background-color: var(--paper-face);
   background-image:
     linear-gradient(
       transparent 27px,
-      var(--paper-lines) 27px,
-      var(--paper-lines) 28px,
+      rgba(180, 180, 180, 0.25) 27px,
+      rgba(180, 180, 180, 0.25) 28px,
       transparent 28px
     ),
     linear-gradient(
       90deg,
-      transparent 37px,
-      rgba(210, 80, 80, 0.3) 37px,
-      rgba(210, 80, 80, 0.3) 39px,
-      transparent 39px
+      transparent 27px,
+      rgba(180, 180, 180, 0.25) 27px,
+      rgba(180, 180, 180, 0.25) 28px,
+      transparent 28px
     );
   background-size:
-    100% 28px,
-    100% 100%;
+    28px 28px,
+    28px 28px;
 }
 
 .scoreboard-history {
@@ -866,13 +866,21 @@ h3 {
   max-height: 180px;
   overflow-y: auto;
   padding: 0.5rem;
-  background-image: linear-gradient(
-    transparent 27px,
-    rgba(196, 207, 224, 0.4) 27px,
-    rgba(196, 207, 224, 0.4) 28px,
-    transparent 28px
-  );
-  background-size: 100% 28px;
+  background-image:
+    linear-gradient(
+      transparent 27px,
+      rgba(180, 180, 180, 0.25) 27px,
+      rgba(180, 180, 180, 0.25) 28px,
+      transparent 28px
+    ),
+    linear-gradient(
+      90deg,
+      transparent 27px,
+      rgba(180, 180, 180, 0.25) 27px,
+      rgba(180, 180, 180, 0.25) 28px,
+      transparent 28px
+    );
+  background-size: 28px 28px, 28px 28px;
 }
 
 .game-log-entries.expanded {
