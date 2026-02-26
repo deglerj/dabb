@@ -71,8 +71,7 @@ function Card({
         filter: valid ? 'none' : 'grayscale(100%) brightness(0.7)',
         cursor: valid && onClick ? 'pointer' : 'default',
         color: isRed ? 'var(--card-red)' : 'var(--card-black)',
-        // Highlighted cards get a higher z-index so their glow isn't clipped by adjacent overlapping cards
-        zIndex: winner || trump || dabb ? 2 : valid ? 1 : 0,
+        zIndex: valid ? 1 : 0,
       }}
     >
       {/* Top-left corner */}
