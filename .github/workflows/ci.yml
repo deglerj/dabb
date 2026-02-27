@@ -288,7 +288,7 @@ jobs:
             dabb-android-builder:ci
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mobile-apk
           path: apps/mobile/build/dabb.apk
@@ -335,7 +335,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload web artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: web-dist
           path: apps/web/dist
