@@ -5,14 +5,18 @@ This guide walks you through deploying Dabb to production on a Hetzner CX23 serv
 ## Architecture
 
 ```
-Internet → nginx:80/443 → web:8080   (static React app)
-                        → server:3000 (Node.js + WebSockets)
-                          └─ postgres (internal network only)
+Internet → nginx:80/443 → web:8080    (static React app)
+                        → server:3000  (Node.js + WebSockets)
+                        → /umami/      (Umami analytics dashboard)
+                          └─ postgres  (internal network only)
+                             ├─ dabb   (game database)
+                             └─ umami  (analytics database)
 ```
 
 - nginx is the only container exposed externally (ports 80, 443)
 - web and server containers stay on the internal Docker network
 - PostgreSQL is never exposed outside Docker
+- Umami analytics runs on the internal network, accessed via `/umami/` nginx proxy
 
 ## Quick Start (Local Development)
 
@@ -104,7 +108,48 @@ This script:
 2. Runs `certbot certonly --webroot` to obtain the certificate
 3. Restarts nginx with full HTTPS config
 
-### 7. Add GitHub Secrets
+### 7. Configure Umami Analytics (optional)
+
+After the first deployment, set up Umami for usage tracking:
+
+1. **Login to Umami** at `https://dabb.degler.info/umami/`
+   - Default credentials: `admin` / `umami`
+   - **Change the password immediately** (Settings → Profile)
+
+2. **Add a website** in Umami:
+   - Click **Settings** → **Websites** → **Add website**
+   - Name: `Dabb`, Domain: `dabb.degler.info`
+   - Copy the **Website ID** (a UUID)
+
+3. **Set environment variables** on the server:
+
+```bash
+# Add to /opt/dabb/.env:
+UMAMI_APP_SECRET=$(openssl rand -hex 32)
+UMAMI_WEBSITE_ID=<paste-website-id-here>
+VITE_UMAMI_URL=https://dabb.degler.info/umami
+VITE_UMAMI_WEBSITE_ID=<paste-website-id-here>
+```
+
+4. **Rebuild and redeploy** to apply:
+
+```bash
+cd /opt/dabb && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d --build
+```
+
+> **Note**: `VITE_UMAMI_URL` and `VITE_UMAMI_WEBSITE_ID` are baked into the web app at build time. They can also be set as GitHub Actions variables so the CI build includes them automatically.
+
+#### Existing installation — create umami database manually
+
+If postgres already has data (no fresh volume), create the umami database manually:
+
+```bash
+docker exec -it dabb-postgres psql -U dabb -c "CREATE DATABASE umami;"
+```
+
+Then restart the umami container: `docker compose -f docker-compose.prod.yml restart umami`
+
+### 8. Add GitHub Secrets
 
 The deploy workflow uses `environment: production`, so secrets must be added to the
 **`production` environment** — not as repository secrets.
@@ -122,7 +167,7 @@ The deploy workflow uses `environment: production`, so secrets must be added to 
 The variable `VITE_SERVER_URL` is not sensitive — add/update it as a regular **repository
 variable** under **Settings** → **Secrets and variables** → **Actions** → **Variables** tab.
 
-### 8. First deployment
+### 9. First deployment
 
 Push any change to `main` (or re-run the CI workflow manually). GitHub Actions will:
 
@@ -162,14 +207,20 @@ After deployment, add a free monitor at [uptimerobot.com](https://uptimerobot.co
 
 ## Environment Variables Reference
 
-| Variable            | Required | Description                           |
-| ------------------- | -------- | ------------------------------------- |
-| `POSTGRES_PASSWORD` | Yes      | Database password                     |
-| `CLIENT_URL`        | Yes      | Web app URL (for CORS)                |
-| `VITE_SERVER_URL`   | Yes      | Server URL (built into web app)       |
-| `DATABASE_URL`      | No       | Override if using external PostgreSQL |
-| `PORT`              | No       | Server port (default: 3000)           |
-| `NODE_ENV`          | No       | Environment (default: production)     |
+| Variable                | Required | Description                                       |
+| ----------------------- | -------- | ------------------------------------------------- |
+| `POSTGRES_PASSWORD`     | Yes      | Database password                                 |
+| `CLIENT_URL`            | Yes      | Web app URL (for CORS)                            |
+| `VITE_SERVER_URL`       | Yes      | Server URL (built into web app)                   |
+| `UMAMI_APP_SECRET`      | Yes\*    | Umami JWT secret (`openssl rand -hex 32`)         |
+| `DATABASE_URL`          | No       | Override if using external PostgreSQL             |
+| `PORT`                  | No       | Server port (default: 3000)                       |
+| `NODE_ENV`              | No       | Environment (default: production)                 |
+| `UMAMI_WEBSITE_ID`      | No       | Umami website ID for server-side event tracking   |
+| `VITE_UMAMI_URL`        | No       | Public Umami URL baked into web app at build time |
+| `VITE_UMAMI_WEBSITE_ID` | No       | Website ID baked into web app at build time       |
+
+\*Required if the `umami` service is enabled in docker-compose.
 
 ---
 

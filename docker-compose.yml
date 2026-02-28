@@ -16,7 +16,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Note: Schema is now managed by postgres-migrations on server startup
-      # No initdb script needed - server will run migrations automatically
+      # init.sql only runs on first volume init — creates the 'umami' analytics database
+      - ./deploy/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'dabb', '-d', 'dabb']
       interval: 10s
@@ -37,6 +38,8 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://dabb:dabb_dev_password@postgres:5432/dabb
       CLIENT_URL: http://localhost:8080
+      UMAMI_URL: http://umami:3000
+      # UMAMI_WEBSITE_ID: set this after creating a website in the Umami dashboard
     ports:
       - '3000:3000'
     healthcheck:
@@ -57,6 +60,8 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         VITE_SERVER_URL: http://localhost:3000
+        # VITE_UMAMI_URL: http://localhost:3001/umami
+        # VITE_UMAMI_WEBSITE_ID: set after creating website in Umami dashboard
     container_name: dabb-web
     restart: unless-stopped
     depends_on:
@@ -68,6 +73,21 @@ services:
       interval: 30s
       timeout: 3s
       retries: 3
+
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    container_name: dabb-umami
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://dabb:dabb_dev_password@postgres:5432/umami
+      APP_SECRET: dabb_umami_dev_secret
+      BASE_PATH: /umami
+      REMOVE_TRAILING_SLASH: '1'
+    ports:
+      - '3001:3000'
 
 volumes:
   postgres_data:

@@ -37,6 +37,8 @@ setStorageAdapter({
 });
 
 const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL || 'http://localhost:3000';
+const UMAMI_URL = process.env.EXPO_PUBLIC_UMAMI_URL;
+const UMAMI_WEBSITE_ID = process.env.EXPO_PUBLIC_UMAMI_WEBSITE_ID;
 
 type AppScreen = 'loading' | 'home' | 'waiting' | 'game' | 'update-required';
 
@@ -541,6 +543,22 @@ export default function App() {
     detectLanguageAsync().then((lang) => {
       setInitialLanguage(lang);
       setLanguageLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!UMAMI_URL || !UMAMI_WEBSITE_ID) {
+      return;
+    }
+    fetch(`${UMAMI_URL}/api/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'pageview',
+        payload: { website: UMAMI_WEBSITE_ID, url: '/', hostname: 'dabb-mobile' },
+      }),
+    }).catch(() => {
+      // Analytics failure is non-critical
     });
   }, []);
 
