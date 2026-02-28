@@ -10,11 +10,16 @@ import {
   StyleSheet,
   ActivityIndicator,
   Share,
-  Platform,
+  Pressable,
+  ScrollView,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { AIDifficulty, PlayerIndex } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
+import { WoodBackground } from '../components/WoodBackground';
+import { PaperPanel } from '../components/PaperPanel';
+import { Colors, Fonts } from '../theme';
 
 interface WaitingRoomScreenProps {
   sessionCode: string;
@@ -49,6 +54,7 @@ function WaitingRoomScreen({
   onSelectAIDifficulty,
 }: WaitingRoomScreenProps) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const connectedPlayers = Array.from(players.values()).filter((p) => p.connected).length;
   const canStart = connectedPlayers === playerCount;
 
@@ -63,148 +69,170 @@ function WaitingRoomScreen({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('waitingRoom.title')}</Text>
+    <WoodBackground>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>{t('waitingRoom.title')}</Text>
 
-      <View style={styles.codeContainer}>
-        <Text style={styles.codeLabel}>{t('waitingRoom.gameCode')}:</Text>
-        <Text style={styles.code}>{sessionCode}</Text>
-        <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-          <View style={styles.buttonContent}>
-            <Feather name="share-2" size={14} color="#fff" />
-            <Text style={styles.shareButtonText}>{t('common.share')}</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.playersSection}>
-        <Text style={styles.playersTitle}>
-          {t('common.players')} ({connectedPlayers}/{playerCount})
-        </Text>
-
-        <View style={styles.playersList}>
-          {Array.from({ length: playerCount }).map((_, index) => {
-            const player = players.get(index as PlayerIndex);
-            return (
-              <View key={index} style={styles.playerRow}>
-                {player?.isAI ? (
-                  <Feather name="cpu" size={14} color="#64748b" style={styles.aiIcon} />
-                ) : (
-                  <View
-                    style={[
-                      styles.statusDot,
-                      player?.connected ? styles.statusOnline : styles.statusOffline,
-                    ]}
-                  />
-                )}
-                <Text style={styles.playerName}>
-                  {player?.nickname || `${t('waitingRoom.waitingForPlayers')}...`}
-                </Text>
-                {player?.isAI && player.aiDifficulty && (
-                  <Text style={styles.difficultyBadge}>
-                    {t(`waitingRoom.aiDifficulty.${player.aiDifficulty}`)}
-                  </Text>
-                )}
-                {index === 0 && <Text style={styles.hostBadge}>{t('waitingRoom.host')}</Text>}
-                {isHost && player?.isAI && onRemoveAI && (
-                  <TouchableOpacity
-                    style={styles.removeAIButton}
-                    onPress={() => onRemoveAI(index as PlayerIndex)}
-                  >
-                    <Feather name="x" size={14} color="#dc2626" />
-                  </TouchableOpacity>
-                )}
-              </View>
-            );
-          })}
-        </View>
-
-        {isHost && players.size < playerCount && onAddAI && (
-          <View>
-            <View style={styles.difficultyRow}>
-              {AI_DIFFICULTIES.map((diff) => (
-                <TouchableOpacity
-                  key={diff}
-                  style={[
-                    styles.difficultyButton,
-                    selectedAIDifficulty === diff && styles.difficultyButtonSelected,
-                  ]}
-                  onPress={() => onSelectAIDifficulty?.(diff)}
-                >
-                  <Text
-                    style={[
-                      styles.difficultyButtonText,
-                      selectedAIDifficulty === diff && styles.difficultyButtonTextSelected,
-                    ]}
-                  >
-                    {t(`waitingRoom.aiDifficulty.${diff}`)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity
-              style={[styles.addAIButton, isAddingAI && styles.disabledButton]}
-              onPress={onAddAI}
-              disabled={isAddingAI}
-            >
-              <View style={styles.buttonContent}>
-                {isAddingAI ? (
-                  <ActivityIndicator size="small" color="#2563eb" />
-                ) : (
-                  <Feather name="cpu" size={16} color="#2563eb" />
-                )}
-                <Text style={styles.addAIButtonText}>{t('waitingRoom.addAIPlayer')}</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      {!canStart && (
-        <View style={styles.waitingIndicator}>
-          <ActivityIndicator size="small" color="#2563eb" />
-          <Text style={styles.waitingText}>
-            {t('waitingRoom.waitingForPlayersCount', {
-              count: playerCount - connectedPlayers,
-            })}
-          </Text>
-        </View>
-      )}
-
-      <View style={styles.actions}>
-        {isHost && (
-          <TouchableOpacity
-            style={[styles.button, styles.startButton, !canStart && styles.disabledButton]}
-            onPress={onStartGame}
-            disabled={!canStart}
+        {/* Game code */}
+        <PaperPanel style={styles.codePanel}>
+          <Text style={styles.codeLabel}>{t('waitingRoom.gameCode')}</Text>
+          <Text style={styles.code}>{sessionCode}</Text>
+          <Pressable
+            style={({ pressed }) => [styles.shareButton, pressed && styles.shareButtonPressed]}
+            onPress={handleShare}
           >
             <View style={styles.buttonContent}>
-              {canStart ? (
-                <Feather name="play" size={18} color="#fff" />
-              ) : (
-                <ActivityIndicator size="small" color="#fff" />
-              )}
-              <Text style={styles.buttonText}>{t('waitingRoom.startGame')}</Text>
+              <Feather name="share-2" size={14} color={Colors.inkDark} />
+              <Text style={styles.shareButtonText}>{t('common.share')}</Text>
             </View>
-          </TouchableOpacity>
+          </Pressable>
+        </PaperPanel>
+
+        {/* Player list */}
+        <PaperPanel style={styles.playersPanel}>
+          <Text style={styles.playersTitle}>
+            {t('common.players')} ({connectedPlayers}/{playerCount})
+          </Text>
+
+          <View style={styles.playersList}>
+            {Array.from({ length: playerCount }).map((_, index) => {
+              const player = players.get(index as PlayerIndex);
+              return (
+                <View key={index} style={styles.playerRow}>
+                  {player?.isAI ? (
+                    <Feather name="cpu" size={14} color={Colors.inkFaint} style={styles.aiIcon} />
+                  ) : (
+                    <View
+                      style={[
+                        styles.statusDot,
+                        player?.connected ? styles.statusOnline : styles.statusOffline,
+                      ]}
+                    />
+                  )}
+                  <Text style={[styles.playerName, !player && styles.emptySlot]}>
+                    {player?.nickname || `— ${t('waitingRoom.waitingForPlayers')}... —`}
+                  </Text>
+                  {player?.isAI && player.aiDifficulty && (
+                    <Text style={styles.difficultyBadge}>
+                      {t(`waitingRoom.aiDifficulty.${player.aiDifficulty}`)}
+                    </Text>
+                  )}
+                  {index === 0 && <Text style={styles.hostBadge}>{t('waitingRoom.host')}</Text>}
+                  {isHost && player?.isAI && onRemoveAI && (
+                    <TouchableOpacity
+                      style={styles.removeAIButton}
+                      onPress={() => onRemoveAI(index as PlayerIndex)}
+                    >
+                      <Feather name="x" size={14} color={Colors.error} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+
+          {isHost && players.size < playerCount && onAddAI && (
+            <View style={styles.addAISection}>
+              <View style={styles.difficultyRow}>
+                {AI_DIFFICULTIES.map((diff) => (
+                  <Pressable
+                    key={diff}
+                    style={[
+                      styles.difficultyButton,
+                      selectedAIDifficulty === diff && styles.difficultyButtonSelected,
+                    ]}
+                    onPress={() => onSelectAIDifficulty?.(diff)}
+                  >
+                    <Text
+                      style={[
+                        styles.difficultyButtonText,
+                        selectedAIDifficulty === diff && styles.difficultyButtonTextSelected,
+                      ]}
+                    >
+                      {t(`waitingRoom.aiDifficulty.${diff}`)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.addAIButton,
+                  isAddingAI && styles.disabledButton,
+                  pressed && !isAddingAI && styles.addAIButtonPressed,
+                ]}
+                onPress={onAddAI}
+                disabled={isAddingAI}
+              >
+                <View style={styles.buttonContent}>
+                  {isAddingAI ? (
+                    <ActivityIndicator size="small" color={Colors.inkFaint} />
+                  ) : (
+                    <Feather name="cpu" size={16} color={Colors.inkMid} />
+                  )}
+                  <Text style={styles.addAIButtonText}>{t('waitingRoom.addAIPlayer')}</Text>
+                </View>
+              </Pressable>
+            </View>
+          )}
+        </PaperPanel>
+
+        {!canStart && (
+          <View style={styles.waitingIndicator}>
+            <ActivityIndicator size="small" color={Colors.amberLight} />
+            <Text style={styles.waitingText}>
+              {t('waitingRoom.waitingForPlayersCount', {
+                count: playerCount - connectedPlayers,
+              })}
+            </Text>
+          </View>
         )}
 
-        <TouchableOpacity style={[styles.button, styles.leaveButton]} onPress={onLeave}>
-          <View style={styles.buttonContent}>
-            <Feather name="log-out" size={16} color="#dc2626" />
-            <Text style={styles.leaveButtonText}>{t('common.leave')}</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-    </View>
+        {/* Actions */}
+        <View style={styles.actions}>
+          {isHost && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                styles.startButton,
+                !canStart && styles.disabledButton,
+                pressed && canStart && styles.buttonPressed,
+              ]}
+              onPress={onStartGame}
+              disabled={!canStart}
+            >
+              <View style={styles.buttonContent}>
+                {canStart ? (
+                  <Feather name="play" size={18} color={Colors.inkDark} />
+                ) : (
+                  <ActivityIndicator size="small" color={Colors.inkFaint} />
+                )}
+                <Text style={styles.startButtonText}>{t('waitingRoom.startGame')}</Text>
+              </View>
+            </Pressable>
+          )}
+
+          <TouchableOpacity style={styles.leaveButton} onPress={onLeave}>
+            <View style={styles.buttonContent}>
+              <Feather name="log-out" size={16} color={Colors.error} />
+              <Text style={styles.leaveButtonText}>{t('common.leave')}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </WoodBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    backgroundColor: '#f0f9ff',
+  scrollContent: {
+    padding: 20,
+    gap: 16,
   },
   buttonContent: {
     flexDirection: 'row',
@@ -213,192 +241,231 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1e3a5f',
+    fontFamily: Fonts.display,
+    color: Colors.paperFace,
     textAlign: 'center',
-    marginBottom: 24,
-    marginTop: 16,
+    marginBottom: 4,
+    // Text shadow for readability on wood
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  codeContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+  codePanel: {
     alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   codeLabel: {
-    fontSize: 14,
-    color: '#64748b',
+    fontSize: 12,
+    fontFamily: Fonts.body,
+    color: Colors.inkFaint,
     marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   code: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1e3a5f',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 28,
+    fontFamily: Fonts.handwritingBold,
+    color: Colors.inkDark,
     marginBottom: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.inkFaint,
+    paddingBottom: 4,
+    paddingHorizontal: 8,
   },
   shareButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: Colors.amber,
     paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: 8,
-  },
-  shareButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  playersSection: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
+    borderRadius: 4,
+    shadowColor: 'rgba(120,60,0,0.4)',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 3,
   },
+  shareButtonPressed: {
+    transform: [{ translateY: 1 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  shareButtonText: {
+    color: Colors.inkDark,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 14,
+  },
+  playersPanel: {
+    padding: 12,
+  },
   playersTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 12,
+    fontSize: 14,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.inkMid,
+    marginBottom: 8,
   },
   playersList: {
-    gap: 8,
+    gap: 0,
   },
   playerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#f9fafb',
-    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.paperLines,
   },
   statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 12,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 10,
   },
   statusOnline: {
-    backgroundColor: '#22c55e',
+    backgroundColor: Colors.success,
   },
   statusOffline: {
-    backgroundColor: '#d1d5db',
+    backgroundColor: Colors.paperEdge,
   },
   playerName: {
     flex: 1,
-    fontSize: 14,
-    color: '#374151',
+    fontSize: 16,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkDark,
+  },
+  emptySlot: {
+    color: Colors.inkFaint,
+    fontStyle: 'italic',
   },
   hostBadge: {
-    fontSize: 12,
-    color: '#2563eb',
-    fontWeight: '600',
-    backgroundColor: '#dbeafe',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
+    fontSize: 11,
+    fontFamily: Fonts.body,
+    color: Colors.amber,
+    borderWidth: 1,
+    borderColor: Colors.amber,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 3,
   },
   difficultyBadge: {
     fontSize: 11,
-    color: '#64748b',
-    backgroundColor: '#f1f5f9',
+    fontFamily: Fonts.body,
+    color: Colors.inkFaint,
+    backgroundColor: Colors.paperAged,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 3,
     marginRight: 4,
   },
   aiIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   removeAIButton: {
     padding: 4,
-    marginLeft: 8,
+    marginLeft: 6,
+  },
+  addAISection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.paperLines,
   },
   difficultyRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 12,
     marginBottom: 8,
   },
   difficultyButton: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 7,
+    borderRadius: 3,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2563eb',
-    backgroundColor: 'transparent',
+    borderColor: Colors.paperEdge,
+    backgroundColor: Colors.paperFace,
   },
   difficultyButtonSelected: {
-    backgroundColor: '#2563eb',
+    backgroundColor: Colors.amber,
+    borderColor: Colors.amber,
   },
   difficultyButtonText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontFamily: Fonts.body,
+    color: Colors.inkMid,
   },
   difficultyButtonTextSelected: {
-    color: '#fff',
+    color: Colors.inkDark,
+    fontFamily: Fonts.bodyBold,
   },
   addAIButton: {
-    backgroundColor: '#dbeafe',
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: Colors.paperAged,
+    paddingVertical: 10,
+    borderRadius: 3,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+  },
+  addAIButtonPressed: {
+    transform: [{ translateY: 1 }],
   },
   addAIButtonText: {
-    color: '#2563eb',
-    fontSize: 14,
-    fontWeight: '600',
+    color: Colors.inkMid,
+    fontSize: 13,
+    fontFamily: Fonts.body,
   },
   waitingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginBottom: 24,
   },
   waitingText: {
-    color: '#64748b',
-    fontSize: 14,
+    color: Colors.paperAged,
+    fontSize: 13,
+    fontFamily: Fonts.handwriting,
   },
   actions: {
-    gap: 12,
-    marginTop: 'auto',
+    gap: 10,
+    marginTop: 4,
   },
   button: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 4,
     alignItems: 'center',
   },
   startButton: {
-    backgroundColor: '#22c55e',
+    backgroundColor: Colors.amber,
+    shadowColor: 'rgba(120,60,0,0.4)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  buttonPressed: {
+    transform: [{ translateY: 2 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  disabledButton: {
+    backgroundColor: Colors.inkFaint,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  startButtonText: {
+    color: Colors.inkDark,
+    fontSize: 18,
+    fontFamily: Fonts.bodyBold,
   },
   leaveButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#dc2626',
-  },
-  disabledButton: {
-    backgroundColor: '#9ca3af',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    borderColor: Colors.error,
+    paddingVertical: 12,
+    borderRadius: 4,
+    alignItems: 'center',
   },
   leaveButtonText: {
-    color: '#dc2626',
-    fontSize: 16,
+    color: Colors.error,
+    fontSize: 15,
+    fontFamily: Fonts.body,
   },
 });
 

@@ -125,6 +125,26 @@ vi.mock('react-native', () => {
   });
   KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
 
+  const Pressable = React.forwardRef((props: Record<string, unknown>, ref: unknown) => {
+    const { children, testID, style, onPress, disabled, ...rest } = props;
+    const resolvedStyle = typeof style === 'function' ? style({ pressed: false }) : style;
+    const resolvedChildren =
+      typeof children === 'function' ? children({ pressed: false }) : children;
+    return React.createElement(
+      'button',
+      {
+        'data-testid': testID,
+        onClick: disabled ? undefined : onPress,
+        disabled,
+        style: resolvedStyle,
+        ref,
+        ...rest,
+      },
+      resolvedChildren
+    );
+  });
+  Pressable.displayName = 'Pressable';
+
   return {
     View,
     Text,
@@ -134,6 +154,7 @@ vi.mock('react-native', () => {
     Modal,
     ActivityIndicator,
     KeyboardAvoidingView,
+    Pressable,
     Alert: {
       alert: vi.fn(),
     },
@@ -209,6 +230,12 @@ vi.mock('expo-audio', () => ({
     play: vi.fn(),
     pause: vi.fn(),
     seekTo: vi.fn(),
+    volume: 1,
+  })),
+  createAudioPlayer: vi.fn(() => ({
+    play: vi.fn(),
+    pause: vi.fn(),
+    remove: vi.fn(),
     volume: 1,
   })),
   setAudioModeAsync: vi.fn(),
@@ -342,6 +369,24 @@ vi.mock('react-native-reanimated', () => {
     runOnJS: (fn: (...args: unknown[]) => unknown) => fn,
   };
 });
+
+// Mock expo-linear-gradient
+vi.mock('expo-linear-gradient', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+  const LinearGradient = React.forwardRef((props: Record<string, unknown>, ref: unknown) => {
+    const { children, colors: _colors, locations: _locations, style: _style, ...rest } = props;
+    return React.createElement('div', { ref, ...rest }, children);
+  });
+  LinearGradient.displayName = 'LinearGradient';
+  return { LinearGradient };
+});
+
+// Mock expo-splash-screen
+vi.mock('expo-splash-screen', () => ({
+  preventAutoHideAsync: vi.fn(() => Promise.resolve()),
+  hideAsync: vi.fn(() => Promise.resolve()),
+}));
 
 // Mock the notification sound require
 vi.mock('../../assets/sounds/notification.ogg', () => ({}));

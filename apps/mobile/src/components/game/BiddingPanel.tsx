@@ -3,10 +3,11 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from '@dabb/i18n';
 import { getMinBid } from '@dabb/game-logic';
+import { Colors, Fonts, Shadows } from '../../theme';
 
 interface BiddingPanelProps {
   currentBid: number;
@@ -31,19 +32,22 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
         <>
           <View style={styles.bidOptions}>
             {bidOptions.map((amount) => (
-              <TouchableOpacity
+              <Pressable
                 key={amount}
-                style={styles.bidOptionButton}
+                style={({ pressed }) => [
+                  styles.bidOptionButton,
+                  pressed && styles.bidOptionPressed,
+                ]}
                 onPress={() => onBid(amount)}
               >
                 <Text style={styles.bidOptionText}>{amount}</Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
 
           <TouchableOpacity style={styles.passButton} onPress={onPass}>
             <View style={styles.buttonContent}>
-              <Feather name="x" size={16} color="#dc2626" />
+              <Feather name="x" size={16} color={Colors.error} />
               <Text style={styles.passButtonText}>{t('game.pass')}</Text>
             </View>
           </TouchableOpacity>
@@ -57,40 +61,51 @@ function BiddingPanel({ currentBid, isMyTurn, onBid, onPass }: BiddingPanelProps
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: Colors.paperFace,
+    borderRadius: 3,
     padding: 16,
     margin: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+    ...Shadows.panel,
   },
   currentBid: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkFaint,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   bidOptions: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   bidOptionButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: Colors.paperAged,
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingHorizontal: 14,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
     minWidth: 60,
     alignItems: 'center',
+    shadowColor: Colors.paperEdge,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  bidOptionPressed: {
+    transform: [{ translateY: 1 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   bidOptionText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+    color: Colors.inkDark,
+    fontFamily: Fonts.handwritingBold,
+    fontSize: 18,
   },
   buttonContent: {
     flexDirection: 'row',
@@ -98,23 +113,24 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   passButton: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.paperFace,
     borderWidth: 1,
-    borderColor: '#dc2626',
-    paddingVertical: 12,
+    borderColor: Colors.error,
+    paddingVertical: 10,
     paddingHorizontal: 24,
-    borderRadius: 8,
+    borderRadius: 3,
     alignItems: 'center',
     alignSelf: 'center',
   },
   passButtonText: {
-    color: '#dc2626',
-    fontWeight: 'bold',
-    fontSize: 16,
+    color: Colors.error,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 15,
   },
   waitingText: {
-    fontSize: 14,
-    color: '#999',
+    fontSize: 13,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkFaint,
     textAlign: 'center',
   },
 });

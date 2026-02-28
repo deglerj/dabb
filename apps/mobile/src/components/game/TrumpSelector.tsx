@@ -3,11 +3,11 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import type { Suit } from '@dabb/shared-types';
 import { SUITS, SUIT_NAMES } from '@dabb/shared-types';
-import { SUIT_COLORS } from '@dabb/card-assets';
 import SuitIcon from '../SuitIcon';
+import { Colors, Fonts, Shadows } from '../../theme';
 
 interface TrumpSelectorProps {
   onSelect: (suit: Suit) => void;
@@ -18,16 +18,19 @@ function TrumpSelector({ onSelect }: TrumpSelectorProps) {
     <View style={styles.container}>
       <Text style={styles.title}>Trumpf wählen</Text>
       <View style={styles.suitGrid}>
-        {SUITS.map((suit) => (
-          <TouchableOpacity
-            key={suit}
-            style={[styles.suitButton, { backgroundColor: SUIT_COLORS[suit].primary }]}
-            onPress={() => onSelect(suit)}
-          >
-            <SuitIcon suit={suit} size={36} />
-            <Text style={styles.suitName}>{SUIT_NAMES[suit]}</Text>
-          </TouchableOpacity>
-        ))}
+        {SUITS.map((suit) => {
+          const isRed = suit === 'herz' || suit === 'bollen';
+          return (
+            <Pressable
+              key={suit}
+              style={({ pressed }) => [styles.suitButton, pressed && styles.suitButtonPressed]}
+              onPress={() => onSelect(suit)}
+            >
+              <SuitIcon suit={suit} size={36} />
+              <Text style={[styles.suitName, isRed && styles.suitNameRed]}>{SUIT_NAMES[suit]}</Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
@@ -35,19 +38,18 @@ function TrumpSelector({ onSelect }: TrumpSelectorProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: Colors.paperFace,
+    borderRadius: 3,
     padding: 16,
     margin: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+    ...Shadows.panel,
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: Fonts.display,
+    color: Colors.inkDark,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -60,20 +62,31 @@ const styles = StyleSheet.create({
   suitButton: {
     width: 80,
     height: 80,
-    borderRadius: 12,
+    borderRadius: 3,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    backgroundColor: Colors.paperAged,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+    shadowColor: Colors.paperEdge,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 3,
+  },
+  suitButtonPressed: {
+    transform: [{ translateY: 2 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   suitName: {
     fontSize: 12,
-    color: '#fff',
-    fontWeight: 'bold',
+    fontFamily: Fonts.handwritingBold,
+    color: Colors.cardBlack,
     marginTop: 4,
+  },
+  suitNameRed: {
+    color: Colors.cardRed,
   },
 });
 

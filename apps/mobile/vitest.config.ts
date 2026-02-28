@@ -12,6 +12,7 @@ export default defineConfig({
         __dirname,
         'src/test/react-native-markdown-display-stub.ts'
       ),
+      'expo-linear-gradient': resolve(__dirname, 'src/test/expo-linear-gradient-stub.ts'),
     },
   },
   test: {

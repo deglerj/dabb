@@ -3,13 +3,14 @@
  * Shows player actions in real-time during the game
  */
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import type { GameState, GameEvent, PlayerIndex, GameLogEntry, Meld } from '@dabb/shared-types';
 import { formatMeldName, SUIT_NAMES, RANK_NAMES } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import { useGameLog } from '@dabb/ui-shared';
+import { Colors, Fonts } from '../../theme';
 
 interface GameLogProps {
   state: GameState;
@@ -23,9 +24,25 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
   const { entries, latestEntries, isYourTurn } = useGameLog(events, state, currentPlayerIndex);
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const displayEntries = isExpanded ? entries : latestEntries;
   const hasMoreEntries = entries.length > latestEntries.length;
+
+  // Pulse animation for "your turn" banner
+  useEffect(() => {
+    if (!isYourTurn) {
+      return;
+    }
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.7, duration: 750, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.0, duration: 750, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [isYourTurn, pulseAnim]);
 
   const toggleExpanded = (entryId: string) => {
     setExpandedEntries((prev) => {
@@ -126,7 +143,7 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
                   style={styles.meldToggle}
                   onPress={() => toggleExpanded(entry.id)}
                 >
-                  <Feather name={isDabbOpen ? 'minus' : 'plus'} size={10} color="#6b7280" />
+                  <Feather name={isDabbOpen ? 'minus' : 'plus'} size={10} color={Colors.inkFaint} />
                 </TouchableOpacity>
               )}
             </View>
@@ -156,7 +173,7 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
                   style={styles.meldToggle}
                   onPress={() => toggleExpanded(entry.id)}
                 >
-                  <Feather name={isOpen ? 'minus' : 'plus'} size={10} color="#6b7280" />
+                  <Feather name={isOpen ? 'minus' : 'plus'} size={10} color={Colors.inkFaint} />
                 </TouchableOpacity>
               )}
             </View>
@@ -233,7 +250,7 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
               <Feather
                 name={isExpanded ? 'chevron-down' : 'chevron-up'}
                 size={10}
-                color="#6b7280"
+                color={Colors.inkFaint}
               />
               <Text style={styles.toggleText}>
                 {isExpanded ? t('gameLog.showLess') : t('gameLog.showMore')}
@@ -244,9 +261,9 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
       </View>
 
       {isYourTurn && (
-        <View style={styles.turnBanner}>
+        <Animated.View style={[styles.turnBanner, { opacity: pulseAnim }]}>
           <Text style={styles.turnText}>{t('gameLog.yourTurn')}</Text>
-        </View>
+        </Animated.View>
       )}
 
       <ScrollView
@@ -269,12 +286,14 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.paperAged,
     marginHorizontal: 8,
-    borderRadius: 8,
-    shadowColor: '#000',
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+    shadowColor: '#3c1e0a',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 2,
     elevation: 2,
   },
@@ -282,50 +301,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: Colors.paperEdge,
+    backgroundColor: Colors.paperFace,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
   },
   title: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6b7280',
+    fontSize: 10,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.inkFaint,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   toggleButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 3,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: Colors.paperEdge,
+    backgroundColor: Colors.paperAged,
   },
   toggleContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   toggleText: {
-    fontSize: 10,
-    color: '#6b7280',
+    fontSize: 9,
+    fontFamily: Fonts.body,
+    color: Colors.inkFaint,
   },
   turnBanner: {
-    backgroundColor: '#e94560',
-    paddingVertical: 8,
+    backgroundColor: Colors.amber,
+    paddingVertical: 7,
     alignItems: 'center',
   },
   turnText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
+    color: Colors.inkDark,
+    fontFamily: Fonts.display,
+    fontSize: 13,
+    letterSpacing: 0.5,
   },
   entriesContainer: {
-    maxHeight: 120,
+    maxHeight: 110,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
@@ -333,41 +354,43 @@ const styles = StyleSheet.create({
     maxHeight: 200,
   },
   entry: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    marginBottom: 2,
-    borderRadius: 4,
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    marginBottom: 1,
+    borderRadius: 2,
   },
   highlightEntry: {
-    backgroundColor: 'rgba(233, 69, 96, 0.1)',
+    backgroundColor: 'rgba(212, 137, 10, 0.12)',
   },
   successEntry: {
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    backgroundColor: 'rgba(58, 125, 68, 0.1)',
   },
   errorEntry: {
-    backgroundColor: 'rgba(233, 69, 96, 0.15)',
+    backgroundColor: 'rgba(163, 32, 32, 0.1)',
   },
   entryText: {
     fontSize: 12,
-    color: '#374151',
-    lineHeight: 18,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkDark,
+    lineHeight: 17,
   },
   highlightText: {
-    color: '#dc2626',
-    fontWeight: '500',
+    color: Colors.amber,
+    fontFamily: Fonts.handwritingBold,
   },
   successText: {
-    color: '#16a34a',
-    fontWeight: '500',
+    color: Colors.success,
+    fontFamily: Fonts.handwritingBold,
   },
   errorText: {
-    color: '#dc2626',
-    fontWeight: '500',
+    color: Colors.error,
+    fontFamily: Fonts.handwritingBold,
   },
   emptyText: {
     textAlign: 'center',
-    padding: 16,
-    color: '#9ca3af',
+    padding: 12,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkFaint,
     fontSize: 12,
   },
   meldRow: {
@@ -376,28 +399,22 @@ const styles = StyleSheet.create({
   },
   meldToggle: {
     marginLeft: 6,
-    width: 18,
-    height: 18,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
+    width: 16,
+    height: 16,
+    backgroundColor: Colors.paperEdge,
+    borderRadius: 3,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  meldToggleText: {
-    fontSize: 12,
-    color: '#6b7280',
-    fontWeight: '600',
-  },
   meldDetails: {
-    marginTop: 4,
+    marginTop: 2,
     marginLeft: 8,
     paddingLeft: 8,
     fontSize: 10,
-    color: '#9ca3af',
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkFaint,
     borderLeftWidth: 2,
-    borderLeftColor: '#e5e7eb',
+    borderLeftColor: Colors.paperEdge,
   },
 });
 
