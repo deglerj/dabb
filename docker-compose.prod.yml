@@ -112,7 +112,6 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://dabb:${POSTGRES_PASSWORD}@postgres:5432/umami}
       APP_SECRET: ${UMAMI_APP_SECRET:?UMAMI_APP_SECRET is required}
-      BASE_PATH: /umami
     networks:
       - dabb-internal
       - dabb-external

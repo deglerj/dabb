@@ -84,7 +84,6 @@ services:
     environment:
       DATABASE_URL: postgresql://dabb:dabb_dev_password@postgres:5432/umami
       APP_SECRET: dabb_umami_dev_secret
-      BASE_PATH: /umami
     ports:
       - '3001:3000'
 
