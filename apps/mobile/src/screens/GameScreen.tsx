@@ -3,7 +3,7 @@
  */
 
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import type { GameState, GameEvent, PlayerIndex, Suit, CardId } from '@dabb/shared-types';
 import { DABB_SIZE, formatMeldName, SUITS, SUIT_NAMES } from '@dabb/shared-types';
@@ -23,6 +23,9 @@ import {
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useTurnNotification } from '../hooks/useTurnNotification';
 import { DropZoneProvider } from '../contexts/DropZoneContext';
+import { WoodBackground } from '../components/WoodBackground';
+import { Colors, Fonts, Shadows } from '../theme';
+import { playSound, isMuted, setMuted, loadSoundPreferences } from '../utils/sounds';
 
 interface GameScreenProps {
   state: GameState;
@@ -61,8 +64,52 @@ function GameScreen({
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [selectedCards, setSelectedCards] = useState<CardId[]>([]);
   const [showExpandedScoreboard, setShowExpandedScoreboard] = useState(false);
+  const [soundMuted, setSoundMuted] = useState(false);
 
   const dabbSize = DABB_SIZE[state.playerCount];
+
+  // Load sound preferences on mount
+  useEffect(() => {
+    loadSoundPreferences().then(() => setSoundMuted(isMuted()));
+  }, []);
+
+  // Handle mute toggle
+  const handleToggleMute = useCallback(async () => {
+    const next = !isMuted();
+    await setMuted(next);
+    setSoundMuted(next);
+  }, []);
+
+  // Wire sounds to game events
+  const processedEventCount = events.length;
+  useEffect(() => {
+    if (events.length === 0) {
+      return;
+    }
+    const latestEvent = events[events.length - 1];
+    switch (latestEvent.type) {
+      case 'CARDS_DEALT':
+        playSound('card-deal');
+        break;
+      case 'BID_PLACED':
+        playSound('bid-place');
+        break;
+      case 'PLAYER_PASSED':
+        playSound('pass');
+        break;
+      case 'CARD_PLAYED':
+        playSound('card-play');
+        break;
+      case 'TRICK_WON':
+        playSound('trick-win');
+        break;
+      case 'GAME_FINISHED':
+        playSound('game-win');
+        break;
+      default:
+        break;
+    }
+  }, [processedEventCount]); // intentional: only re-run when event count changes
 
   // Clear selected card when phase changes (e.g., between rounds)
   useEffect(() => {
@@ -100,6 +147,7 @@ function GameScreen({
           onPlayCard(cardId);
           setSelectedCardId(null);
         } else {
+          playSound('card-select');
           setSelectedCardId(cardId);
         }
       }
@@ -151,14 +199,14 @@ function GameScreen({
     switch (state.phase) {
       case 'waiting':
         return (
-          <View style={styles.phaseContainer}>
+          <View style={styles.phasePanel}>
             <Text style={styles.phaseText}>{t('game.waitingForGameStart')}</Text>
           </View>
         );
 
       case 'dealing':
         return (
-          <View style={styles.phaseContainer}>
+          <View style={styles.phasePanel}>
             <Text style={styles.phaseText}>{t('game.dealing')}</Text>
           </View>
         );
@@ -177,26 +225,33 @@ function GameScreen({
         if (state.bidWinner === playerIndex) {
           if (state.dabb.length > 0) {
             return (
-              <View style={styles.phaseContainer}>
+              <View style={styles.phasePanel}>
                 <Text style={styles.phaseTitle}>{t('game.takeDabb')}</Text>
-                <TouchableOpacity style={styles.actionButton} onPress={onTakeDabb}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.actionButton,
+                    pressed && styles.actionButtonPressed,
+                  ]}
+                  onPress={onTakeDabb}
+                >
                   <Text style={styles.actionButtonText}>
                     {t('game.takeDabbCards', { count: state.dabb.length })}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             );
           }
           return (
-            <View style={styles.phaseContainer}>
+            <View style={styles.phasePanel}>
               <Text style={styles.phaseTitle}>{t('game.discardCards')}</Text>
               <Text style={styles.phaseText}>
                 {t('game.selectCardsToDiscard', { count: dabbSize })}
               </Text>
-              <TouchableOpacity
-                style={[
+              <Pressable
+                style={({ pressed }) => [
                   styles.actionButton,
                   selectedCards.length !== dabbSize && styles.actionButtonDisabled,
+                  pressed && selectedCards.length === dabbSize && styles.actionButtonPressed,
                 ]}
                 onPress={handleDiscard}
                 disabled={selectedCards.length !== dabbSize}
@@ -207,18 +262,21 @@ function GameScreen({
                     total: dabbSize,
                   })}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
               <View style={styles.goOutSection}>
                 <Text style={styles.goOutLabel}>{t('game.orGoOut')}</Text>
                 <View style={styles.goOutButtons}>
                   {SUITS.map((suit) => (
-                    <TouchableOpacity
+                    <Pressable
                       key={suit}
-                      style={styles.goOutButton}
+                      style={({ pressed }) => [
+                        styles.goOutButton,
+                        pressed && styles.goOutButtonPressed,
+                      ]}
                       onPress={() => handleGoOutPress(suit)}
                     >
                       <Text style={styles.goOutButtonText}>{SUIT_NAMES[suit]}</Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                 </View>
               </View>
@@ -226,7 +284,7 @@ function GameScreen({
           );
         }
         return (
-          <View style={styles.phaseContainer}>
+          <View style={styles.phasePanel}>
             <Text style={styles.phaseText}>
               {t('game.waitingForPlayer', {
                 name: nicknames.get(state.bidWinner!) || t('common.player'),
@@ -240,7 +298,7 @@ function GameScreen({
           return <TrumpSelector onSelect={onDeclareTrump} />;
         }
         return (
-          <View style={styles.phaseContainer}>
+          <View style={styles.phasePanel}>
             <Text style={styles.phaseText}>
               {t('game.choosingTrump', {
                 name: nicknames.get(state.bidWinner!) || t('common.player'),
@@ -254,7 +312,7 @@ function GameScreen({
           const melds = state.trump ? detectMelds(myHand, state.trump) : [];
           const totalPoints = calculateMeldPoints(melds);
           return (
-            <View style={styles.phaseContainer}>
+            <View style={styles.phasePanel}>
               <Text style={styles.phaseTitle}>{t('game.declareMelds')}</Text>
               {melds.length === 0 ? (
                 <Text style={styles.phaseText}>{t('game.noMelds')}</Text>
@@ -270,14 +328,20 @@ function GameScreen({
                   </Text>
                 </View>
               )}
-              <TouchableOpacity style={styles.actionButton} onPress={onDeclareMelds}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.actionButton,
+                  pressed && styles.actionButtonPressed,
+                ]}
+                onPress={onDeclareMelds}
+              >
                 <Text style={styles.actionButtonText}>{t('game.confirmMelds')}</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           );
         }
         return (
-          <View style={styles.phaseContainer}>
+          <View style={styles.phasePanel}>
             <Text style={styles.phaseText}>{t('game.waitingForOtherPlayers')}</Text>
           </View>
         );
@@ -335,12 +399,15 @@ function GameScreen({
               currentPlayerIndex={playerIndex}
             />
             {onGoHome && (
-              <TouchableOpacity style={styles.homeButton} onPress={onGoHome}>
+              <Pressable
+                style={({ pressed }) => [styles.homeButton, pressed && styles.homeButtonPressed]}
+                onPress={onGoHome}
+              >
                 <View style={styles.buttonContent}>
-                  <Feather name="home" size={16} color="#fff" />
+                  <Feather name="home" size={16} color={Colors.inkDark} />
                   <Text style={styles.homeButtonText}>{t('game.backToHome')}</Text>
                 </View>
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
         );
@@ -353,7 +420,7 @@ function GameScreen({
 
   return (
     <DropZoneProvider>
-      <View style={styles.container}>
+      <WoodBackground>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.phaseLabel}>
@@ -365,11 +432,18 @@ function GameScreen({
             )}
           </View>
           <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.muteButton} onPress={handleToggleMute}>
+              <Feather
+                name={soundMuted ? 'volume-x' : 'volume-2'}
+                size={14}
+                color={Colors.paperFace}
+              />
+            </TouchableOpacity>
             <LanguageSwitcher compact />
             {canExit && onExitGame && (
               <TouchableOpacity style={styles.exitButton} onPress={onExitGame}>
                 <View style={styles.buttonContent}>
-                  <Feather name="log-out" size={12} color="#fff" />
+                  <Feather name="log-out" size={12} color={Colors.paperFace} />
                   <Text style={styles.exitButtonText}>{t('game.exitGame')}</Text>
                 </View>
               </TouchableOpacity>
@@ -439,16 +513,12 @@ function GameScreen({
 
         {/* Celebration animations */}
         <CelebrationOverlay events={events} playerIndex={playerIndex} />
-      </View>
+      </WoodBackground>
     </DropZoneProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f766e',
-  },
   buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -458,9 +528,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.25)',
   },
   headerLeft: {
     flex: 1,
@@ -471,79 +541,109 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   phaseLabel: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    color: Colors.paperAged,
+    fontSize: 13,
+    fontFamily: Fonts.handwritingBold,
   },
   turnIndicator: {
-    color: '#fef08a',
-    fontSize: 14,
-    fontWeight: 'bold',
+    color: Colors.amberLight,
+    fontSize: 13,
+    fontFamily: Fonts.display,
+    letterSpacing: 0.5,
+  },
+  muteButton: {
+    padding: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
   exitButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 3,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   exitButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
+    color: Colors.paperFace,
+    fontSize: 11,
+    fontFamily: Fonts.body,
   },
   gameArea: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    padding: 12,
   },
   phaseContainer: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 16,
-    padding: 24,
+    alignItems: 'center',
+    maxWidth: '95%',
+    width: '100%',
+  },
+  phasePanel: {
+    backgroundColor: Colors.paperFace,
+    borderRadius: 3,
+    padding: 20,
     alignItems: 'center',
     maxWidth: '90%',
+    width: '100%',
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+    ...Shadows.panel,
   },
   phaseTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
+    fontSize: 18,
+    fontFamily: Fonts.display,
+    color: Colors.inkDark,
     textAlign: 'center',
     marginBottom: 8,
   },
   phaseText: {
-    fontSize: 18,
-    color: '#374151',
+    fontSize: 15,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkMid,
     textAlign: 'center',
   },
   actionButton: {
-    backgroundColor: '#0f766e',
-    paddingHorizontal: 24,
+    backgroundColor: Colors.amber,
+    paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 12,
+    borderRadius: 4,
+    marginTop: 14,
+    shadowColor: 'rgba(120,60,0,0.4)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  actionButtonPressed: {
+    transform: [{ translateY: 2 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   actionButtonDisabled: {
-    backgroundColor: '#9ca3af',
+    backgroundColor: Colors.inkFaint,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   actionButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: Colors.inkDark,
+    fontSize: 15,
+    fontFamily: Fonts.bodyBold,
     textAlign: 'center',
   },
   goOutSection: {
-    marginTop: 16,
+    marginTop: 14,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: Colors.paperEdge,
     paddingTop: 12,
     alignItems: 'center',
+    width: '100%',
   },
   goOutLabel: {
-    color: '#6b7280',
-    fontSize: 14,
+    color: Colors.inkFaint,
+    fontSize: 12,
+    fontFamily: Fonts.handwriting,
     marginBottom: 8,
   },
   goOutButtons: {
@@ -553,65 +653,91 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   goOutButton: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 16,
+    backgroundColor: Colors.paperAged,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: 3,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: Colors.paperEdge,
+    shadowColor: Colors.paperEdge,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  goOutButtonPressed: {
+    transform: [{ translateY: 1 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   goOutButtonText: {
-    color: '#374151',
+    color: Colors.inkMid,
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.handwriting,
   },
   meldList: {
     marginTop: 8,
     marginBottom: 4,
     alignItems: 'center',
+    width: '100%',
   },
   meldItem: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: 13,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkMid,
     marginVertical: 2,
   },
   meldTotal: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1f2937',
+    fontSize: 15,
+    fontFamily: Fonts.handwritingBold,
+    color: Colors.inkDark,
     marginTop: 8,
   },
   winnerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#22c55e',
-    marginBottom: 16,
+    fontSize: 22,
+    fontFamily: Fonts.display,
+    color: Colors.amberLight,
+    marginBottom: 12,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   homeButton: {
     marginTop: 16,
-    backgroundColor: '#0f766e',
+    backgroundColor: Colors.amber,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 4,
+    shadowColor: 'rgba(120,60,0,0.4)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  homeButtonPressed: {
+    transform: [{ translateY: 2 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   homeButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: Colors.inkDark,
+    fontSize: 15,
+    fontFamily: Fonts.bodyBold,
   },
   handContainer: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.25)',
     paddingVertical: 8,
   },
   hint: {
-    color: '#fef08a',
-    fontSize: 12,
+    color: Colors.amberLight,
+    fontSize: 11,
+    fontFamily: Fonts.handwriting,
     textAlign: 'center',
     marginTop: 4,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },

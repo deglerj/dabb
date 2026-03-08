@@ -143,7 +143,7 @@ function GamePage() {
     }
   };
 
-  if (!connected) {
+  if (!connected && !isTerminated) {
     return (
       <div className="card" style={{ textAlign: 'center', marginTop: '4rem' }}>
         <p>{t('game.connectingToServer')}</p>

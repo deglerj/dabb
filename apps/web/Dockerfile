@@ -33,9 +33,13 @@ COPY packages/card-assets ./packages/card-assets
 COPY apps/web ./apps/web
 COPY tsconfig.base.json ./
 
-# Build argument for server URL (can be overridden at build time)
+# Build arguments (can be overridden at build time)
 ARG VITE_SERVER_URL=http://localhost:3000
 ENV VITE_SERVER_URL=$VITE_SERVER_URL
+ARG VITE_UMAMI_URL=
+ENV VITE_UMAMI_URL=$VITE_UMAMI_URL
+ARG VITE_UMAMI_WEBSITE_ID=
+ENV VITE_UMAMI_WEBSITE_ID=$VITE_UMAMI_WEBSITE_ID
 
 # Build packages sequentially to ensure proper dependency resolution
 RUN cd packages/shared-types && pnpm run build && \

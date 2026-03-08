@@ -51,6 +51,7 @@ import type { Player } from './sessionService.js';
 
 import { getAllEvents, getLastSequence, saveEvent } from './eventService.js';
 import { getSessionById, getSessionPlayers, updateSessionStatus } from './sessionService.js';
+import { trackEvent } from './analyticsService.js';
 
 // Team scoring helpers for 4-player games
 function getPlayerTeam(players: Player[], playerIndex: PlayerIndex): Team {
@@ -160,6 +161,10 @@ export async function startGame(sessionId: string): Promise<GameEvent[]> {
   gameStates.set(sessionId, state);
 
   await updateSessionStatus(sessionId, 'active');
+
+  const humanCount = players.filter((p) => !p.isAI).length;
+  const aiCount = players.filter((p) => p.isAI).length;
+  trackEvent('game-started', { playerCount: session.playerCount, humanCount, aiCount });
 
   return events;
 }
@@ -418,7 +423,13 @@ export async function declareMelds(
       events.push(createMeldingCompleteEvent(ctx(), meldScores));
 
       // Calculate going out scores
-      const goingOutEvents = await calculateGoingOutScores(state, meldScores, ctx, players);
+      const goingOutEvents = await calculateGoingOutScores(
+        state,
+        meldScores,
+        ctx,
+        players,
+        sessionId
+      );
       events.push(...goingOutEvents);
     } else {
       events.push(createMeldingCompleteEvent(ctx(), meldScores));
@@ -442,7 +453,8 @@ async function calculateGoingOutScores(
   state: GameState,
   meldScores: Record<PlayerIndex, number>,
   ctx: () => { sessionId: string; sequence: number },
-  players: Player[]
+  players: Player[],
+  sessionId: string
 ): Promise<GameEvent[]> {
   const events: GameEvent[] = [];
   const bidWinner = state.bidWinner!;
@@ -497,6 +509,11 @@ async function calculateGoingOutScores(
   }
 
   events.push(createRoundScoredEvent(ctx(), scores, totalScores));
+  trackEvent('round-completed', {
+    bidAmount: winningBid,
+    wentOut: true,
+    trumpSuit: state.trump!,
+  });
 
   // Check if game is finished
   const targetScore = state.targetScore;
@@ -522,6 +539,27 @@ async function calculateGoingOutScores(
 
   if (winner !== null) {
     events.push(createGameFinishedEvent(ctx(), winner, totalScores));
+    const humanCount = players.filter((p) => !p.isAI).length;
+    const aiCount = players.filter((p) => p.isAI).length;
+    const sessionForDuration = await getSessionById(sessionId);
+    const durationSeconds = Math.floor(
+      (Date.now() - sessionForDuration!.createdAt.getTime()) / 1000
+    );
+    let humanWon: boolean;
+    if (state.playerCount === 4) {
+      humanWon = players.some((p) => p.team === (winner as Team) && !p.isAI);
+    } else {
+      const winnerPlayer = players.find((p) => p.playerIndex === (winner as PlayerIndex));
+      humanWon = winnerPlayer ? !winnerPlayer.isAI : false;
+    }
+    trackEvent('game-finished', {
+      playerCount: state.playerCount,
+      humanCount,
+      aiCount,
+      roundCount: state.round,
+      durationSeconds,
+      humanWon,
+    });
   } else {
     // Start new round
     const newDealer = ((state.dealer + 1) % state.playerCount) as PlayerIndex;
@@ -668,6 +706,11 @@ export async function playCard(
       }
 
       events.push(createRoundScoredEvent(ctx(), scores, totalScores));
+      trackEvent('round-completed', {
+        bidAmount: scoringState.currentBid || 150,
+        wentOut: false,
+        trumpSuit: scoringState.trump!,
+      });
 
       // Check if game is finished (someone reached target score)
       const targetScore = scoringState.targetScore;
@@ -693,6 +736,27 @@ export async function playCard(
 
       if (winner !== null) {
         events.push(createGameFinishedEvent(ctx(), winner, totalScores));
+        const humanCount = players.filter((p) => !p.isAI).length;
+        const aiCount = players.filter((p) => p.isAI).length;
+        const sessionForDuration = await getSessionById(sessionId);
+        const durationSeconds = Math.floor(
+          (Date.now() - sessionForDuration!.createdAt.getTime()) / 1000
+        );
+        let humanWon: boolean;
+        if (scoringState.playerCount === 4) {
+          humanWon = players.some((p) => p.team === (winner as Team) && !p.isAI);
+        } else {
+          const winnerPlayer = players.find((p) => p.playerIndex === (winner as PlayerIndex));
+          humanWon = winnerPlayer ? !winnerPlayer.isAI : false;
+        }
+        trackEvent('game-finished', {
+          playerCount: scoringState.playerCount,
+          humanCount,
+          aiCount,
+          roundCount: scoringState.round + 1,
+          durationSeconds,
+          humanWon,
+        });
       } else {
         // Start new round
         const newDealer = ((scoringState.dealer + 1) % scoringState.playerCount) as PlayerIndex;
@@ -745,6 +809,16 @@ export async function terminateGame(
   updateGameState(sessionId, event);
 
   await updateSessionStatus(sessionId, 'terminated');
+
+  const players = await getSessionPlayers(sessionId);
+  const humanCount = players.filter((p) => !p.isAI).length;
+  const aiCount = players.filter((p) => p.isAI).length;
+  trackEvent('game-terminated', {
+    playerCount: state.playerCount,
+    humanCount,
+    aiCount,
+    roundCount: state.round,
+  });
 
   return event;
 }

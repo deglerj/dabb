@@ -17,42 +17,43 @@ const testCards: Card[] = [
 describe('PlayerHand', () => {
   it('renders all cards', () => {
     render(<PlayerHand cards={testCards} />);
-    expect(screen.getByText('A')).toBeInTheDocument();
-    expect(screen.getByText('K')).toBeInTheDocument();
-    expect(screen.getByText('U')).toBeInTheDocument();
+    // Each rank appears in two corners; check at least one exists
+    expect(screen.getAllByText('A').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('K').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('B').length).toBeGreaterThan(0);
   });
 
   it('marks selected card correctly', () => {
     render(<PlayerHand cards={testCards} selectedCardId="herz-ass-0" />);
-    expect(screen.getByText('A')).toBeInTheDocument();
+    expect(screen.getAllByText('A').length).toBeGreaterThan(0);
   });
 
   it('calls onCardSelect when card is pressed', () => {
     const onCardSelect = vi.fn();
     render(<PlayerHand cards={testCards} onCardSelect={onCardSelect} />);
 
-    fireEvent.click(screen.getByText('A'));
+    fireEvent.click(screen.getAllByText('A')[0]);
     expect(onCardSelect).toHaveBeenCalledWith('herz-ass-0');
   });
 
   it('marks invalid cards when validCardIds provided', () => {
     render(<PlayerHand cards={testCards} validCardIds={['herz-ass-0']} />);
-    expect(screen.getByText('A')).toBeInTheDocument();
-    expect(screen.getByText('K')).toBeInTheDocument();
-    expect(screen.getByText('U')).toBeInTheDocument();
+    expect(screen.getAllByText('A').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('K').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('B').length).toBeGreaterThan(0);
   });
 
   it('all cards valid when validCardIds not provided', () => {
     const onCardSelect = vi.fn();
     render(<PlayerHand cards={testCards} onCardSelect={onCardSelect} />);
 
-    fireEvent.click(screen.getByText('A'));
+    fireEvent.click(screen.getAllByText('A')[0]);
     expect(onCardSelect).toHaveBeenCalledWith('herz-ass-0');
 
-    fireEvent.click(screen.getByText('K'));
+    fireEvent.click(screen.getAllByText('K')[0]);
     expect(onCardSelect).toHaveBeenCalledWith('kreuz-koenig-0');
 
-    fireEvent.click(screen.getByText('U'));
+    fireEvent.click(screen.getAllByText('B')[0]);
     expect(onCardSelect).toHaveBeenCalledWith('schippe-buabe-0');
   });
 
@@ -69,7 +70,7 @@ describe('PlayerHand', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('A'));
+    fireEvent.click(screen.getAllByText('A')[0]);
     expect(onMultiSelect).toHaveBeenCalledWith('herz-ass-0');
     expect(onCardSelect).not.toHaveBeenCalled();
   });

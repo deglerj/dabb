@@ -15,8 +15,10 @@ import {
   Platform,
   Modal,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Markdown from 'react-native-markdown-display';
 import { useTranslation } from '@dabb/i18n';
 import { getRulesMarkdown, type SupportedLanguage } from '@dabb/i18n';
@@ -25,6 +27,9 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import KiSchlonzStamp from '../components/KiSchlonzStamp';
 import InfoModal from '../components/InfoModal';
 import Constants from 'expo-constants';
+import { WoodBackground } from '../components/WoodBackground';
+import { PaperPanel } from '../components/PaperPanel';
+import { Colors, Fonts } from '../theme';
 
 interface HomeScreenProps {
   onCreateGame: (nickname: string, playerCount: 2 | 3 | 4) => Promise<void>;
@@ -34,6 +39,7 @@ interface HomeScreenProps {
 
 function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
   const { t, i18n } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu');
   const [nickname, setNickname] = useState('');
   const [sessionCode, setSessionCode] = useState('');
@@ -84,57 +90,78 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
 
   if (mode === 'menu') {
     return (
-      <View style={styles.container}>
-        <View style={styles.languageSwitcherContainer}>
-          <LanguageSwitcher />
-        </View>
-        <Text style={styles.title}>{t('home.title')}</Text>
-        <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
+      <WoodBackground>
+        <View style={[styles.menuContainer, { paddingTop: insets.top + 8 }]}>
+          {/* Language switcher */}
+          <View style={styles.languageSwitcherContainer}>
+            <LanguageSwitcher />
+          </View>
 
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity
-            style={[styles.button, styles.primaryButton]}
-            onPress={() => setMode('create')}
-          >
-            <View style={styles.buttonContent}>
-              <Feather name="plus" size={18} color="#fff" />
-              <Text style={styles.buttonText}>{t('home.createGame')}</Text>
+          <PaperPanel aged style={styles.menuPanel}>
+            <View style={styles.stampContainer}>
+              <KiSchlonzStamp size={80} />
             </View>
-          </TouchableOpacity>
+            <Text style={styles.title}>{t('home.title')}</Text>
+            <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
-          <TouchableOpacity
-            style={[styles.button, styles.secondaryButton]}
-            onPress={() => setMode('join')}
-          >
-            <View style={styles.buttonContent}>
-              <Feather name="user-plus" size={18} color="#2563eb" />
-              <Text style={styles.secondaryButtonText}>{t('home.joinGame')}</Text>
+            <View style={styles.buttonGroup}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  styles.primaryButton,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={() => setMode('create')}
+              >
+                <View style={styles.buttonContent}>
+                  <Feather name="plus" size={18} color={Colors.inkDark} />
+                  <Text style={styles.buttonText}>{t('home.createGame')}</Text>
+                </View>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  styles.secondaryButton,
+                  pressed && styles.secondaryButtonPressed,
+                ]}
+                onPress={() => setMode('join')}
+              >
+                <View style={styles.buttonContent}>
+                  <Feather name="user-plus" size={18} color={Colors.inkMid} />
+                  <Text style={styles.secondaryButtonText}>{t('home.joinGame')}</Text>
+                </View>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  styles.secondaryButton,
+                  pressed && styles.secondaryButtonPressed,
+                ]}
+                onPress={() => setShowRules(true)}
+              >
+                <View style={styles.buttonContent}>
+                  <Feather name="book-open" size={18} color={Colors.inkMid} />
+                  <Text style={styles.secondaryButtonText}>{t('rules.title')}</Text>
+                </View>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  styles.secondaryButton,
+                  pressed && styles.secondaryButtonPressed,
+                ]}
+                onPress={() => setShowInfo(true)}
+              >
+                <View style={styles.buttonContent}>
+                  <Feather name="info" size={18} color={Colors.inkMid} />
+                  <Text style={styles.secondaryButtonText}>{t('info.title')}</Text>
+                </View>
+              </Pressable>
             </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.secondaryButton]}
-            onPress={() => setShowRules(true)}
-          >
-            <View style={styles.buttonContent}>
-              <Feather name="book-open" size={18} color="#2563eb" />
-              <Text style={styles.secondaryButtonText}>{t('rules.title')}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.secondaryButton]}
-            onPress={() => setShowInfo(true)}
-          >
-            <View style={styles.buttonContent}>
-              <Feather name="info" size={18} color="#2563eb" />
-              <Text style={styles.secondaryButtonText}>{t('info.title')}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.stampContainer}>
-          <KiSchlonzStamp size={100} />
+          </PaperPanel>
         </View>
 
         <InfoModal version={appVersion} visible={showInfo} onClose={() => setShowInfo(false)} />
@@ -144,7 +171,7 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
             <View style={styles.rulesHeader}>
               <Text style={styles.rulesTitle}>{t('rules.title')}</Text>
               <TouchableOpacity onPress={() => setShowRules(false)}>
-                <Feather name="x" size={24} color="#1e3a5f" />
+                <Feather name="x" size={24} color={Colors.inkDark} />
               </TouchableOpacity>
             </View>
             <ScrollView
@@ -157,70 +184,142 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
             </ScrollView>
           </View>
         </Modal>
-      </View>
+      </WoodBackground>
     );
   }
 
   if (mode === 'create') {
     return (
+      <WoodBackground>
+        <KeyboardAvoidingView
+          style={styles.formOuter}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <PaperPanel aged style={styles.formPanel}>
+            <Text style={styles.formTitle}>{t('home.newGame')}</Text>
+
+            <Text style={styles.label}>{t('home.nickname')}</Text>
+            <TextInput
+              style={styles.input}
+              value={nickname}
+              onChangeText={setNickname}
+              placeholder={t('home.nicknamePlaceholder')}
+              placeholderTextColor={Colors.inkFaint}
+              maxLength={20}
+            />
+
+            <Text style={styles.label}>{t('home.playerCount')}</Text>
+            <View style={styles.playerCountButtons}>
+              {([2, 3, 4] as const).map((count) => (
+                <Pressable
+                  key={count}
+                  style={[styles.countButton, playerCount === count && styles.countButtonSelected]}
+                  onPress={() => setPlayerCount(count)}
+                >
+                  <View style={styles.countButtonContent}>
+                    <Feather
+                      name="users"
+                      size={14}
+                      color={playerCount === count ? Colors.amber : Colors.inkFaint}
+                    />
+                    <Text
+                      style={[
+                        styles.countButtonText,
+                        playerCount === count && styles.countButtonTextSelected,
+                      ]}
+                    >
+                      {count}
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+
+            <View style={styles.actionButtons}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  styles.primaryButton,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={handleCreate}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={Colors.inkDark} />
+                ) : (
+                  <View style={styles.buttonContent}>
+                    <Feather name="plus" size={16} color={Colors.inkDark} />
+                    <Text style={styles.buttonText}>{t('home.create')}</Text>
+                  </View>
+                )}
+              </Pressable>
+
+              <TouchableOpacity
+                style={[styles.button, styles.textButton]}
+                onPress={() => setMode('menu')}
+                disabled={loading}
+              >
+                <View style={styles.buttonContent}>
+                  <Feather name="arrow-left" size={16} color={Colors.inkFaint} />
+                  <Text style={styles.textButtonText}>{t('common.back')}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </PaperPanel>
+        </KeyboardAvoidingView>
+      </WoodBackground>
+    );
+  }
+
+  return (
+    <WoodBackground>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={styles.formOuter}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Text style={styles.title}>{t('home.newGame')}</Text>
+        <PaperPanel aged style={styles.formPanel}>
+          <Text style={styles.formTitle}>{t('home.joinGame')}</Text>
 
-        <View style={styles.form}>
           <Text style={styles.label}>{t('home.nickname')}</Text>
           <TextInput
             style={styles.input}
             value={nickname}
             onChangeText={setNickname}
             placeholder={t('home.nicknamePlaceholder')}
+            placeholderTextColor={Colors.inkFaint}
             maxLength={20}
           />
 
-          <Text style={styles.label}>{t('home.playerCount')}</Text>
-          <View style={styles.playerCountButtons}>
-            {([2, 3, 4] as const).map((count) => (
-              <TouchableOpacity
-                key={count}
-                style={[styles.countButton, playerCount === count && styles.countButtonSelected]}
-                onPress={() => setPlayerCount(count)}
-              >
-                <View style={styles.countButtonContent}>
-                  <Feather
-                    name="users"
-                    size={14}
-                    color={playerCount === count ? '#2563eb' : '#6b7280'}
-                  />
-                  <Text
-                    style={[
-                      styles.countButtonText,
-                      playerCount === count && styles.countButtonTextSelected,
-                    ]}
-                  >
-                    {count}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={styles.label}>{t('home.gameCode')}</Text>
+          <TextInput
+            style={styles.input}
+            value={sessionCode}
+            onChangeText={setSessionCode}
+            placeholder={t('home.gameCodePlaceholder')}
+            placeholderTextColor={Colors.inkFaint}
+            autoCapitalize="none"
+          />
 
           <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.button, styles.primaryButton]}
-              onPress={handleCreate}
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                styles.primaryButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={handleJoin}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={Colors.inkDark} />
               ) : (
                 <View style={styles.buttonContent}>
-                  <Feather name="plus" size={16} color="#fff" />
-                  <Text style={styles.buttonText}>{t('home.create')}</Text>
+                  <Feather name="user-plus" size={16} color={Colors.inkDark} />
+                  <Text style={styles.buttonText}>{t('home.join')}</Text>
                 </View>
               )}
-            </TouchableOpacity>
+            </Pressable>
 
             <TouchableOpacity
               style={[styles.button, styles.textButton]}
@@ -228,197 +327,183 @@ function HomeScreen({ onCreateGame, onJoinGame, loading }: HomeScreenProps) {
               disabled={loading}
             >
               <View style={styles.buttonContent}>
-                <Feather name="arrow-left" size={16} color="#64748b" />
+                <Feather name="arrow-left" size={16} color={Colors.inkFaint} />
                 <Text style={styles.textButtonText}>{t('common.back')}</Text>
               </View>
             </TouchableOpacity>
           </View>
-        </View>
+        </PaperPanel>
       </KeyboardAvoidingView>
-    );
-  }
-
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <Text style={styles.title}>{t('home.joinGame')}</Text>
-
-      <View style={styles.form}>
-        <Text style={styles.label}>{t('home.nickname')}</Text>
-        <TextInput
-          style={styles.input}
-          value={nickname}
-          onChangeText={setNickname}
-          placeholder={t('home.nicknamePlaceholder')}
-          maxLength={20}
-        />
-
-        <Text style={styles.label}>{t('home.gameCode')}</Text>
-        <TextInput
-          style={styles.input}
-          value={sessionCode}
-          onChangeText={setSessionCode}
-          placeholder={t('home.gameCodePlaceholder')}
-          autoCapitalize="none"
-        />
-
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={[styles.button, styles.primaryButton]}
-            onPress={handleJoin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <View style={styles.buttonContent}>
-                <Feather name="user-plus" size={16} color="#fff" />
-                <Text style={styles.buttonText}>{t('home.join')}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.textButton]}
-            onPress={() => setMode('menu')}
-            disabled={loading}
-          >
-            <View style={styles.buttonContent}>
-              <Feather name="arrow-left" size={16} color="#64748b" />
-              <Text style={styles.textButtonText}>{t('common.back')}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </KeyboardAvoidingView>
+    </WoodBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  menuContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#f0f9ff',
   },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  menuPanel: {
+    width: '100%',
+    maxWidth: 380,
   },
-  countButtonContent: {
-    flexDirection: 'row',
+  formOuter: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
+    padding: 24,
+  },
+  formPanel: {
+    width: '100%',
+    maxWidth: 380,
   },
   languageSwitcherContainer: {
     position: 'absolute',
     top: 16,
     right: 24,
   },
-  title: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#1e3a5f',
+  stampContainer: {
+    alignItems: 'center',
     marginBottom: 8,
   },
+  title: {
+    fontSize: 40,
+    fontFamily: Fonts.display,
+    color: Colors.inkDark,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
   subtitle: {
-    fontSize: 18,
-    color: '#64748b',
-    marginBottom: 48,
+    fontSize: 14,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkFaint,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  formTitle: {
+    fontSize: 28,
+    fontFamily: Fonts.display,
+    color: Colors.inkDark,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   buttonGroup: {
-    width: '100%',
-    gap: 16,
-  },
-  stampContainer: {
-    marginTop: 24,
-    alignItems: 'center',
+    gap: 12,
   },
   button: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 4,
     alignItems: 'center',
   },
   primaryButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: Colors.amber,
+    shadowColor: 'rgba(120,60,0,0.4)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  buttonPressed: {
+    transform: [{ translateY: 2 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   secondaryButton: {
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#2563eb',
+    backgroundColor: Colors.paperAged,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+    shadowColor: Colors.paperEdge,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  secondaryButtonPressed: {
+    transform: [{ translateY: 1 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: Colors.inkDark,
+    fontSize: 16,
+    fontFamily: Fonts.bodyBold,
   },
   secondaryButtonText: {
-    color: '#2563eb',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: Colors.inkMid,
+    fontSize: 16,
+    fontFamily: Fonts.bodyBold,
   },
   textButton: {
     backgroundColor: 'transparent',
   },
   textButtonText: {
-    color: '#64748b',
-    fontSize: 16,
-  },
-  form: {
-    width: '100%',
-    gap: 16,
+    color: Colors.inkFaint,
+    fontSize: 15,
+    fontFamily: Fonts.body,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 4,
+    fontSize: 13,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.inkMid,
+    marginBottom: 6,
+    marginTop: 8,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.paperFace,
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
+    borderColor: Colors.paperEdge,
+    borderRadius: 3,
     padding: 12,
     fontSize: 16,
+    fontFamily: Fonts.body,
+    color: Colors.inkDark,
   },
   playerCountButtons: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
+    marginBottom: 4,
   },
   countButton: {
     flex: 1,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
+    paddingVertical: 10,
+    backgroundColor: Colors.paperFace,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+    borderRadius: 3,
     alignItems: 'center',
   },
   countButtonSelected: {
-    borderColor: '#2563eb',
-    backgroundColor: '#dbeafe',
+    borderColor: Colors.amber,
+    backgroundColor: '#fef3e0',
+  },
+  countButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   countButtonText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#6b7280',
+    fontFamily: Fonts.handwritingBold,
+    color: Colors.inkFaint,
   },
   countButtonTextSelected: {
-    color: '#2563eb',
+    color: Colors.amber,
   },
   actionButtons: {
-    marginTop: 16,
-    gap: 12,
+    marginTop: 20,
+    gap: 10,
   },
   rulesModal: {
     flex: 1,
-    backgroundColor: '#f0f9ff',
+    backgroundColor: Colors.paperAged,
   },
   rulesHeader: {
     flexDirection: 'row',
@@ -426,12 +511,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#d1d5db',
+    borderBottomColor: Colors.paperEdge,
+    backgroundColor: Colors.paperFace,
   },
   rulesTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1e3a5f',
+    fontFamily: Fonts.display,
+    color: Colors.inkDark,
   },
   rulesScroll: {
     flex: 1,
@@ -443,55 +529,56 @@ const styles = StyleSheet.create({
 
 const markdownStyles = StyleSheet.create({
   heading1: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1e3a5f',
+    fontSize: 22,
+    fontFamily: Fonts.display,
+    color: Colors.inkDark,
     marginBottom: 8,
     marginTop: 16,
   },
   heading2: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1e3a5f',
+    fontSize: 18,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.inkDark,
     marginBottom: 8,
     marginTop: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#d1d5db',
+    borderBottomColor: Colors.paperEdge,
     paddingBottom: 4,
   },
   heading3: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#1e3a5f',
+    fontSize: 15,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.inkMid,
     marginBottom: 6,
     marginTop: 12,
   },
   body: {
-    fontSize: 15,
-    color: '#374151',
+    fontSize: 14,
+    fontFamily: Fonts.body,
+    color: Colors.inkMid,
     lineHeight: 22,
   },
   strong: {
-    fontWeight: 'bold',
-    color: '#1e3a5f',
+    fontFamily: Fonts.bodyBold,
+    color: Colors.inkDark,
   },
   table: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 4,
+    borderColor: Colors.paperEdge,
+    borderRadius: 3,
     marginBottom: 12,
   },
   th: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: Colors.paperAged,
     padding: 8,
-    fontWeight: 'bold',
-    fontSize: 13,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 12,
   },
   td: {
     padding: 8,
     borderTopWidth: 1,
-    borderTopColor: '#d1d5db',
-    fontSize: 13,
+    borderTopColor: Colors.paperEdge,
+    fontSize: 12,
   },
   list_item: {
     marginBottom: 4,

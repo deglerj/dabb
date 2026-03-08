@@ -34,6 +34,7 @@ import {
   cleanupSession as cleanupAISession,
   initializeAIPlayersFromSession,
 } from '../services/aiControllerService.js';
+import { trackEvent } from '../services/analyticsService.js';
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 type GameServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -116,6 +117,13 @@ export function setupSocketHandlers(io: GameServer) {
     const { sessionId, playerId, playerIndex, nickname, wasConnected } = socket.data;
 
     socketLogger.info({ sessionId, playerIndex }, 'Player connected');
+
+    // Track new sessions (not reconnects) — use user-agent to detect platform
+    if (!wasConnected) {
+      const ua = socket.handshake.headers['user-agent'] ?? '';
+      const platform = ua.includes('Mozilla') ? 'web' : 'mobile';
+      trackEvent('session-started', { platform });
+    }
 
     // Join session room
     socket.join(sessionId);

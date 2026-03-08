@@ -74,7 +74,8 @@ describe('TrickArea', () => {
       />
     );
     expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.getByText('A')).toBeInTheDocument();
+    // 'A' for Ass appears in both corners of the card
+    expect(screen.getAllByText('A').length).toBeGreaterThan(0);
   });
 
   it('trump display shows raw enum value instead of SUIT_NAMES (bug)', () => {

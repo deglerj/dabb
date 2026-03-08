@@ -22,6 +22,8 @@ services:
       POSTGRES_DB: dabb
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # init.sql only runs on first volume init — creates the 'umami' analytics database
+      - ./deploy/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'dabb', '-d', 'dabb']
       interval: 10s
@@ -46,6 +48,8 @@ services:
       PORT: 3000
       DATABASE_URL: ${DATABASE_URL:-postgresql://dabb:${POSTGRES_PASSWORD}@postgres:5432/dabb}
       CLIENT_URL: ${CLIENT_URL:?CLIENT_URL is required}
+      UMAMI_URL: http://umami:3000
+      UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
     healthcheck:
       test:
         [
@@ -76,6 +80,8 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         VITE_SERVER_URL: ${VITE_SERVER_URL:?VITE_SERVER_URL is required}
+        VITE_UMAMI_URL: ${VITE_UMAMI_URL:-}
+        VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
     container_name: dabb-web
     restart: always
     depends_on:
@@ -95,6 +101,28 @@ services:
         reservations:
           cpus: '0.1'
           memory: 32M
+
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    container_name: dabb-umami
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://dabb:${POSTGRES_PASSWORD}@postgres:5432/umami}
+      APP_SECRET: ${UMAMI_APP_SECRET:?UMAMI_APP_SECRET is required}
+    networks:
+      - dabb-internal
+      - dabb-external
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
   cert-perms:
     # One-shot service that opens Let's Encrypt directory permissions so the

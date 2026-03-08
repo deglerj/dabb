@@ -8,6 +8,7 @@ import { Feather } from '@expo/vector-icons';
 import type { GameEvent, PlayerIndex, Team, GameState } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import { useRoundHistory } from '@dabb/ui-shared';
+import { Colors, Fonts } from '../../theme';
 
 interface ScoreBoardHeaderProps {
   state: GameState;
@@ -38,7 +39,7 @@ function ScoreBoardHeader({ state, events, nicknames, onExpand }: ScoreBoardHead
   const playerScores = Array.from(state.totalScores.entries());
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onExpand} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.container} onPress={onExpand} activeOpacity={0.8}>
       <View style={styles.scoresRow}>
         {playerScores.map(([playerOrTeam, score]) => (
           <View key={playerOrTeam} style={styles.playerScore}>
@@ -54,7 +55,7 @@ function ScoreBoardHeader({ state, events, nicknames, onExpand }: ScoreBoardHead
       {currentRound && currentRound.bidWinner !== null && (
         <View style={styles.currentBid}>
           <Text style={styles.currentBidText}>
-            {t('game.round')} {currentRound.round}: {getName(currentRound.bidWinner)} -{' '}
+            {t('game.round')} {currentRound.round}: {getName(currentRound.bidWinner)} —{' '}
             {currentRound.winningBid}
           </Text>
         </View>
@@ -63,7 +64,7 @@ function ScoreBoardHeader({ state, events, nicknames, onExpand }: ScoreBoardHead
       {/* Expand indicator */}
       <View style={styles.expandIndicator}>
         <View style={styles.expandContent}>
-          <Feather name="chevron-up" size={12} color="#9ca3af" />
+          <Feather name="chevron-up" size={10} color={Colors.inkFaint} />
           <Text style={styles.expandText}>
             {t('game.showHistory')} ({rounds.length})
           </Text>
@@ -75,11 +76,11 @@ function ScoreBoardHeader({ state, events, nicknames, onExpand }: ScoreBoardHead
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: Colors.paperFace,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 8,
-    margin: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.paperEdge,
   },
   scoresRow: {
     flexDirection: 'row',
@@ -91,22 +92,24 @@ const styles = StyleSheet.create({
   },
   playerName: {
     fontSize: 11,
-    color: '#666',
+    fontFamily: Fonts.body,
+    color: Colors.inkFaint,
   },
   score: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
+    fontSize: 20,
+    fontFamily: Fonts.handwritingBold,
+    color: Colors.inkDark,
   },
   currentBid: {
     marginTop: 4,
     paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: Colors.paperLines,
   },
   currentBidText: {
-    fontSize: 12,
-    color: '#4b5563',
+    fontSize: 11,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkMid,
     textAlign: 'center',
   },
   expandIndicator: {
@@ -120,7 +123,8 @@ const styles = StyleSheet.create({
   },
   expandText: {
     fontSize: 10,
-    color: '#9ca3af',
+    fontFamily: Fonts.body,
+    color: Colors.inkFaint,
     textAlign: 'center',
   },
 });

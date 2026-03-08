@@ -6,7 +6,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Animated, StyleSheet, useWindowDimensions } from 'react-native';
 
-const COLORS = ['#ffd700', '#e94560', '#22c55e', '#14b8a6', '#ffffff'];
+const COLORS = ['#d4890a', '#f0a830', '#c0392b', '#3a7d44', '#faf8f2', '#f0c040'];
 const PARTICLE_COUNT = 50;
 
 type ParticleShape = 'rect' | 'circle' | 'diamond';

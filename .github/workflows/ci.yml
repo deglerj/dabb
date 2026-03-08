@@ -207,6 +207,8 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             VITE_SERVER_URL=${{ vars.VITE_SERVER_URL || 'http://localhost:3000' }}
+            VITE_UMAMI_URL=${{ vars.VITE_UMAMI_URL || '' }}
+            VITE_UMAMI_WEBSITE_ID=${{ vars.VITE_UMAMI_WEBSITE_ID || '' }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -245,6 +247,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             VITE_SERVER_URL=${{ vars.VITE_SERVER_URL }}
+            VITE_UMAMI_URL=${{ vars.VITE_UMAMI_URL || '' }}
+            VITE_UMAMI_WEBSITE_ID=${{ vars.VITE_UMAMI_WEBSITE_ID || '' }}
 
   build-mobile:
     name: Build Mobile APK

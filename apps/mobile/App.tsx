@@ -4,11 +4,16 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
+import { StyleSheet, ActivityIndicator, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import * as SplashScreen from 'expo-splash-screen';
+import { useFonts, IMFellEnglishSC_400Regular } from '@expo-google-fonts/im-fell-english-sc';
+import { Caveat_400Regular, Caveat_700Bold } from '@expo-google-fonts/caveat';
+import { Lato_400Regular, Lato_700Bold } from '@expo-google-fonts/lato';
+import { Alert } from 'react-native';
 import type {
   AIDifficulty,
   PlayerIndex,
@@ -29,6 +34,10 @@ import { HomeScreen, WaitingRoomScreen, GameScreen, UpdateRequiredScreen } from 
 import { useSessionCredentials } from './src/hooks/useAsyncStorage';
 import { useSocket } from './src/hooks/useSocket';
 import { useGameState } from './src/hooks/useGameState';
+import { Colors, Fonts } from './src/theme';
+
+// Prevent splash screen from auto-hiding until fonts are loaded
+SplashScreen.preventAutoHideAsync();
 
 // Set up AsyncStorage adapter for i18n
 setStorageAdapter({
@@ -37,6 +46,8 @@ setStorageAdapter({
 });
 
 const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL || 'http://localhost:3000';
+const UMAMI_URL = process.env.EXPO_PUBLIC_UMAMI_URL;
+const UMAMI_WEBSITE_ID = process.env.EXPO_PUBLIC_UMAMI_WEBSITE_ID;
 
 type AppScreen = 'loading' | 'home' | 'waiting' | 'game' | 'update-required';
 
@@ -429,9 +440,9 @@ function AppContent() {
   if (screen === 'loading') {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={Colors.amber} />
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
       </SafeAreaView>
     );
   }
@@ -440,27 +451,27 @@ function AppContent() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <UpdateRequiredScreen />
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
       </SafeAreaView>
     );
   }
 
   if (screen === 'home') {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <HomeScreen
           onCreateGame={handleCreateGame}
           onJoinGame={handleJoinGame}
           loading={apiLoading}
         />
-        <StatusBar style="auto" />
-      </SafeAreaView>
+        <StatusBar style="dark" />
+      </View>
     );
   }
 
   if (screen === 'waiting' && sessionInfo) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <WaitingRoomScreen
           sessionCode={sessionInfo.sessionCode}
           players={players}
@@ -474,14 +485,14 @@ function AppContent() {
           selectedAIDifficulty={addAIDifficulty}
           onSelectAIDifficulty={setAddAIDifficulty}
         />
-        <StatusBar style="auto" />
-      </SafeAreaView>
+        <StatusBar style="dark" />
+      </View>
     );
   }
 
   if (screen === 'game' && sessionInfo) {
     return (
-      <SafeAreaView style={styles.gameSafeArea}>
+      <View style={styles.gameSafeArea}>
         <GameScreen
           state={state}
           events={events}
@@ -499,7 +510,7 @@ function AppContent() {
           onGoHome={handleLeave}
         />
         <StatusBar style="light" />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -516,26 +527,35 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f9ff',
+    backgroundColor: Colors.paperAged,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#64748b',
+    fontFamily: Fonts.body,
+    color: Colors.inkFaint,
   },
   safeArea: {
     flex: 1,
-    backgroundColor: '#f0f9ff',
+    backgroundColor: Colors.woodMid,
   },
   gameSafeArea: {
     flex: 1,
-    backgroundColor: '#0f766e',
+    backgroundColor: Colors.woodDark,
   },
 });
 
 export default function App() {
   const [initialLanguage, setInitialLanguage] = useState<SupportedLanguage | undefined>(undefined);
   const [languageLoading, setLanguageLoading] = useState(true);
+
+  const [fontsLoaded] = useFonts({
+    IMFellEnglishSC_400Regular,
+    Caveat_400Regular,
+    Caveat_700Bold,
+    Lato_400Regular,
+    Lato_700Bold,
+  });
 
   useEffect(() => {
     detectLanguageAsync().then((lang) => {
@@ -544,13 +564,42 @@ export default function App() {
     });
   }, []);
 
-  if (languageLoading) {
+  useEffect(() => {
+    if (fontsLoaded && !languageLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, languageLoading]);
+
+  useEffect(() => {
+    if (!UMAMI_URL || !UMAMI_WEBSITE_ID) {
+      return;
+    }
+    fetch(`${UMAMI_URL}/api/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'pageview',
+        payload: { website: UMAMI_WEBSITE_ID, url: '/', hostname: 'dabb-mobile' },
+      }),
+    }).catch(() => {
+      // Analytics failure is non-critical
+    });
+  }, []);
+
+  if (!fontsLoaded || languageLoading) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
-          <SafeAreaView style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#2563eb" />
-            <StatusBar style="auto" />
+          <SafeAreaView
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: Colors.paperAged,
+            }}
+          >
+            <ActivityIndicator size="large" color={Colors.amber} />
+            <StatusBar style="dark" />
           </SafeAreaView>
         </SafeAreaProvider>
       </GestureHandlerRootView>

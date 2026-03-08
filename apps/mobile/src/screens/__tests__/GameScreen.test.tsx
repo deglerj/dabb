@@ -128,8 +128,8 @@ describe('GameScreen', () => {
 
     const { rerender } = render(<GameScreen {...defaultProps} state={state1} />);
 
-    // Select a card
-    fireEvent.click(screen.getByText('A'));
+    // Select a card (rank 'A' appears in both corners; click the first)
+    fireEvent.click(screen.getAllByText('A')[0]);
     expect(screen.getByText('Tippe nochmal um zu spielen')).toBeInTheDocument();
 
     // Phase changes to scoring
@@ -154,13 +154,13 @@ describe('GameScreen', () => {
 
     render(<GameScreen {...defaultProps} state={state} onPlayCard={onPlayCard} />);
 
-    // First tap selects
-    fireEvent.click(screen.getByText('A'));
+    // First tap selects (rank 'A' appears in both corners; click the first)
+    fireEvent.click(screen.getAllByText('A')[0]);
     expect(onPlayCard).not.toHaveBeenCalled();
     expect(screen.getByText('Tippe nochmal um zu spielen')).toBeInTheDocument();
 
     // Second tap plays
-    fireEvent.click(screen.getByText('A'));
+    fireEvent.click(screen.getAllByText('A')[0]);
     expect(onPlayCard).toHaveBeenCalledWith('herz-ass-0');
   });
 
@@ -173,7 +173,7 @@ describe('GameScreen', () => {
 
     render(<GameScreen {...defaultProps} state={state} />);
 
-    fireEvent.click(screen.getByText('A'));
+    fireEvent.click(screen.getAllByText('A')[0]);
     expect(screen.getByText('Tippe nochmal um zu spielen')).toBeInTheDocument();
   });
 

@@ -5,14 +5,18 @@ This guide walks you through deploying Dabb to production on a Hetzner CX23 serv
 ## Architecture
 
 ```
-Internet → nginx:80/443 → web:8080   (static React app)
-                        → server:3000 (Node.js + WebSockets)
-                          └─ postgres (internal network only)
+Internet → nginx (dabb.degler.info:80/443)         → web:8080    (static React app)
+                                                   → server:3000  (Node.js + WebSockets)
+         → nginx (analytics.dabb.degler.info:443)  → umami:3000   (analytics dashboard)
+                                                      └─ postgres  (internal network only)
+                                                         ├─ dabb   (game database)
+                                                         └─ umami  (analytics database)
 ```
 
 - nginx is the only container exposed externally (ports 80, 443)
 - web and server containers stay on the internal Docker network
 - PostgreSQL is never exposed outside Docker
+- Umami analytics runs on the internal network, proxied via `analytics.dabb.degler.info` subdomain
 
 ## Quick Start (Local Development)
 
@@ -57,19 +61,18 @@ tofu apply \
 # Note the output: server_ip = "x.x.x.x"
 ```
 
-### 4. Create DNS record at Alfahosting
+### 4. Create DNS records at Alfahosting
 
 1. Log in at [Alfahosting Kundencenter](https://kundencenter.alfahosting.de)
 2. **Meine Verträge** → click the **Multi L** contract
 3. **Experten-Einstellungen** → **DNS-System**
 4. Select domain **degler.info**
-5. Add a new A record:
-   - **Hostname**: `dabb` (result: `dabb.degler.info`)
-   - **Type**: A
-   - **Value**: `<Hetzner server IP from step 3>`
-   - **TTL**: 3600
+5. Add two A records pointing to the same Hetzner IP:
+   - **Hostname**: `dabb` → `dabb.degler.info`
+   - **Hostname**: `analytics.dabb` → `analytics.dabb.degler.info`
+   - **Type**: A, **Value**: `<Hetzner server IP from step 3>`, **TTL**: 3600
 6. Save — DNS propagation takes up to a few hours
-7. Verify: `nslookup dabb.degler.info` should return the Hetzner IP
+7. Verify: `nslookup dabb.degler.info` and `nslookup analytics.dabb.degler.info` should both return the Hetzner IP
 
 ### 5. Copy files to server
 
@@ -91,11 +94,16 @@ EOF
 
 ### 6. Initialize Let's Encrypt SSL
 
-Wait for DNS to propagate (verify with `nslookup`), then:
+Wait for DNS to propagate (verify with `nslookup`), then obtain certificates for both domains:
 
 ```bash
+# Main domain
 ssh -i ~/.ssh/dabb-deploy $SERVER \
   "cd /opt/dabb && bash deploy/nginx/init-letsencrypt.sh dabb.degler.info"
+
+# Analytics subdomain
+ssh -i ~/.ssh/dabb-deploy $SERVER \
+  "cd /opt/dabb && bash deploy/nginx/init-letsencrypt.sh analytics.dabb.degler.info"
 ```
 
 This script:
@@ -104,7 +112,49 @@ This script:
 2. Runs `certbot certonly --webroot` to obtain the certificate
 3. Restarts nginx with full HTTPS config
 
-### 7. Add GitHub Secrets
+### 7. Configure Umami Analytics (optional)
+
+After the first deployment, set up Umami for usage tracking:
+
+1. **Login to Umami** at `https://dabb.degler.info/umami/`
+   - Default credentials: `admin` / `umami`
+   - **Change the password immediately** (Settings → Profile)
+
+2. **Add a website** in Umami:
+   - Click **Settings** → **Websites** → **Add website**
+   - Name: `Dabb`, Domain: `dabb.degler.info`
+   - Copy the **Website ID** (a UUID)
+
+3. **Set environment variables** on the server:
+
+```bash
+# Add to /opt/dabb/.env:
+UMAMI_APP_SECRET=$(openssl rand -hex 32)
+UMAMI_WEBSITE_ID=<paste-website-id-here>
+VITE_UMAMI_WEBSITE_ID=<paste-website-id-here>
+```
+
+`VITE_UMAMI_URL` is set as a GitHub Actions repository variable (see step 8) — it does **not** go in `.env`.
+
+4. **Rebuild and redeploy** to apply:
+
+```bash
+cd /opt/dabb && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d --build
+```
+
+> **Note**: `VITE_UMAMI_URL` and `VITE_UMAMI_WEBSITE_ID` are baked into the web app at build time. They can also be set as GitHub Actions variables so the CI build includes them automatically.
+
+#### Existing installation — create umami database manually
+
+If postgres already has data (no fresh volume), create the umami database manually:
+
+```bash
+docker exec -it dabb-postgres psql -U dabb -c "CREATE DATABASE umami;"
+```
+
+Then restart the umami container: `docker compose -f docker-compose.prod.yml restart umami`
+
+### 8. Add GitHub Secrets
 
 The deploy workflow uses `environment: production`, so secrets must be added to the
 **`production` environment** — not as repository secrets.
@@ -122,7 +172,7 @@ The deploy workflow uses `environment: production`, so secrets must be added to 
 The variable `VITE_SERVER_URL` is not sensitive — add/update it as a regular **repository
 variable** under **Settings** → **Secrets and variables** → **Actions** → **Variables** tab.
 
-### 8. First deployment
+### 9. First deployment
 
 Push any change to `main` (or re-run the CI workflow manually). GitHub Actions will:
 
@@ -162,14 +212,25 @@ After deployment, add a free monitor at [uptimerobot.com](https://uptimerobot.co
 
 ## Environment Variables Reference
 
-| Variable            | Required | Description                           |
-| ------------------- | -------- | ------------------------------------- |
-| `POSTGRES_PASSWORD` | Yes      | Database password                     |
-| `CLIENT_URL`        | Yes      | Web app URL (for CORS)                |
-| `VITE_SERVER_URL`   | Yes      | Server URL (built into web app)       |
-| `DATABASE_URL`      | No       | Override if using external PostgreSQL |
-| `PORT`              | No       | Server port (default: 3000)           |
-| `NODE_ENV`          | No       | Environment (default: production)     |
+**In `/opt/dabb/.env` on the server:**
+
+| Variable            | Required | Description                                     |
+| ------------------- | -------- | ----------------------------------------------- |
+| `POSTGRES_PASSWORD` | Yes      | Database password                               |
+| `CLIENT_URL`        | Yes      | Web app URL (for CORS)                          |
+| `UMAMI_APP_SECRET`  | Yes      | Umami JWT secret — `openssl rand -hex 32`       |
+| `UMAMI_WEBSITE_ID`  | No       | Umami website ID for server-side event tracking |
+| `DATABASE_URL`      | No       | Override if using external PostgreSQL           |
+| `PORT`              | No       | Server port (default: 3000)                     |
+| `NODE_ENV`          | No       | Environment (default: production)               |
+
+**As GitHub Actions repository variables (Settings → Secrets and variables → Variables):**
+
+| Variable                | Description                                                                |
+| ----------------------- | -------------------------------------------------------------------------- |
+| `VITE_SERVER_URL`       | Public server URL baked into web app (e.g. `https://dabb.degler.info`)     |
+| `VITE_UMAMI_URL`        | `https://analytics.dabb.degler.info` — baked into web app at CI build time |
+| `VITE_UMAMI_WEBSITE_ID` | Umami website ID baked into web app at CI build time                       |
 
 ---
 
@@ -197,6 +258,30 @@ docker compose -f docker-compose.prod.yml ps
 - Verify DNS is pointing to the server: `nslookup dabb.degler.info`
 - Re-run the init script: `bash deploy/nginx/init-letsencrypt.sh dabb.degler.info`
 - Check certbot logs: `docker compose -f docker-compose.prod.yml logs certbot`
+
+### Analytics returns 502
+
+502 means nginx can reach the analytics subdomain but umami is not running. Check:
+
+```bash
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs umami --tail=50
+```
+
+**Missing `umami` database** (most common on existing installations):
+
+```bash
+docker exec -it dabb-postgres psql -U dabb -c "\l"  # check if 'umami' database exists
+docker exec -it dabb-postgres psql -U dabb -c "CREATE DATABASE umami;"
+docker compose -f docker-compose.prod.yml restart umami
+```
+
+**Missing `UMAMI_APP_SECRET` in `.env`** (causes compose to fail to start umami):
+
+```bash
+echo "UMAMI_APP_SECRET=$(openssl rand -hex 32)" >> /opt/dabb/.env
+docker compose -f docker-compose.prod.yml up -d umami
+```
 
 ### Database connection refused
 

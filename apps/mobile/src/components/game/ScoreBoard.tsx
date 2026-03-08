@@ -8,6 +8,7 @@ import { Feather } from '@expo/vector-icons';
 import type { PlayerIndex, Team, GameEvent, GameState } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import { useRoundHistory } from '@dabb/ui-shared';
+import { Colors, Fonts, Shadows } from '../../theme';
 
 interface ScoreBoardProps {
   state: GameState;
@@ -58,7 +59,7 @@ function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }
         {onCollapse && (
           <TouchableOpacity onPress={onCollapse} style={styles.collapseButton}>
             <View style={styles.collapseContent}>
-              <Feather name="chevron-down" size={12} color="#2563eb" />
+              <Feather name="chevron-down" size={12} color={Colors.inkFaint} />
               <Text style={styles.collapseText}>{t('game.hideHistory')}</Text>
             </View>
           </TouchableOpacity>
@@ -114,7 +115,7 @@ function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }
           <ScrollView horizontal showsHorizontalScrollIndicator style={styles.tableScroll}>
             <View>
               {/* Table header */}
-              <View style={styles.tableRow}>
+              <View style={[styles.tableRow, styles.tableHeaderRow]}>
                 <View style={[styles.tableCell, styles.roundCell]}>
                   <Text style={styles.headerText}>{t('game.round')}</Text>
                 </View>
@@ -213,15 +214,13 @@ function ScoreBoard({ state, events, nicknames, currentPlayerIndex, onCollapse }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: Colors.paperFace,
+    borderRadius: 3,
     padding: 16,
     margin: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+    ...Shadows.panel,
   },
   header: {
     flexDirection: 'row',
@@ -231,8 +230,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontFamily: Fonts.display,
+    color: Colors.inkDark,
   },
   collapseButton: {
     padding: 4,
@@ -244,77 +243,85 @@ const styles = StyleSheet.create({
   },
   collapseText: {
     fontSize: 12,
-    color: '#2563eb',
+    fontFamily: Fonts.body,
+    color: Colors.inkFaint,
   },
   targetScore: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 11,
+    fontFamily: Fonts.body,
+    color: Colors.inkFaint,
     textAlign: 'center',
     marginBottom: 12,
   },
   winnerBanner: {
-    backgroundColor: '#22c55e',
+    backgroundColor: Colors.success,
     padding: 8,
-    borderRadius: 8,
+    borderRadius: 3,
     marginBottom: 12,
   },
   winnerText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: Colors.paperFace,
+    fontFamily: Fonts.handwritingBold,
+    fontSize: 16,
     textAlign: 'center',
   },
   scoreList: {
-    gap: 8,
+    gap: 6,
   },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: '#f9fafb',
+    paddingHorizontal: 10,
+    borderRadius: 3,
+    backgroundColor: Colors.paperAged,
   },
   currentPlayerRow: {
-    backgroundColor: '#dbeafe',
+    backgroundColor: '#fef3e0',
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.amber,
   },
   rankBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#e5e7eb',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: Colors.paperEdge,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   rankText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#374151',
+    fontSize: 11,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.inkMid,
   },
   nickname: {
     flex: 1,
     fontSize: 14,
-    color: '#374151',
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkMid,
   },
   score: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#374151',
+    fontSize: 18,
+    fontFamily: Fonts.handwritingBold,
+    color: Colors.inkDark,
   },
   currentPlayerText: {
-    color: '#1d4ed8',
+    color: Colors.amber,
   },
   historySection: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 14,
+    paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: Colors.paperLines,
   },
   historyTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+    fontSize: 12,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.inkFaint,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   tableScroll: {
     maxHeight: 200,
@@ -322,14 +329,18 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: Colors.paperLines,
+  },
+  tableHeaderRow: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.paperEdge,
   },
   completedRound: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: Colors.paperAged,
   },
   tableCell: {
     width: 80,
-    padding: 8,
+    padding: 6,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -338,39 +349,42 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   headerText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6b7280',
+    fontSize: 11,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.inkMid,
   },
   roundNumber: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#374151',
+    fontSize: 13,
+    fontFamily: Fonts.handwritingBold,
+    color: Colors.inkDark,
   },
   roundBid: {
     fontSize: 10,
-    color: '#6b7280',
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkFaint,
   },
   cellText: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: 13,
+    fontFamily: Fonts.handwriting,
+    color: Colors.inkFaint,
   },
   cellTotal: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#374151',
+    fontSize: 15,
+    fontFamily: Fonts.handwritingBold,
+    color: Colors.inkDark,
   },
   cellBreakdown: {
     fontSize: 9,
-    color: '#9ca3af',
+    fontFamily: Fonts.body,
+    color: Colors.inkFaint,
   },
   bidNotMetCell: {
     backgroundColor: '#fef2f2',
   },
   bidNotMetText: {
     fontSize: 9,
-    color: '#dc2626',
-    fontWeight: '600',
+    fontFamily: Fonts.bodyBold,
+    color: Colors.error,
   },
 });
 
