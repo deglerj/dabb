@@ -40,6 +40,12 @@ with open(path, 'w') as f:
 print("    Patched apps/mobile/android/build.gradle")
 EOF
 
+echo "==> Patching gradle.properties to increase JVM memory for async-storage v3 KSP/Room compilation..."
+# async-storage v3 uses KSP + Room which increases class metadata (Metaspace) usage significantly.
+# Override org.gradle.jvmargs to raise Metaspace limit.
+sed -i 's/^org\.gradle\.jvmargs=.*/org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError/' \
+    android/gradle.properties
+
 echo "==> Fixing Hermes path for pnpm..."
 cd /app
 RN_DIR=$(find node_modules/.pnpm -type d -name "react-native" -path "*react-native@*/node_modules/react-native" 2>/dev/null | head -1)
