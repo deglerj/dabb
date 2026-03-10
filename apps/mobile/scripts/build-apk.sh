@@ -43,7 +43,7 @@ EOF
 echo "==> Patching gradle.properties to increase JVM memory for async-storage v3 KSP/Room compilation..."
 # async-storage v3 uses KSP + Room which increases class metadata (Metaspace) usage significantly.
 # Override org.gradle.jvmargs to raise Metaspace limit.
-sed -i 's/^org\.gradle\.jvmargs=.*/org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError/' \
+sed -i 's/^org\.gradle\.jvmargs=.*/org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError/' \
     android/gradle.properties
 
 echo "==> Fixing Hermes path for pnpm..."
