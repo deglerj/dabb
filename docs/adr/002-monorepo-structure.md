@@ -25,7 +25,8 @@ dabb/
 │   ├── shared-types/   # TypeScript types
 │   ├── game-logic/     # Game rules
 │   ├── ui-shared/      # React hooks
-│   └── card-assets/    # SVG graphics
+│   ├── card-assets/    # SVG graphics
+│   └── i18n/           # Internationalization (de/en)
 ├── pnpm-workspace.yaml
 └── turbo.json
 ```

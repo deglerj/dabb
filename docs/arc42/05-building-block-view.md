@@ -60,6 +60,9 @@ src/
 ├── cards.ts       # Card, Suit, Rank types
 ├── game.ts        # GameState, Meld types
 ├── events.ts      # GameEvent union type
+├── errors.ts      # Error codes and GameError
+├── gameLog.ts     # Game log entry types
+├── ai.ts          # AI action and context types
 ├── api.ts         # REST API types
 └── socket.ts      # Socket.IO event types
 ```
@@ -70,6 +73,10 @@ src/
 src/
 ├── cards/
 │   └── deck.ts       # Deck creation, shuffling, dealing
+├── events/
+│   └── generators.ts # Event factory functions
+├── export/
+│   └── eventFormatter.ts  # Human-readable event log formatting
 ├── melds/
 │   └── detector.ts   # Meld detection algorithm
 ├── phases/
@@ -77,7 +84,7 @@ src/
 │   └── tricks.ts     # Trick-taking rules
 └── state/
     ├── reducer.ts    # Event sourcing reducer
-    └── views.ts      # Player view filtering
+    └── views.ts      # Player view filtering (anti-cheat)
 ```
 
 ### @dabb/ui-shared
@@ -108,10 +115,13 @@ src/
 │   ├── eventService.ts            # Event persistence
 │   ├── gameService.ts             # Game action handlers
 │   ├── aiControllerService.ts     # AI player lifecycle management
-│   └── cleanupService.ts         # Inactive session cleanup
+│   ├── cleanupService.ts          # Inactive session cleanup
+│   └── analyticsService.ts        # Umami analytics (fire-and-forget)
 ├── ai/
 │   ├── AIPlayer.ts               # AI player interface & factory
-│   └── MediumBinokelAIPlayer.ts  # AI decision logic
+│   └── BinokelAIPlayer.ts        # AI decision logic (easy/medium/hard)
+├── scheduler/
+│   └── cleanupScheduler.ts       # Cleanup background job
 ├── simulation/
 │   ├── SimulationEngine.ts       # In-memory AI game engine
 │   └── runner.ts                 # CLI entry point
@@ -122,7 +132,7 @@ src/
 
 #### Simulation Module
 
-The simulation module provides a standalone CLI tool for running AI-vs-AI games entirely in-memory, without requiring a database, HTTP server, or Socket.IO connections. It reuses the same `@dabb/game-logic` pure functions and `MediumBinokelAIPlayer` that the live server uses, ensuring simulation behavior matches production.
+The simulation module provides a standalone CLI tool for running AI-vs-AI games entirely in-memory, without requiring a database, HTTP server, or Socket.IO connections. It reuses the same `@dabb/game-logic` pure functions and `BinokelAIPlayer` that the live server uses, ensuring simulation behavior matches production.
 
 | Component          | Responsibility                                                          |
 | ------------------ | ----------------------------------------------------------------------- |
@@ -151,22 +161,25 @@ function gameReducer(state: GameState, event: GameEvent, playerIndex: PlayerInde
 
 ### Event Types
 
-| Event             | Phase    | Description             |
-| ----------------- | -------- | ----------------------- |
-| GAME_STARTED      | dealing  | Game initialized        |
-| CARDS_DEALT       | dealing  | Cards distributed       |
-| NEW_ROUND_STARTED | dealing  | New round begins        |
-| BID_PLACED        | bidding  | Player placed bid       |
-| PLAYER_PASSED     | bidding  | Player passed           |
-| BIDDING_WON       | bidding  | Winner determined       |
-| DABB_TAKEN        | dabb     | Winner took dabb        |
-| CARDS_DISCARDED   | dabb     | Cards discarded         |
-| GOING_OUT         | dabb     | Bid winner forfeits     |
-| TRUMP_DECLARED    | trump    | Trump suit set          |
-| MELDS_DECLARED    | melding  | Melds announced         |
-| MELDING_COMPLETE  | melding  | All melds declared      |
-| CARD_PLAYED       | tricks   | Card played to trick    |
-| TRICK_WON         | tricks   | Trick completed         |
-| ROUND_SCORED      | scoring  | Round scores calculated |
-| GAME_FINISHED     | finished | Final winner            |
-| GAME_TERMINATED   | —        | Game terminated by exit |
+| Event              | Phase    | Description             |
+| ------------------ | -------- | ----------------------- |
+| GAME_STARTED       | dealing  | Game initialized        |
+| CARDS_DEALT        | dealing  | Cards distributed       |
+| NEW_ROUND_STARTED  | dealing  | New round begins        |
+| BID_PLACED         | bidding  | Player placed bid       |
+| PLAYER_PASSED      | bidding  | Player passed           |
+| BIDDING_WON        | bidding  | Winner determined       |
+| DABB_TAKEN         | dabb     | Winner took dabb        |
+| CARDS_DISCARDED    | dabb     | Cards discarded         |
+| GOING_OUT          | dabb     | Bid winner forfeits     |
+| TRUMP_DECLARED     | trump    | Trump suit set          |
+| MELDS_DECLARED     | melding  | Melds announced         |
+| MELDING_COMPLETE   | melding  | All melds declared      |
+| CARD_PLAYED        | tricks   | Card played to trick    |
+| TRICK_WON          | tricks   | Trick completed         |
+| ROUND_SCORED       | scoring  | Round scores calculated |
+| GAME_FINISHED      | finished | Final winner            |
+| GAME_TERMINATED    | —        | Game terminated by exit |
+| PLAYER_JOINED      | —        | Player joined session   |
+| PLAYER_LEFT        | —        | Player disconnected     |
+| PLAYER_RECONNECTED | —        | Player reconnected      |

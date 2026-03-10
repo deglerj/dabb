@@ -358,11 +358,19 @@ Add an AI player to a session (host only).
 | ------------- | ---------------------------------- |
 | `X-Secret-Id` | Host player's secret ID (required) |
 
+**Request Body:**
+
+| Field        | Type     | Required | Description                                                 |
+| ------------ | -------- | -------- | ----------------------------------------------------------- |
+| `difficulty` | `string` | No       | AI difficulty: `easy`, `medium`, `hard` (default: `medium`) |
+
 **Example Request:**
 
 ```bash
 curl -X POST http://localhost:3000/api/sessions/schnell-fuchs-42/ai \
-  -H "X-Secret-Id: host-secret-uuid"
+  -H "X-Secret-Id: host-secret-uuid" \
+  -H "Content-Type: application/json" \
+  -d '{"difficulty": "hard"}'
 ```
 
 **Success Response (201):**
@@ -372,7 +380,8 @@ curl -X POST http://localhost:3000/api/sessions/schnell-fuchs-42/ai \
   "playerId": "ai-player-uuid",
   "playerIndex": 2,
   "nickname": "Bot Fritz",
-  "team": null
+  "team": null,
+  "aiDifficulty": "hard"
 }
 ```
 

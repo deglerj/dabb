@@ -394,13 +394,14 @@ socket.on('error', ({ message, code, params }) => {
 
 ## Event Filtering (Anti-Cheat)
 
-Events containing opponent cards are filtered before sending to clients:
+Events containing opponent cards are filtered before sending to clients (see `packages/game-logic/src/state/views.ts`):
 
-- `CARDS_DEALT` - Only shows player's own hand
-- `DABB_TAKEN` - Hidden from other players
-- `CARDS_DISCARDED` - Hidden from other players
+- `CARDS_DEALT` - Only shows the receiving player's own hand; other players' hands are replaced with hidden card placeholders. The dabb is also hidden at this stage.
+- `CARDS_DISCARDED` - Only the discarding player sees their actual card IDs; other players receive a count of hidden cards.
 
-This prevents clients from seeing hidden information.
+`DABB_TAKEN` is broadcast to all players unmodified — the dabb cards are revealed to everyone when the bid winner picks them up.
+
+This prevents clients from seeing other players' hand contents.
 
 ---
 

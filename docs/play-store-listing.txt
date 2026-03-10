@@ -1,0 +1,131 @@
+DABB – BINOKEL
+Play Store Listing Texts
+========================
+
+
+APP NAME (max 30 chars)
+-----------------------
+Dabb – Binokel
+
+
+SHORT DESCRIPTION — Deutsch (max 80 chars)
+------------------------------------------
+Das schwäbische Kartenspiel Binokel – mit Freunden oder gegen KI
+
+
+SHORT DESCRIPTION — English (max 80 chars)
+------------------------------------------
+The Swabian card game Binokel – play with friends or against AI
+
+
+FULL DESCRIPTION — Deutsch (max 4000 chars)
+--------------------------------------------
+Binokel ist das schwäbische Kartenspiel – jetzt auf deinem Android-Gerät.
+
+Spiele mit bis zu drei Freunden in Echtzeit oder fordere KI-Gegner heraus. Starte eine Runde, teile den Spielcode, und los geht's.
+
+─── DAS SPIEL ───
+
+Binokel wird mit einem doppelten 40-Blatt-Deck gespielt. Wer zuerst 1000 Punkte erreicht, gewinnt.
+
+Reizen: Geboten wird ab 150. Der Höchstbietende nimmt den Dabb auf und legt die Trumpffarbe fest.
+
+Melden: Paare (20 Punkte), Familien (100 Punkte) und der Binokel (40 Punkte) bringen Zusatzpunkte vor den Stichen.
+
+Stiche: Es gilt Bedienpflicht, Stichzwang und Trumpfzwang.
+
+Abgehen: Nach dem Aufnehmen des Dabbs kann der Reizgewinner abgehen – die Gegner kassieren dann ihre Meldepunkte plus 40 Bonuspunkte, und die Runde endet sofort.
+
+─── FUNKTIONEN ───
+
+• Echtzeit-Mehrspieler für 2 bis 4 Personen
+• Runden per Spielcode starten und teilen
+• KI-Gegner in drei Schwierigkeitsstufen: Einfach, Mittel, Schwer
+• Beliebige Mischung aus menschlichen und KI-Spielern
+• Spielprotokoll mit allen Ereignissen der laufenden Runde
+• Punktetabelle mit dem aktuellen Spielstand aller Spieler
+• Klangeffekte für jede Spielaktion
+• Wiederverbindung bei Verbindungsabbruch
+• Vollständige Spielregeln direkt in der App
+• Verfügbar auf Deutsch und Englisch
+
+Die App verwendet die schwäbischen Kartennamen (Kreuz, Schippe, Herz, Bollen, Buabe).
+
+Hinweis: Diese App wurde zu 100 % mit KI entwickelt – inklusive dieser Beschreibung.
+
+Dabb ist kostenlos – ohne Werbung, ohne In-App-Käufe.
+
+
+FULL DESCRIPTION — English (max 4000 chars)
+--------------------------------------------
+Binokel is a traditional Swabian card game — now on your Android device.
+
+Play with up to three friends in real time, or challenge AI opponents. Start a game, share the room code, and play.
+
+─── THE GAME ───
+
+Binokel is played with a double 40-card deck. The first player to reach 1,000 points wins.
+
+Bidding: Bidding starts at 150. The highest bidder takes the Dabb (the kitty) and chooses the trump suit.
+
+Melds: Score bonus points before tricks with pairs (20 pts), families (100 pts), and the Binokel combination (40 pts).
+
+Tricks: Follow suit, beat the current trick, and trump when required.
+
+Going Out (Abgehen): After taking the Dabb, the bid winner can go out — opponents score their melds plus a 40-point bonus, and the round ends immediately.
+
+─── FEATURES ───
+
+• Real-time multiplayer for 2 to 4 players
+• Start and share games with a room code
+• AI opponents at three difficulty levels: Easy, Medium, Hard
+• Any mix of human and AI players in one game
+• Game log showing all events of the current round
+• Score table tracking all players' points throughout the game
+• Sound effects for every game action
+• Reconnection support if you lose connection
+• Full game rules included in the app
+• Available in German and English
+
+The app uses the traditional Swabian card names (Kreuz, Schippe, Herz, Bollen, Buabe).
+
+Disclaimer: 100% AI slop — including this description.
+
+Dabb is free — no ads, no in-app purchases.
+
+
+PRIVACY POLICY TEXT (host at a public URL, e.g. https://yourdomain/privacy)
+-----------------------------------------------------------------------------
+Datenschutzerklärung
+
+Diese App speichert keine personenbezogenen Daten dauerhaft. Beim Erstellen oder
+Beitreten einer Spielrunde wird ein frei gewählter Spitzname an den Spielserver
+übertragen und dort für die Dauer der Spielsitzung gespeichert. Nach Beendigung
+der Sitzung werden diese Daten gelöscht. Es werden keine Konten erstellt, keine
+E-Mail-Adressen erhoben und keine Daten an Dritte weitergegeben.
+
+---
+
+Privacy Policy
+
+This app does not store any personal data permanently. When creating or joining a
+game session, a freely chosen nickname is transmitted to the game server and stored
+for the duration of that session. Once the session ends, this data is deleted. No
+accounts are created, no email addresses are collected, and no data is shared with
+third parties.
+
+
+PLAY CONSOLE SETTINGS
+----------------------
+Category:        Games → Card games
+Content rating:  PEGI 3 / Everyone
+                 (no violence, no sexual content, no gambling, nicknames only)
+
+
+SCREENSHOTS NEEDED (min 2, recommended 4–5, portrait 9:16)
+-----------------------------------------------------------
+1. Home screen
+2. Waiting room with players listed
+3. Game in progress (cards in hand, trick area)
+4. Bidding panel
+5. Score table

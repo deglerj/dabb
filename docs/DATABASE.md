@@ -49,17 +49,18 @@ Stores game session metadata.
 
 Stores player information for each session.
 
-| Column         | Type        | Description                                          |
-| -------------- | ----------- | ---------------------------------------------------- |
-| `id`           | UUID        | Primary key                                          |
-| `session_id`   | UUID        | Foreign key to sessions                              |
-| `secret_id`    | UUID        | Secret identifier for reconnection (nullable for AI) |
-| `nickname`     | VARCHAR(50) | Player's display name                                |
-| `player_index` | SMALLINT    | Player's position (0-3)                              |
-| `team`         | SMALLINT    | Team assignment (0 or 1, null for 3-player)          |
-| `connected`    | BOOLEAN     | Connection status                                    |
-| `is_ai`        | BOOLEAN     | Whether this is an AI player (default: false)        |
-| `created_at`   | TIMESTAMPTZ | Join timestamp                                       |
+| Column          | Type        | Description                                                            |
+| --------------- | ----------- | ---------------------------------------------------------------------- |
+| `id`            | UUID        | Primary key                                                            |
+| `session_id`    | UUID        | Foreign key to sessions                                                |
+| `secret_id`     | UUID        | Secret identifier for reconnection (nullable for AI)                   |
+| `nickname`      | VARCHAR(50) | Player's display name                                                  |
+| `player_index`  | SMALLINT    | Player's position (0-3)                                                |
+| `team`          | SMALLINT    | Team assignment (0 or 1, null for 3-player)                            |
+| `connected`     | BOOLEAN     | Connection status                                                      |
+| `is_ai`         | BOOLEAN     | Whether this is an AI player (default: false)                          |
+| `ai_difficulty` | VARCHAR(10) | AI difficulty level (`easy`, `medium`, `hard`); null for human players |
+| `created_at`    | TIMESTAMPTZ | Join timestamp                                                         |
 
 #### `events`
 
@@ -115,6 +116,7 @@ Migration files follow the naming convention: `NNNN_description.sql`
 | `0001_initial_schema.sql`        | Base tables (sessions, players, events)       |
 | `0002_add_terminated_status.sql` | Add 'terminated' status to sessions           |
 | `0003_add_ai_players.sql`        | Add `is_ai` column, make `secret_id` nullable |
+| `0004_add_ai_difficulty.sql`     | Add `ai_difficulty` column to players         |
 
 ### Creating New Migrations
 

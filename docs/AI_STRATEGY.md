@@ -1,6 +1,12 @@
 # AI Player Strategy
 
-This document describes the decision logic used by `MediumBinokelAIPlayer`, the AI implementation.
+This document describes the decision logic used by `BinokelAIPlayer`, the AI implementation.
+
+`BinokelAIPlayer` supports three difficulty levels via a `mistakeProbability` parameter:
+
+- **hard** (0): optimal play — smearing safety, card-counting leads, endgame squeeze
+- **medium** (0.15): occasional mistakes
+- **easy** (0.35): frequent mistakes
 
 ## Per-Round State Tracking
 
