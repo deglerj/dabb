@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bug, Code2, Library, ScrollText, X } from 'lucide-react';
+import { Bug, Code2, Library, ScrollText, Shield, X } from 'lucide-react';
 import { useTranslation } from '@dabb/i18n';
 import OpenSourceLicensesModal from './OpenSourceLicensesModal.js';
 
@@ -82,6 +82,21 @@ function InfoModal({ version, onClose }: InfoModalProps) {
           >
             <Bug size={16} />
             {t('info.reportBug')}
+          </a>
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: 'var(--primary)',
+              textDecoration: 'none',
+            }}
+          >
+            <Shield size={16} />
+            {t('info.privacy')}
           </a>
           <button
             onClick={() => setShowLicenses(true)}

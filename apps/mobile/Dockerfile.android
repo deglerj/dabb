@@ -45,4 +45,5 @@ RUN yes | sdkmanager --licenses > /dev/null 2>&1 \
 
 WORKDIR /app
 
-ENTRYPOINT ["bash", "apps/mobile/scripts/build-apk.sh"]
+ENTRYPOINT ["bash"]
+CMD ["apps/mobile/scripts/build-apk.sh"]

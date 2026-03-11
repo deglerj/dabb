@@ -166,6 +166,7 @@ const en: TranslationKeys = {
     reportBug: 'Report a bug',
     close: 'Close',
     openSourceLicenses: 'Open Source Licenses',
+    privacy: 'Privacy Policy',
   },
   licenses: {
     title: 'Open Source Licenses',

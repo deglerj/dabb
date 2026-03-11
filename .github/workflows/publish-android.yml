@@ -1,0 +1,78 @@
+name: Publish Android to Play Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Play Store track to publish to'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+
+jobs:
+  publish:
+    name: Build & Publish
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Android builder image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/mobile/Dockerfile.android
+          push: false
+          load: true
+          tags: dabb-android-builder:publish
+          cache-from: type=gha,scope=android-builder
+          cache-to: type=gha,mode=max,scope=android-builder
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v5
+        with:
+          path: /tmp/gradle-cache
+          key: ${{ runner.os }}-gradle-aab-${{ hashFiles('apps/mobile/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-aab-
+            ${{ runner.os }}-gradle-
+
+      - name: Decode keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > /tmp/dabb-keystore.jks
+
+      - name: Build AAB in Docker
+        run: |
+          mkdir -p /tmp/gradle-cache
+          docker run --rm \
+            -v "${{ github.workspace }}:/app" \
+            -v /tmp/gradle-cache:/gradle-cache \
+            -v /tmp/dabb-keystore.jks:/tmp/dabb-keystore.jks:ro \
+            -e GRADLE_USER_HOME=/gradle-cache \
+            -e SIGNING_KEYSTORE_PATH=/tmp/dabb-keystore.jks \
+            -e SIGNING_STORE_PASSWORD="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            -e SIGNING_KEY_ALIAS="${{ secrets.ANDROID_KEY_ALIAS }}" \
+            -e SIGNING_KEY_PASSWORD="${{ secrets.ANDROID_KEY_PASSWORD }}" \
+            -e VERSION_CODE="${{ github.run_number }}" \
+            dabb-android-builder:publish \
+            apps/mobile/scripts/build-aab.sh
+
+      - name: Upload to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+          packageName: com.dabb.binokel
+          releaseFiles: apps/mobile/build/dabb.aab
+          track: ${{ inputs.track }}
+          status: completed
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f /tmp/dabb-keystore.jks

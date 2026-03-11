@@ -167,6 +167,7 @@ const de: TranslationKeys = {
     reportBug: 'Fehler melden',
     close: 'Schließen',
     openSourceLicenses: 'Open-Source-Lizenzen',
+    privacy: 'Datenschutzerklärung',
   },
   licenses: {
     title: 'Open-Source-Lizenzen',

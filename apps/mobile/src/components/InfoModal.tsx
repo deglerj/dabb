@@ -7,6 +7,8 @@ import OpenSourceLicensesModal from './OpenSourceLicensesModal';
 const GITHUB_URL = 'https://github.com/deglerj/dabb';
 const LICENSE_URL = 'https://github.com/deglerj/dabb/blob/main/LICENSE';
 const ISSUES_URL = 'https://github.com/deglerj/dabb/issues';
+const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'http://localhost:5173';
+const PRIVACY_URL = `${WEB_URL}/privacy`;
 
 interface InfoModalProps {
   version: string;
@@ -41,6 +43,10 @@ function InfoModal({ version, visible, onClose }: InfoModalProps) {
               <TouchableOpacity style={styles.link} onPress={() => Linking.openURL(ISSUES_URL)}>
                 <Feather name="alert-circle" size={16} color="#2563eb" />
                 <Text style={styles.linkText}>{t('info.reportBug')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.link} onPress={() => Linking.openURL(PRIVACY_URL)}>
+                <Feather name="shield" size={16} color="#2563eb" />
+                <Text style={styles.linkText}>{t('info.privacy')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.link} onPress={() => setShowLicenses(true)}>
                 <Feather name="book-open" size={16} color="#2563eb" />

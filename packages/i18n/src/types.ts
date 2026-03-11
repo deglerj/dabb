@@ -177,6 +177,7 @@ export interface TranslationKeys {
     reportBug: string;
     close: string;
     openSourceLicenses: string;
+    privacy: string;
   };
   licenses: {
     title: string;

@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
+import InAppUpdates, { IAUUpdateKind } from 'sp-react-native-in-app-updates';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, ActivityIndicator, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -548,6 +549,24 @@ const styles = StyleSheet.create({
 export default function App() {
   const [initialLanguage, setInitialLanguage] = useState<SupportedLanguage | undefined>(undefined);
   const [languageLoading, setLanguageLoading] = useState(true);
+
+  useEffect(() => {
+    // Prompt users to install Play Store updates immediately on app open.
+    // IMMEDIATE mode shows a full-screen system dialog managed by Google Play;
+    // the app cannot be used until the update is installed.
+    // No-ops silently when not installed from the Play Store (e.g. dev builds, APK sideloads).
+    const updates = new InAppUpdates(false);
+    updates
+      .checkNeedsUpdate()
+      .then((result) => {
+        if (result.shouldUpdate) {
+          updates.startUpdate({ updateType: IAUUpdateKind.IMMEDIATE });
+        }
+      })
+      .catch(() => {
+        // Not installed from Play Store — ignore
+      });
+  }, []);
 
   const [fontsLoaded] = useFonts({
     IMFellEnglishSC_400Regular,
