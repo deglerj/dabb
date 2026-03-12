@@ -74,9 +74,29 @@ function LandscapeGameLayout({
 
   return (
     <View style={styles.root}>
-      {/* Left panel — expanded: View with toggle button at top; collapsed: entire strip is tappable */}
-      {panelExpanded ? (
-        <View style={[styles.panel, styles.panelExpanded, { paddingLeft: insets.left }]}>
+      {/* Left panel — always mounted; width switches via style; opacity hides/shows sections */}
+      <View
+        style={[
+          styles.panel,
+          panelExpanded ? styles.panelExpanded : styles.panelCollapsed,
+          { paddingLeft: insets.left },
+        ]}
+      >
+        {/* Tap-to-expand overlay when collapsed (absoluteFill, out of layout flow) */}
+        {!panelExpanded && (
+          <TouchableOpacity
+            testID="panel-toggle"
+            style={StyleSheet.absoluteFill}
+            onPress={onTogglePanel}
+            activeOpacity={0.7}
+          />
+        )}
+
+        {/* Expanded content: toggle button, scores, game log — invisible when collapsed */}
+        <View
+          style={{ opacity: panelExpanded ? 1 : 0, flex: 1 }}
+          pointerEvents={panelExpanded ? 'auto' : 'none'}
+        >
           {/* Toggle button (collapse) */}
           <TouchableOpacity
             testID="panel-toggle"
@@ -117,26 +137,14 @@ function LandscapeGameLayout({
             />
           </View>
         </View>
-      ) : (
-        /* Collapsed: entire 32dp strip is a TouchableOpacity so tap anywhere expands */
-        <TouchableOpacity
-          testID="panel-toggle"
-          style={[styles.panel, styles.panelCollapsed, { paddingLeft: insets.left }]}
-          onPress={onTogglePanel}
-          activeOpacity={0.7}
-        >
-          <View style={styles.iconStrip}>
-            <Feather name="chevron-right" size={16} color={Colors.paperAged} />
-            <Feather
-              name="bar-chart-2"
-              size={14}
-              color={Colors.inkFaint}
-              style={styles.stripIcon}
-            />
-            <Feather name="list" size={14} color={Colors.inkFaint} style={styles.stripIcon} />
-          </View>
-        </TouchableOpacity>
-      )}
+
+        {/* Icon strip: visible when collapsed, invisible when expanded */}
+        <View style={[styles.iconStrip, { opacity: panelExpanded ? 0 : 1 }]} pointerEvents="none">
+          <Feather name="chevron-right" size={16} color={Colors.paperAged} />
+          <Feather name="bar-chart-2" size={14} color={Colors.inkFaint} style={styles.stripIcon} />
+          <Feather name="list" size={14} color={Colors.inkFaint} style={styles.stripIcon} />
+        </View>
+      </View>
 
       {/* Right area */}
       <View style={styles.rightArea}>
