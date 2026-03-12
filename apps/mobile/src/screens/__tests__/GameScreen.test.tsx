@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useWindowDimensions } from 'react-native';
 import GameScreen from '../GameScreen';
 import type { GameState, GamePhase, PlayerIndex, Trick, Card, Meld } from '@dabb/shared-types';
 
@@ -22,6 +23,11 @@ vi.mock('../../components/LanguageSwitcher', () => ({
 }));
 vi.mock('../../hooks/useTurnNotification', () => ({
   useTurnNotification: vi.fn(),
+}));
+
+// Mock LandscapeGameLayout so we only care about whether it renders
+vi.mock('../../components/game/LandscapeGameLayout', () => ({
+  default: () => <div data-testid="landscape-layout" />,
 }));
 
 function makeCard(suit: Card['suit'], rank: Card['rank'], copy: 0 | 1 = 0): Card {
@@ -77,6 +83,11 @@ const nicknames = new Map<PlayerIndex, string>([
 ]);
 
 describe('GameScreen', () => {
+  beforeEach(() => {
+    // Default to portrait dimensions
+    (useWindowDimensions as ReturnType<typeof vi.fn>).mockReturnValue({ width: 400, height: 800 });
+  });
+
   const defaultProps = {
     state: createBaseState(),
     events: [],
@@ -263,6 +274,27 @@ describe('GameScreen', () => {
     });
     render(<GameScreen {...defaultProps} state={state} />);
     expect(screen.getByText('Warte auf andere Spieler...')).toBeInTheDocument();
+  });
+
+  // Landscape orientation tests
+  it('renders LandscapeGameLayout when in landscape orientation', () => {
+    (useWindowDimensions as ReturnType<typeof vi.fn>).mockReturnValue({ width: 800, height: 400 });
+    render(<GameScreen {...defaultProps} />);
+    expect(screen.getByTestId('landscape-layout')).toBeInTheDocument();
+  });
+
+  it('does not render LandscapeGameLayout when in portrait orientation', () => {
+    (useWindowDimensions as ReturnType<typeof vi.fn>).mockReturnValue({ width: 400, height: 800 });
+    render(<GameScreen {...defaultProps} />);
+    expect(screen.queryByTestId('landscape-layout')).not.toBeInTheDocument();
+  });
+
+  it('renders bidding phase content in portrait (existing layout)', () => {
+    (useWindowDimensions as ReturnType<typeof vi.fn>).mockReturnValue({ width: 400, height: 800 });
+    const state = createBaseState({ phase: 'bidding', currentBidder: 0 as PlayerIndex });
+    render(<GameScreen {...defaultProps} state={state} />);
+    expect(screen.queryByTestId('landscape-layout')).not.toBeInTheDocument();
+    expect(screen.getByText(/Aktuelles Gebot/)).toBeInTheDocument();
   });
 
   // Phase completeness test

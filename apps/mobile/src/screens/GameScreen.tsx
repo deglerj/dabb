@@ -3,7 +3,16 @@
  */
 
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Alert, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  Alert,
+  Pressable,
+  useWindowDimensions,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import type { GameState, GameEvent, PlayerIndex, Suit, CardId } from '@dabb/shared-types';
 import { DABB_SIZE, formatMeldName, SUITS, SUIT_NAMES } from '@dabb/shared-types';
@@ -19,6 +28,7 @@ import {
   ScoreBoardHeader,
   GameLog,
   CelebrationOverlay,
+  LandscapeGameLayout,
 } from '../components/game';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useTurnNotification } from '../hooks/useTurnNotification';
@@ -61,10 +71,19 @@ function GameScreen({
   onGoHome,
 }: GameScreenProps) {
   const { t } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [selectedCards, setSelectedCards] = useState<CardId[]>([]);
   const [showExpandedScoreboard, setShowExpandedScoreboard] = useState(false);
   const [soundMuted, setSoundMuted] = useState(false);
+  const [panelExpanded, setPanelExpanded] = useState(true);
+
+  useEffect(() => {
+    if (isLandscape) {
+      setPanelExpanded(true);
+    }
+  }, [isLandscape]);
 
   const dabbSize = DABB_SIZE[state.playerCount];
 
@@ -418,80 +437,102 @@ function GameScreen({
     }
   };
 
+  const handContent = (
+    <>
+      <PlayerHand
+        cards={sortedHand}
+        selectedCardId={selectedCardId}
+        validCardIds={validCardIds}
+        dabbCardIds={state.dabbCardIds}
+        onCardSelect={handleCardSelect}
+        selectionMode={
+          state.phase === 'dabb' && state.dabb.length === 0 && state.bidWinner === playerIndex
+            ? 'multiple'
+            : 'single'
+        }
+        selectedCardIds={selectedCards}
+        onMultiSelect={handleMultiSelect}
+        draggable={state.phase === 'tricks' && isMyTurn && !isTrickPaused}
+        onPlayCard={onPlayCard}
+      />
+      <Text style={[styles.hint, { opacity: state.phase === 'tricks' && selectedCardId ? 1 : 0 }]}>
+        {t('game.tapAgainToPlay')}
+      </Text>
+    </>
+  );
+
   return (
     <DropZoneProvider>
       <WoodBackground>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.phaseLabel}>
-              {state.phase === 'bidding' && `${t('game.bid')}: ${state.currentBid}`}
-              {state.phase === 'tricks' && state.trump && `${t('game.trump')}: ${state.trump}`}
-            </Text>
-            {isMyTurn && state.phase !== 'waiting' && state.phase !== 'dealing' && (
-              <Text style={styles.turnIndicator}>{t('game.yourTurn')}</Text>
-            )}
-          </View>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.muteButton} onPress={handleToggleMute}>
-              <Feather
-                name={soundMuted ? 'volume-x' : 'volume-2'}
-                size={14}
-                color={Colors.paperFace}
-              />
-            </TouchableOpacity>
-            <LanguageSwitcher compact />
-            {canExit && onExitGame && (
-              <TouchableOpacity style={styles.exitButton} onPress={onExitGame}>
-                <View style={styles.buttonContent}>
-                  <Feather name="log-out" size={12} color={Colors.paperFace} />
-                  <Text style={styles.exitButtonText}>{t('game.exitGame')}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {/* Compact scoreboard header - always rendered to avoid layout shifts */}
-        <ScoreBoardHeader
-          state={state}
-          events={events}
-          nicknames={nicknames}
-          onExpand={() => setShowExpandedScoreboard(true)}
-        />
-
-        {/* Game Log below scoreboard header */}
-        <GameLog
-          state={state}
-          events={events}
-          currentPlayerIndex={playerIndex}
-          nicknames={nicknames}
-        />
-
-        <View style={styles.gameArea}>{renderPhaseContent()}</View>
-
-        <View style={styles.handContainer}>
-          <PlayerHand
-            cards={sortedHand}
-            selectedCardId={selectedCardId}
-            validCardIds={validCardIds}
-            dabbCardIds={state.dabbCardIds}
-            onCardSelect={handleCardSelect}
-            selectionMode={
-              state.phase === 'dabb' && state.dabb.length === 0 && state.bidWinner === playerIndex
-                ? 'multiple'
-                : 'single'
-            }
-            selectedCardIds={selectedCards}
-            onMultiSelect={handleMultiSelect}
-            draggable={state.phase === 'tricks' && isMyTurn && !isTrickPaused}
-            onPlayCard={onPlayCard}
+        {isLandscape ? (
+          <LandscapeGameLayout
+            state={state}
+            events={events}
+            playerIndex={playerIndex}
+            nicknames={nicknames}
+            panelExpanded={panelExpanded}
+            onTogglePanel={() => setPanelExpanded((prev) => !prev)}
+            isMyTurn={isMyTurn}
+            soundMuted={soundMuted}
+            onToggleMute={handleToggleMute}
+            canExit={canExit}
+            onExitGame={onExitGame}
+            phaseContent={renderPhaseContent()}
+            handContent={handContent}
           />
-          <Text
-            style={[styles.hint, { opacity: state.phase === 'tricks' && selectedCardId ? 1 : 0 }]}
-          >
-            {t('game.tapAgainToPlay')}
-          </Text>
-        </View>
+        ) : (
+          <>
+            <View style={styles.header}>
+              <View style={styles.headerLeft}>
+                <Text style={styles.phaseLabel}>
+                  {state.phase === 'bidding' && `${t('game.bid')}: ${state.currentBid}`}
+                  {state.phase === 'tricks' && state.trump && `${t('game.trump')}: ${state.trump}`}
+                </Text>
+                {isMyTurn && state.phase !== 'waiting' && state.phase !== 'dealing' && (
+                  <Text style={styles.turnIndicator}>{t('game.yourTurn')}</Text>
+                )}
+              </View>
+              <View style={styles.headerRight}>
+                <TouchableOpacity style={styles.muteButton} onPress={handleToggleMute}>
+                  <Feather
+                    name={soundMuted ? 'volume-x' : 'volume-2'}
+                    size={14}
+                    color={Colors.paperFace}
+                  />
+                </TouchableOpacity>
+                <LanguageSwitcher compact />
+                {canExit && onExitGame && (
+                  <TouchableOpacity style={styles.exitButton} onPress={onExitGame}>
+                    <View style={styles.buttonContent}>
+                      <Feather name="log-out" size={12} color={Colors.paperFace} />
+                      <Text style={styles.exitButtonText}>{t('game.exitGame')}</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            {/* Compact scoreboard header - always rendered to avoid layout shifts */}
+            <ScoreBoardHeader
+              state={state}
+              events={events}
+              nicknames={nicknames}
+              onExpand={() => setShowExpandedScoreboard(true)}
+            />
+
+            {/* Game Log below scoreboard header */}
+            <GameLog
+              state={state}
+              events={events}
+              currentPlayerIndex={playerIndex}
+              nicknames={nicknames}
+            />
+
+            <View style={styles.gameArea}>{renderPhaseContent()}</View>
+
+            <View style={styles.handContainer}>{handContent}</View>
+          </>
+        )}
 
         {/* Expanded scoreboard modal */}
         <Modal
