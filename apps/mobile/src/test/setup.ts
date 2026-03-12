@@ -175,10 +175,12 @@ vi.mock('react-native', () => {
       flatten: (style: unknown) => style,
     },
     Animated: {
-      Value: vi.fn(() => ({
-        interpolate: vi.fn(() => 0),
-        setValue: vi.fn(),
-      })),
+      Value: vi.fn(function () {
+        return {
+          interpolate: vi.fn(() => 0),
+          setValue: vi.fn(),
+        };
+      }),
       timing: vi.fn(() => ({
         start: vi.fn((cb?: () => void) => cb?.()),
       })),

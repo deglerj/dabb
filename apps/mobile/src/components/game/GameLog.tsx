@@ -17,9 +17,16 @@ interface GameLogProps {
   events: GameEvent[];
   currentPlayerIndex: PlayerIndex;
   nicknames: Map<PlayerIndex, string>;
+  disableExpand?: boolean;
 }
 
-function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps) {
+function GameLog({
+  state,
+  events,
+  currentPlayerIndex,
+  nicknames,
+  disableExpand = false,
+}: GameLogProps) {
   const { t } = useTranslation();
   const { entries, latestEntries, isYourTurn } = useGameLog(events, state, currentPlayerIndex);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -244,7 +251,7 @@ function GameLog({ state, events, currentPlayerIndex, nicknames }: GameLogProps)
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('gameLog.title')}</Text>
-        {hasMoreEntries && (
+        {hasMoreEntries && !disableExpand && (
           <TouchableOpacity style={styles.toggleButton} onPress={() => setIsExpanded(!isExpanded)}>
             <View style={styles.toggleContent}>
               <Feather
