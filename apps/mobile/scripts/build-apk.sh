@@ -19,33 +19,6 @@ echo "==> Generating native Android project..."
 cd apps/mobile
 npx expo prebuild --platform android --clean
 
-echo "==> Patching Android build.gradle for @react-native-async-storage/async-storage v3..."
-# async-storage v3 ships a native Kotlin Multiplatform AAR in a local maven repo.
-# The repo path must be registered so Gradle can resolve org.asyncstorage.shared_storage:storage-android.
-python3 - <<'EOF'
-import re
-path = 'android/build.gradle'
-with open(path, 'r') as f:
-    content = f.read()
-addition = (
-    "    maven { url 'https://www.jitpack.io' }\n"
-    "    maven {\n"
-    "      // Required for @react-native-async-storage/async-storage v3\n"
-    '      url "${rootDir}/../../../node_modules/@react-native-async-storage/async-storage/android/local_repo"\n'
-    "    }"
-)
-content = content.replace("    maven { url 'https://www.jitpack.io' }", addition)
-with open(path, 'w') as f:
-    f.write(content)
-print("    Patched apps/mobile/android/build.gradle")
-EOF
-
-echo "==> Patching gradle.properties to increase JVM memory for async-storage v3 KSP/Room compilation..."
-# async-storage v3 uses KSP + Room which increases class metadata (Metaspace) usage significantly.
-# Override org.gradle.jvmargs to raise Metaspace limit.
-sed -i 's/^org\.gradle\.jvmargs=.*/org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError/' \
-    android/gradle.properties
-
 echo "==> Fixing Hermes path for pnpm..."
 cd /app
 RN_DIR=$(find node_modules/.pnpm -type d -name "react-native" -path "*react-native@*/node_modules/react-native" 2>/dev/null | head -1)
