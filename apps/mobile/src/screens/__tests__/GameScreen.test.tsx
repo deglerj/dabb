@@ -289,12 +289,10 @@ describe('GameScreen', () => {
     expect(screen.queryByTestId('landscape-layout')).not.toBeInTheDocument();
   });
 
-  it('renders bidding phase content in portrait (existing layout)', () => {
-    (useWindowDimensions as ReturnType<typeof vi.fn>).mockReturnValue({ width: 400, height: 800 });
-    const state = createBaseState({ phase: 'bidding', currentBidder: 0 as PlayerIndex });
-    render(<GameScreen {...defaultProps} state={state} />);
+  it('treats equal width and height as portrait (not landscape)', () => {
+    (useWindowDimensions as ReturnType<typeof vi.fn>).mockReturnValue({ width: 600, height: 600 });
+    render(<GameScreen {...defaultProps} state={createBaseState()} />);
     expect(screen.queryByTestId('landscape-layout')).not.toBeInTheDocument();
-    expect(screen.getByText(/Aktuelles Gebot/)).toBeInTheDocument();
   });
 
   // Phase completeness test

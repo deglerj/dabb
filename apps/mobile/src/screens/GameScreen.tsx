@@ -80,9 +80,7 @@ function GameScreen({
   const [panelExpanded, setPanelExpanded] = useState(true);
 
   useEffect(() => {
-    if (isLandscape) {
-      setPanelExpanded(true);
-    }
+    setPanelExpanded(true);
   }, [isLandscape]);
 
   const dabbSize = DABB_SIZE[state.playerCount];
