@@ -1,0 +1,34 @@
+{
+  "name": "@dabb/game-canvas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@dabb/card-assets": "workspace:*",
+    "@dabb/i18n": "workspace:*",
+    "@dabb/shared-types": "workspace:*"
+  },
+  "peerDependencies": {
+    "@shopify/react-native-skia": "*",
+    "react": "*",
+    "react-native": "*",
+    "react-native-gesture-handler": "*",
+    "react-native-reanimated": "*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.18"
+  }
+}
