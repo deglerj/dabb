@@ -11,6 +11,7 @@ import { useFonts, IMFellEnglishSC_400Regular } from '@expo-google-fonts/im-fell
 import { Caveat_400Regular, Caveat_700Bold } from '@expo-google-fonts/caveat';
 import { Lato_400Regular, Lato_700Bold } from '@expo-google-fonts/lato';
 import * as SplashScreen from 'expo-splash-screen';
+import { I18nProvider } from '@dabb/i18n';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,7 +37,9 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <Stack screenOptions={{ headerShown: false }} />
+        <I18nProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </I18nProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
