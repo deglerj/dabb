@@ -8,8 +8,8 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '@dabb/i18n';
 import type { Card, Suit } from '@dabb/shared-types';
-import { SUITS, SUIT_NAMES } from '@dabb/shared-types';
-import { getSuitColor } from '@dabb/card-assets';
+import { SUITS } from '@dabb/shared-types';
+import { getSuitColor, SUIT_SYMBOLS } from '@dabb/card-assets';
 import { CardFace } from '../cards/CardFace.js';
 import { CardBack } from '../cards/CardBack.js';
 
@@ -90,7 +90,7 @@ export function DabbOverlay({
                 style={[styles.suitButton, { backgroundColor: getSuitColor(suit) }]}
                 onPress={() => onGoOut(suit)}
               >
-                <Text style={styles.suitButtonText}>{SUIT_NAMES[suit]}</Text>
+                <Text style={styles.suitButtonText}>{SUIT_SYMBOLS[suit]}</Text>
               </TouchableOpacity>
             ))}
           </View>

@@ -22,7 +22,7 @@ export interface PhaseOverlayProps {
   children: React.ReactNode;
 }
 
-export function PhaseOverlay({ visible, rotation = 0, children }: PhaseOverlayProps) {
+export function PhaseOverlay({ visible, rotation = -2, children }: PhaseOverlayProps) {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(-40);
   const scale = useSharedValue(0.92);
@@ -67,6 +67,13 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#c8b090',
-    padding: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 8,
+    minWidth: 240,
   },
 });

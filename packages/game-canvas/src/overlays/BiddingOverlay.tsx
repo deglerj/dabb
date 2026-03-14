@@ -15,29 +15,18 @@ export interface BiddingOverlayProps {
   onPass: () => void;
 }
 
-const MIN_BID = 150;
-const MAX_BID = 300;
-
-function generateBidAmounts(currentBid: number): number[] {
+function generateBidAmounts(): number[] {
   const amounts: number[] = [];
-  // Steps of 10 from 150 to 250, then 300
-  for (let bid = MIN_BID; bid <= MAX_BID; bid += bid < 300 ? 10 : 50) {
-    if (bid > currentBid) {
-      amounts.push(bid);
-    }
-    if (bid === 250) {
-      if (300 > currentBid) {
-        amounts.push(300);
-      }
-      break;
-    }
+  for (let bid = 150; bid <= 250; bid += 10) {
+    amounts.push(bid);
   }
+  amounts.push(300);
   return amounts;
 }
 
 export function BiddingOverlay({ currentBid, isMyTurn, onBid, onPass }: BiddingOverlayProps) {
   const { t } = useTranslation();
-  const bidAmounts = generateBidAmounts(currentBid);
+  const bidAmounts = generateBidAmounts();
 
   return (
     <View style={styles.container}>

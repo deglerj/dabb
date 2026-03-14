@@ -9,6 +9,7 @@ import { MELD_NAMES, SUIT_NAMES } from '@dabb/shared-types';
 
 export interface MeldingOverlayProps {
   melds: Meld[];
+  totalPoints: number;
   canConfirm: boolean;
   onConfirm: () => void;
 }
@@ -21,9 +22,8 @@ function getMeldDisplayName(meld: Meld): string {
   return baseName;
 }
 
-export function MeldingOverlay({ melds, canConfirm, onConfirm }: MeldingOverlayProps) {
+export function MeldingOverlay({ melds, totalPoints, canConfirm, onConfirm }: MeldingOverlayProps) {
   const { t } = useTranslation();
-  const total = melds.reduce((sum, m) => sum + m.points, 0);
 
   return (
     <View style={styles.container}>
@@ -41,16 +41,18 @@ export function MeldingOverlay({ melds, canConfirm, onConfirm }: MeldingOverlayP
           ))}
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>{t('game.total')}</Text>
-            <Text style={styles.totalPoints}>{total}</Text>
+            <Text style={styles.totalPoints}>{totalPoints}</Text>
           </View>
         </View>
       )}
 
-      {canConfirm && (
-        <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
-          <Text style={styles.confirmButtonText}>{t('game.confirmMelds')}</Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        style={[styles.confirmButton, { opacity: canConfirm ? 1 : 0 }]}
+        onPress={onConfirm}
+        disabled={!canConfirm}
+      >
+        <Text style={styles.confirmButtonText}>{t('game.confirmMelds')}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
