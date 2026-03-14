@@ -116,6 +116,7 @@ export default function HomeScreen() {
           code: joinCode.trim().toUpperCase(),
           secretId: sessionData.secretId,
           playerIndex: String(sessionData.playerIndex),
+          playerCount: '0', // unknown for joiners; waiting room discovers it from socket events
         },
       });
     } catch (err) {
@@ -170,50 +171,52 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Player count (create only) */}
-        {mode === 'create' && (
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>{t('home.playerCount')}</Text>
-            <View style={styles.playerCountRow}>
-              {([2, 3, 4] as PlayerCount[]).map((count) => (
-                <TouchableOpacity
-                  key={count}
-                  style={[
-                    styles.countButton,
-                    playerCount === count ? styles.countButtonActive : styles.countButtonInactive,
-                  ]}
-                  onPress={() => setPlayerCount(count)}
+        {/* Player count (create only) — always mounted, hidden via opacity per CLAUDE.md rule 2 */}
+        <View
+          style={[styles.formGroup, { opacity: mode === 'create' ? 1 : 0 }]}
+          pointerEvents={mode === 'create' ? 'auto' : 'none'}
+        >
+          <Text style={styles.label}>{t('home.playerCount')}</Text>
+          <View style={styles.playerCountRow}>
+            {([2, 3, 4] as PlayerCount[]).map((count) => (
+              <TouchableOpacity
+                key={count}
+                style={[
+                  styles.countButton,
+                  playerCount === count ? styles.countButtonActive : styles.countButtonInactive,
+                ]}
+                onPress={() => setPlayerCount(count)}
+              >
+                <Text
+                  style={
+                    playerCount === count
+                      ? styles.countButtonTextActive
+                      : styles.countButtonTextInactive
+                  }
                 >
-                  <Text
-                    style={
-                      playerCount === count
-                        ? styles.countButtonTextActive
-                        : styles.countButtonTextInactive
-                    }
-                  >
-                    {count}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                  {count}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        )}
+        </View>
 
-        {/* Join code (join only) */}
-        {mode === 'join' && (
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>{t('home.gameCode')}</Text>
-            <TextInput
-              style={styles.input}
-              value={joinCode}
-              onChangeText={setJoinCode}
-              placeholder={t('home.gameCodePlaceholder')}
-              placeholderTextColor={Colors.inkFaint}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-        )}
+        {/* Join code (join only) — always mounted, hidden via opacity per CLAUDE.md rule 2 */}
+        <View
+          style={[styles.formGroup, { opacity: mode === 'join' ? 1 : 0 }]}
+          pointerEvents={mode === 'join' ? 'auto' : 'none'}
+        >
+          <Text style={styles.label}>{t('home.gameCode')}</Text>
+          <TextInput
+            style={styles.input}
+            value={joinCode}
+            onChangeText={setJoinCode}
+            placeholder={t('home.gameCodePlaceholder')}
+            placeholderTextColor={Colors.inkFaint}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
 
         {/* Error message — always present in layout, hidden when empty */}
         <Text style={[styles.errorText, { opacity: error ? 1 : 0 }]}>{error || ' '}</Text>
