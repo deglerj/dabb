@@ -29,7 +29,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: apps/mobile/Dockerfile.android
+          file: apps/client/Dockerfile.android
           push: false
           load: true
           tags: dabb-android-builder:publish
@@ -40,7 +40,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: /tmp/gradle-cache
-          key: ${{ runner.os }}-gradle-aab-${{ hashFiles('apps/mobile/package.json') }}
+          key: ${{ runner.os }}-gradle-aab-${{ hashFiles('apps/client/package.json') }}
           restore-keys: |
             ${{ runner.os }}-gradle-aab-
             ${{ runner.os }}-gradle-
@@ -62,14 +62,14 @@ jobs:
             -e SIGNING_KEY_PASSWORD="${{ secrets.ANDROID_KEY_PASSWORD }}" \
             -e VERSION_CODE="${{ github.run_number }}" \
             dabb-android-builder:publish \
-            apps/mobile/scripts/build-aab.sh
+            apps/client/scripts/build-aab.sh
 
       - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
           packageName: com.dabb.binokel
-          releaseFiles: apps/mobile/build/dabb.aab
+          releaseFiles: apps/client/build/dabb.aab
           track: ${{ inputs.track }}
           status: completed
 

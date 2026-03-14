@@ -37,7 +37,6 @@ jobs:
           script: |
             cd /opt/dabb
             git pull
-            docker compose -f docker-compose.prod.yml pull server web
+            docker compose -f docker-compose.prod.yml pull server
             docker compose -f docker-compose.prod.yml up -d
-            docker compose -f docker-compose.prod.yml exec nginx nginx -s reload
             docker image prune -f

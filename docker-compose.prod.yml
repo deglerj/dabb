@@ -73,35 +73,6 @@ services:
           cpus: '0.25'
           memory: 128M
 
-  web:
-    image: ${DOCKER_REGISTRY:-ghcr.io}/deglerj/dabb-web:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args:
-        VITE_SERVER_URL: ${VITE_SERVER_URL:?VITE_SERVER_URL is required}
-        VITE_UMAMI_URL: ${VITE_UMAMI_URL:-}
-        VITE_UMAMI_WEBSITE_ID: ${VITE_UMAMI_WEBSITE_ID:-}
-    container_name: dabb-web
-    restart: always
-    depends_on:
-      - server
-    healthcheck:
-      test: ['CMD', 'nginx', '-t']
-      interval: 30s
-      timeout: 3s
-      retries: 3
-    networks:
-      - dabb-external
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 128M
-        reservations:
-          cpus: '0.1'
-          memory: 32M
-
   umami:
     image: ghcr.io/umami-software/umami:postgresql-latest
     container_name: dabb-umami
@@ -166,8 +137,6 @@ services:
     depends_on:
       cert-perms:
         condition: service_completed_successfully
-      web:
-        condition: service_started
       server:
         condition: service_started
     restart: unless-stopped

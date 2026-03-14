@@ -1,12 +1,12 @@
 # AI Assistant Context
 
-**Dabb** is a multiplayer TypeScript monorepo for the Swabian card game Binokel: web (React 19 + Vite), mobile (React Native + Expo), server (Node.js + Express + Socket.IO), shared packages. Stack: pnpm workspaces + Turborepo, PostgreSQL, Vitest, strict TypeScript.
+**Dabb** is a multiplayer TypeScript monorepo for the Swabian card game Binokel: client (React Native + Expo, runs on Android/iOS/web), server (Node.js + Express + Socket.IO), shared packages. Stack: pnpm workspaces + Turborepo, PostgreSQL, Vitest, strict TypeScript.
 
 ## Project Structure
 
 ```
-apps/{web, mobile, server}
-packages/{shared-types, game-logic, ui-shared, card-assets, i18n}
+apps/{client, server}
+packages/{shared-types, game-logic, game-canvas, ui-shared, card-assets, i18n}
 docs/{arc42/, adr/, AI_STRATEGY.md, API.md, SOCKET_EVENTS.md, DATABASE.md, KEY_FILES.md}
 deploy/  .github/workflows/  dev.sh  docker-compose.yml  DEPLOYMENT.md
 ```
@@ -25,8 +25,8 @@ Events are filtered before sending to clients so players only see their own card
 
 ### Scoreboard & Game Log
 
-- **Scoreboard**: `useRoundHistory` hook; web table in `ScoreBoard.tsx`, mobile compact `ScoreBoardHeader.tsx` + expandable modal.
-- **Game Log**: `useGameLog` hook; shows 5 latest entries by default; web right sidebar (300px), mobile bottom overlay; pulsing your-turn banner.
+- **Scoreboard**: `useRoundHistory` hook; compact `ScoreboardStrip` + expandable modal in client.
+- **Game Log**: `useGameLog` hook; shows latest entries; tab-based overlay in client; pulsing your-turn banner.
 
 ### Swabian Terminology
 
@@ -57,8 +57,7 @@ pnpm clean
 
 # Dev servers
 pnpm --filter @dabb/server dev
-pnpm --filter @dabb/web dev
-pnpm --filter @dabb/mobile start
+pnpm --filter @dabb/client start
 
 # DB migrations (auto on server startup)
 pnpm --filter @dabb/server db:migrate
@@ -109,6 +108,6 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 ## Versioning & Changelog
 
-Version sources: root `package.json` (web + server) and `apps/mobile/app.json` `expo.version` — keep in sync.
+Version sources: root `package.json` (server) and `apps/client/app.json` `expo.version` — keep in sync.
 
 Bump type: MAJOR (breaking protocol change), MINOR (new user feature), PATCH (bug fix/internal). Update all five `package.json`/`app.json` files and add an entry to `CHANGELOG.md` in user-friendly language (no jargon). MAJOR bumps must note that users must update the app.
