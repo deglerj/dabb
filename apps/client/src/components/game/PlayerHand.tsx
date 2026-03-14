@@ -5,24 +5,33 @@ import { getValidPlays } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
 
 export interface PlayerHandProps {
-  state: GameState;
+  gameState: GameState | null;
   playerIndex: PlayerIndex;
-  playerCards: Card[];
+  cards: Card[];
   onPlayCard: (cardId: string) => void;
 }
 
 export function PlayerHand({
-  state,
+  gameState,
   playerIndex: _playerIndex,
-  playerCards,
+  cards,
   onPlayCard,
 }: PlayerHandProps) {
   const { width, height } = useWindowDimensions();
-  const layout: LayoutDimensions = { width, height, playerCount: state.players.length as 3 | 4 };
+
+  if (!gameState) {
+    return null;
+  }
+
+  const layout: LayoutDimensions = {
+    width,
+    height,
+    playerCount: gameState.players.length as 3 | 4,
+  };
 
   const positions = deriveCardPositions(
     {
-      handCardIds: playerCards.map((c) => c.id),
+      handCardIds: cards.map((c) => c.id),
       // trickCardIds expects TrickCardEntry[] with { cardId, seatIndex }
       trickCardIds: [],
       // wonPilePlayerIds expects string[]
@@ -32,9 +41,11 @@ export function PlayerHand({
     layout
   );
 
-  const isTricksPhase = state.phase === 'tricks';
+  const isTricksPhase = gameState.phase === 'tricks';
   const validPlays =
-    isTricksPhase && state.trump ? getValidPlays(playerCards, state.currentTrick, state.trump) : [];
+    isTricksPhase && gameState.trump
+      ? getValidPlays(cards, gameState.currentTrick, gameState.trump)
+      : [];
   const validIds = new Set(validPlays.map((c) => c.id));
 
   const handleDrop = (cardId: string) => (_x: number, _y: number) => {
@@ -45,24 +56,25 @@ export function PlayerHand({
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {playerCards.map((card) => {
+      {cards.map((card) => {
         const pos = positions.playerHand[card.id];
         if (!pos) {
           return null;
         }
         const isValid = !isTricksPhase || validIds.has(card.id);
         return (
-          <CardView
-            key={card.id}
-            card={card.id}
-            targetX={pos.x}
-            targetY={pos.y}
-            targetRotation={pos.rotation}
-            zIndex={pos.zIndex}
-            draggable={isTricksPhase && isValid}
-            onTap={isTricksPhase && isValid ? () => onPlayCard(card.id) : undefined}
-            onDrop={isTricksPhase && isValid ? handleDrop(card.id) : undefined}
-          />
+          <View key={card.id} style={isValid ? undefined : { opacity: 0.4 }}>
+            <CardView
+              card={card.id}
+              targetX={pos.x}
+              targetY={pos.y}
+              targetRotation={pos.rotation}
+              zIndex={pos.zIndex}
+              draggable={isTricksPhase && isValid}
+              onTap={isTricksPhase && isValid ? () => onPlayCard(card.id) : undefined}
+              onDrop={isTricksPhase && isValid ? handleDrop(card.id) : undefined}
+            />
+          </View>
         );
       })}
     </View>

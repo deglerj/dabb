@@ -5,47 +5,32 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import type { PlayerIndex } from '@dabb/shared-types';
 
 export interface OpponentZoneProps {
-  playerId: string;
+  playerIndex: PlayerIndex;
   nickname: string;
   cardCount: number;
-  wonTrickCount: number;
-  isTheirTurn: boolean;
-  x: number;
-  y: number;
-  isPartner?: boolean;
+  isConnected: boolean;
+  position: { x: number; y: number };
 }
 
 const CARD_W = 40;
 const CARD_H = 60;
 
-export function OpponentZone({
-  nickname,
-  cardCount,
-  wonTrickCount,
-  isTheirTurn,
-  x,
-  y,
-  isPartner,
-}: OpponentZoneProps) {
+export function OpponentZone({ nickname, cardCount, isConnected, position }: OpponentZoneProps) {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const isTablet = Math.min(width, height) > 600;
   const showCards = isLandscape || isTablet;
 
   return (
-    <View style={[styles.container, { left: x - 40, top: y - 20 }]}>
-      <View
-        style={[
-          styles.nameplate,
-          isTheirTurn && styles.nameplateActive,
-          isPartner && styles.nameplatePartner,
-        ]}
-      >
+    <View style={[styles.container, { left: position.x - 40, top: position.y - 20 }]}>
+      <View style={styles.nameplate}>
         <Text style={styles.name} numberOfLines={1}>
           {nickname}
         </Text>
+        {!isConnected && <Text style={styles.offlineBadge}>(offline)</Text>}
         {!showCards && <Text style={styles.cardCountBadge}>{cardCount}</Text>}
       </View>
       {showCards && cardCount > 0 && (
@@ -53,11 +38,6 @@ export function OpponentZone({
           {Array.from({ length: Math.min(cardCount, 6) }).map((_, i) => (
             <View key={i} style={[styles.cardBack, { marginLeft: i === 0 ? 0 : -28 }]} />
           ))}
-        </View>
-      )}
-      {wonTrickCount > 0 && (
-        <View style={styles.wonBadge}>
-          <Text style={styles.wonText}>{wonTrickCount}×</Text>
         </View>
       )}
     </View>
@@ -82,9 +62,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  nameplateActive: { borderColor: '#d4890a', shadowColor: '#d4890a', shadowOpacity: 0.5 },
-  nameplatePartner: { borderColor: '#3a7d44' },
   name: { fontSize: 14, color: '#3d2e18', maxWidth: 80 },
+  offlineBadge: { fontSize: 11, color: '#999' },
   cardCountBadge: { fontSize: 13, color: '#8a5e2e' },
   cardFan: { flexDirection: 'row' },
   cardBack: {
@@ -95,11 +74,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1a4a28',
   },
-  wonBadge: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: 8,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-  },
-  wonText: { fontSize: 11, color: '#f2e8d0' },
 });
