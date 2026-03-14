@@ -8,5 +8,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "index.ts", "babel.config.js", "metro.config.js"]
+  "include": ["src/**/*", "index.ts"]
 }
