@@ -97,3 +97,4 @@ deploy/nginx/certbot/www/
 .claude/*
 !.claude/commands/
 .vscode
+apps/client/public/canvaskit.wasm

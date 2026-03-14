@@ -21,12 +21,21 @@ export default function WaitingRoomRoute() {
   const secretId = params['secretId'] as string | undefined;
   const piStr = params['playerIndex'] as string | undefined;
   const pcStr = params['playerCount'] as string | undefined;
+  const ownNickname = params['nickname'] as string | undefined;
   const router = useRouter();
   const playerIndex = parseInt(piStr ?? '0', 10) as PlayerIndex;
   // playerCount=0 means unknown (joiner) — WaitingRoomScreen handles 0 gracefully
   const playerCount = parseInt(pcStr ?? '0', 10);
 
-  const [players, setPlayers] = useState<Map<PlayerIndex, PlayerEntry>>(new Map());
+  // Seed own player immediately — the server emits player:joined only to *other* sockets,
+  // so we'd never receive our own join event.
+  const [players, setPlayers] = useState<Map<PlayerIndex, PlayerEntry>>(() => {
+    const m = new Map<PlayerIndex, PlayerEntry>();
+    if (ownNickname) {
+      m.set(playerIndex, { nickname: ownNickname, connected: true, isAI: false });
+    }
+    return m;
+  });
   const [isAddingAI, setIsAddingAI] = useState(false);
   const [selectedAIDifficulty, setSelectedAIDifficulty] = useState<AIDifficulty>('medium');
 
@@ -69,17 +78,19 @@ export default function WaitingRoomRoute() {
       if (started) {
         router.replace({
           pathname: '/game/[id]',
-          params: { id: sessionId, secretId, playerIndex: piStr },
+          params: { id: sessionId, code: sessionCode, secretId, playerIndex: piStr },
         });
       }
     },
-    [router, sessionId, secretId, piStr]
+    [router, sessionId, sessionCode, secretId, piStr]
   );
 
   // TODO: surface connection error to WaitingRoomScreen once it accepts a connectionError prop
+  // Note: the server socket middleware expects the session *code* (e.g. "ABCD") in the sessionId
+  // auth field, not the UUID. See apps/server/src/socket/handlers.ts middleware.
   const { emit, error: _connectionError } = useSocket({
     serverUrl: SERVER_URL,
-    sessionId: sessionId ?? '',
+    sessionId: sessionCode ?? '',
     secretId: secretId ?? '',
     onEvents: handleEvents,
     onPlayerJoined: handlePlayerJoined,

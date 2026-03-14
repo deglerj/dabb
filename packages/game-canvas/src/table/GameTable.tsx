@@ -11,7 +11,6 @@
  */
 
 import React, { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
 import { Canvas, Fill, Path, Skia, Circle, rect, rrect, Shader } from '@shopify/react-native-skia';
 import { useDerivedValue } from 'react-native-reanimated';
 import { FELT_SHADER_SOURCE, WOOD_SHADER_SOURCE } from './shaders.js';
@@ -58,7 +57,10 @@ export function GameTable({ width, height, effects, surroundFraction = 0.05 }: G
   const rippleY = useDerivedValue(() => effects.ripple.value.y);
 
   return (
-    <Canvas style={[StyleSheet.absoluteFill, { width, height }]} pointerEvents="none">
+    <Canvas
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width, height }}
+      pointerEvents="none"
+    >
       {/* Wood surround */}
       <Fill>
         <Shader source={woodEffect} uniforms={woodUniforms} />

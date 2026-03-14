@@ -74,6 +74,7 @@ export default function HomeScreen() {
           secretId: sessionData.secretId,
           playerIndex: String(sessionData.playerIndex),
           playerCount: String(playerCount),
+          nickname: nickname.trim(),
         },
       });
     } catch (err) {
@@ -117,6 +118,7 @@ export default function HomeScreen() {
           secretId: sessionData.secretId,
           playerIndex: String(sessionData.playerIndex),
           playerCount: '0', // unknown for joiners; waiting room discovers it from socket events
+          nickname: nickname.trim(),
         },
       });
     } catch (err) {

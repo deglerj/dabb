@@ -39,38 +39,46 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
   // Face cards: larger initial centered in the band; number cards: large suit symbol
   const centerFontSize = isFace ? Math.round(width * 0.52) : Math.round(width * 0.42);
 
-  const cornerFont = useMemo(
-    () =>
-      matchFont({
+  // matchFont uses the system font manager which is not implemented on RN Web.
+  // The null guard below falls back to a label-free card canvas on web.
+  const cornerFont = useMemo(() => {
+    try {
+      return matchFont({
         fontFamily: 'System',
         fontSize: cornerFontSize,
         fontWeight: 'bold',
         fontStyle: 'normal',
-      }),
-    [cornerFontSize]
-  );
+      });
+    } catch {
+      return null;
+    }
+  }, [cornerFontSize]);
 
-  const cornerSuitFont = useMemo(
-    () =>
-      matchFont({
+  const cornerSuitFont = useMemo(() => {
+    try {
+      return matchFont({
         fontFamily: 'System',
         fontSize: cornerSuitFontSize,
         fontWeight: 'normal',
         fontStyle: 'normal',
-      }),
-    [cornerSuitFontSize]
-  );
+      });
+    } catch {
+      return null;
+    }
+  }, [cornerSuitFontSize]);
 
-  const centerFont = useMemo(
-    () =>
-      matchFont({
+  const centerFont = useMemo(() => {
+    try {
+      return matchFont({
         fontFamily: 'System',
         fontSize: centerFontSize,
         fontWeight: 'bold',
         fontStyle: 'normal',
-      }),
-    [centerFontSize]
-  );
+      });
+    } catch {
+      return null;
+    }
+  }, [centerFontSize]);
 
   if (!cornerFont || !cornerSuitFont || !centerFont) {
     return <Canvas style={{ width, height }} />;
