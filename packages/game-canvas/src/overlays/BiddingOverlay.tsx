@@ -41,11 +41,13 @@ export function BiddingOverlay({ currentBid, isMyTurn, onBid, onPass }: BiddingO
             style={styles.chipsScroll}
             contentContainerStyle={styles.chipsContent}
           >
-            {bidAmounts.map((amount) => (
-              <TouchableOpacity key={amount} style={styles.chip} onPress={() => onBid(amount)}>
-                <Text style={styles.chipText}>{amount}</Text>
-              </TouchableOpacity>
-            ))}
+            {bidAmounts
+              .filter((amount) => amount > currentBid)
+              .map((amount) => (
+                <TouchableOpacity key={amount} style={styles.chip} onPress={() => onBid(amount)}>
+                  <Text style={styles.chipText}>{amount}</Text>
+                </TouchableOpacity>
+              ))}
           </ScrollView>
           <TouchableOpacity style={styles.passButton} onPress={onPass}>
             <Text style={styles.passText}>{t('game.pass')}</Text>
