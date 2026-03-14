@@ -304,7 +304,7 @@ cmd_mobile() {
     echo ""
 
     cd apps/client
-    EXPO_PUBLIC_SERVER_URL="$server_url" npx expo start --go
+    EXPO_PUBLIC_SERVER_URL="$server_url" npx expo start --go --clear
 }
 
 # Build Android APK in Docker
