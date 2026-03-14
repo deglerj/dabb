@@ -111,8 +111,7 @@ The AI plays a reasonable game — it evaluates melds for bidding, chooses trump
 | Monorepo  | pnpm + Turborepo              |
 | Backend   | Node.js + Express + Socket.IO |
 | Database  | PostgreSQL                    |
-| Web       | React + Vite                  |
-| Mobile    | React Native + Expo           |
+| Client    | React Native + Expo           |
 | Types     | TypeScript                    |
 
 ### Project Structure
@@ -120,14 +119,14 @@ The AI plays a reasonable game — it evaluates melds for bidding, chooses trump
 ```
 dabb/
 ├── apps/
-│   ├── web/        # React web client
-│   ├── mobile/     # React Native Android app
+│   ├── client/     # React Native + Expo app (Android/iOS/web)
 │   └── server/     # Node.js backend
 ├── packages/
 │   ├── game-logic/     # Core game engine
 │   ├── shared-types/   # TypeScript types
+│   ├── game-canvas/    # Skia card table rendering
 │   ├── ui-shared/      # Shared React hooks
-│   ├── card-assets/    # SVG card graphics
+│   ├── card-assets/    # Card graphics and constants
 │   └── i18n/           # Internationalization
 └── turbo.json
 ```
