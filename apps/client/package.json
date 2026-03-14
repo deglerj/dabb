@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage --passWithNoTests",
     "build:local": "eas build --local --platform android --profile preview",
+    "bundle:web": "expo export --platform web",
     "clean": "rm -rf .expo dist"
   },
   "dependencies": {
