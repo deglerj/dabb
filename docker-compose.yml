@@ -54,26 +54,6 @@ services:
       timeout: 3s
       retries: 3
 
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args:
-        VITE_SERVER_URL: http://localhost:3000
-        # VITE_UMAMI_URL: http://localhost:3001/umami
-        # VITE_UMAMI_WEBSITE_ID: set after creating website in Umami dashboard
-    container_name: dabb-web
-    restart: unless-stopped
-    depends_on:
-      - server
-    ports:
-      - '8080:8080'
-    healthcheck:
-      test: ['CMD', 'nginx', '-t']
-      interval: 30s
-      timeout: 3s
-      retries: 3
-
   umami:
     image: ghcr.io/umami-software/umami:postgresql-latest
     container_name: dabb-umami

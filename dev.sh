@@ -330,7 +330,7 @@ cmd_mobile() {
     echo -e "${YELLOW}Starting Expo dev server...${NC}"
     echo ""
 
-    cd apps/mobile
+    cd apps/client
     EXPO_PUBLIC_SERVER_URL="$server_url" npx expo start --go
 }
 
@@ -341,7 +341,7 @@ cmd_apk() {
     echo ""
 
     echo -e "Building Docker image (this may take a while on first run)..."
-    $RUNTIME build -f apps/mobile/Dockerfile.android -t dabb-android-builder .
+    $RUNTIME build -f apps/client/Dockerfile.android -t dabb-android-builder .
 
     echo ""
     echo -e "${YELLOW}Running APK build...${NC}"
@@ -354,7 +354,7 @@ cmd_apk() {
         dabb-android-builder
 
     echo ""
-    echo -e "${GREEN}APK built successfully: apps/mobile/build/dabb.apk${NC}"
+    echo -e "${GREEN}APK built successfully: apps/client/build/dabb.apk${NC}"
 }
 
 # Show help
@@ -371,7 +371,7 @@ Commands:
   health      Check health of all services
   shell       Open shell in a container
               Usage: ./dev.sh shell <service>
-              Services: postgres, server, web
+              Services: postgres, server
   db          Connect to PostgreSQL CLI
   reset       Stop services and remove volumes (fresh start)
   build       Rebuild all images
@@ -379,7 +379,7 @@ Commands:
   mobile      Start Expo mobile dev server
               Requires: ./dev.sh start (server must be running)
   apk         Build Android APK in Docker container
-              Output: apps/mobile/build/dabb.apk
+              Output: apps/client/build/dabb.apk
   help        Show this help message
 
 Examples:

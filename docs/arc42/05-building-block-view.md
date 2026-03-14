@@ -47,8 +47,8 @@ flowchart TB
 | `@dabb/ui-shared`    | React hooks for socket and state management    |
 | `@dabb/card-assets`  | SVG card graphics and utilities                |
 | `@dabb/i18n`         | Internationalization (German, English)         |
-| `@dabb/web`          | React web application                          |
-| `@dabb/mobile`       | React Native mobile application                |
+| `@dabb/client`       | React Native + Expo client (Android/iOS/web)   |
+| `@dabb/game-canvas`  | Skia-based game canvas rendering               |
 | `@dabb/server`       | Express + Socket.IO backend                    |
 
 ## 5.2 Level 2: Packages

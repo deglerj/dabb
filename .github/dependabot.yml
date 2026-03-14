@@ -38,11 +38,6 @@ updates:
       interval: 'weekly'
 
   - package-ecosystem: 'docker'
-    directory: '/apps/web'
-    schedule:
-      interval: 'weekly'
-
-  - package-ecosystem: 'docker'
-    directory: '/apps/mobile'
+    directory: '/apps/client'
     schedule:
       interval: 'weekly'

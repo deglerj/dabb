@@ -167,11 +167,8 @@ pnpm test
 # Start the backend server
 pnpm --filter @dabb/server dev
 
-# Start the web client (in another terminal)
-pnpm --filter @dabb/web dev
-
-# Start the mobile app
-pnpm --filter @dabb/mobile start
+# Start the client app (in another terminal)
+pnpm --filter @dabb/client start
 ```
 
 ### Mobile Development with Expo Go
@@ -240,13 +237,7 @@ DATABASE_URL=postgresql://localhost:5432/dabb
 PORT=3000
 ```
 
-**apps/web/.env**
-
-```env
-VITE_SERVER_URL=http://localhost:3000
-```
-
-**apps/mobile/.env**
+**apps/client/.env**
 
 ```env
 EXPO_PUBLIC_SERVER_URL=http://localhost:3000
