@@ -1,12 +1,15 @@
 /**
  * CardFace — antique paper card face rendered as a Skia Canvas.
- * König/Ober/Buabe use emoji placeholders; wired to real SVGs in Plan 2.
+ *
+ * Number cards (Ass, Zehn) show suit symbol in the center.
+ * Face cards (König, Ober, Buabe) show a colored vertical band with the rank
+ * initial (K / O / B) displayed prominently in contrasting color.
  *
  * CardId format: "suit-rank-copy" (e.g. "kreuz-ass-0")
  */
 import React, { useMemo } from 'react';
-import { Canvas, RoundedRect, Group, Text, matchFont } from '@shopify/react-native-skia';
-import { SUIT_SYMBOLS, getSuitColor, RANK_DISPLAY } from '@dabb/card-assets';
+import { Canvas, RoundedRect, Rect, Group, Text, matchFont } from '@shopify/react-native-skia';
+import { SUIT_SYMBOLS, getSuitColor, RANK_DISPLAY, FACE_CARD_BAND } from '@dabb/card-assets';
 import type { CardId, Suit, Rank } from '@dabb/shared-types';
 
 export interface CardFaceProps {
@@ -17,11 +20,7 @@ export interface CardFaceProps {
   y?: number;
 }
 
-const FACE_EMOJI: Partial<Record<Rank, string>> = {
-  koenig: '♛',
-  ober: '♜',
-  buabe: '♞',
-};
+const FACE_RANKS = new Set<Rank>(['koenig', 'ober', 'buabe']);
 
 function parseCardId(id: CardId): { suit: Suit; rank: Rank } {
   const [suit, rank] = id.split('-') as [Suit, Rank];
@@ -33,12 +32,12 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
   const symbol = SUIT_SYMBOLS[suit];
   const color = getSuitColor(suit);
   const abbr = RANK_DISPLAY[rank];
-  const faceEmoji = FACE_EMOJI[rank];
-  const isFace = faceEmoji !== undefined;
+  const isFace = FACE_RANKS.has(rank);
 
   const cornerFontSize = Math.round(width * 0.17);
   const cornerSuitFontSize = Math.round(cornerFontSize * 0.75);
-  const centerFontSize = Math.round(width * 0.42);
+  // Face cards: larger initial centered in the band; number cards: large suit symbol
+  const centerFontSize = isFace ? Math.round(width * 0.52) : Math.round(width * 0.42);
 
   const cornerFont = useMemo(
     () =>
@@ -67,7 +66,7 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
       matchFont({
         fontFamily: 'System',
         fontSize: centerFontSize,
-        fontWeight: 'normal',
+        fontWeight: 'bold',
         fontStyle: 'normal',
       }),
     [centerFontSize]
@@ -83,17 +82,24 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
   // Measure text widths for positioning
   const abbrWidth = cornerFont.measureText(abbr).width;
   const symbolSmallWidth = cornerSuitFont.measureText(symbol).width;
-  const centerText = isFace ? (faceEmoji as string) : symbol;
-  const centerTextWidth = centerFont.measureText(centerText).width;
 
   // Corner rank: top-left, baseline at cornerFontSize
   const rankBaselineY = padding + cornerFontSize;
   // Corner suit: below rank
   const suitBaselineY = rankBaselineY + cornerSuitFontSize * 0.9;
 
-  // Center: vertically and horizontally centered
+  // Band geometry for face cards: vertical stripe in center 40% of width
+  const bandWidth = width * 0.4;
+  const bandX = (width - bandWidth) / 2;
+
+  // Center rank initial positioned over the band
+  const faceInitial = isFace ? abbr : symbol;
+  const faceInitialWidth = centerFont.measureText(faceInitial).width;
+  const centerX = (width - faceInitialWidth) / 2;
   const centerBaselineY = (height + centerFontSize) / 2 - centerFontSize * 0.15;
-  const centerX = (width - centerTextWidth) / 2;
+
+  // Retrieve band/text colors for face cards
+  const bandColors = isFace ? FACE_CARD_BAND[rank as 'koenig' | 'ober' | 'buabe'] : null;
 
   return (
     <Canvas style={{ width, height }}>
@@ -111,6 +117,18 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
           style="stroke"
           strokeWidth={0.5}
         />
+
+        {/* Face card: colored vertical band in center */}
+        {isFace && bandColors !== null && (
+          <Rect
+            x={bandX}
+            y={0}
+            width={bandWidth}
+            height={height}
+            color={bandColors.band}
+            opacity={0.85}
+          />
+        )}
 
         {/* Top-left: rank */}
         <Text x={padding} y={rankBaselineY} text={abbr} font={cornerFont} color={color} />
@@ -135,13 +153,13 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
           />
         </Group>
 
-        {/* Center: large suit symbol or face emoji */}
+        {/* Center: large rank initial (face) or suit symbol (number) */}
         <Text
           x={centerX}
           y={centerBaselineY}
-          text={centerText}
+          text={faceInitial}
           font={centerFont}
-          color={isFace ? '#333333' : color}
+          color={isFace && bandColors !== null ? bandColors.text : color}
         />
       </Group>
     </Canvas>
