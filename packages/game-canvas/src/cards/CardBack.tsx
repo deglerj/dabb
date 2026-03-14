@@ -6,7 +6,7 @@
  */
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Canvas, Skia, Picture } from '@shopify/react-native-skia';
+import { Canvas, Skia, Picture, PaintStyle } from '@shopify/react-native-skia';
 
 export interface CardBackProps {
   width: number;
@@ -40,13 +40,13 @@ export function CardBack({ width, height, x = 0, y = 0 }: CardBackProps) {
     const linePaint = Skia.Paint();
     linePaint.setColor(Skia.Color('rgba(255,255,255,0.08)'));
     linePaint.setStrokeWidth(1);
-    linePaint.setStyle(1); // stroke
+    linePaint.setStyle(PaintStyle.Stroke);
     cvs.drawPath(crosshatchPath, linePaint);
 
     // Inner border rect
     const border = Skia.Paint();
     border.setColor(Skia.Color('rgba(255,255,255,0.12)'));
-    border.setStyle(1); // stroke
+    border.setStyle(PaintStyle.Stroke);
     border.setStrokeWidth(1);
     cvs.drawRect(Skia.XYWHRect(3, 3, width - 6, height - 6), border);
 

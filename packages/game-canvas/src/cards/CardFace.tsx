@@ -73,13 +73,17 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
     [centerFontSize]
   );
 
+  if (!cornerFont || !cornerSuitFont || !centerFont) {
+    return <Canvas style={{ width, height }} />;
+  }
+
   const radius = width * 0.06;
   const padding = 5;
 
   // Measure text widths for positioning
   const abbrWidth = cornerFont.measureText(abbr).width;
   const symbolSmallWidth = cornerSuitFont.measureText(symbol).width;
-  const centerText = isFace ? (faceEmoji ?? '') : symbol;
+  const centerText = isFace ? (faceEmoji as string) : symbol;
   const centerTextWidth = centerFont.measureText(centerText).width;
 
   // Corner rank: top-left, baseline at cornerFontSize
