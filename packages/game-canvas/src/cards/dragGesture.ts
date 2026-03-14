@@ -1,5 +1,6 @@
 import { Gesture } from 'react-native-gesture-handler';
-import { withSpring, runOnJS } from 'react-native-reanimated';
+import { withSpring } from 'react-native-reanimated';
+import { runOnJS } from 'react-native-worklets';
 import type { SharedValue } from 'react-native-reanimated';
 
 export interface CardGestureOptions {
