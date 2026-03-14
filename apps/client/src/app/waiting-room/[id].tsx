@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSocket } from '@dabb/ui-shared';
 import WaitingRoomScreen from '../../components/ui/WaitingRoomScreen.js';
@@ -26,15 +27,19 @@ export default function WaitingRoomRoute() {
   const playerCount = parseInt(pcStr ?? '0', 10);
 
   const [players, setPlayers] = useState<Map<PlayerIndex, PlayerEntry>>(new Map());
+  const [isAddingAI, setIsAddingAI] = useState(false);
+  const [selectedAIDifficulty, setSelectedAIDifficulty] = useState<AIDifficulty>('medium');
 
-  // useSocket only provides (playerIndex, nickname) — isAI/difficulty not available via socket events
-  const handlePlayerJoined = useCallback((idx: number, nickname: string) => {
-    setPlayers((prev) => {
-      const next = new Map(prev);
-      next.set(idx as PlayerIndex, { nickname, connected: true, isAI: false });
-      return next;
-    });
-  }, []);
+  const handlePlayerJoined = useCallback(
+    (idx: number, nickname: string, isAI = false, aiDifficulty?: AIDifficulty) => {
+      setPlayers((prev) => {
+        const next = new Map(prev);
+        next.set(idx as PlayerIndex, { nickname, connected: true, isAI, aiDifficulty });
+        return next;
+      });
+    },
+    []
+  );
 
   const handlePlayerLeft = useCallback((idx: number) => {
     setPlayers((prev) => {
@@ -94,6 +99,66 @@ export default function WaitingRoomRoute() {
     router.replace('/');
   }, [emit, sessionCode, router]);
 
+  const handleAddAI = useCallback(async () => {
+    if (!sessionCode || !secretId || isAddingAI) {
+      return;
+    }
+    setIsAddingAI(true);
+    try {
+      const response = await fetch(`${SERVER_URL}/api/sessions/${sessionCode}/ai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Secret-Id': secretId },
+        body: JSON.stringify({ difficulty: selectedAIDifficulty }),
+      });
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        Alert.alert('Error', data.error ?? 'Failed to add AI player');
+        return;
+      }
+      const {
+        playerIndex: idx,
+        nickname,
+        aiDifficulty,
+      } = (await response.json()) as {
+        playerIndex: number;
+        nickname: string;
+        aiDifficulty: AIDifficulty;
+      };
+      handlePlayerJoined(idx, nickname, true, aiDifficulty);
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to add AI player');
+    } finally {
+      setIsAddingAI(false);
+    }
+  }, [sessionCode, secretId, isAddingAI, selectedAIDifficulty, handlePlayerJoined]);
+
+  const handleRemoveAI = useCallback(
+    async (playerIdx: PlayerIndex) => {
+      if (!sessionCode || !secretId) {
+        return;
+      }
+      try {
+        const response = await fetch(`${SERVER_URL}/api/sessions/${sessionCode}/ai/${playerIdx}`, {
+          method: 'DELETE',
+          headers: { 'X-Secret-Id': secretId },
+        });
+        if (!response.ok) {
+          const data = (await response.json()) as { error?: string };
+          Alert.alert('Error', data.error ?? 'Failed to remove AI player');
+          return;
+        }
+        setPlayers((prev) => {
+          const next = new Map(prev);
+          next.delete(playerIdx);
+          return next;
+        });
+      } catch (err) {
+        Alert.alert('Error', err instanceof Error ? err.message : 'Failed to remove AI player');
+      }
+    },
+    [sessionCode, secretId]
+  );
+
   return (
     <WaitingRoomScreen
       sessionCode={sessionCode ?? ''}
@@ -102,6 +167,11 @@ export default function WaitingRoomRoute() {
       isHost={isHost}
       onStartGame={handleStartGame}
       onLeave={handleLeave}
+      onAddAI={isHost ? handleAddAI : undefined}
+      onRemoveAI={isHost ? handleRemoveAI : undefined}
+      isAddingAI={isAddingAI}
+      selectedAIDifficulty={selectedAIDifficulty}
+      onSelectAIDifficulty={setSelectedAIDifficulty}
     />
   );
 }

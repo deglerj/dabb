@@ -5,6 +5,6 @@ import Constants from 'expo-constants';
  * Falls back to localhost for local development.
  */
 export const SERVER_URL: string =
-  (Constants.expoConfig?.extra?.serverUrl as string | undefined) ?? 'http://localhost:3000';
+  (Constants.expoConfig?.extra?.serverUrl as string | undefined) || 'http://localhost:3000';
 
 export const APP_VERSION: string = Constants.expoConfig?.version ?? '0.0.0';

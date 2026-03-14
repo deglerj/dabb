@@ -37,7 +37,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://dabb:dabb_dev_password@postgres:5432/dabb
-      CLIENT_URL: http://localhost:8080
+      CLIENT_URL: http://localhost:8081
       UMAMI_URL: http://umami:3000
       # UMAMI_WEBSITE_ID: set this after creating a website in the Umami dashboard
     ports:
