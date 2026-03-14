@@ -140,20 +140,6 @@ cmd_start() {
         sleep 1
     done
 
-    # Wait for web
-    echo -n "  Web:        "
-    for i in {1..30}; do
-        if curl -sf http://localhost:8080/ &> /dev/null; then
-            echo -e "${GREEN}ready${NC}"
-            break
-        fi
-        if [[ $i -eq 30 ]]; then
-            echo -e "${RED}timeout${NC}"
-            failed=true
-        fi
-        sleep 1
-    done
-
     echo ""
     if [[ "$failed" == "true" ]]; then
         echo -e "${RED}Some services failed to start. Check logs with: ./dev.sh logs${NC}"
@@ -162,12 +148,11 @@ cmd_start() {
     fi
     echo ""
     echo "Access the application:"
-    echo -e "  Web app:    ${BLUE}http://localhost:8080${NC}"
     echo -e "  Server API: ${BLUE}http://localhost:3000${NC}"
     echo -e "  PostgreSQL: ${BLUE}postgresql://dabb:dabb_dev_password@localhost:5432/dabb${NC}"
     echo ""
     echo "Useful commands:"
-    echo "  ./dev.sh mobile   - Start Expo mobile dev server"
+    echo "  ./dev.sh mobile   - Start Expo dev server (Android/iOS/web)"
     echo "  ./dev.sh logs     - View logs"
     echo "  ./dev.sh status   - Check status"
     echo "  ./dev.sh stop     - Stop services"
@@ -226,14 +211,6 @@ cmd_health() {
         echo -e "${RED}unhealthy${NC}"
     fi
 
-    # Web
-    echo -n "  Web:        "
-    if curl -sf http://localhost:8080/ &> /dev/null; then
-        echo -e "${GREEN}healthy${NC}"
-    else
-        echo -e "${RED}unhealthy${NC}"
-    fi
-
     echo ""
 }
 
@@ -251,13 +228,9 @@ cmd_shell() {
             echo -e "${YELLOW}Opening shell in Server container...${NC}"
             $COMPOSE_CMD exec server sh
             ;;
-        web)
-            echo -e "${YELLOW}Opening shell in Web container...${NC}"
-            $COMPOSE_CMD exec web sh
-            ;;
         *)
             echo -e "${RED}Unknown service: $service${NC}"
-            echo "Available services: postgres, server, web"
+            echo "Available services: postgres, server"
             exit 1
             ;;
     esac
@@ -394,7 +367,6 @@ Examples:
 Environment:
   The following defaults are used for local development:
   - Database: dabb / dabb_dev_password
-  - Web:      http://localhost:8080
   - Server:   http://localhost:3000
   - DB Port:  5432
 
