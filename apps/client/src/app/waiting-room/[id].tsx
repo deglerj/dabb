@@ -47,6 +47,17 @@ export default function WaitingRoomRoute() {
     });
   }, []);
 
+  const handlePlayerReconnected = useCallback((idx: number) => {
+    setPlayers((prev) => {
+      const next = new Map(prev);
+      const p = next.get(idx as PlayerIndex);
+      if (p) {
+        next.set(idx as PlayerIndex, { ...p, connected: true });
+      }
+      return next;
+    });
+  }, []);
+
   const handleEvents = useCallback(
     (events: GameEvent[]) => {
       const started = events.some((e) => e.type === 'GAME_STARTED');
@@ -60,13 +71,15 @@ export default function WaitingRoomRoute() {
     [router, sessionId, secretId, piStr]
   );
 
-  const { emit } = useSocket({
+  // TODO: surface connection error to WaitingRoomScreen once it accepts a connectionError prop
+  const { emit, error: _connectionError } = useSocket({
     serverUrl: SERVER_URL,
     sessionId: sessionId ?? '',
     secretId: secretId ?? '',
     onEvents: handleEvents,
     onPlayerJoined: handlePlayerJoined,
     onPlayerLeft: handlePlayerLeft,
+    onPlayerReconnected: handlePlayerReconnected,
   });
 
   const isHost = playerIndex === 0;
