@@ -30,7 +30,15 @@ export default function GameRoute() {
 
   return (
     <WithSkiaWeb
-      getComponent={() => import('../../components/ui/GameScreen.js')}
+      getComponent={() =>
+        import('../../components/ui/GameScreen.js') as unknown as Promise<{
+          default: React.ComponentType<{
+            sessionId: string;
+            secretId: string;
+            playerIndex: PlayerIndex;
+          }>;
+        }>
+      }
       opts={{ locateFile: (file: string) => `/${file}` }}
       fallback={
         <View style={styles.loading}>

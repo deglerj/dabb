@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { CardView, deriveCardPositions, type LayoutDimensions } from '@dabb/game-canvas';
-import { getValidPlays } from '@dabb/game-logic';
+import { getValidPlays, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
 
 export interface PlayerHandProps {
@@ -29,9 +29,11 @@ export function PlayerHand({
     playerCount: gameState.players.length as 3 | 4,
   };
 
+  const sortedCards = sortHand(cards);
+
   const positions = deriveCardPositions(
     {
-      handCardIds: cards.map((c) => c.id),
+      handCardIds: sortedCards.map((c) => c.id),
       // trickCardIds expects TrickCardEntry[] with { cardId, seatIndex }
       trickCardIds: [],
       // wonPilePlayerIds expects string[]
@@ -56,7 +58,7 @@ export function PlayerHand({
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {cards.map((card) => {
+      {sortedCards.map((card) => {
         const pos = positions.playerHand[card.id];
         if (!pos) {
           return null;

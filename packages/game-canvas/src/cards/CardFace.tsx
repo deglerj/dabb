@@ -8,6 +8,7 @@
  * CardId format: "suit-rank-copy" (e.g. "kreuz-ass-0")
  */
 import React, { useMemo } from 'react';
+import { View, Text as RNText, StyleSheet } from 'react-native';
 import { Canvas, RoundedRect, Rect, Group, Text, matchFont } from '@shopify/react-native-skia';
 import { SUIT_SYMBOLS, getSuitColor, RANK_DISPLAY, FACE_CARD_BAND } from '@dabb/card-assets';
 import type { CardId, Suit, Rank } from '@dabb/shared-types';
@@ -81,7 +82,31 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
   }, [centerFontSize]);
 
   if (!cornerFont || !cornerSuitFont || !centerFont) {
-    return <Canvas style={{ width, height }} />;
+    // Fallback for platforms where matchFont is unavailable (e.g. RN Web).
+    // Uses React Native View/Text which renders correctly on all platforms.
+    const cornerSz = Math.round(width * 0.17);
+    const centerSz = isFace ? Math.round(width * 0.52) : Math.round(width * 0.42);
+    return (
+      <View style={[rnStyles.card, { width, height, borderRadius: width * 0.06 }]}>
+        <View style={rnStyles.cornerTL}>
+          <RNText style={[rnStyles.cornerRank, { fontSize: cornerSz, color }]}>{abbr}</RNText>
+          <RNText style={[rnStyles.cornerSuit, { fontSize: cornerSz * 0.75, color }]}>
+            {symbol}
+          </RNText>
+        </View>
+        <View style={rnStyles.center}>
+          <RNText style={{ fontSize: centerSz, color, fontWeight: 'bold' }}>
+            {isFace ? abbr : symbol}
+          </RNText>
+        </View>
+        <View style={[rnStyles.cornerTL, rnStyles.cornerBR, { transform: [{ rotate: '180deg' }] }]}>
+          <RNText style={[rnStyles.cornerRank, { fontSize: cornerSz, color }]}>{abbr}</RNText>
+          <RNText style={[rnStyles.cornerSuit, { fontSize: cornerSz * 0.75, color }]}>
+            {symbol}
+          </RNText>
+        </View>
+      </View>
+    );
   }
 
   const radius = width * 0.06;
@@ -173,3 +198,17 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
     </Canvas>
   );
 }
+
+const rnStyles = StyleSheet.create({
+  card: {
+    backgroundColor: '#f2e8d0',
+    overflow: 'hidden',
+    borderWidth: 0.5,
+    borderColor: '#c8b89a',
+  },
+  cornerTL: { position: 'absolute', top: 4, left: 5, alignItems: 'center' },
+  cornerBR: { top: undefined, left: undefined, bottom: 4, right: 5 },
+  cornerRank: { fontWeight: '700', lineHeight: 15 },
+  cornerSuit: { lineHeight: 13 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+});
