@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   chipsScroll: {
-    maxWidth: 280,
+    alignSelf: 'stretch',
     marginBottom: 10,
   },
   chipsContent: {
