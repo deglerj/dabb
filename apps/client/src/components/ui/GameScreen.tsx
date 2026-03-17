@@ -15,14 +15,14 @@ import {
   TrumpOverlay,
   MeldingOverlay,
 } from '@dabb/game-canvas';
-import { useGameLog } from '@dabb/ui-shared';
+import { useGameLog, useTrickAnimationState } from '@dabb/ui-shared';
 import { detectMelds } from '@dabb/game-logic';
 import type { PlayerIndex, Card, GameLogEntry } from '@dabb/shared-types';
 
 import { useGame } from '../../hooks/useGame.js';
 import { OpponentZone } from '../game/OpponentZone.js';
 import { PlayerHand } from '../game/PlayerHand.js';
-import { TrickArea } from '../game/TrickArea.js';
+import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
 import { ScoreboardStrip } from '../game/ScoreboardStrip.js';
 import { GameLogTab } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
@@ -155,14 +155,12 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     [state.hands, playerIndex]
   );
 
-  // Trick cards for TrickArea
-  const trickCards = useMemo(
-    () =>
-      state.currentTrick.cards.map((pc) => ({
-        cardId: pc.cardId,
-        playerIndex: pc.playerIndex,
-      })),
-    [state.currentTrick.cards]
+  // Trick animation state machine
+  const trickAnimState = useTrickAnimationState(
+    state.currentTrick,
+    state.lastCompletedTrick,
+    state.phase,
+    state.players
   );
 
   // Scoreboard data
@@ -304,14 +302,13 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
         );
       })}
 
-      {/* Trick area */}
-      <View style={styles.trickArea}>
-        <TrickArea
-          trickCards={trickCards}
-          playerCount={state.playerCount}
-          myPlayerIndex={playerIndex}
-        />
-      </View>
+      {/* Trick animation layer */}
+      <TrickAnimationLayer
+        animState={trickAnimState}
+        myPlayerIndex={playerIndex}
+        players={state.players}
+        playerCount={state.playerCount as 3 | 4}
+      />
 
       {/* Player hand */}
       <PlayerHand
@@ -390,11 +387,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a0f05',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  trickArea: {
-    position: 'absolute',
-    top: '40%',
-    alignSelf: 'center',
   },
   logContainer: {
     position: 'absolute',
