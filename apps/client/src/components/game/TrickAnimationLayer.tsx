@@ -1,0 +1,117 @@
+/**
+ * TrickAnimationLayer — full-screen absolute overlay for trick card animations.
+ *
+ * Replaces TrickArea. Renders trick cards in screen coordinates with:
+ * - Arc flight animation on first render (via CardView initialX/Y)
+ * - 3-second pause after trick won (handled by useTrickAnimationState)
+ * - Staggered sweep to winner's corner (sweepingCardCount from hook)
+ */
+import React, { useMemo } from 'react';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { CardView, deriveCardPositions } from '@dabb/game-canvas';
+import type { Player, PlayerIndex } from '@dabb/shared-types';
+import type { TrickAnimationResult } from '@dabb/ui-shared';
+
+const HAND_Y_FRACTION = 0.82;
+
+export interface TrickAnimationLayerProps {
+  animState: TrickAnimationResult;
+  myPlayerIndex: PlayerIndex;
+  players: Player[];
+  playerCount: 3 | 4;
+}
+
+export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
+  animState,
+  myPlayerIndex,
+  players,
+  playerCount,
+}: TrickAnimationLayerProps) {
+  const { width, height } = useWindowDimensions();
+  const { animPhase, displayCards, winnerPlayerId, sweepingCardCount } = animState;
+
+  // Order players by playerIndex so WON_PILE_CORNERS assigns correctly:
+  // index 0 = bottom-left, 1 = top-right, 2 = top-left, 3 = bottom-right
+  const { positions, sweepDest, getOrigin } = useMemo(() => {
+    const sortedPlayers = [...players].sort((a, b) => a.playerIndex - b.playerIndex);
+    const wonPilePlayerIds = sortedPlayers.map((p) => p.id);
+
+    // Opponents need an entry in opponentCardCounts so deriveCardPositions computes
+    // their hand positions. The count value doesn't affect x/y.
+    // Sort by playerIndex so Object.keys() iteration order is deterministic and
+    // matches the visual left-to-right order (lowest playerIndex → leftmost position).
+    const opponentCardCounts: Record<string, number> = {};
+    [...players]
+      .filter((p) => p.playerIndex !== myPlayerIndex)
+      .sort((a, b) => a.playerIndex - b.playerIndex)
+      .forEach((p) => {
+        opponentCardCounts[p.id] = 1;
+      });
+
+    const pos = deriveCardPositions(
+      {
+        handCardIds: [],
+        trickCardIds: displayCards.map((pc) => ({ cardId: pc.cardId, seatIndex: pc.playerIndex })),
+        wonPilePlayerIds,
+        opponentCardCounts,
+      },
+      { width, height, playerCount }
+    );
+
+    const dest = winnerPlayerId ? pos.wonPiles[winnerPlayerId] : null;
+
+    // Where does this player's card fly *from*?
+    // Self → center of hand; opponent → their hand zone along the top
+    const origin = (playerIndex: PlayerIndex): { x: number; y: number } => {
+      if (playerIndex === myPlayerIndex) {
+        return { x: width / 2, y: height * HAND_Y_FRACTION };
+      }
+      const player = players.find((p) => p.playerIndex === playerIndex);
+      if (player) {
+        const oh = pos.opponentHands[player.id];
+        if (oh) {
+          return { x: oh.x, y: oh.y };
+        }
+      }
+      return { x: width / 2, y: height * 0.08 };
+    };
+
+    return { positions: pos, sweepDest: dest, getOrigin: origin };
+  }, [players, myPlayerIndex, displayCards, width, height, playerCount, winnerPlayerId]);
+
+  if (animPhase === 'idle' || displayCards.length === 0) {
+    return null;
+  }
+
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {displayCards.map((pc, i) => {
+        const settled = positions.trickCards[pc.cardId];
+        if (!settled) {
+          return null;
+        }
+
+        // Card moves to sweep destination once its index is unlocked by sweepingCardCount
+        const isSweeping = animPhase === 'sweeping' && sweepDest !== null && i < sweepingCardCount;
+        const targetX = isSweeping ? sweepDest.x : settled.x;
+        const targetY = isSweeping ? sweepDest.y : settled.y;
+        const targetRotation = isSweeping ? 0 : settled.rotation;
+        const origin = getOrigin(pc.playerIndex);
+
+        return (
+          <CardView
+            key={pc.cardId}
+            card={pc.cardId}
+            targetX={targetX}
+            targetY={targetY}
+            targetRotation={targetRotation}
+            zIndex={isSweeping ? 10 + i : settled.zIndex}
+            // initialX/Y used only on first mount — CardView arcs from here to target
+            initialX={origin.x}
+            initialY={origin.y}
+          />
+        );
+      })}
+    </View>
+  );
+});
