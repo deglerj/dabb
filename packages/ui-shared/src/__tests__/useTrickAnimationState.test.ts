@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTrickAnimationState } from '../useTrickAnimationState.js';
-import type { CompletedTrick, Player, Trick } from '@dabb/shared-types';
+import type { CompletedTrick, GamePhase, Player, Trick } from '@dabb/shared-types';
 
 // --- Test fixtures ---
 
@@ -178,8 +178,8 @@ describe('useTrickAnimationState', () => {
 
   it('returns idle when phase is not tricks', () => {
     const { result, rerender } = renderHook(
-      ({ phase }) => useTrickAnimationState(trickWith3, null, phase, players),
-      { initialProps: { phase: 'tricks' as const } }
+      ({ phase }: { phase: GamePhase }) => useTrickAnimationState(trickWith3, null, phase, players),
+      { initialProps: { phase: 'tricks' as GamePhase } }
     );
 
     expect(result.current.animPhase).toBe('showing');
