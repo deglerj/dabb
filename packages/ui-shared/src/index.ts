@@ -9,6 +9,6 @@ export { useActionRequired, useActionRequiredCallback } from './useActionRequire
 export type { ActionRequiredResult } from './useActionRequired.js';
 export { useCelebration } from './useCelebration.js';
 export type { CelebrationResult } from './useCelebration.js';
-export { useTrickDisplay } from './useTrickDisplay.js';
-export type { TrickDisplayResult } from './useTrickDisplay.js';
+export { useTrickAnimationState } from './useTrickAnimationState.js';
+export type { TrickAnimationResult, TrickAnimPhase } from './useTrickAnimationState.js';
 export { useVersionCheck } from './useVersionCheck.js';
