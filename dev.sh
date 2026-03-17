@@ -15,7 +15,6 @@
 #   db          Connect to PostgreSQL
 #   reset       Stop services and remove volumes (fresh start)
 #   build       Rebuild all images
-#   mobile      Start Expo mobile dev server
 #   apk         Build Android APK in Docker
 #   help        Show this help message
 
@@ -152,10 +151,11 @@ cmd_start() {
     echo -e "  PostgreSQL: ${BLUE}postgresql://dabb:dabb_dev_password@localhost:5432/dabb${NC}"
     echo ""
     echo "Useful commands:"
-    echo "  ./dev.sh mobile   - Start Expo dev server (Android/iOS/web)"
     echo "  ./dev.sh logs     - View logs"
     echo "  ./dev.sh status   - Check status"
     echo "  ./dev.sh stop     - Stop services"
+
+    cmd_mobile
 }
 
 # Stop services
@@ -278,7 +278,7 @@ cmd_mobile() {
     if ! curl -sf http://localhost:3000/health &> /dev/null; then
         echo -e "${RED}not running${NC}"
         echo ""
-        echo -e "${RED}Server is not running. Start it first with: ./dev.sh start${NC}"
+        echo -e "${RED}Server is not running. Wait for it to start first.${NC}"
         exit 1
     fi
     echo -e "${GREEN}ok${NC}"
@@ -349,8 +349,6 @@ Commands:
   reset       Stop services and remove volumes (fresh start)
   build       Rebuild all images
               Optional: ./dev.sh build --no-cache
-  mobile      Start Expo mobile dev server
-              Requires: ./dev.sh start (server must be running)
   apk         Build Android APK in Docker container
               Output: apps/client/build/dabb.apk
   help        Show this help message
@@ -361,7 +359,6 @@ Examples:
   ./dev.sh shell server       # Open shell in server container
   ./dev.sh db                 # Connect to PostgreSQL
   ./dev.sh reset              # Fresh start with empty database
-  ./dev.sh mobile             # Start Expo mobile dev server
   ./dev.sh apk               # Build Android APK in Docker
 
 Environment:
@@ -387,7 +384,6 @@ case "$COMMAND" in
     db)      cmd_db "$@" ;;
     reset)   cmd_reset "$@" ;;
     build)   cmd_build "$@" ;;
-    mobile)  cmd_mobile "$@" ;;
     apk)     cmd_apk "$@" ;;
     help|-h|--help) cmd_help ;;
     *)
