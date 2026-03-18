@@ -2,15 +2,8 @@
  * Event sourcing reducer for game state
  */
 
-import {
-  Card,
-  GameEvent,
-  GameState,
-  PlayerIndex,
-  RoundScore,
-  Team,
-  Trick,
-} from '@dabb/shared-types';
+import type { RoundScore, Team } from '@dabb/shared-types';
+import { Card, GameEvent, GameState, PlayerIndex, Trick } from '@dabb/shared-types';
 
 import { getFirstBidder, getNextBidder, isBiddingComplete } from '../phases/bidding.js';
 import { createInitialState, resetForNewRound } from './initial.js';
