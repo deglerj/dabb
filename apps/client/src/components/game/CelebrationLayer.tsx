@@ -133,7 +133,7 @@ export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLay
       stopAnimation();
     }
     return stopAnimation;
-  }, [showConfetti, showFireworks]);
+  }, [showConfetti, showFireworks, startAnimation, stopAnimation]);
 
   const visible = showConfetti || showFireworks || particles.current.length > 0;
   const message = showFireworks ? 'You won the game!' : showConfetti ? 'You won the round!' : '';
