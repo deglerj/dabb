@@ -2,7 +2,15 @@
  * Event sourcing reducer for game state
  */
 
-import { Card, GameEvent, GameState, PlayerIndex, Trick } from '@dabb/shared-types';
+import {
+  Card,
+  GameEvent,
+  GameState,
+  PlayerIndex,
+  RoundScore,
+  Team,
+  Trick,
+} from '@dabb/shared-types';
 
 import { getFirstBidder, getNextBidder, isBiddingComplete } from '../phases/bidding.js';
 import { createInitialState, resetForNewRound } from './initial.js';
@@ -385,16 +393,23 @@ function handleRoundScored(
   event: Extract<GameEvent, { type: 'ROUND_SCORED' }>
 ): GameState {
   const totalScores = new Map(state.totalScores);
+  const roundScores = new Map<PlayerIndex | Team, RoundScore>();
 
   for (const [key, score] of Object.entries(event.payload.totalScores)) {
-    const playerOrTeam = parseInt(key) as PlayerIndex;
+    const playerOrTeam = parseInt(key) as PlayerIndex | Team;
     totalScores.set(playerOrTeam, score);
+  }
+
+  for (const [key, score] of Object.entries(event.payload.scores)) {
+    const playerOrTeam = parseInt(key) as PlayerIndex | Team;
+    roundScores.set(playerOrTeam, { melds: score.melds, tricks: score.tricks, total: score.total });
   }
 
   return {
     ...state,
     phase: 'scoring',
     totalScores,
+    roundScores,
   };
 }
 
