@@ -3,6 +3,7 @@ import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { CardView, deriveCardPositions, type LayoutDimensions } from '@dabb/game-canvas';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
+import { playSound } from '../../utils/sounds.js';
 
 export interface PlayerHandProps {
   gameState: GameState | null;
@@ -73,7 +74,14 @@ export function PlayerHand({
               targetRotation={pos.rotation}
               zIndex={pos.zIndex}
               draggable={isTricksPhase && isValid}
-              onTap={isTricksPhase && isValid ? () => onPlayCard(card.id) : undefined}
+              onTap={
+                isTricksPhase && isValid
+                  ? () => {
+                      playSound('card-select');
+                      onPlayCard(card.id);
+                    }
+                  : undefined
+              }
               onDrop={isTricksPhase && isValid ? handleDrop(card.id) : undefined}
             />
           </View>

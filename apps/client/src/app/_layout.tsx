@@ -15,6 +15,7 @@ import { I18nProvider } from '@dabb/i18n';
 import { useVersionCheck } from '@dabb/ui-shared';
 import { APP_VERSION, SERVER_URL } from '../constants.js';
 import UpdateRequiredScreen from '../components/ui/UpdateRequiredScreen.js';
+import { loadSoundPreferences } from '../utils/sounds.js';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,6 +38,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    void loadSoundPreferences();
+  }, []);
 
   if (!fontsLoaded || versionLoading) {
     return null;
