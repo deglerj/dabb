@@ -80,26 +80,26 @@ export function PlayerHand({
         }
         const isValid = !isTricksPhase || validIds.has(card.id);
         return (
-          <View key={card.id} style={isValid ? undefined : { opacity: 0.4 }}>
-            <CardView
-              card={card.id}
-              targetX={pos.x}
-              targetY={pos.y}
-              targetRotation={pos.rotation}
-              zIndex={pos.zIndex}
-              draggable={isTricksPhase && isValid}
-              effects={isTricksPhase && isValid ? effects : undefined}
-              onTap={
-                isTricksPhase && isValid
-                  ? () => {
-                      playSound('card-select');
-                      onPlayCard(card.id);
-                    }
-                  : undefined
-              }
-              onDrop={isTricksPhase && isValid ? handleDrop(card.id) : undefined}
-            />
-          </View>
+          <CardView
+            key={card.id}
+            card={card.id}
+            targetX={pos.x}
+            targetY={pos.y}
+            targetRotation={pos.rotation}
+            zIndex={pos.zIndex}
+            draggable={isTricksPhase && isValid}
+            dimmed={isTricksPhase && !isValid}
+            effects={isTricksPhase && isValid ? effects : undefined}
+            onTap={
+              isTricksPhase && isValid
+                ? () => {
+                    playSound('card-select');
+                    onPlayCard(card.id);
+                  }
+                : undefined
+            }
+            onDrop={isTricksPhase && isValid ? handleDrop(card.id) : undefined}
+          />
         );
       })}
     </View>
