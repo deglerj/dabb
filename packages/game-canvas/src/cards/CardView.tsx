@@ -67,7 +67,6 @@ export function CardView({
   const hoverLiftY = useSharedValue(0);
   const hoverScaleMult = useSharedValue(1);
   const hoverRotDelta = useSharedValue(0);
-  const hoverZ = useSharedValue(0); // always plain integer — CSS z-index does not interpolate
   const isHovered = useRef(false);
   const isFirstRender = useRef(true);
   // On web, RN Web's style system silently drops CSS properties it doesn't know about
@@ -115,27 +114,20 @@ export function CardView({
       return;
     }
 
-    const ANIM_MS = 150;
-    const cfg = { duration: ANIM_MS, easing: Easing.out(Easing.quad) };
+    const cfg = { duration: 150, easing: Easing.out(Easing.quad) };
 
     const onEnter = () => {
       isHovered.current = true;
       hoverLiftY.value = withTiming(-18, cfg);
       hoverScaleMult.value = withTiming(1.05, cfg);
       hoverRotDelta.value = withTiming(targetRotation, cfg);
-      hoverZ.value = 1000; // instant — no withTiming
     };
-
-    let leaveTimer: ReturnType<typeof setTimeout> | undefined;
 
     const onLeave = () => {
       isHovered.current = false;
       hoverLiftY.value = withTiming(0, cfg);
       hoverScaleMult.value = withTiming(1, cfg);
       hoverRotDelta.value = withTiming(0, cfg);
-      leaveTimer = setTimeout(() => {
-        hoverZ.value = 0;
-      }, ANIM_MS); // defer until animation completes so card stays on top
     };
 
     el.addEventListener('mouseenter', onEnter);
@@ -151,17 +143,16 @@ export function CardView({
     return () => {
       el.removeEventListener('mouseenter', onEnter);
       el.removeEventListener('mouseleave', onLeave);
-      clearTimeout(leaveTimer); // prevent stale hoverZ write after unmount
       // isHovered is intentionally NOT reset: the cleanup + re-run is synchronous,
       // so no mouseleave fires between them, and the ref stays accurate.
     };
-  }, [targetRotation, hoverLiftY, hoverScaleMult, hoverRotDelta, hoverZ]);
+  }, [targetRotation, hoverLiftY, hoverScaleMult, hoverRotDelta]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     position: 'absolute' as const,
     left: x.value + translateX.value,
     top: y.value + translateY.value + hoverLiftY.value,
-    zIndex: zIndex + hoverZ.value,
+    zIndex,
     // perspective forces Firefox into its 3D compositing path, which applies DEAA
     // (distance-to-edge anti-aliasing) on rotated elements — the key fix for Firefox aliasing.
     transform: [
