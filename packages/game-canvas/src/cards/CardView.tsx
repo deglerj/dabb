@@ -14,6 +14,7 @@ import type { CardId } from '@dabb/shared-types';
 import { CardFace } from './CardFace.js';
 import { CardBack } from './CardBack.js';
 import { createCardGesture } from './dragGesture.js';
+import type { SkiaEffects } from '../table/useSkiaEffects.js';
 
 export interface CardViewProps {
   card: CardId | null; // null = show back
@@ -27,6 +28,7 @@ export interface CardViewProps {
   onTap?: () => void;
   onDrop?: (x: number, y: number) => void;
   animationDuration?: number;
+  effects?: SkiaEffects;
   /** If provided, card snaps to this position on mount before animating to targetX. */
   initialX?: number;
   /** If provided, card arcs from this Y position on mount. */
@@ -51,6 +53,7 @@ export function CardView({
   animationDuration = 400,
   initialX,
   initialY,
+  effects,
 }: CardViewProps) {
   // Snap to initial position on mount (or target if no initial given)
   const x = useSharedValue(initialX ?? targetX);
@@ -90,7 +93,15 @@ export function CardView({
     transform: [{ rotate: `${rotation.value}deg` }, { scale: scale.value }],
   }));
 
-  const gesture = createCardGesture({ draggable, onTap, onDrop, translateX, translateY, scale });
+  const gesture = createCardGesture({
+    draggable,
+    onTap,
+    onDrop,
+    translateX,
+    translateY,
+    scale,
+    effects,
+  });
 
   return (
     <GestureDetector gesture={gesture}>

@@ -353,6 +353,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
         myPlayerIndex={playerIndex}
         players={state.players}
         playerCount={state.playerCount as 3 | 4}
+        effects={effects}
       />
 
       {/* Player hand */}
@@ -361,6 +362,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
         playerIndex={playerIndex}
         cards={myCards}
         onPlayCard={onPlayCard}
+        effects={effects}
       />
 
       {/* Phase overlays */}

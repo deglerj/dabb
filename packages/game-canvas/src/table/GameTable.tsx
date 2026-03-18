@@ -11,7 +11,18 @@
  */
 
 import React, { useMemo } from 'react';
-import { Canvas, Fill, Path, Skia, Circle, rect, rrect, Shader } from '@shopify/react-native-skia';
+import {
+  Canvas,
+  Fill,
+  Path,
+  Skia,
+  Circle,
+  RoundedRect,
+  BlurMask,
+  rect,
+  rrect,
+  Shader,
+} from '@shopify/react-native-skia';
 import { useDerivedValue } from 'react-native-reanimated';
 import { DEFAULT_SURROUND_FRACTION } from './feltBounds.js';
 import { FELT_SHADER_SOURCE, WOOD_SHADER_SOURCE } from './shaders.js';
@@ -23,6 +34,22 @@ export interface GameTableProps {
   effects: SkiaEffects;
   surroundFraction?: number;
 }
+
+// Card dimensions (must match CardView defaults)
+const CARD_W = 70;
+const CARD_H = 105;
+const CARD_CORNER_R = 6;
+// Shadow: slight downward offset simulates overhead light source
+const SHADOW_OFFSET_Y = 8;
+
+// 6 particles evenly spaced around a circle
+const PARTICLE_SCATTER = 45;
+const A0 = 0;
+const A1 = Math.PI / 3;
+const A2 = (2 * Math.PI) / 3;
+const A3 = Math.PI;
+const A4 = (4 * Math.PI) / 3;
+const A5 = (5 * Math.PI) / 3;
 
 export function GameTable({
   width,
@@ -50,17 +77,56 @@ export function GameTable({
     return path;
   }, [width, height]);
 
-  // Shadow circle driven by shared value
-  const shadowOpacity = useDerivedValue(() => effects.shadow.value.elevation * 0.4);
-  const shadowRadius = useDerivedValue(() => 20 + effects.shadow.value.elevation * 30);
-  const shadowX = useDerivedValue(() => effects.shadow.value.x);
-  const shadowY = useDerivedValue(() => effects.shadow.value.y);
+  // Card-shaped shadow driven by shared values
+  const shadowOpacity = useDerivedValue(() => effects.shadowElevation.value * 0.45);
+  const shadowBlur = useDerivedValue(() => 6 + effects.shadowElevation.value * 8);
+  const shadowX = useDerivedValue(() => effects.shadowX.value - CARD_W / 2);
+  const shadowY = useDerivedValue(
+    () => effects.shadowY.value - CARD_H / 2 + SHADOW_OFFSET_Y * effects.shadowElevation.value
+  );
 
-  // Ripple circle driven by shared value
-  const rippleOpacity = useDerivedValue(() => (1 - effects.ripple.value.progress) * 0.25);
-  const rippleRadius = useDerivedValue(() => effects.ripple.value.progress * 60);
-  const rippleX = useDerivedValue(() => effects.ripple.value.x);
-  const rippleY = useDerivedValue(() => effects.ripple.value.y);
+  // Ripple circle driven by shared values
+  const rippleOpacity = useDerivedValue(() => (1 - effects.rippleProgress.value) * 0.25);
+  const rippleRadius = useDerivedValue(() => effects.rippleProgress.value * 60);
+
+  // Particle derived values — 6 circles scatter outward and fade
+  const particleOpacity = useDerivedValue(() => (1 - effects.particleProgress.value) * 0.85);
+  const p0cx = useDerivedValue(
+    () => effects.particleX.value + Math.cos(A0) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p0cy = useDerivedValue(
+    () => effects.particleY.value + Math.sin(A0) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p1cx = useDerivedValue(
+    () => effects.particleX.value + Math.cos(A1) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p1cy = useDerivedValue(
+    () => effects.particleY.value + Math.sin(A1) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p2cx = useDerivedValue(
+    () => effects.particleX.value + Math.cos(A2) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p2cy = useDerivedValue(
+    () => effects.particleY.value + Math.sin(A2) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p3cx = useDerivedValue(
+    () => effects.particleX.value + Math.cos(A3) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p3cy = useDerivedValue(
+    () => effects.particleY.value + Math.sin(A3) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p4cx = useDerivedValue(
+    () => effects.particleX.value + Math.cos(A4) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p4cy = useDerivedValue(
+    () => effects.particleY.value + Math.sin(A4) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p5cx = useDerivedValue(
+    () => effects.particleX.value + Math.cos(A5) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
+  const p5cy = useDerivedValue(
+    () => effects.particleY.value + Math.sin(A5) * effects.particleProgress.value * PARTICLE_SCATTER
+  );
 
   return (
     <Canvas
@@ -81,24 +147,36 @@ export function GameTable({
       <Path path={trickPath} color="rgba(255,255,255,0.10)" style="stroke" strokeWidth={1.5} />
 
       {/* Flying card shadow */}
-      <Circle
-        cx={shadowX}
-        cy={shadowY}
-        r={shadowRadius}
+      <RoundedRect
+        x={shadowX}
+        y={shadowY}
+        width={CARD_W}
+        height={CARD_H}
+        r={CARD_CORNER_R}
         color="rgba(0,0,0,1)"
         opacity={shadowOpacity}
-      />
+      >
+        <BlurMask blur={shadowBlur} style="normal" />
+      </RoundedRect>
 
       {/* Felt ripple on card land */}
       <Circle
-        cx={rippleX}
-        cy={rippleY}
+        cx={effects.rippleX}
+        cy={effects.rippleY}
         r={rippleRadius}
         color="rgba(255,255,255,1)"
         style="stroke"
         strokeWidth={1.5}
         opacity={rippleOpacity}
       />
+
+      {/* Trick sweep particles — 6 circles scatter from pile and fade out */}
+      <Circle cx={p0cx} cy={p0cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
+      <Circle cx={p1cx} cy={p1cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
+      <Circle cx={p2cx} cy={p2cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
+      <Circle cx={p3cx} cy={p3cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
+      <Circle cx={p4cx} cy={p4cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
+      <Circle cx={p5cx} cy={p5cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
     </Canvas>
   );
 }

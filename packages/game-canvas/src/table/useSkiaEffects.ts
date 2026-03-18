@@ -1,50 +1,62 @@
-import { useSharedValue } from 'react-native-reanimated';
+import { useSharedValue, withTiming } from 'react-native-reanimated';
 
-export interface ShadowState {
-  x: number;
-  y: number;
-  elevation: number;
-}
-export interface RippleState {
-  x: number;
-  y: number;
-  progress: number;
-}
-export interface ParticleState {
-  x: number;
-  y: number;
-  active: boolean;
-}
+const RIPPLE_DURATION = 600;
+const PARTICLE_DURATION = 700;
 
 export function useSkiaEffects() {
-  const shadow = useSharedValue<ShadowState>({ x: 0, y: 0, elevation: 0 });
-  const ripple = useSharedValue<RippleState>({ x: 0, y: 0, progress: 0 });
-  const particle = useSharedValue<ParticleState>({ x: 0, y: 0, active: false });
+  // Shadow (updated per frame during drag)
+  const shadowX = useSharedValue(0);
+  const shadowY = useSharedValue(0);
+  const shadowElevation = useSharedValue(0);
+
+  // Ripple (progress 0→1 animated on card land)
+  const rippleX = useSharedValue(0);
+  const rippleY = useSharedValue(0);
+  const rippleProgress = useSharedValue(0);
+
+  // Particles (progress 0→1 animated on trick sweep)
+  const particleX = useSharedValue(0);
+  const particleY = useSharedValue(0);
+  const particleProgress = useSharedValue(0);
 
   function triggerCardShadow(x: number, y: number, elevation: number) {
     'worklet';
-    shadow.value = { x, y, elevation };
+    shadowX.value = x;
+    shadowY.value = y;
+    shadowElevation.value = elevation;
   }
 
   function clearCardShadow() {
     'worklet';
-    shadow.value = { x: 0, y: 0, elevation: 0 };
+    shadowElevation.value = 0;
   }
 
   function triggerFeltRipple(x: number, y: number) {
     'worklet';
-    ripple.value = { x, y, progress: 0 };
+    rippleX.value = x;
+    rippleY.value = y;
+    rippleProgress.value = 0;
+    rippleProgress.value = withTiming(1, { duration: RIPPLE_DURATION });
   }
 
   function triggerSweepParticles(x: number, y: number) {
     'worklet';
-    particle.value = { x, y, active: true };
+    particleX.value = x;
+    particleY.value = y;
+    particleProgress.value = 0;
+    particleProgress.value = withTiming(1, { duration: PARTICLE_DURATION });
   }
 
   return {
-    shadow,
-    ripple,
-    particle,
+    shadowX,
+    shadowY,
+    shadowElevation,
+    rippleX,
+    rippleY,
+    rippleProgress,
+    particleX,
+    particleY,
+    particleProgress,
     triggerCardShadow,
     clearCardShadow,
     triggerFeltRipple,
