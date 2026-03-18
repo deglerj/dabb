@@ -5,6 +5,7 @@ import {
   deriveCardPositions,
   getFeltBounds,
   type LayoutDimensions,
+  type SkiaEffects,
 } from '@dabb/game-canvas';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
@@ -15,6 +16,7 @@ export interface PlayerHandProps {
   playerIndex: PlayerIndex;
   cards: Card[];
   onPlayCard: (cardId: string) => void;
+  effects?: SkiaEffects;
 }
 
 export function PlayerHand({
@@ -22,6 +24,7 @@ export function PlayerHand({
   playerIndex: _playerIndex,
   cards,
   onPlayCard,
+  effects,
 }: PlayerHandProps) {
   const { width, height } = useWindowDimensions();
   const feltBounds = getFeltBounds(width, height);
@@ -85,6 +88,7 @@ export function PlayerHand({
               targetRotation={pos.rotation}
               zIndex={pos.zIndex}
               draggable={isTricksPhase && isValid}
+              effects={isTricksPhase && isValid ? effects : undefined}
               onTap={
                 isTricksPhase && isValid
                   ? () => {

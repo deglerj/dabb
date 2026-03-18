@@ -4,12 +4,7 @@ export type { GameTableProps } from './src/table/GameTable.js';
 export { useSkiaEffects } from './src/table/useSkiaEffects.js';
 export { getFeltBounds, DEFAULT_SURROUND_FRACTION } from './src/table/feltBounds.js';
 export type { FeltBounds } from './src/table/feltBounds.js';
-export type {
-  SkiaEffects,
-  ShadowState,
-  RippleState,
-  ParticleState,
-} from './src/table/useSkiaEffects.js';
+export type { SkiaEffects } from './src/table/useSkiaEffects.js';
 
 // Cards
 export { CardView } from './src/cards/CardView.js';

@@ -2,6 +2,7 @@ import { Gesture } from 'react-native-gesture-handler';
 import { withSpring } from 'react-native-reanimated';
 import { runOnJS } from 'react-native-worklets';
 import type { SharedValue } from 'react-native-reanimated';
+import type { SkiaEffects } from '../table/useSkiaEffects.js';
 
 export interface CardGestureOptions {
   draggable: boolean;
@@ -10,6 +11,7 @@ export interface CardGestureOptions {
   translateX: SharedValue<number>;
   translateY: SharedValue<number>;
   scale: SharedValue<number>;
+  effects?: SkiaEffects;
 }
 
 export function createCardGesture(opts: CardGestureOptions) {
@@ -26,20 +28,30 @@ export function createCardGesture(opts: CardGestureOptions) {
     .enabled(opts.draggable)
     .activeOffsetY(-8)
     .failOffsetX([-20, 20])
-    .onStart(() => {
+    .onStart((e) => {
       'worklet';
       opts.scale.value = withSpring(1.08, { damping: 15, stiffness: 300 });
+      if (opts.effects) {
+        opts.effects.triggerCardShadow(e.absoluteX, e.absoluteY, 1);
+      }
     })
     .onUpdate((e) => {
       'worklet';
       opts.translateX.value = e.translationX;
       opts.translateY.value = e.translationY;
+      if (opts.effects) {
+        opts.effects.triggerCardShadow(e.absoluteX, e.absoluteY, 1);
+      }
     })
     .onEnd((e) => {
       'worklet';
       opts.translateX.value = withSpring(0, { damping: 20, stiffness: 400 });
       opts.translateY.value = withSpring(0, { damping: 20, stiffness: 400 });
       opts.scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+      if (opts.effects) {
+        opts.effects.clearCardShadow();
+        opts.effects.triggerFeltRipple(e.absoluteX, e.absoluteY);
+      }
       if (opts.onDrop) {
         runOnJS(opts.onDrop)(e.absoluteX, e.absoluteY);
       }

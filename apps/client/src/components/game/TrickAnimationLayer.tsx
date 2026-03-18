@@ -6,9 +6,9 @@
  * - 3-second pause after trick won (handled by useTrickAnimationState)
  * - Staggered sweep to winner's corner (sweepingCardCount from hook)
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
-import { CardView, deriveCardPositions } from '@dabb/game-canvas';
+import { CardView, deriveCardPositions, type SkiaEffects } from '@dabb/game-canvas';
 import type { Player, PlayerIndex } from '@dabb/shared-types';
 import type { TrickAnimationResult } from '@dabb/ui-shared';
 
@@ -19,6 +19,7 @@ export interface TrickAnimationLayerProps {
   myPlayerIndex: PlayerIndex;
   players: Player[];
   playerCount: 3 | 4;
+  effects?: SkiaEffects;
 }
 
 export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
@@ -26,6 +27,7 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
   myPlayerIndex,
   players,
   playerCount,
+  effects,
 }: TrickAnimationLayerProps) {
   const { width, height } = useWindowDimensions();
   const { animPhase, displayCards, winnerPlayerId, sweepingCardCount } = animState;
@@ -78,6 +80,19 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
 
     return { positions: pos, sweepDest: dest, getOrigin: origin };
   }, [players, myPlayerIndex, displayCards, width, height, playerCount, winnerPlayerId]);
+
+  // Fire particles at pile when the last card starts sweeping
+  useEffect(() => {
+    if (
+      animPhase === 'sweeping' &&
+      sweepingCardCount === displayCards.length &&
+      displayCards.length > 0 &&
+      sweepDest &&
+      effects
+    ) {
+      effects.triggerSweepParticles(sweepDest.x, sweepDest.y);
+    }
+  }, [sweepingCardCount, animPhase, displayCards.length, sweepDest, effects]);
 
   if (animPhase === 'idle' || displayCards.length === 0) {
     return null;
