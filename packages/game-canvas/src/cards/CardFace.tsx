@@ -9,7 +9,7 @@
  */
 import React, { useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
-import { Canvas, RoundedRect, Rect, Group, Text, matchFont } from '@shopify/react-native-skia';
+import { Canvas, Rect, Group, Text, matchFont } from '@shopify/react-native-skia';
 import { SUIT_SYMBOLS, getSuitColor, RANK_DISPLAY, FACE_CARD_BAND } from '@dabb/card-assets';
 import type { CardId, Suit, Rank } from '@dabb/shared-types';
 
@@ -19,6 +19,7 @@ export interface CardFaceProps {
   height: number;
   x?: number;
   y?: number;
+  dimmed?: boolean;
 }
 
 const FACE_RANKS = new Set<Rank>(['koenig', 'ober', 'buabe']);
@@ -28,7 +29,7 @@ function parseCardId(id: CardId): { suit: Suit; rank: Rank } {
   return { suit, rank };
 }
 
-export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
+export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: CardFaceProps) {
   const { suit, rank } = useMemo(() => parseCardId(card), [card]);
   const symbol = SUIT_SYMBOLS[suit];
   const color = getSuitColor(suit);
@@ -87,7 +88,18 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
     const cornerSz = Math.round(width * 0.17);
     const centerSz = isFace ? Math.round(width * 0.52) : Math.round(width * 0.42);
     return (
-      <View style={[rnStyles.card, { width, height, borderRadius: width * 0.06 }]}>
+      <View
+        style={[
+          rnStyles.card,
+          {
+            width,
+            height,
+            borderRadius: width * 0.06,
+            borderWidth: dimmed ? 0 : 0.5,
+            borderColor: dimmed ? 'transparent' : '#c8b89a',
+          },
+        ]}
+      >
         <View style={rnStyles.cornerTL}>
           <RNText style={[rnStyles.cornerRank, { fontSize: cornerSz, color }]}>{abbr}</RNText>
           <RNText style={[rnStyles.cornerSuit, { fontSize: cornerSz * 0.75, color }]}>
@@ -105,6 +117,11 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
             {symbol}
           </RNText>
         </View>
+        {dimmed && (
+          <View
+            style={[StyleSheet.absoluteFill, rnStyles.dimOverlay, { borderRadius: width * 0.06 }]}
+          />
+        )}
       </View>
     );
   }
@@ -134,49 +151,40 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
   // Retrieve band/text colors for face cards
   const bandColors = isFace ? FACE_CARD_BAND[rank as 'koenig' | 'ober' | 'buabe'] : null;
 
+  // Wrap the canvas in a View with overflow:hidden so the dim overlay (a plain RN View)
+  // is clipped to the card shape at the native level — avoids Skia anti-alias edge artifacts.
   return (
-    <Canvas style={{ width, height }}>
-      <Group transform={[{ translateX: x }, { translateY: y }]}>
-        {/* Card background */}
-        <RoundedRect x={0} y={0} width={width} height={height} r={radius} color="#f2e8d0" />
-        {/* Border */}
-        <RoundedRect
-          x={0.25}
-          y={0.25}
-          width={width - 0.5}
-          height={height - 0.5}
-          r={radius}
-          color="#c8b89a"
-          style="stroke"
-          strokeWidth={0.5}
-        />
+    <View
+      style={[
+        skiaStyles.card,
+        {
+          width,
+          height,
+          borderRadius: radius,
+          borderWidth: dimmed ? 0 : 0.5,
+          borderColor: dimmed ? 'transparent' : '#c8b89a',
+          left: x,
+          top: y,
+        },
+      ]}
+    >
+      <Canvas style={{ width, height }}>
+        <Group>
+          {/* Face card: colored vertical band in center */}
+          {isFace && bandColors !== null && (
+            <Rect
+              x={bandX}
+              y={0}
+              width={bandWidth}
+              height={height}
+              color={bandColors.band}
+              opacity={0.85}
+            />
+          )}
 
-        {/* Face card: colored vertical band in center */}
-        {isFace && bandColors !== null && (
-          <Rect
-            x={bandX}
-            y={0}
-            width={bandWidth}
-            height={height}
-            color={bandColors.band}
-            opacity={0.85}
-          />
-        )}
-
-        {/* Top-left: rank */}
-        <Text x={padding} y={rankBaselineY} text={abbr} font={cornerFont} color={color} />
-        {/* Top-left: suit symbol below rank */}
-        <Text
-          x={padding + (abbrWidth - symbolSmallWidth) / 2}
-          y={suitBaselineY}
-          text={symbol}
-          font={cornerSuitFont}
-          color={color}
-        />
-
-        {/* Bottom-right corner: rotated 180° */}
-        <Group transform={[{ translateX: width }, { translateY: height }, { rotate: Math.PI }]}>
+          {/* Top-left: rank */}
           <Text x={padding} y={rankBaselineY} text={abbr} font={cornerFont} color={color} />
+          {/* Top-left: suit symbol below rank */}
           <Text
             x={padding + (abbrWidth - symbolSmallWidth) / 2}
             y={suitBaselineY}
@@ -184,20 +192,45 @@ export function CardFace({ card, width, height, x = 0, y = 0 }: CardFaceProps) {
             font={cornerSuitFont}
             color={color}
           />
-        </Group>
 
-        {/* Center: large rank initial (face) or suit symbol (number) */}
-        <Text
-          x={centerX}
-          y={centerBaselineY}
-          text={faceInitial}
-          font={centerFont}
-          color={isFace && bandColors !== null ? bandColors.text : color}
-        />
-      </Group>
-    </Canvas>
+          {/* Bottom-right corner: rotated 180° */}
+          <Group transform={[{ translateX: width }, { translateY: height }, { rotate: Math.PI }]}>
+            <Text x={padding} y={rankBaselineY} text={abbr} font={cornerFont} color={color} />
+            <Text
+              x={padding + (abbrWidth - symbolSmallWidth) / 2}
+              y={suitBaselineY}
+              text={symbol}
+              font={cornerSuitFont}
+              color={color}
+            />
+          </Group>
+
+          {/* Center: large rank initial (face) or suit symbol (number) */}
+          <Text
+            x={centerX}
+            y={centerBaselineY}
+            text={faceInitial}
+            font={centerFont}
+            color={isFace && bandColors !== null ? bandColors.text : color}
+          />
+        </Group>
+      </Canvas>
+
+      {/* Dim overlay — plain RN View clipped by parent overflow:hidden, no Skia edge artifacts */}
+      {dimmed && <View style={[StyleSheet.absoluteFill, rnStyles.dimOverlay]} />}
+    </View>
   );
 }
+
+const skiaStyles = StyleSheet.create({
+  card: {
+    backgroundColor: '#f2e8d0',
+    overflow: 'hidden',
+    position: 'absolute',
+    borderWidth: 0.5,
+    borderColor: '#c8b89a',
+  },
+});
 
 const rnStyles = StyleSheet.create({
   card: {
@@ -211,4 +244,5 @@ const rnStyles = StyleSheet.create({
   cornerRank: { fontWeight: '700', lineHeight: 15 },
   cornerSuit: { lineHeight: 13 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  dimOverlay: { backgroundColor: 'rgba(0,0,0,0.6)' },
 });
