@@ -18,12 +18,26 @@ config.resolver.nodeModulesPaths = [
 // Allow importing .ts source from workspace packages (game-canvas et al.)
 config.resolver.sourceExts = [...config.resolver.sourceExts, 'ts', 'tsx'];
 
+// Allow importing .ogg audio files (not in Metro's default asset extensions)
+config.resolver.assetExts = [...config.resolver.assetExts, 'ogg'];
+
 // TypeScript files use `.js` extensions in imports (ESM convention), but
 // Metro doesn't substitute `.js` → `.ts/.tsx`. Teach it to do so.
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName.endsWith('.js')) {
     const base = moduleName.slice(0, -3);
-    for (const ext of ['.tsx', '.ts', '.jsx']) {
+    const platformPrefix = platform ? `.${platform}` : '';
+    const exts = platformPrefix
+      ? [
+          `${platformPrefix}.tsx`,
+          `${platformPrefix}.ts`,
+          `${platformPrefix}.jsx`,
+          '.tsx',
+          '.ts',
+          '.jsx',
+        ]
+      : ['.tsx', '.ts', '.jsx'];
+    for (const ext of exts) {
       try {
         return context.resolveRequest(context, base + ext, platform);
       } catch {

@@ -34,10 +34,11 @@ export function useTurnNotification(
     try {
       player.volume = 0.5;
       player.seekTo(0);
-      player.play();
-    } catch (error) {
-      // Ignore playback errors
-      console.warn('Failed to play notification sound:', error);
+      await Promise.resolve(player.play()).catch(() => {
+        // Ignore autoplay policy rejections (e.g. browser requires user gesture)
+      });
+    } catch {
+      // Ignore synchronous playback errors
     }
   }, [player]);
 
