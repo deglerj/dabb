@@ -2,7 +2,7 @@
  * ScoreboardModal — full round history shown when user taps the scoreboard strip.
  */
 import React from 'react';
-import { Modal, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import type { PlayerIndex, RoundHistoryEntry } from '@dabb/shared-types';
 import type { RoundHistoryResult } from '@dabb/ui-shared';
 
@@ -33,13 +33,13 @@ export function ScoreboardModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={styles.card}>
+      <Pressable style={styles.backdrop} onPress={onClose}>
+        <Pressable style={styles.card}>
           <View style={styles.header}>
             <Text style={styles.title}>Score History</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Pressable onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeText}>✕</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           {/* Column headers */}
@@ -116,8 +116,8 @@ export function ScoreboardModal({
               })}
             </View>
           </ScrollView>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
