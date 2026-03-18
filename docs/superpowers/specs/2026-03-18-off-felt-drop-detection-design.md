@@ -1,7 +1,7 @@
 # Off-Felt Drop Detection — Design Spec
 
 **Date:** 2026-03-18
-**Status:** Approved
+**Status:** Draft
 **Scope:** Implement the missing "off-felt" drop boundary check for card drag-to-play
 
 ---
@@ -18,11 +18,23 @@ Currently `PlayerHand.handleDrop` receives `(x, y)` drop coordinates but ignores
 
 ## Design
 
+### Shared surround constant
+
+Add a named constant in `packages/game-canvas/src/table/feltBounds.ts` and use it in both `GameTable.tsx` and `getFeltBounds`. This ensures the two never silently diverge if the default changes:
+
+```ts
+export const DEFAULT_SURROUND_FRACTION = 0.05;
+```
+
+`GameTable.tsx` is updated to import and use this constant instead of its inline `0.05` default parameter value. Concretely, `surroundFraction = 0.05` in the function signature becomes `surroundFraction = DEFAULT_SURROUND_FRACTION`. The body does not contain a literal — it already uses the `surroundFraction` variable.
+
 ### New utility: `getFeltBounds`
 
 Add `packages/game-canvas/src/table/feltBounds.ts`:
 
 ```ts
+export const DEFAULT_SURROUND_FRACTION = 0.05;
+
 export interface FeltBounds {
   x: number; // left edge of felt (px)
   y: number; // top edge of felt (px)
@@ -33,7 +45,7 @@ export interface FeltBounds {
 export function getFeltBounds(
   screenWidth: number,
   screenHeight: number,
-  surroundFraction = 0.05
+  surroundFraction = DEFAULT_SURROUND_FRACTION
 ): FeltBounds {
   const surround = Math.round(screenWidth * surroundFraction);
   return {
@@ -45,13 +57,21 @@ export function getFeltBounds(
 }
 ```
 
-The formula mirrors `GameTable.tsx` exactly (`surround = Math.round(width * surroundFraction)`), keeping felt geometry in one package. Export from `packages/game-canvas/index.ts`.
+Export `getFeltBounds`, `FeltBounds`, and `DEFAULT_SURROUND_FRACTION` from `packages/game-canvas/index.ts`.
 
 ### Updated `handleDrop` in `PlayerHand`
 
+`getFeltBounds` is a plain function (not a hook), called after `useWindowDimensions()` and before the `if (!gameState) return null` early return:
+
 ```ts
+const { width, height } = useWindowDimensions();
 const feltBounds = getFeltBounds(width, height);
 
+if (!gameState) return null;
+
+// ...
+
+// Note: the existing signature uses `_x`/`_y`; these must be renamed to `x`/`y`.
 const handleDrop = (cardId: string) => (x: number, y: number) => {
   const onFelt =
     x >= feltBounds.x &&
@@ -66,23 +86,27 @@ const handleDrop = (cardId: string) => (x: number, y: number) => {
 
 Off-felt drops use the same behaviour as invalid-card drops: the card springs back to its hand position. No special animation or sound is needed. The spring-back is already unconditionally applied in `dragGesture.ts` on every pan release.
 
+`useWindowDimensions` re-renders the component on orientation change or window resize, so `getFeltBounds` is automatically recomputed whenever the screen dimensions change.
+
 ---
 
 ## Files Changed
 
-| File                                             | Change                                  |
-| ------------------------------------------------ | --------------------------------------- |
-| `packages/game-canvas/src/table/feltBounds.ts`   | New file — `getFeltBounds` utility      |
-| `packages/game-canvas/index.ts`                  | Export `getFeltBounds` and `FeltBounds` |
-| `apps/client/src/components/game/PlayerHand.tsx` | Use `getFeltBounds` in `handleDrop`     |
+| File                                             | Change                                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------- |
+| `packages/game-canvas/src/table/feltBounds.ts`   | New file — `DEFAULT_SURROUND_FRACTION`, `getFeltBounds`             |
+| `packages/game-canvas/src/table/GameTable.tsx`   | Import and use `DEFAULT_SURROUND_FRACTION` instead of inline `0.05` |
+| `packages/game-canvas/index.ts`                  | Export `getFeltBounds`, `FeltBounds`, `DEFAULT_SURROUND_FRACTION`   |
+| `apps/client/src/components/game/PlayerHand.tsx` | Use `getFeltBounds` in `handleDrop`                                 |
 
 ---
 
 ## Testing
 
-Add a unit test in `packages/game-canvas/src/table/__tests__/feltBounds.test.ts`:
+**`packages/game-canvas/src/table/__tests__/feltBounds.test.ts`** (new — `__tests__/` directory does not yet exist and must be created; Vitest auto-discovers `**/*.test.ts` so no config change is needed):
 
-- `getFeltBounds` returns correct bounds for a standard screen size with the default `surroundFraction`
-- `getFeltBounds` returns correct bounds with a custom `surroundFraction`
+- Returns correct bounds for a standard screen size with the default `surroundFraction`
+- Returns correct bounds with a custom `surroundFraction`
+- On a non-square (portrait) screen (e.g. `screenWidth=390, screenHeight=844`), the surround is derived from `screenWidth` only (`Math.round(390 * 0.05) = 20`), so `y = 20`, not `Math.round(844 * 0.05) = 42`. This test pins the intentional asymmetry and guards against a future "fix" that switches the vertical axis to use `screenHeight`.
 
-No changes needed to `PlayerHand` tests — the valid/invalid card paths already cover the drop logic, and the felt check is an additive condition on the same code path.
+**`PlayerHand`** has no existing tests. No new `PlayerHand` tests are required by this change — the felt check is a pure condition on an otherwise-untested component. Any future `PlayerHand` tests that exercise the drop path must pass coordinates that fall within the felt bounds (i.e. within `[surround, width-surround] × [surround, height-surround]`) to simulate a valid drop.
