@@ -25,6 +25,7 @@ import { detectMelds } from '@dabb/game-logic';
 import type { PlayerIndex, Card, GameLogEntry } from '@dabb/shared-types';
 
 import { useGame } from '../../hooks/useGame.js';
+import { useTurnNotification } from '../../hooks/useTurnNotification.js';
 import { OpponentZone } from '../game/OpponentZone.js';
 import { PlayerHand } from '../game/PlayerHand.js';
 import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
@@ -172,6 +173,8 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     state.phase,
     state.players
   );
+
+  useTurnNotification(state, playerIndex);
 
   // Scoreboard data
   const roundScores = useMemo(() => {
