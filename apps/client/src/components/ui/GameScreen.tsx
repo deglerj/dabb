@@ -15,7 +15,12 @@ import {
   TrumpOverlay,
   MeldingOverlay,
 } from '@dabb/game-canvas';
-import { useGameLog, useTrickAnimationState, useRoundHistory } from '@dabb/ui-shared';
+import {
+  useGameLog,
+  useTrickAnimationState,
+  useRoundHistory,
+  useCelebration,
+} from '@dabb/ui-shared';
 import { detectMelds } from '@dabb/game-logic';
 import type { PlayerIndex, Card, GameLogEntry } from '@dabb/shared-types';
 
@@ -242,9 +247,8 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     onDeclareMelds(detectedMelds);
   }, [onDeclareMelds, detectedMelds]);
 
-  // Celebration: show when round scored and player won the round
-  const showCelebration = state.phase === 'scoring';
-  const celebrationMessage = showCelebration ? 'Round complete!' : '';
+  // Celebration: show confetti for round win, fireworks for game win
+  const { showConfetti, showFireworks } = useCelebration(events, playerIndex);
 
   // Termination
   const isTerminated = state.phase === 'terminated' || state.phase === 'finished';
@@ -369,7 +373,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
       </View>
 
       {/* Celebration layer */}
-      <CelebrationLayer visible={showCelebration} message={celebrationMessage} />
+      <CelebrationLayer showConfetti={showConfetti} showFireworks={showFireworks} />
 
       {/* Scoreboard history modal */}
       <ScoreboardModal
