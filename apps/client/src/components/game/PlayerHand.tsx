@@ -15,7 +15,7 @@ export interface PlayerHandProps {
   gameState: GameState | null;
   playerIndex: PlayerIndex;
   cards: Card[];
-  onPlayCard: (cardId: string) => void;
+  onPlayCard: (cardId: string, dropPos?: { x: number; y: number }) => void;
   effects?: SkiaEffects;
 }
 
@@ -67,7 +67,7 @@ export function PlayerHand({
       y >= feltBounds.y &&
       y <= feltBounds.y + feltBounds.height;
     if (onFelt && validIds.has(cardId)) {
-      onPlayCard(cardId);
+      onPlayCard(cardId, { x, y });
     }
   };
 
