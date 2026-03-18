@@ -14,25 +14,30 @@ Cards in the player's hand gain an animated hover effect on web. When the user m
 
 ## Hover Parameters
 
-| Property                            | Resting | Hovered                                     |
-| ----------------------------------- | ------- | ------------------------------------------- |
-| Y offset (`hoverLiftY`)             | 0       | −18 px                                      |
-| Scale multiplier (`hoverScaleMult`) | 1       | 1.05                                        |
-| Rotation delta (`hoverRotDelta`)    | 0       | `targetRotation` (zeroes out the fan angle) |
-| z-index boost (`hoverZ`)            | 0       | 1000                                        |
+| Property                            | Resting  | Hovered                                                 |
+| ----------------------------------- | -------- | ------------------------------------------------------- |
+| Y offset (`hoverLiftY`)             | 0        | −18 px                                                  |
+| Scale multiplier (`hoverScaleMult`) | 1        | 1.05                                                    |
+| Rotation delta (`hoverRotDelta`)    | 0        | `targetRotation` (zeroes out the fan angle)             |
+| z-index boost (`hoverZ`)            | 0 → 1000 | instant on enter; reset after leave animation completes |
 
-Animation: `withTiming`, duration 150 ms, `Easing.out(Easing.quad)` — same curve in both directions.
+Animation for lift/scale/rotation: `withTiming`, duration 150 ms, `Easing.out(Easing.quad)` — same curve in both directions.
+
+**z-index strategy:** `hoverZ` is set to 1000 instantly on `mouseenter` so the card floats above siblings from the first frame. On `mouseleave` it is reset to 0 via a 150 ms `setTimeout` (matching the animation duration), so the card stays on top while animating back down. This is deliberate — fractional-z-index animation is avoided entirely.
 
 ## Implementation
 
-### New shared values in `CardView`
+### New state in `CardView`
 
 ```ts
 const hoverLiftY = useSharedValue(0);
 const hoverScaleMult = useSharedValue(1);
 const hoverRotDelta = useSharedValue(0);
-const hoverZ = useSharedValue(0);
+const hoverZ = useSharedValue(0); // always written as plain integer, never withTiming — CSS z-index does not interpolate
+const isHovered = useRef(false);
 ```
+
+`isHovered` is **not** reset in effect cleanup. The React effect cleanup + re-run cycle is synchronous within a single commit; no `mouseleave` event fires between cleanup and the new effect body, so the ref correctly reflects whether the cursor is still over the card. Card components are not remounted while visible in normal gameplay, so the unmount-while-hovered edge case does not arise.
 
 ### Updated `animatedStyle`
 
@@ -51,43 +56,72 @@ const animatedStyle = useAnimatedStyle(() => ({
 }));
 ```
 
-### Event wiring (web only)
+### Event wiring (web only) — dedicated `useEffect`
 
-Added inside the existing web `useEffect` (the one that sets `outline` / `will-change`), alongside the existing DOM mutations:
+The hover listeners live in their own `useEffect` with `[targetRotation]` in the dependency array (separate from the existing empty-dependency effect that sets `outline`/`will-change`). Using closure capture rather than a ref for `targetRotation` is intentional: fan-angle changes are infrequent and the re-attach cost is negligible.
 
 ```ts
-const cfg = { duration: 150, easing: Easing.out(Easing.quad) };
+useEffect(() => {
+  if (Platform.OS !== 'web') return;
+  const el = viewRef.current as unknown as HTMLElement | null;
+  if (!el?.style) return;
 
-const onEnter = () => {
-  hoverLiftY.value = withTiming(-18, cfg);
-  hoverScaleMult.value = withTiming(1.05, cfg);
-  hoverRotDelta.value = withTiming(targetRotation, cfg);
-  hoverZ.value = withTiming(1000, cfg);
-};
-const onLeave = () => {
-  hoverLiftY.value = withTiming(0, cfg);
-  hoverScaleMult.value = withTiming(1, cfg);
-  hoverRotDelta.value = withTiming(0, cfg);
-  hoverZ.value = withTiming(0, cfg);
-};
+  const ANIM_MS = 150;
+  const cfg = { duration: ANIM_MS, easing: Easing.out(Easing.quad) };
 
-el.addEventListener('mouseenter', onEnter);
-el.addEventListener('mouseleave', onLeave);
+  const onEnter = () => {
+    isHovered.current = true;
+    hoverLiftY.value = withTiming(-18, cfg);
+    hoverScaleMult.value = withTiming(1.05, cfg);
+    hoverRotDelta.value = withTiming(targetRotation, cfg);
+    hoverZ.value = 1000; // instant z-index promotion
+  };
 
-return () => {
-  el.removeEventListener('mouseenter', onEnter);
-  el.removeEventListener('mouseleave', onLeave);
-};
+  let leaveTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const onLeave = () => {
+    isHovered.current = false;
+    hoverLiftY.value = withTiming(0, cfg);
+    hoverScaleMult.value = withTiming(1, cfg);
+    hoverRotDelta.value = withTiming(0, cfg);
+    leaveTimer = setTimeout(() => {
+      hoverZ.value = 0;
+    }, ANIM_MS); // reset after animation
+  };
+
+  el.addEventListener('mouseenter', onEnter);
+  el.addEventListener('mouseleave', onLeave);
+
+  // If targetRotation changed while this card is still hovered, snap hoverRotDelta
+  // immediately to the new value so the card stays at 0°.
+  // Known limitation: rotation.value is still mid-animation to the new targetRotation
+  // at this point, so the card may show a brief non-zero net rotation before rotation.value
+  // catches up (~150 ms). Accepted as a minor visual artifact on an infrequent event.
+  if (isHovered.current) {
+    hoverRotDelta.value = targetRotation; // snap, no animation
+  }
+
+  return () => {
+    el.removeEventListener('mouseenter', onEnter);
+    el.removeEventListener('mouseleave', onLeave);
+    clearTimeout(leaveTimer); // prevent stale hoverZ write after unmount
+    // isHovered is not reset here — see note above
+  };
+}, [targetRotation]); // re-attach whenever fan angle changes
 ```
-
-**Note:** `targetRotation` is captured in the closure at effect-setup time. The effect re-runs whenever `targetRotation` changes (it is in the dependency array), so the listeners are always referencing the current value.
 
 ## Interaction with existing gestures
 
-- **Drag:** The pan gesture sets `scale.value` directly; `hoverScaleMult` is a separate multiplier so they compose correctly (`scale.value * hoverScaleMult.value`). During a drag the cursor leaves the element, so hover state naturally clears.
-- **Dimmed cards:** Dimmed cards (invalid plays) receive the same hover effect — the effect is purely visual lift and does not imply interactivity.
-- **z-index:** Boosting to `zIndex + 1000` ensures the hovered card floats above all siblings regardless of their base z-index.
+- **Drag:** The pan gesture sets `scale.value` directly; `hoverScaleMult` is a separate multiplier so they compose correctly. Most browsers fire `mouseleave` when a drag starts, clearing hover state naturally. Manual testing should verify this.
+- **Dimmed cards:** Dimmed cards (invalid plays) receive the same hover effect — purely cosmetic, no interactivity implied.
+- **z-index:** Instant promotion on enter, deferred reset on leave, ensures the card is never obscured during either half of the animation.
+- **Unmount while hovered:** Cleanup removes both listeners, preventing leaks. `hoverZ`/`hoverLiftY`/etc. are garbage-collected with the component.
 
 ## Testing
 
-No automated tests required — this is a pure visual/interaction change with no logic. Manual verification on the web client is sufficient: hover cards in all game phases and confirm the animation plays correctly.
+No automated tests required — this is a pure visual/interaction change with no logic. Manual verification on the web client:
+
+1. Hover cards in all game phases — confirm lift/scale/straighten animation plays and reverses.
+2. Move cursor quickly between cards — confirm no stuck hover states.
+3. Start a drag — confirm hover clears when drag begins and card returns to resting position.
+4. Play a card to re-fan the hand while hovering another card — confirm the hovered card stays at exactly 0° rotation (no intermediate angle) and remains lifted until the cursor leaves.
