@@ -13,6 +13,7 @@
 import React, { useMemo } from 'react';
 import { Canvas, Fill, Path, Skia, Circle, rect, rrect, Shader } from '@shopify/react-native-skia';
 import { useDerivedValue } from 'react-native-reanimated';
+import { DEFAULT_SURROUND_FRACTION } from './feltBounds.js';
 import { FELT_SHADER_SOURCE, WOOD_SHADER_SOURCE } from './shaders.js';
 import type { SkiaEffects } from './useSkiaEffects.js';
 
@@ -23,7 +24,12 @@ export interface GameTableProps {
   surroundFraction?: number;
 }
 
-export function GameTable({ width, height, effects, surroundFraction = 0.05 }: GameTableProps) {
+export function GameTable({
+  width,
+  height,
+  effects,
+  surroundFraction = DEFAULT_SURROUND_FRACTION,
+}: GameTableProps) {
   const surround = Math.round(width * surroundFraction);
   const feltW = width - surround * 2;
   const feltH = height - surround * 2;

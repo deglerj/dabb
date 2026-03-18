@@ -2,6 +2,8 @@
 export { GameTable } from './src/table/GameTable.js';
 export type { GameTableProps } from './src/table/GameTable.js';
 export { useSkiaEffects } from './src/table/useSkiaEffects.js';
+export { getFeltBounds, DEFAULT_SURROUND_FRACTION } from './src/table/feltBounds.js';
+export type { FeltBounds } from './src/table/feltBounds.js';
 export type {
   SkiaEffects,
   ShadowState,

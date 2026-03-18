@@ -1,6 +1,11 @@
 import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
-import { CardView, deriveCardPositions, type LayoutDimensions } from '@dabb/game-canvas';
+import {
+  CardView,
+  deriveCardPositions,
+  getFeltBounds,
+  type LayoutDimensions,
+} from '@dabb/game-canvas';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
 import { playSound } from '../../utils/sounds.js';
@@ -19,6 +24,7 @@ export function PlayerHand({
   onPlayCard,
 }: PlayerHandProps) {
   const { width, height } = useWindowDimensions();
+  const feltBounds = getFeltBounds(width, height);
 
   if (!gameState) {
     return null;
@@ -51,8 +57,13 @@ export function PlayerHand({
       : [];
   const validIds = new Set(validPlays.map((c) => c.id));
 
-  const handleDrop = (cardId: string) => (_x: number, _y: number) => {
-    if (validIds.has(cardId)) {
+  const handleDrop = (cardId: string) => (x: number, y: number) => {
+    const onFelt =
+      x >= feltBounds.x &&
+      x <= feltBounds.x + feltBounds.width &&
+      y >= feltBounds.y &&
+      y <= feltBounds.y + feltBounds.height;
+    if (onFelt && validIds.has(cardId)) {
       onPlayCard(cardId);
     }
   };
