@@ -155,14 +155,15 @@ export function CardView({
       // isHovered is intentionally NOT reset: the cleanup + re-run is synchronous,
       // so no mouseleave fires between them, and the ref stays accurate.
     };
-  }, [targetRotation]);
+  }, [targetRotation, hoverLiftY, hoverScaleMult, hoverRotDelta, hoverZ]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     position: 'absolute' as const,
     left: x.value + translateX.value,
     top: y.value + translateY.value + hoverLiftY.value,
     zIndex: zIndex + hoverZ.value,
-    // perspective forces Firefox into 3D compositing path (DEAA anti-aliasing)
+    // perspective forces Firefox into its 3D compositing path, which applies DEAA
+    // (distance-to-edge anti-aliasing) on rotated elements — the key fix for Firefox aliasing.
     transform: [
       { perspective: 1000 },
       { rotate: `${rotation.value - hoverRotDelta.value}deg` },
