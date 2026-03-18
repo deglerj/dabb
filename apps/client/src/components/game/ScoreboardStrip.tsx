@@ -1,9 +1,10 @@
 /**
  * ScoreboardStrip — a compact horizontal score display shown at the top of the game screen.
  * Shows round score + total score per player, highlighting the local player.
+ * Tappable to open the scoreboard history modal.
  */
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import type { PlayerIndex } from '@dabb/shared-types';
 
 export interface ScoreboardStripProps {
@@ -11,6 +12,7 @@ export interface ScoreboardStripProps {
   totalScores: Array<{ playerIndex: PlayerIndex; score: number }>;
   myPlayerIndex: PlayerIndex;
   targetScore: number;
+  onPress?: () => void;
 }
 
 export function ScoreboardStrip({
@@ -18,13 +20,10 @@ export function ScoreboardStrip({
   totalScores,
   myPlayerIndex,
   targetScore,
+  onPress,
 }: ScoreboardStripProps) {
-  if (roundScores.length === 0 || totalScores.length === 0) {
-    return <View />;
-  }
-
   return (
-    <View style={styles.strip}>
+    <TouchableOpacity style={styles.strip} onPress={onPress} activeOpacity={0.7}>
       {roundScores.map((entry) => {
         const total = totalScores.find((t) => t.playerIndex === entry.playerIndex);
         const isMe = entry.playerIndex === myPlayerIndex;
@@ -46,7 +45,7 @@ export function ScoreboardStrip({
         <Text style={styles.targetLabel}>Target:</Text>
         <Text style={styles.targetValue}>{targetScore}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -58,6 +57,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     gap: 6,
+    minHeight: 36,
   },
   playerEntry: {
     alignItems: 'center',

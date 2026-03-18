@@ -15,7 +15,7 @@ import {
   TrumpOverlay,
   MeldingOverlay,
 } from '@dabb/game-canvas';
-import { useGameLog, useTrickAnimationState } from '@dabb/ui-shared';
+import { useGameLog, useTrickAnimationState, useRoundHistory } from '@dabb/ui-shared';
 import { detectMelds } from '@dabb/game-logic';
 import type { PlayerIndex, Card, GameLogEntry } from '@dabb/shared-types';
 
@@ -27,6 +27,7 @@ import { ScoreboardStrip } from '../game/ScoreboardStrip.js';
 import { GameLogTab } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
+import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
 
 export interface GameScreenProps {
@@ -135,6 +136,10 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
 
   const [logExpanded, setLogExpanded] = useState(false);
   const [dabbSelectedCards, setDabbSelectedCards] = useState<string[]>([]);
+  const [scoreboardOpen, setScoreboardOpen] = useState(false);
+
+  // Round history
+  const { rounds, currentRound } = useRoundHistory(events);
 
   // Game log
   const { entries: logEntries } = useGameLog(events, state, playerIndex);
@@ -284,6 +289,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
         totalScores={totalScores}
         myPlayerIndex={playerIndex}
         targetScore={state.targetScore}
+        onPress={() => setScoreboardOpen(true)}
       />
 
       {/* Opponents */}
@@ -364,6 +370,17 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
 
       {/* Celebration layer */}
       <CelebrationLayer visible={showCelebration} message={celebrationMessage} />
+
+      {/* Scoreboard history modal */}
+      <ScoreboardModal
+        visible={scoreboardOpen}
+        onClose={() => setScoreboardOpen(false)}
+        rounds={rounds}
+        currentRound={currentRound}
+        nicknames={nicknames}
+        playerCount={state.playerCount}
+        totalScores={totalScores}
+      />
 
       {/* Game terminated modal */}
       <GameTerminatedModal
