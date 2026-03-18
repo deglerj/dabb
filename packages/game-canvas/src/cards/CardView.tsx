@@ -6,7 +6,7 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -65,6 +65,20 @@ export function CardView({
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const isFirstRender = useRef(true);
+  // On web, RN Web's style system silently drops CSS properties it doesn't know about
+  // (e.g. outline, will-change). Setting them directly on the DOM element bypasses this.
+  // outline:transparent + will-change:transform forces Firefox into its AA compositing path.
+  const viewRef = useRef<View>(null);
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      return;
+    }
+    const el = viewRef.current as unknown as HTMLElement | null;
+    if (el?.style) {
+      el.style.outline = '1px solid transparent';
+      el.style.willChange = 'transform';
+    }
+  }, []);
 
   useEffect(() => {
     const cfg = { duration: animationDuration, easing: Easing.out(Easing.cubic) };
@@ -92,7 +106,10 @@ export function CardView({
     left: x.value + translateX.value,
     top: y.value + translateY.value,
     zIndex,
-    transform: [{ rotate: `${rotation.value}deg` }, { scale: scale.value }],
+    // perspective forces Firefox into its 3D compositing path, which applies DEAA
+    // (distance-to-edge anti-aliasing) on rotated elements — the key fix for Firefox aliasing.
+    transform: [{ perspective: 1000 }, { rotate: `${rotation.value}deg` }, { scale: scale.value }],
+    backfaceVisibility: 'hidden' as const,
   }));
 
   const gesture = createCardGesture({
@@ -107,7 +124,12 @@ export function CardView({
 
   return (
     <GestureDetector gesture={gesture}>
-      <AnimatedView style={animatedStyle}>
+      <AnimatedView
+        ref={viewRef}
+        style={animatedStyle}
+        renderToHardwareTextureAndroid
+        shouldRasterizeIOS
+      >
         {card !== null ? (
           <CardFace card={card} width={width} height={height} dimmed={dimmed} />
         ) : (

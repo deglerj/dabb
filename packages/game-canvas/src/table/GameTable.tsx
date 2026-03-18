@@ -144,7 +144,13 @@ export function GameTable({
       </Fill>
 
       {/* Trick zone border */}
-      <Path path={trickPath} color="rgba(255,255,255,0.10)" style="stroke" strokeWidth={1.5} />
+      <Path
+        path={trickPath}
+        color="rgba(255,255,255,0.10)"
+        style="stroke"
+        strokeWidth={1.5}
+        antiAlias
+      />
 
       {/* Flying card shadow */}
       <RoundedRect
@@ -155,6 +161,7 @@ export function GameTable({
         r={CARD_CORNER_R}
         color="rgba(0,0,0,1)"
         opacity={shadowOpacity}
+        antiAlias
       >
         <BlurMask blur={shadowBlur} style="normal" />
       </RoundedRect>
@@ -168,15 +175,58 @@ export function GameTable({
         style="stroke"
         strokeWidth={1.5}
         opacity={rippleOpacity}
+        antiAlias
       />
 
       {/* Trick sweep particles — 6 circles scatter from pile and fade out */}
-      <Circle cx={p0cx} cy={p0cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
-      <Circle cx={p1cx} cy={p1cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
-      <Circle cx={p2cx} cy={p2cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
-      <Circle cx={p3cx} cy={p3cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
-      <Circle cx={p4cx} cy={p4cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
-      <Circle cx={p5cx} cy={p5cy} r={3} color="rgba(255,220,80,1)" opacity={particleOpacity} />
+      <Circle
+        cx={p0cx}
+        cy={p0cy}
+        r={3}
+        color="rgba(255,220,80,1)"
+        opacity={particleOpacity}
+        antiAlias
+      />
+      <Circle
+        cx={p1cx}
+        cy={p1cy}
+        r={3}
+        color="rgba(255,220,80,1)"
+        opacity={particleOpacity}
+        antiAlias
+      />
+      <Circle
+        cx={p2cx}
+        cy={p2cy}
+        r={3}
+        color="rgba(255,220,80,1)"
+        opacity={particleOpacity}
+        antiAlias
+      />
+      <Circle
+        cx={p3cx}
+        cy={p3cy}
+        r={3}
+        color="rgba(255,220,80,1)"
+        opacity={particleOpacity}
+        antiAlias
+      />
+      <Circle
+        cx={p4cx}
+        cy={p4cy}
+        r={3}
+        color="rgba(255,220,80,1)"
+        opacity={particleOpacity}
+        antiAlias
+      />
+      <Circle
+        cx={p5cx}
+        cy={p5cy}
+        r={3}
+        color="rgba(255,220,80,1)"
+        opacity={particleOpacity}
+        antiAlias
+      />
     </Canvas>
   );
 }

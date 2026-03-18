@@ -4,8 +4,8 @@
  * Uses a Skia Path (built with useMemo) for the crosshatch lines,
  * not a drawLine loop.
  */
-import React, { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Platform, View, StyleSheet } from 'react-native';
 import { Canvas, Skia, Picture, PaintStyle } from '@shopify/react-native-skia';
 
 export interface CardBackProps {
@@ -16,6 +16,17 @@ export interface CardBackProps {
 }
 
 export function CardBack({ width, height, x = 0, y = 0 }: CardBackProps) {
+  const cardRef = useRef<View>(null);
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      return;
+    }
+    const el = cardRef.current as unknown as HTMLElement | null;
+    if (el?.style) {
+      el.style.transform = 'rotateX(0.001deg)';
+    }
+  }, []);
+
   const picture = useMemo(() => {
     const recorder = Skia.PictureRecorder();
     const cvs = recorder.beginRecording(Skia.XYWHRect(0, 0, width, height));
@@ -41,6 +52,7 @@ export function CardBack({ width, height, x = 0, y = 0 }: CardBackProps) {
     linePaint.setColor(Skia.Color('rgba(255,255,255,0.08)'));
     linePaint.setStrokeWidth(1);
     linePaint.setStyle(PaintStyle.Stroke);
+    linePaint.setAntiAlias(true);
     cvs.drawPath(crosshatchPath, linePaint);
 
     // Inner border rect
@@ -48,13 +60,17 @@ export function CardBack({ width, height, x = 0, y = 0 }: CardBackProps) {
     border.setColor(Skia.Color('rgba(255,255,255,0.12)'));
     border.setStyle(PaintStyle.Stroke);
     border.setStrokeWidth(1);
+    border.setAntiAlias(true);
     cvs.drawRect(Skia.XYWHRect(3, 3, width - 6, height - 6), border);
 
     return recorder.finishRecordingAsPicture();
   }, [width, height]);
 
   return (
-    <View style={[styles.card, { width, height, borderRadius: width * 0.06, left: x, top: y }]}>
+    <View
+      ref={cardRef}
+      style={[styles.card, { width, height, borderRadius: width * 0.06, left: x, top: y }]}
+    >
       <Canvas style={{ width, height }}>
         <Picture picture={picture} />
       </Canvas>

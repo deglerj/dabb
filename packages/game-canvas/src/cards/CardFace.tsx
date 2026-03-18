@@ -7,8 +7,8 @@
  *
  * CardId format: "suit-rank-copy" (e.g. "kreuz-ass-0")
  */
-import React, { useMemo } from 'react';
-import { View, Text as RNText, StyleSheet } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Platform, View, Text as RNText, StyleSheet } from 'react-native';
 import { Canvas, Rect, Group, Text, matchFont } from '@shopify/react-native-skia';
 import { SUIT_SYMBOLS, getSuitColor, RANK_DISPLAY, FACE_CARD_BAND } from '@dabb/card-assets';
 import type { CardId, Suit, Rank } from '@dabb/shared-types';
@@ -35,6 +35,24 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
   const color = getSuitColor(suit);
   const abbr = RANK_DISPLAY[rank];
   const isFace = FACE_RANKS.has(rank);
+
+  // On web, the card View (border-radius + overflow:hidden) is a child of a rotated parent.
+  // Firefox rasterises the child's rounded corners then composites the rotation — producing
+  // aliased edges. translateZ(0) promotes the child to its own GPU layer so Firefox
+  // composites a pre-rendered AA'd texture instead of re-rasterising on rotation.
+  const cardRef = useRef<View>(null);
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      return;
+    }
+    const el = cardRef.current as unknown as HTMLElement | null;
+    // translateZ(0) is collapsed to a 2D identity matrix by Firefox and doesn't promote
+    // to a GPU layer. rotateX(0.001deg) is non-identity so Firefox must treat it as a true
+    // 3D transform, creating a GPU compositing layer whose edges are anti-aliased on compositing.
+    if (el?.style) {
+      el.style.transform = 'rotateX(0.001deg)';
+    }
+  }, []);
 
   const cornerFontSize = Math.round(width * 0.17);
   const cornerSuitFontSize = Math.round(cornerFontSize * 0.75);
@@ -89,6 +107,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
     const centerSz = isFace ? Math.round(width * 0.52) : Math.round(width * 0.42);
     return (
       <View
+        ref={cardRef}
         style={[
           rnStyles.card,
           {
@@ -155,6 +174,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
   // is clipped to the card shape at the native level — avoids Skia anti-alias edge artifacts.
   return (
     <View
+      ref={cardRef}
       style={[
         skiaStyles.card,
         {
