@@ -142,6 +142,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   } = useGame({ sessionId, secretId, playerIndex });
 
   const [logExpanded, setLogExpanded] = useState(false);
+  const [lastDropPos, setLastDropPos] = useState<{ x: number; y: number } | undefined>(undefined);
   const [dabbSelectedCards, setDabbSelectedCards] = useState<string[]>([]);
   const [scoreboardOpen, setScoreboardOpen] = useState(false);
 
@@ -354,6 +355,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
         players={state.players}
         playerCount={state.playerCount as 3 | 4}
         effects={effects}
+        localPlayerDropOrigin={lastDropPos}
       />
 
       {/* Player hand */}
@@ -361,7 +363,12 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
         gameState={state}
         playerIndex={playerIndex}
         cards={myCards}
-        onPlayCard={onPlayCard}
+        onPlayCard={(cardId, dropPos) => {
+          if (dropPos) {
+            setLastDropPos(dropPos);
+          }
+          onPlayCard(cardId);
+        }}
         effects={effects}
       />
 

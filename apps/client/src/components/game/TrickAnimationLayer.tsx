@@ -20,6 +20,8 @@ export interface TrickAnimationLayerProps {
   players: Player[];
   playerCount: 3 | 4;
   effects?: SkiaEffects;
+  /** Drop position from the local player's last drag-to-play; used as card flight origin. */
+  localPlayerDropOrigin?: { x: number; y: number };
 }
 
 export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
@@ -28,6 +30,7 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
   players,
   playerCount,
   effects,
+  localPlayerDropOrigin,
 }: TrickAnimationLayerProps) {
   const { width, height } = useWindowDimensions();
   const { animPhase, displayCards, winnerPlayerId, sweepingCardCount } = animState;
@@ -63,10 +66,10 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
     const dest = winnerPlayerId ? pos.wonPiles[winnerPlayerId] : null;
 
     // Where does this player's card fly *from*?
-    // Self → center of hand; opponent → their hand zone along the top
+    // Self → drag-drop position if available, else center of hand; opponent → their hand zone along the top
     const origin = (playerIndex: PlayerIndex): { x: number; y: number } => {
       if (playerIndex === myPlayerIndex) {
-        return { x: width / 2, y: height * HAND_Y_FRACTION };
+        return localPlayerDropOrigin ?? { x: width / 2, y: height * HAND_Y_FRACTION };
       }
       const player = players.find((p) => p.playerIndex === playerIndex);
       if (player) {
@@ -79,7 +82,16 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
     };
 
     return { positions: pos, sweepDest: dest, getOrigin: origin };
-  }, [players, myPlayerIndex, displayCards, width, height, playerCount, winnerPlayerId]);
+  }, [
+    players,
+    myPlayerIndex,
+    displayCards,
+    width,
+    height,
+    playerCount,
+    winnerPlayerId,
+    localPlayerDropOrigin,
+  ]);
 
   // Fire particles at pile when the last card starts sweeping
   useEffect(() => {
