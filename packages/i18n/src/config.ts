@@ -125,6 +125,7 @@ export function initI18n(initialLanguage?: SupportedLanguage): typeof i18n {
     react: {
       useSuspense: false,
     },
+    showSupportNotice: false,
   });
 
   return i18n;
