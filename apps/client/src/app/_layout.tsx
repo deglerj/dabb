@@ -2,6 +2,7 @@
  * Root layout — loaded once for all routes.
  * Loads fonts, sets up GestureHandlerRootView and SafeAreaProvider.
  */
+import './global.css';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
