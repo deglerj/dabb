@@ -23,14 +23,28 @@ float noise(vec2 p) {
   return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
+float fbm(vec2 p) {
+  float v = 0.0;
+  float amp = 0.5;
+  float freq = 1.0;
+  for (int i = 0; i < 4; i++) {
+    v += noise(p * freq) * amp;
+    freq *= 2.0;
+    amp *= 0.5;
+  }
+  return v / 0.9375;
+}
+
 half4 main(vec2 fragCoord) {
   vec2 uv = fragCoord / iResolution;
   vec3 feltGreen = vec3(0.176, 0.353, 0.149);
-  float n = noise(fragCoord * 0.08) + noise(fragCoord * 0.2) * 0.4;
-  n /= 1.4;
+  float base = fbm(fragCoord * 0.04);
+  float warp = noise(fragCoord * 0.018) * 5.0;
+  float fiber = noise(vec2(fragCoord.x * 0.10, (fragCoord.y + warp) * 0.022));
+  float n = base * 0.45 + fiber * 0.55;
   vec2 c = uv - 0.5;
   float vignette = clamp(1.0 - dot(c, c) * 1.2, 0.0, 1.0);
-  vec3 color = feltGreen * (0.88 + n * 0.12) * vignette;
+  vec3 color = feltGreen * (0.85 + n * 0.18) * vignette;
   return half4(color, 1.0);
 }
 `;
