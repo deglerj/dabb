@@ -130,7 +130,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
             {isFace ? abbr : symbol}
           </RNText>
         </View>
-        <View style={[rnStyles.cornerTL, rnStyles.cornerBR, { transform: [{ rotate: '180deg' }] }]}>
+        <View style={[rnStyles.cornerBR, { transform: [{ rotate: '180deg' }] }]}>
           <RNText style={[rnStyles.cornerRank, { fontSize: cornerSz, color }]}>{abbr}</RNText>
           <RNText style={[rnStyles.cornerSuit, { fontSize: cornerSz * 0.75, color }]}>
             {symbol}
@@ -260,7 +260,7 @@ const rnStyles = StyleSheet.create({
     borderColor: '#c8b89a',
   },
   cornerTL: { position: 'absolute', top: 4, left: 5, alignItems: 'center' },
-  cornerBR: { top: undefined, left: undefined, bottom: 4, right: 5 },
+  cornerBR: { position: 'absolute', bottom: 4, right: 5, alignItems: 'center' },
   cornerRank: { fontWeight: '700', lineHeight: 15 },
   cornerSuit: { lineHeight: 13 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
