@@ -19,6 +19,10 @@ export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
     playerIndex: playerIndex as PlayerIndex,
   });
 
+  const handleStateNicknames = useCallback((record: Record<number, string>) => {
+    setNicknames(new Map(Object.entries(record).map(([k, v]) => [Number(k) as PlayerIndex, v])));
+  }, []);
+
   const handlePlayerJoined = useCallback((idx: number, nickname: string) => {
     setNicknames((prev) => {
       const next = new Map(prev);
@@ -32,6 +36,7 @@ export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
     sessionId,
     secretId,
     onEvents: processEvents,
+    onStateNicknames: handleStateNicknames,
     onPlayerJoined: handlePlayerJoined,
   });
 
