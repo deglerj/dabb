@@ -171,6 +171,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build packages
+        run: pnpm run build
+
       - name: Bundle web (catches Metro resolution errors)
         run: pnpm --filter @dabb/client bundle:web
 
