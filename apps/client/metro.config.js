@@ -24,6 +24,12 @@ config.resolver.assetExts = [...config.resolver.assetExts, 'ogg'];
 // TypeScript files use `.js` extensions in imports (ESM convention), but
 // Metro doesn't substitute `.js` → `.ts/.tsx`. Teach it to do so.
 config.resolver.resolveRequest = (context, moduleName, platform) => {
+  // canvaskit-wasm is the Skia JS renderer for web only — it imports Node's 'fs' module
+  // which doesn't exist in React Native. On native platforms Skia uses the native renderer.
+  if (platform !== 'web' && moduleName.startsWith('canvaskit-wasm')) {
+    return { type: 'empty' };
+  }
+
   if (moduleName.endsWith('.js')) {
     const base = moduleName.slice(0, -3);
     const platformPrefix = platform ? `.${platform}` : '';
