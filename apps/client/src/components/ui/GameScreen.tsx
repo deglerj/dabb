@@ -38,6 +38,8 @@ import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OptionsButton } from './OptionsButton.js';
 
 export interface GameScreenProps {
   sessionId: string;
@@ -126,6 +128,7 @@ function formatLogEntryText(entry: GameLogEntry, nicknames: Map<PlayerIndex, str
 export default function GameScreen({ sessionId, secretId, playerIndex }: GameScreenProps) {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const effects = useSkiaEffects();
 
   const {
@@ -314,6 +317,9 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#c97f00" />
+        <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+          <OptionsButton />
+        </View>
       </View>
     );
   }
@@ -447,6 +453,9 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
         isLocalWinner={winnerPlayer?.playerIndex === playerIndex}
         onDone={handleDone}
       />
+      <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+        <OptionsButton />
+      </View>
     </View>
   );
 }
@@ -467,5 +476,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  optionsButtonContainer: {
+    position: 'absolute',
+    right: 16,
   },
 });
