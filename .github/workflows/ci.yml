@@ -192,6 +192,10 @@ jobs:
         include:
           - app: server
             dockerfile: apps/server/Dockerfile
+            build_args: ''
+          - app: client
+            dockerfile: apps/client/Dockerfile.web
+            build_args: 'SERVER_URL=https://dabb.degler.info'
 
     steps:
       - name: Checkout
@@ -227,6 +231,7 @@ jobs:
           push: false
           load: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
+          build-args: ${{ matrix.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -262,6 +267,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ matrix.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
