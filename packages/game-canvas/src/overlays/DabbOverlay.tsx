@@ -5,7 +5,8 @@
  * step='discard': Show dabb cards as CardFace + selection + Discard button + Go Out section.
  */
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 import type { Card, Suit } from '@dabb/shared-types';
 import { SUITS } from '@dabb/shared-types';
@@ -51,9 +52,9 @@ export function DabbOverlay({
               </View>
             ))}
           </View>
-          <TouchableOpacity style={styles.primaryButton} onPress={onTake}>
+          <HapticTouchableOpacity style={styles.primaryButton} onPress={onTake}>
             <Text style={styles.primaryButtonText}>{t('game.takeDabb')}</Text>
-          </TouchableOpacity>
+          </HapticTouchableOpacity>
         </>
       ) : (
         <>
@@ -62,36 +63,36 @@ export function DabbOverlay({
             {dabbCards.map((card) => {
               const isSelected = selectedCardIds.includes(card.id);
               return (
-                <TouchableOpacity
+                <HapticTouchableOpacity
                   key={card.id}
                   style={[styles.cardWrapper, isSelected && styles.cardWrapperSelected]}
                   onPress={() => onToggleCard(card.id)}
                   activeOpacity={0.8}
                 >
                   <CardFace card={card.id} width={CARD_WIDTH} height={CARD_HEIGHT} />
-                </TouchableOpacity>
+                </HapticTouchableOpacity>
               );
             })}
           </View>
-          <TouchableOpacity
+          <HapticTouchableOpacity
             style={[styles.primaryButton, !canDiscard && styles.primaryButtonDisabled]}
             onPress={onDiscard}
             disabled={!canDiscard}
           >
             <Text style={styles.primaryButtonText}>{t('game.discard')}</Text>
-          </TouchableOpacity>
+          </HapticTouchableOpacity>
 
           <View style={styles.divider} />
           <Text style={styles.goOutLabel}>{t('game.orGoOut')}</Text>
           <View style={styles.suitRow}>
             {SUITS.map((suit) => (
-              <TouchableOpacity
+              <HapticTouchableOpacity
                 key={suit}
                 style={[styles.suitButton, { backgroundColor: getSuitColor(suit) }]}
                 onPress={() => onGoOut(suit)}
               >
                 <Text style={styles.suitButtonText}>{SUIT_SYMBOLS[suit]}</Text>
-              </TouchableOpacity>
+              </HapticTouchableOpacity>
             ))}
           </View>
         </>

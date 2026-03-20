@@ -2,7 +2,8 @@
  * MeldingOverlay — lists declared melds with point totals and a confirm button.
  */
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 import type { Meld } from '@dabb/shared-types';
 import { MELD_NAMES, SUIT_NAMES } from '@dabb/shared-types';
@@ -46,13 +47,13 @@ export function MeldingOverlay({ melds, totalPoints, canConfirm, onConfirm }: Me
         </View>
       )}
 
-      <TouchableOpacity
+      <HapticTouchableOpacity
         style={[styles.confirmButton, { opacity: canConfirm ? 1 : 0 }]}
         onPress={onConfirm}
         disabled={!canConfirm}
       >
         <Text style={styles.confirmButtonText}>{t('game.confirmMelds')}</Text>
-      </TouchableOpacity>
+      </HapticTouchableOpacity>
     </View>
   );
 }

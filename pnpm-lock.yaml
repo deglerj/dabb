@@ -95,6 +95,9 @@ importers:
       expo-constants:
         specifier: ~55.0.7
         version: 55.0.7(expo@55.0.6)(react-native@0.83.4(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4))(typescript@5.9.3)
+      expo-haptics:
+        specifier: ~55.0.9
+        version: 55.0.9(expo@55.0.6)
       expo-linear-gradient:
         specifier: ^55.0.8
         version: 55.0.8(expo@55.0.6)(react-native@0.83.4(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4)
@@ -2872,6 +2875,11 @@ packages:
       expo: '*'
       react: 19.2.4
       react-native: '*'
+
+  expo-haptics@55.0.9:
+    resolution: {integrity: sha512-KCRyHr/uu4syXmoq3aIQ6ahuaX6FGtlPkWGlLlHJ836WF3nG+5+oCaCQiI7qMTpml+Tp/V/zP4ZaowM2KHgLNA==}
+    peerDependencies:
+      expo: '*'
 
   expo-keep-awake@55.0.4:
     resolution: {integrity: sha512-vwfdMtMS5Fxaon8gC0AiE70SpxTsHJ+rjeoVJl8kdfdbxczF7OIaVmfjFJ5Gfigd/WZiLqxhfZk34VAkXF4PNg==}
@@ -7990,6 +7998,10 @@ snapshots:
       fontfaceobserver: 2.3.0
       react: 19.2.4
       react-native: 0.83.4(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4)
+
+  expo-haptics@55.0.9(expo@55.0.6):
+    dependencies:
+      expo: 55.0.6(@babel/core@7.29.0)(@expo/dom-webview@55.0.2)(expo-router@5.1.11)(react-dom@19.2.4(react@19.2.4))(react-native@0.83.4(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
 
   expo-keep-awake@55.0.4(expo@55.0.6)(react@19.2.4):
     dependencies:

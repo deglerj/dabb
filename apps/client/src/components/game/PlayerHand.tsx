@@ -10,6 +10,7 @@ import {
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
 import { playSound } from '../../utils/sounds.js';
+import { triggerHaptic } from '../../utils/haptics.js';
 
 export interface PlayerHandProps {
   gameState: GameState | null;
@@ -94,6 +95,7 @@ export function PlayerHand({
               isTricksPhase && isValid
                 ? () => {
                     playSound('card-select');
+                    triggerHaptic('card-select');
                     onPlayCard(card.id);
                   }
                 : undefined
