@@ -41,7 +41,7 @@ Mirror the existing `utils/sounds.ts` pattern exactly: a module-level utility wi
 
 Button-press haptics live in `packages/game-canvas` (where most buttons are) as a `HapticTouchableOpacity` wrapper component. Since `packages/game-canvas` cannot depend on `apps/client`, and there is no UI toggle yet (making the preference always-on for now), `HapticTouchableOpacity` calls `expo-haptics` directly without reading the preference. When a toggle UI is built, callers can pass an `hapticsEnabled` prop (defaults to `true`) to opt in to preference-aware behaviour.
 
-`expo-haptics` auto-stubs on web (all methods are no-ops), so no `.web.tsx` companion file is needed for `HapticTouchableOpacity`.
+`expo-haptics` does **not** auto-stub on web in SDK 55 — it throws at runtime. A `HapticTouchableOpacity.web.tsx` stub (plain `TouchableOpacity` passthrough, no `expo-haptics` import) is required so Metro resolves the safe version on web builds.
 
 ### New Files
 
