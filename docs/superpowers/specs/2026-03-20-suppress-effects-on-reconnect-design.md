@@ -19,22 +19,23 @@ Add an `isInitialLoad: boolean` to the return value of `useGameState` in `packag
 
 ### Flag lifecycle
 
-1. `isInitialLoad` starts as `true`.
+1. `isInitialLoad` starts as `true` (React state).
 2. When the first `game:state` batch arrives, `processEvents` updates the `events` state.
-3. A `useEffect` watching `events` in `useGameState` sets `isInitialLoad` to `false`.
-4. Because the flag lives in state (not a ref), flipping it triggers a re-render. From that render onward, all effect hooks fire normally.
-5. The sound/haptic `useEffect` in `GameScreen.tsx` runs on the same render that events arrive — at that point `isInitialLoad` is still `true`, so effects are suppressed. On the next render (after the flag flips), no new events have arrived, so no effects fire spuriously.
+3. A `useEffect` watching `events` in `useGameState` calls `setIsInitialLoad(false)`.
+4. React state updates from within a `useEffect` are not applied until after all effects from the current render have finished. This guarantees that all effects in the same render — including `GameScreen`'s sound/haptic effect — see `isInitialLoad === true` when events first arrive.
+5. The sound/haptic effect updates `lastSoundedEventIdx.current` to `events.length` unconditionally (even when suppressed), so on the subsequent render (when `isInitialLoad` flips to `false`) there are no new events and no spurious sounds fire.
 
 ### Systems affected
 
-| System                           | File                                               | Change needed                                      |
-| -------------------------------- | -------------------------------------------------- | -------------------------------------------------- |
-| Sounds & haptics                 | `apps/client/src/components/ui/GameScreen.tsx`     | Check `isInitialLoad`, early-return                |
-| Turn notification sound          | `apps/client/src/hooks/useTurnNotification.ts`     | Receive & check `isInitialLoad`                    |
-| Turn haptic                      | `apps/client/src/hooks/useTurnHaptic.ts`           | Receive & check `isInitialLoad`                    |
-| Trick animation guard            | `packages/ui-shared/src/useTrickAnimationState.ts` | No change (already guards with `initialLoadRef`)   |
-| Celebration (confetti/fireworks) | `packages/ui-shared/src/useCelebration.ts`         | No change (safe: only triggers on prop transition) |
-| Ripple/sweep particles           | `packages/game-canvas/src/table/useSkiaEffects.ts` | No change (triggered by real-time code only)       |
+| System                           | File                                               | Change needed                                    |
+| -------------------------------- | -------------------------------------------------- | ------------------------------------------------ |
+| Sounds & haptics                 | `apps/client/src/components/ui/GameScreen.tsx`     | Check `isInitialLoad`, early-return              |
+| Turn notification sound          | `apps/client/src/hooks/useTurnNotification.ts`     | Receive & check `isInitialLoad`                  |
+| Turn haptic                      | `apps/client/src/hooks/useTurnHaptic.ts`           | Receive & check `isInitialLoad`                  |
+| Game hook                        | `apps/client/src/hooks/useGame.ts`                 | Forward `isInitialLoad` from `useGameState`      |
+| Trick animation guard            | `packages/ui-shared/src/useTrickAnimationState.ts` | No change (already guards with `initialLoadRef`) |
+| Celebration (confetti/fireworks) | `packages/ui-shared/src/useCelebration.ts`         | No change (see note below)                       |
+| Ripple/sweep particles           | `packages/game-canvas/src/table/useSkiaEffects.ts` | No change (triggered by real-time code only)     |
 
 ### Data flow
 
@@ -48,7 +49,9 @@ useGameState
        └── useTurnHaptic          — suppresses turn haptic
 ```
 
-`isInitialLoad` is passed as a prop to `useTurnNotification` and `useTurnHaptic` from `GameScreen`, which already calls `useGameState`.
+`isInitialLoad` flows: `useGameState` → returned by `useGame` → destructured in `GameScreen` → passed to `useTurnNotification` and `useTurnHaptic`.
+
+**Note on `useCelebration`:** This hook replays the full `events` array via `useMemo` to compute celebration state. On reconnect, if the player had already won a round or the game before disconnecting, the celebration visual (confetti/fireworks) will be restored immediately. This is accepted behaviour — it is not triggered by a new action, and the animation was already legitimately earned. No suppression is applied.
 
 ## Out of scope
 
