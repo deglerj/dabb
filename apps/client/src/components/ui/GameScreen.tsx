@@ -21,8 +21,9 @@ import {
   useRoundHistory,
   useCelebration,
 } from '@dabb/ui-shared';
-import { detectMelds } from '@dabb/game-logic';
+import { detectMelds, formatCard, formatSuit } from '@dabb/game-logic';
 import type { PlayerIndex, Card, GameLogEntry } from '@dabb/shared-types';
+import { useTranslation } from '@dabb/i18n';
 
 import { useGame } from '../../hooks/useGame.js';
 import { useTurnNotification } from '../../hooks/useTurnNotification.js';
@@ -84,48 +85,57 @@ function computeOpponentPositions(
 /**
  * Format a GameLogEntry into a human-readable string.
  */
-function formatLogEntryText(entry: GameLogEntry, nicknames: Map<PlayerIndex, string>): string {
+function formatLogEntryText(
+  entry: GameLogEntry,
+  nicknames: Map<PlayerIndex, string>,
+  t: (key: string, options?: Record<string, unknown>) => string
+): string {
   const name =
     entry.playerIndex !== null ? (nicknames.get(entry.playerIndex) ?? `P${entry.playerIndex}`) : '';
   const d = entry.data;
 
   switch (d.kind) {
     case 'game_started':
-      return `Game started (${d.playerCount} players)`;
-    case 'round_started':
-      return `Round ${d.round} started`;
-    case 'bid_placed':
-      return `${name} bids ${d.amount}`;
-    case 'player_passed':
-      return `${name} passed`;
-    case 'bidding_won':
-      return `${name} wins bidding at ${d.winningBid}`;
-    case 'dabb_taken':
-      return `${name} took the Dabb`;
-    case 'going_out':
-      return `${name} goes out`;
-    case 'trump_declared':
-      return `${name} declares ${d.suit} as trump`;
-    case 'melds_declared':
-      return `${name} declares melds (${d.totalPoints} pts)`;
-    case 'card_played':
-      return `${name} plays a card`;
-    case 'trick_won':
-      return `${name} wins trick (${d.points} pts)`;
-    case 'round_scored':
-      return 'Round scored';
-    case 'game_finished':
-      return 'Game finished!';
-    case 'game_terminated':
-      return 'Game terminated';
+      return t('gameLog.gameStarted', { playerCount: d.playerCount, targetScore: d.targetScore });
     case 'teams_announced':
-      return 'Teams announced';
+      return t('gameLog.teamsAnnounced', { team0: d.team0.join(', '), team1: d.team1.join(', ') });
+    case 'round_started':
+      return t('gameLog.roundStarted', { round: d.round });
+    case 'bid_placed':
+      return t('gameLog.bidPlaced', { name, amount: d.amount });
+    case 'player_passed':
+      return t('gameLog.playerPassed', { name });
+    case 'bidding_won':
+      return t('gameLog.biddingWon', { name, bid: d.winningBid });
+    case 'dabb_taken':
+      return t('gameLog.dabbTaken', { name });
+    case 'going_out':
+      return t('gameLog.goingOut', { name, suit: formatSuit(d.suit) });
+    case 'trump_declared':
+      return t('gameLog.trumpDeclared', { name, suit: formatSuit(d.suit) });
+    case 'melds_declared':
+      return d.totalPoints === 0
+        ? t('gameLog.meldsNone', { name })
+        : t('gameLog.meldsDeclared', { name, points: d.totalPoints });
+    case 'card_played':
+      return t('gameLog.cardPlayed', { name, card: formatCard(d.card) });
+    case 'trick_won':
+      return t('gameLog.trickWon', { name, points: d.points });
+    case 'round_scored':
+      return t('gameLog.roundScored');
+    case 'game_finished':
+      return t('gameLog.gameFinished', {
+        name: nicknames.get(d.winner as PlayerIndex) ?? String(d.winner),
+      });
+    case 'game_terminated':
+      return t('gameLog.gameTerminated', { name });
     default:
       return entry.type;
   }
 }
 
 export default function GameScreen({ sessionId, secretId, playerIndex }: GameScreenProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -158,8 +168,8 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   // Game log
   const { entries: logEntries } = useGameLog(events, state, playerIndex);
   const logStrings = useMemo(
-    () => logEntries.map((e) => formatLogEntryText(e, nicknames)),
-    [logEntries, nicknames]
+    () => logEntries.map((e) => formatLogEntryText(e, nicknames, t)),
+    [logEntries, nicknames, t]
   );
 
   // Opponent positions
