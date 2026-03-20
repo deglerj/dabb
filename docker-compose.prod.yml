@@ -4,7 +4,6 @@
 # Required environment variables (set in .env or export):
 #   - DATABASE_URL: PostgreSQL connection string
 #   - CLIENT_URL: Public URL of the web app (for CORS)
-#   - VITE_SERVER_URL: Public URL of the server (for Socket.IO)
 #
 # Optional:
 #   - POSTGRES_PASSWORD: If using the included postgres service
@@ -73,6 +72,25 @@ services:
           cpus: '0.25'
           memory: 128M
 
+  web:
+    image: ${DOCKER_REGISTRY:-ghcr.io}/deglerj/dabb-client:${TAG:-latest}
+    container_name: dabb-web
+    restart: always
+    depends_on:
+      - server
+    healthcheck:
+      test: ['CMD', 'nginx', '-t']
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - dabb-external
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
   umami:
     image: ghcr.io/umami-software/umami:postgresql-latest
     container_name: dabb-umami
@@ -138,6 +156,8 @@ services:
       cert-perms:
         condition: service_completed_successfully
       server:
+        condition: service_started
+      web:
         condition: service_started
     restart: unless-stopped
 
