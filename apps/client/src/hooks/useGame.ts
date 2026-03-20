@@ -15,7 +15,7 @@ export interface UseGameOptions {
 export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
 
-  const { state, events, processEvents, reset } = useGameState({
+  const { state, events, isInitialLoad, processEvents, reset } = useGameState({
     playerIndex: playerIndex as PlayerIndex,
   });
 
@@ -64,6 +64,7 @@ export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
   return {
     state,
     events,
+    isInitialLoad,
     nicknames,
     connected,
     connecting,
