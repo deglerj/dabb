@@ -177,6 +177,12 @@ const en: TranslationKeys = {
     reload: 'Reload',
     update: 'Please update the app',
   },
+  options: {
+    title: 'Options',
+    sound: 'Sound',
+    vibration: 'Vibration',
+    language: 'Language',
+  },
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: 'Session not found',

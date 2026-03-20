@@ -188,6 +188,12 @@ export interface TranslationKeys {
     reload: string;
     update: string;
   };
+  options: {
+    title: string;
+    sound: string;
+    vibration: string;
+    language: string;
+  };
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: string;

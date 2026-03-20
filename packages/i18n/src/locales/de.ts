@@ -178,6 +178,12 @@ const de: TranslationKeys = {
     reload: 'Neu laden',
     update: 'Bitte aktualisiere die App',
   },
+  options: {
+    title: 'Optionen',
+    sound: 'Sound',
+    vibration: 'Vibration',
+    language: 'Sprache',
+  },
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: 'Sitzung nicht gefunden',
