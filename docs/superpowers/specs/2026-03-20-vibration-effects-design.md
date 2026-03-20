@@ -11,17 +11,25 @@ Add haptic feedback to the Dabb mobile client (Android/iOS) for button presses, 
 
 ## Haptic Name → Intensity Mapping
 
-| Trigger                  | `HapticName`        | `expo-haptics` call   |
-| ------------------------ | ------------------- | --------------------- |
-| Card highlighted in hand | `card-select`       | `impactLight`         |
-| Any card played          | `card-play`         | `impactMedium`        |
-| Cards dealt              | `card-deal`         | `impactLight`         |
-| Bid placed               | `bid-place`         | `impactMedium`        |
-| Player passes            | `pass`              | `impactLight`         |
-| Trick won                | `trick-win`         | `impactHeavy`         |
-| It's the player's turn   | `turn-notification` | `notificationSuccess` |
-| Game finished (win)      | `game-win`          | `notificationSuccess` |
-| Any button press         | (inline, no name)   | `impactLight`         |
+`HapticName` is a local union type defined inside `haptics.ts` (same pattern as `SoundName` in `sounds.ts`). It is not exported to `@dabb/shared-types`.
+
+| Trigger                        | `HapticName`        | `expo-haptics` call   |
+| ------------------------------ | ------------------- | --------------------- |
+| Card highlighted in hand (tap) | `card-select`       | `impactLight`         |
+| Any card played                | `card-play`         | `impactMedium`        |
+| Cards dealt                    | `card-deal`         | `impactLight`         |
+| Bid placed                     | `bid-place`         | `impactMedium`        |
+| Player passes                  | `pass`              | `impactLight`         |
+| Trick won                      | `trick-win`         | `impactHeavy`         |
+| It's the player's turn         | `turn-notification` | `notificationSuccess` |
+| Game finished (any outcome)    | `game-win`          | `notificationSuccess` |
+| Any button press               | (inline, no name)   | `impactLight`         |
+
+Notes:
+
+- `card-select` fires only on the tap path in `PlayerHand.tsx`. Drag-start is not covered in this spec.
+- `game-win` fires for all `GAME_FINISHED` outcomes (win and loss) using `notificationSuccess`. The intent is a clear "round over" signal regardless of outcome; nuancing per outcome is out of scope.
+- `turn-notification` uses `notificationSuccess` for its distinct, attention-getting double-tap pattern on iOS. `impactMedium` is a viable alternative if the feel is too strong in practice.
 
 ---
 
@@ -31,7 +39,9 @@ Add haptic feedback to the Dabb mobile client (Android/iOS) for button presses, 
 
 Mirror the existing `utils/sounds.ts` pattern exactly: a module-level utility with platform-split files (`.ts` for native, `.web.ts` no-op stub), AsyncStorage persistence, and silent failure on errors.
 
-Button-press haptics live in `packages/game-canvas` (where most buttons are) as a `HapticTouchableOpacity` wrapper component, since that package cannot depend on `apps/client`.
+Button-press haptics live in `packages/game-canvas` (where most buttons are) as a `HapticTouchableOpacity` wrapper component. Since `packages/game-canvas` cannot depend on `apps/client`, and there is no UI toggle yet (making the preference always-on for now), `HapticTouchableOpacity` calls `expo-haptics` directly without reading the preference. When a toggle UI is built, callers can pass an `hapticsEnabled` prop (defaults to `true`) to opt in to preference-aware behaviour.
+
+`expo-haptics` auto-stubs on web (all methods are no-ops), so no `.web.tsx` companion file is needed for `HapticTouchableOpacity`.
 
 ### New Files
 
@@ -42,7 +52,7 @@ Button-press haptics live in `packages/game-canvas` (where most buttons are) as 
 - AsyncStorage key: `'dabb-haptics-enabled'`
 - Exports:
   - `loadHapticsPreferences()` — reads preference from AsyncStorage on app startup
-  - `setHapticsEnabled(value: boolean)` — updates module state + persists
+  - `setHapticsEnabled(value: boolean): Promise<void>` — updates module state + persists (async, matches `setMuted` in `sounds.ts`)
   - `isHapticsEnabled()` — returns current state
   - `triggerHaptic(name: HapticName)` — checks `enabled`, calls appropriate `expo-haptics` method, fails silently
 
@@ -61,33 +71,32 @@ Button-press haptics live in `packages/game-canvas` (where most buttons are) as 
 
 **`packages/game-canvas/src/components/HapticTouchableOpacity.tsx`**
 
-- Wraps `TouchableOpacity`
-- On mount: reads `'dabb-haptics-enabled'` from AsyncStorage (defaults to `true`)
-- On press: if enabled, calls `Haptics.impactAsync(ImpactFeedbackStyle.Light)` before forwarding `onPress`
-- Accepts all `TouchableOpacity` props; drop-in replacement
+- Wraps `TouchableOpacity`; accepts all `TouchableOpacity` props plus optional `hapticsEnabled?: boolean` (defaults to `true`)
+- On press: if `hapticsEnabled`, calls `Haptics.impactAsync(ImpactFeedbackStyle.Light)`, then forwards `onPress`
+- No AsyncStorage reads; no preference module import; always-on until a toggle UI passes the prop
+- Internal to `packages/game-canvas` — not exported from the package index
 
 ### Modified Files
 
 | File                                                   | Change                                                                                |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `apps/client/app/_layout.tsx`                          | Add `loadHapticsPreferences()` call alongside `loadSoundPreferences()`                |
+| `apps/client/src/app/_layout.tsx`                      | Add `loadHapticsPreferences()` call alongside `loadSoundPreferences()`                |
 | `apps/client/src/components/ui/GameScreen.tsx`         | Add `triggerHaptic(...)` next to each `playSound(...)` call; add `useTurnHaptic` hook |
 | `apps/client/src/components/game/PlayerHand.tsx`       | Add `triggerHaptic('card-select')` next to `playSound('card-select')`                 |
 | `packages/game-canvas/src/overlays/BiddingOverlay.tsx` | Replace `TouchableOpacity` → `HapticTouchableOpacity`                                 |
 | `packages/game-canvas/src/overlays/TrumpOverlay.tsx`   | Replace `TouchableOpacity` → `HapticTouchableOpacity`                                 |
 | `packages/game-canvas/src/overlays/DabbOverlay.tsx`    | Replace `TouchableOpacity` → `HapticTouchableOpacity`                                 |
 | `packages/game-canvas/src/overlays/MeldingOverlay.tsx` | Replace `TouchableOpacity` → `HapticTouchableOpacity`                                 |
-| `packages/game-canvas/package.json`                    | Add `expo-haptics` as a dependency                                                    |
+| `packages/game-canvas/package.json`                    | Add `expo-haptics` as a **peer** dependency (consistent with other native modules)    |
 
 ---
 
 ## Preference Handling
 
-- Shared AsyncStorage key: `'dabb-haptics-enabled'`
-- `haptics.ts` loads it once at app startup via `loadHapticsPreferences()`
-- `HapticTouchableOpacity` reads it once on mount
-- Default: `true` (haptics on if no preference stored)
-- When a future toggle UI is built: call `setHapticsEnabled(value)` from `haptics.ts` — no other changes needed
+- `haptics.ts` maintains module-level `enabled` state, loaded from AsyncStorage key `'dabb-haptics-enabled'` at app startup
+- `HapticTouchableOpacity` is always-on for now (no preference read); accepts `hapticsEnabled` prop for future wiring
+- Default: `true` if no preference stored
+- When a future toggle UI is built: call `setHapticsEnabled(value)` from `haptics.ts` for game events; pass `isHapticsEnabled()` as the `hapticsEnabled` prop to overlays for button haptics
 - All haptic calls wrapped in `try/catch`, fail silently
 
 ---
@@ -95,8 +104,9 @@ Button-press haptics live in `packages/game-canvas` (where most buttons are) as 
 ## Out of Scope
 
 - Toggle UI (deferred to a future settings screen)
-- Web haptics (browser API is too limited; no-op stubs are sufficient)
+- Web haptics (`expo-haptics` auto-stubs on web; no-op stubs in `haptics.web.ts` cover the rest)
 - Haptics in `ui-shared` (no react-native/expo dependencies there)
+- Drag-start `card-select` haptic (only tap path covered)
 
 ---
 
