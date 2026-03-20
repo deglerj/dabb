@@ -134,6 +134,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   const {
     state,
     events,
+    isInitialLoad,
     nicknames,
     connected,
     onBid,
@@ -181,16 +182,17 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     state.players
   );
 
-  useTurnNotification(state, playerIndex);
-  useTurnHaptic(state, playerIndex);
+  useTurnNotification(state, playerIndex, isInitialLoad);
+  useTurnHaptic(state, playerIndex, isInitialLoad);
 
-  // Sound effects: play on new events. Initialized to events.length at first render
-  // so existing events are skipped. Note: if the component remounts (reconnect),
-  // events.length may be 0 causing a brief replay — acceptable for this use case.
+  // Sound effects: play on new events, suppressed during initial load on reconnect.
   const lastSoundedEventIdx = useRef(events.length);
   useEffect(() => {
     const newEvents = events.slice(lastSoundedEventIdx.current);
     lastSoundedEventIdx.current = events.length;
+    if (isInitialLoad) {
+      return;
+    }
     for (const event of newEvents) {
       switch (event.type) {
         case 'CARDS_DEALT':
@@ -219,7 +221,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
           break;
       }
     }
-  }, [events]);
+  }, [events, isInitialLoad]);
 
   // Scoreboard data
   const roundScores = useMemo(() => {
