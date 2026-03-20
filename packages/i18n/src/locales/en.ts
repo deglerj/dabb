@@ -111,7 +111,7 @@ const en: TranslationKeys = {
     goOutConfirmMessage:
       'You will lose your bid and get no melds. Other players will receive their melds plus 40 points.',
     scoreHistory: 'Score History',
-    roundAbbr: 'Rd',
+    roundAbbr: '#',
     bidColumn: 'Bid',
     gameEnded: 'Game ended.',
     youWonGame: 'You won the game! 🎉',

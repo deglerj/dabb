@@ -143,6 +143,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     width: '100%',
+    maxWidth: 400,
     maxHeight: '80%',
     borderWidth: 1,
     borderColor: '#5a3a1a',

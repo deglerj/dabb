@@ -111,7 +111,7 @@ const de: TranslationKeys = {
     goOutConfirmMessage:
       'Du verlierst dein Gebot und bekommst keine Meldungen. Die anderen Spieler bekommen ihre Meldungen plus 40 Punkte.',
     scoreHistory: 'Punkteverlauf',
-    roundAbbr: 'Rd',
+    roundAbbr: '#',
     bidColumn: 'Gebot',
     gameEnded: 'Spiel beendet.',
     youWonGame: 'Du hast gewonnen! 🎉',
