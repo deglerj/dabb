@@ -2,6 +2,7 @@
  * Root layout — loaded once for all routes.
  * Loads fonts, sets up GestureHandlerRootView and SafeAreaProvider.
  */
+import './global.css';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -16,6 +17,7 @@ import { useVersionCheck } from '@dabb/ui-shared';
 import { APP_VERSION, SERVER_URL } from '../constants.js';
 import UpdateRequiredScreen from '../components/ui/UpdateRequiredScreen.js';
 import { loadSoundPreferences } from '../utils/sounds.js';
+import { loadHapticsPreferences } from '../utils/haptics.js';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,6 +43,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     void loadSoundPreferences();
+    void loadHapticsPreferences();
   }, []);
 
   if (!fontsLoaded || versionLoading) {

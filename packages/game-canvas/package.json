@@ -21,6 +21,7 @@
   },
   "peerDependencies": {
     "@shopify/react-native-skia": "*",
+    "expo-haptics": "*",
     "react": "*",
     "react-native": "*",
     "react-native-gesture-handler": "*",

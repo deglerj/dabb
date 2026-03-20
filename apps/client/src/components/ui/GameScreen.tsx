@@ -26,7 +26,9 @@ import type { PlayerIndex, Card, GameLogEntry } from '@dabb/shared-types';
 
 import { useGame } from '../../hooks/useGame.js';
 import { useTurnNotification } from '../../hooks/useTurnNotification.js';
+import { useTurnHaptic } from '../../hooks/useTurnHaptic.js';
 import { playSound } from '../../utils/sounds.js';
+import { triggerHaptic } from '../../utils/haptics.js';
 import { OpponentZone } from '../game/OpponentZone.js';
 import { PlayerHand } from '../game/PlayerHand.js';
 import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
@@ -177,6 +179,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   );
 
   useTurnNotification(state, playerIndex);
+  useTurnHaptic(state, playerIndex);
 
   // Sound effects: play on new events. Initialized to events.length at first render
   // so existing events are skipped. Note: if the component remounts (reconnect),
@@ -189,21 +192,27 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
       switch (event.type) {
         case 'CARDS_DEALT':
           playSound('card-deal');
+          triggerHaptic('card-deal');
           break;
         case 'CARD_PLAYED':
           playSound('card-play');
+          triggerHaptic('card-play');
           break;
         case 'BID_PLACED':
           playSound('bid-place');
+          triggerHaptic('bid-place');
           break;
         case 'PLAYER_PASSED':
           playSound('pass');
+          triggerHaptic('pass');
           break;
         case 'TRICK_WON':
           playSound('trick-win');
+          triggerHaptic('trick-win');
           break;
         case 'GAME_FINISHED':
           playSound('game-win');
+          triggerHaptic('game-win');
           break;
       }
     }

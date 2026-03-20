@@ -392,6 +392,7 @@ export const licenseGroups: { license: string; packages: string[] }[] = [
       'expo-constants',
       'expo-file-system',
       'expo-font',
+      'expo-haptics',
       'expo-keep-awake',
       'expo-linear-gradient',
       'expo-linking',

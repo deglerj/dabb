@@ -13,6 +13,7 @@ interface UseSocketOptions {
   sessionId: string;
   secretId: string;
   onEvents?: (events: GameEvent[]) => void;
+  onStateNicknames?: (nicknames: Record<number, string>) => void;
   onError?: (error: { message: string; code: string }) => void;
   onPlayerJoined?: (playerIndex: number, nickname: string) => void;
   onPlayerLeft?: (playerIndex: number) => void;
@@ -33,6 +34,7 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
     sessionId,
     secretId,
     onEvents,
+    onStateNicknames,
     onError,
     onPlayerJoined,
     onPlayerLeft,
@@ -46,6 +48,7 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
 
   const callbacksRef = useRef({
     onEvents,
+    onStateNicknames,
     onError,
     onPlayerJoined,
     onPlayerLeft,
@@ -56,12 +59,13 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
   useEffect(() => {
     callbacksRef.current = {
       onEvents,
+      onStateNicknames,
       onError,
       onPlayerJoined,
       onPlayerLeft,
       onPlayerReconnected,
     };
-  }, [onEvents, onError, onPlayerJoined, onPlayerLeft, onPlayerReconnected]);
+  }, [onEvents, onStateNicknames, onError, onPlayerJoined, onPlayerLeft, onPlayerReconnected]);
 
   useEffect(() => {
     if (!serverUrl || !sessionId || !secretId) {
@@ -95,8 +99,9 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
       callbacksRef.current.onEvents?.(events);
     });
 
-    newSocket.on('game:state', ({ events }) => {
+    newSocket.on('game:state', ({ events, nicknames }) => {
       callbacksRef.current.onEvents?.(events);
+      callbacksRef.current.onStateNicknames?.(nicknames);
     });
 
     newSocket.on('error', (err) => {
