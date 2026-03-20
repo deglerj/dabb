@@ -110,9 +110,7 @@ export function ScoreboardModal({
 
             {/* Totals row */}
             <View style={[styles.row, styles.totalsRow]}>
-              <Text style={[styles.cell, styles.roundCell, styles.totalsLabel]}>
-                {t('game.total')}
-              </Text>
+              <Text style={[styles.cell, styles.roundCell, styles.totalsLabel]}>{'='}</Text>
               <Text style={[styles.cell, styles.bidCell]} />
               {playerIndices.map((pi) => {
                 const entry = totalScores.find((s) => s.playerIndex === pi);
