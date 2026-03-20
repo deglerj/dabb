@@ -1,7 +1,7 @@
 /**
  * Options dialog — sound toggle, vibration toggle (native only), language selector.
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Modal, View, Text, Switch, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation, i18n, persistLanguage, type SupportedLanguage } from '@dabb/i18n';
@@ -23,6 +23,15 @@ export function OptionsDialog({ visible, onClose }: OptionsDialogProps) {
   const [language, setLanguage] = useState<SupportedLanguage>(
     () => (i18n.language as SupportedLanguage) ?? 'de'
   );
+
+  // Reset state when dialog is re-opened to avoid showing stale values
+  useEffect(() => {
+    if (visible) {
+      setSoundEnabled(!isMuted());
+      setHapticsEnabledState(isHapticsEnabled());
+      setLanguage((i18n.language as SupportedLanguage) ?? 'de');
+    }
+  }, [visible]);
 
   const handleSoundToggle = useCallback((value: boolean) => {
     setSoundEnabled(value);
@@ -63,7 +72,8 @@ export function OptionsDialog({ visible, onClose }: OptionsDialogProps) {
             />
           </View>
 
-          {/* Vibration row — native only */}
+          {/* Vibration row — native only. Platform.OS is a compile-time constant so this
+              conditional mount does not cause layout shifts at runtime. */}
           {Platform.OS !== 'web' && (
             <View style={styles.row}>
               <Text style={styles.rowLabel}>📳 {t('options.vibration')}</Text>
