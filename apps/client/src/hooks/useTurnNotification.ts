@@ -11,11 +11,15 @@ import { useActionRequiredCallback } from '@dabb/ui-shared';
 const notificationSound = require('../../assets/sounds/notification.ogg');
 
 /**
- * Plays a notification sound when the player needs to perform an action
+ * Plays a notification sound when the player needs to perform an action.
+ * Suppressed during initial state load on reconnect.
+ * Note: useActionRequiredCallback already guards the first render via hasInitialized;
+ * isInitialLoad is defense-in-depth for edge cases.
  */
 export function useTurnNotification(
   state: GameState | null,
-  currentPlayerIndex: PlayerIndex | null
+  currentPlayerIndex: PlayerIndex | null,
+  isInitialLoad: boolean
 ): void {
   useEffect(() => {
     setAudioModeAsync({
@@ -27,6 +31,10 @@ export function useTurnNotification(
   const player = useAudioPlayer(notificationSound);
 
   const playNotification = useCallback(async () => {
+    if (isInitialLoad) {
+      return;
+    }
+
     if (!player) {
       return;
     }
@@ -40,7 +48,7 @@ export function useTurnNotification(
     } catch {
       // Ignore synchronous playback errors
     }
-  }, [player]);
+  }, [player, isInitialLoad]);
 
   useActionRequiredCallback(state, currentPlayerIndex, playNotification);
 }

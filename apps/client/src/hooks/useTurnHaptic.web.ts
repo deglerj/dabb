@@ -7,7 +7,8 @@ import { useCallback } from 'react';
 
 export function useTurnHaptic(
   state: GameState | null,
-  currentPlayerIndex: PlayerIndex | null
+  currentPlayerIndex: PlayerIndex | null,
+  _isInitialLoad: boolean
 ): void {
   const noop = useCallback(() => Promise.resolve(), []);
   useActionRequiredCallback(state, currentPlayerIndex, noop);
