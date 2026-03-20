@@ -4,6 +4,7 @@
  */
 import React, { useRef, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from '@dabb/i18n';
 
 export interface GameLogTabProps {
   entries: string[];
@@ -12,6 +13,7 @@ export interface GameLogTabProps {
 }
 
 export function GameLogTab({ entries, isExpanded, onToggle }: GameLogTabProps) {
+  const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export function GameLogTab({ entries, isExpanded, onToggle }: GameLogTabProps) {
     <View style={styles.container}>
       {/* Header — always visible */}
       <Pressable style={styles.header} onPress={onToggle}>
-        <Text style={styles.headerTitle}>Game Log</Text>
+        <Text style={styles.headerTitle}>{t('gameLog.title')}</Text>
         <Text style={styles.headerCount}>({entries.length})</Text>
         <Text style={styles.toggleIcon}>{isExpanded ? '▼' : '▲'}</Text>
       </Pressable>

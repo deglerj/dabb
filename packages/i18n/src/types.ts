@@ -32,6 +32,7 @@ export interface TranslationKeys {
     player: string;
     players: string;
     you: string;
+    done: string;
   };
   home: {
     title: string;
@@ -119,6 +120,12 @@ export interface TranslationKeys {
     orGoOut: string;
     goOutConfirmTitle: string;
     goOutConfirmMessage: string;
+    scoreHistory: string;
+    roundAbbr: string;
+    bidColumn: string;
+    gameEnded: string;
+    youWonGame: string;
+    playerWonGame: string;
   };
   phases: {
     waiting: string;

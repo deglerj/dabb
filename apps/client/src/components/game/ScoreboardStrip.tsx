@@ -6,6 +6,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import type { PlayerIndex } from '@dabb/shared-types';
+import { useTranslation } from '@dabb/i18n';
 
 export interface ScoreboardStripProps {
   roundScores: Array<{ playerIndex: PlayerIndex; score: number }>;
@@ -22,10 +23,11 @@ export function ScoreboardStrip({
   targetScore,
   onPress,
 }: ScoreboardStripProps) {
+  const { t } = useTranslation();
   return (
     <TouchableOpacity style={styles.strip} onPress={onPress} activeOpacity={0.7}>
       {roundScores.map((entry) => {
-        const total = totalScores.find((t) => t.playerIndex === entry.playerIndex);
+        const total = totalScores.find((s) => s.playerIndex === entry.playerIndex);
         const isMe = entry.playerIndex === myPlayerIndex;
         return (
           <View
@@ -42,7 +44,7 @@ export function ScoreboardStrip({
         );
       })}
       <View style={styles.targetEntry}>
-        <Text style={styles.targetLabel}>Target:</Text>
+        <Text style={styles.targetLabel}>{t('game.targetScore')}:</Text>
         <Text style={styles.targetValue}>{targetScore}</Text>
       </View>
     </TouchableOpacity>

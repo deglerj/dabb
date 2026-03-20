@@ -5,6 +5,7 @@ import React from 'react';
 import { Modal, View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import type { PlayerIndex, RoundHistoryEntry } from '@dabb/shared-types';
 import type { RoundHistoryResult } from '@dabb/ui-shared';
+import { useTranslation } from '@dabb/i18n';
 
 export interface ScoreboardModalProps {
   visible: boolean;
@@ -25,6 +26,7 @@ export function ScoreboardModal({
   playerCount,
   totalScores,
 }: ScoreboardModalProps) {
+  const { t } = useTranslation();
   const playerIndices = Array.from({ length: playerCount }, (_, i) => i as PlayerIndex);
 
   function name(pi: PlayerIndex) {
@@ -36,7 +38,7 @@ export function ScoreboardModal({
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.card}>
           <View style={styles.header}>
-            <Text style={styles.title}>Score History</Text>
+            <Text style={styles.title}>{t('game.scoreHistory')}</Text>
             <Pressable onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeText}>✕</Text>
             </Pressable>
@@ -44,8 +46,12 @@ export function ScoreboardModal({
 
           {/* Column headers */}
           <View style={styles.row}>
-            <Text style={[styles.cell, styles.roundCell, styles.headerText]}>Rd</Text>
-            <Text style={[styles.cell, styles.bidCell, styles.headerText]}>Bid</Text>
+            <Text style={[styles.cell, styles.roundCell, styles.headerText]}>
+              {t('game.roundAbbr')}
+            </Text>
+            <Text style={[styles.cell, styles.bidCell, styles.headerText]}>
+              {t('game.bidColumn')}
+            </Text>
             {playerIndices.map((pi) => (
               <Text key={pi} style={[styles.cell, styles.playerCell, styles.headerText]}>
                 {name(pi)}
@@ -104,10 +110,12 @@ export function ScoreboardModal({
 
             {/* Totals row */}
             <View style={[styles.row, styles.totalsRow]}>
-              <Text style={[styles.cell, styles.roundCell, styles.totalsLabel]}>Total</Text>
+              <Text style={[styles.cell, styles.roundCell, styles.totalsLabel]}>
+                {t('game.total')}
+              </Text>
               <Text style={[styles.cell, styles.bidCell]} />
               {playerIndices.map((pi) => {
-                const entry = totalScores.find((t) => t.playerIndex === pi);
+                const entry = totalScores.find((s) => s.playerIndex === pi);
                 return (
                   <Text key={pi} style={[styles.cell, styles.playerCell, styles.totalsValue]}>
                     {entry?.score ?? 0}

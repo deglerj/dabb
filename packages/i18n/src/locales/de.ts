@@ -21,6 +21,7 @@ const de: TranslationKeys = {
     player: 'Spieler',
     players: 'Spieler',
     you: 'Du',
+    done: 'Fertig',
   },
   home: {
     title: 'Dabb',
@@ -109,6 +110,12 @@ const de: TranslationKeys = {
     goOutConfirmTitle: 'Abgehen?',
     goOutConfirmMessage:
       'Du verlierst dein Gebot und bekommst keine Meldungen. Die anderen Spieler bekommen ihre Meldungen plus 40 Punkte.',
+    scoreHistory: 'Punkteverlauf',
+    roundAbbr: 'Rd',
+    bidColumn: 'Gebot',
+    gameEnded: 'Spiel beendet.',
+    youWonGame: 'Du hast gewonnen! 🎉',
+    playerWonGame: '{{name}} hat gewonnen.',
   },
   phases: {
     waiting: 'Warten',
