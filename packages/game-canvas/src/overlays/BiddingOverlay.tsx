@@ -44,6 +44,7 @@ export function BiddingOverlay({ currentBid, isMyTurn, onBid, onPass }: BiddingO
           >
             {bidAmounts
               .filter((amount) => amount > currentBid)
+              .slice(0, 5)
               .map((amount) => (
                 <HapticTouchableOpacity
                   key={amount}
