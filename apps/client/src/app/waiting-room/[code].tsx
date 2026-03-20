@@ -26,7 +26,6 @@ export default function WaitingRoomRoute() {
   const router = useRouter();
 
   const [credentials, setCredentials] = useState<StoredSession | null>(null);
-  const [_nickname, setNickname] = useState('');
   const [players, setPlayers] = useState<Map<PlayerIndex, PlayerEntry>>(new Map());
   const [isAddingAI, setIsAddingAI] = useState(false);
   const [selectedAIDifficulty, setSelectedAIDifficulty] = useState<AIDifficulty>('medium');
@@ -50,7 +49,6 @@ export default function WaitingRoomRoute() {
         const session = JSON.parse(sessionRaw) as StoredSession;
         setCredentials(session);
         const ownNickname = storedNickname ?? '';
-        setNickname(ownNickname);
         // Seed own player — server emits player:joined only to *other* sockets
         setPlayers(
           new Map([[session.playerIndex, { nickname: ownNickname, connected: true, isAI: false }]])
