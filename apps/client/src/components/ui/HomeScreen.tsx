@@ -65,20 +65,14 @@ export default function HomeScreen() {
           secretId: sessionData.secretId,
           playerId: sessionData.playerId,
           playerIndex: sessionData.playerIndex,
+          playerCount,
         })
       );
       await storageSet('dabb-nickname', nickname.trim());
 
       router.push({
-        pathname: '/waiting-room/[id]',
-        params: {
-          id: sessionData.sessionId,
-          code: sessionData.sessionCode,
-          secretId: sessionData.secretId,
-          playerIndex: String(sessionData.playerIndex),
-          playerCount: String(playerCount),
-          nickname: nickname.trim(),
-        },
+        pathname: '/waiting-room/[code]',
+        params: { code: sessionData.sessionCode },
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
@@ -114,15 +108,8 @@ export default function HomeScreen() {
       await storageSet('dabb-nickname', nickname.trim());
 
       router.push({
-        pathname: '/waiting-room/[id]',
-        params: {
-          id: sessionData.sessionId,
-          code: joinCode.trim().toUpperCase(),
-          secretId: sessionData.secretId,
-          playerIndex: String(sessionData.playerIndex),
-          playerCount: '0', // unknown for joiners; waiting room discovers it from socket events
-          nickname: nickname.trim(),
-        },
+        pathname: '/waiting-room/[code]',
+        params: { code: joinCode.trim().toUpperCase() },
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
