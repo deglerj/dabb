@@ -1,7 +1,8 @@
 /**
  * CardFace — antique paper card face rendered as a Skia Canvas.
  *
- * Number cards (Ass, Zehn) show suit symbol in the center.
+ * Ass shows a large suit symbol in the center.
+ * Zehn shows a large "10" in suit color in the center.
  * Face cards (König, Ober, Buabe) show a colored vertical band with the rank
  * initial (K / O / B) displayed prominently in contrasting color.
  *
@@ -56,8 +57,9 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
 
   const cornerFontSize = Math.round(width * 0.17);
   const cornerSuitFontSize = Math.round(cornerFontSize * 0.75);
-  // Face cards: larger initial centered in the band; number cards: large suit symbol
-  const centerFontSize = isFace ? Math.round(width * 0.52) : Math.round(width * 0.42);
+  // Face cards / Zehn: rank abbr centered; Ass: large suit symbol
+  const centerFontSize =
+    isFace || rank === '10' ? Math.round(width * 0.52) : Math.round(width * 0.42);
 
   // matchFont uses the system font manager which is not implemented on RN Web.
   // The null guard below falls back to a label-free card canvas on web.
@@ -104,7 +106,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
     // Fallback for platforms where matchFont is unavailable (e.g. RN Web).
     // Uses React Native View/Text which renders correctly on all platforms.
     const cornerSz = Math.round(width * 0.17);
-    const centerSz = isFace ? Math.round(width * 0.52) : Math.round(width * 0.42);
+    const centerSz = isFace || rank === '10' ? Math.round(width * 0.52) : Math.round(width * 0.42);
     return (
       <View
         ref={cardRef}
@@ -127,7 +129,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
         </View>
         <View style={rnStyles.center}>
           <RNText style={{ fontSize: centerSz, color, fontWeight: 'bold' }}>
-            {isFace ? abbr : symbol}
+            {isFace || rank === '10' ? abbr : symbol}
           </RNText>
         </View>
         <View style={[rnStyles.cornerBR, { transform: [{ rotate: '180deg' }] }]}>
@@ -161,8 +163,8 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
   const bandWidth = width * 0.4;
   const bandX = (width - bandWidth) / 2;
 
-  // Center rank initial positioned over the band
-  const faceInitial = isFace ? abbr : symbol;
+  // Center: rank abbr for face cards and Zehn; suit symbol for Ass
+  const faceInitial = isFace || rank === '10' ? abbr : symbol;
   const faceInitialWidth = centerFont.measureText(faceInitial).width;
   const centerX = (width - faceInitialWidth) / 2;
   const centerBaselineY = (height + centerFontSize) / 2 - centerFontSize * 0.15;
@@ -225,7 +227,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
             />
           </Group>
 
-          {/* Center: large rank initial (face) or suit symbol (number) */}
+          {/* Center: rank abbr for face cards and Zehn; suit symbol for Ass */}
           <Text
             x={centerX}
             y={centerBaselineY}
