@@ -35,6 +35,7 @@ export interface CardViewProps {
   initialY?: number;
   dimmed?: boolean;
   selected?: boolean;
+  highlighted?: boolean;
 }
 
 const DEFAULT_W = 70;
@@ -58,6 +59,7 @@ export function CardView({
   effects,
   dimmed = false,
   selected = false,
+  highlighted = false,
 }: CardViewProps) {
   // Snap to initial position on mount (or target if no initial given)
   const x = useSharedValue(initialX ?? targetX);
@@ -199,6 +201,21 @@ export function CardView({
               borderRadius: width * 0.06,
               borderWidth: 3,
               borderColor: '#f39c12',
+            }}
+            pointerEvents="none"
+          />
+        )}
+        {highlighted && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width,
+              height,
+              borderRadius: width * 0.06,
+              borderWidth: 2,
+              borderColor: '#ffd700',
             }}
             pointerEvents="none"
           />
