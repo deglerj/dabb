@@ -13,7 +13,7 @@ Highlight dabb-origin cards with a golden border overlay on the card, visible fr
 
 ## Architecture
 
-No state changes are needed. `GameState.dabbCardIds` already tracks dabb-origin card IDs and persists across the `dabb → trump → melding` phases.
+No state changes are needed. `GameState.dabbCardIds` already tracks dabb-origin card IDs and persists across the `dabb → trump → melding` phases (it is cleared at round end by the reducer).
 
 ### Component Changes
 
@@ -33,10 +33,10 @@ Add a `highlighted?: boolean` prop (default `false`). When true, render an absol
 Compute highlighted IDs before rendering:
 
 ```ts
-const highlightedIds =
-  gameState.phase !== 'tricks' && gameState.dabbCardIds.length > 0
-    ? new Set(gameState.dabbCardIds)
-    : new Set<string>();
+const showDabbHighlight =
+  (gameState.phase === 'dabb' || gameState.phase === 'trump' || gameState.phase === 'melding') &&
+  gameState.dabbCardIds.length > 0;
+const highlightedIds = showDabbHighlight ? new Set(gameState.dabbCardIds) : new Set<string>();
 ```
 
 Pass `highlighted={highlightedIds.has(card.id)}` to `CardView` in both rendering branches:
@@ -46,24 +46,38 @@ Pass `highlighted={highlightedIds.has(card.id)}` to `CardView` in both rendering
 
 ### Highlight Lifecycle
 
-| Phase                 | Highlight active? | Notes                               |
-| --------------------- | ----------------- | ----------------------------------- |
-| `dabb` (take step)    | No                | Dabb cards not yet in hand          |
-| `dabb` (discard step) | Yes               | Most useful — choose what to return |
-| `trump`               | Yes               | Declare trump with full context     |
-| `melding`             | Yes               | Declare melds with full context     |
-| `tricks`              | No                | Turns off when trick-taking starts  |
+Both the "take step" and "discard step" of the dabb phase share the same `phase === 'dabb'` value. The distinction between them is made by `dabbCardIds.length > 0`: the `DABB_TAKEN` event populates `dabbCardIds` and simultaneously empties `state.dabb`, so `dabbCardIds` is empty during the take step and non-empty during the discard step.
 
-The condition `phase !== 'tricks'` handles all cases automatically since `dabbCardIds` is already empty in pre-dabb phases.
+| Phase                              | Highlight active? | Why                                                                                |
+| ---------------------------------- | ----------------- | ---------------------------------------------------------------------------------- |
+| `waiting`, `bidding`               | No                | `dabbCardIds` is empty (pre-dabb)                                                  |
+| `dabb` (take step)                 | No                | `phase === 'dabb'` but `dabbCardIds.length === 0` — `DABB_TAKEN` has not fired yet |
+| `dabb` (discard step)              | Yes               | `phase === 'dabb'` and `dabbCardIds.length > 0` — both conditions met              |
+| `trump`                            | Yes               | Whitelist includes `trump`                                                         |
+| `melding`                          | Yes               | Whitelist includes `melding`                                                       |
+| `tricks`, `finished`, `terminated` | No                | Phase whitelist excludes these                                                     |
+
+The phase whitelist (`dabb || trump || melding`) is used rather than a blacklist because `dabbCardIds` is not cleared until round end, so it may still be non-empty during `tricks`, `finished`, and `terminated` — the whitelist prevents highlights there.
+
+**Going Out edge case:** If the bid winner goes out (`GoingOutEvent`), the round ends immediately during the `dabb` phase and the phase transitions directly to `finished` (bypassing `trump` and `melding`). The highlight is visible while the player is deciding whether to go out — correct and desirable. Once the phase becomes `finished`, it is excluded by the whitelist.
+
+**Anti-cheat:** `dabbCardIds` is server-side filtered — non-bid-winners receive an empty array. The `dabbCardIds.length > 0` guard in `showDabbHighlight` means non-bid-winners never see any highlight, which is the correct behaviour. No additional client-side guard is needed.
 
 ## Files Changed
 
-| File                                             | Change                                                     |
-| ------------------------------------------------ | ---------------------------------------------------------- |
-| `packages/game-canvas/src/cards/CardView.tsx`    | Add `highlighted` prop + border overlay                    |
-| `apps/client/src/components/game/PlayerHand.tsx` | Compute `highlightedIds`, pass to both `CardView` branches |
+| File                                             | Change                                                                         |
+| ------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `packages/game-canvas/src/cards/CardView.tsx`    | Add `highlighted` prop + border overlay                                        |
+| `apps/client/src/components/game/PlayerHand.tsx` | Compute `highlightedIds` via phase whitelist, pass to both `CardView` branches |
 
 ## Testing
 
-- Manual: take dabb as bid winner → confirm gold border appears on dabb cards → discard and proceed → confirm gold border is gone when tricks phase starts
-- The feature is visual-only with no logic changes, so no unit tests are needed
+**Unit test** for `showDabbHighlight` derivation in `PlayerHand` (or extracted helper), covering:
+
+- `phase === 'dabb'` with non-empty `dabbCardIds` → highlight on
+- `phase === 'trump'` with non-empty `dabbCardIds` → highlight on
+- `phase === 'melding'` with non-empty `dabbCardIds` → highlight on
+- `phase === 'dabb'` with empty `dabbCardIds` (take step) → highlight off
+- `phase === 'tricks'` with non-empty `dabbCardIds` → highlight off
+
+**Manual verification:** take dabb as bid winner → confirm gold border on dabb cards → proceed through trump/melding → confirm gold border disappears when tricks phase starts.
