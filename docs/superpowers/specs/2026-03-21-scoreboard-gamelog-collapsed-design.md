@@ -31,18 +31,18 @@ When the bid winner is not yet known (bidding in progress or pre-bidding), show 
 
 Remove `targetScore`. Add:
 
-| Prop         | Type                       | Description                    |
-| ------------ | -------------------------- | ------------------------------ |
-| `bidWinner`  | `PlayerIndex \| null`      | Winner of the auction, or null |
-| `highestBid` | `number`                   | The winning bid amount         |
-| `trump`      | `Suit \| null`             | Declared trump suit, or null   |
-| `nicknames`  | `Map<PlayerIndex, string>` | Player display names           |
+| Prop         | Type                       | Source in GameScreen    |
+| ------------ | -------------------------- | ----------------------- |
+| `bidWinner`  | `PlayerIndex \| null`      | `state.bidWinner`       |
+| `currentBid` | `number`                   | `state.currentBid`      |
+| `trump`      | `Suit \| null`             | `state.trump`           |
+| `nicknames`  | `Map<PlayerIndex, string>` | already in `GameScreen` |
 
-All new data is already available in `GameState` and the `nicknames` map in `GameScreen`.
+(`currentBid` matches the `GameState` field name. All new data is already available in `GameScreen`.)
 
 ### i18n
 
-Reuse existing keys: `game.bidColumn` ("Gebot") and `game.trump` ("Trumpf"). No new keys needed.
+Use `game.bidColumn` ("Gebot") as the bid label — it is the correct short label for the bid amount (as opposed to `game.bidWinner` / "Reizgewinner", which is a longer column header). Use `game.trump` ("Trumpf") for the trump label. No new keys needed.
 
 ### Suit Display
 
@@ -60,13 +60,13 @@ When no important event has occurred yet, the space is empty (no placeholder tex
 
 ### Important Event Types
 
-| Event Type       | Example text                         |
-| ---------------- | ------------------------------------ |
-| `going_out`      | "Anna geht ab in Herz"               |
-| `trick_won`      | "Anna gewinnt den Stich (18 Punkte)" |
-| `round_scored`   | "Runde beendet"                      |
-| `melds_declared` | "Max meldet 60 Punkte"               |
-| `game_finished`  | "Max gewinnt das Spiel!"             |
+| Event Type       | Example text                                                                   |
+| ---------------- | ------------------------------------------------------------------------------ |
+| `going_out`      | "Anna geht ab in Herz"                                                         |
+| `trick_won`      | "Anna gewinnt den Stich (18 Punkte)"                                           |
+| `round_scored`   | "Runde beendet"                                                                |
+| `melds_declared` | "Max meldet 60 Punkte" (or "Max meldet keine Punkte" when `totalPoints === 0`) |
+| `game_finished`  | "Max gewinnt das Spiel!"                                                       |
 
 All other event types (bids, cards played, round started, etc.) are not considered important.
 
@@ -78,11 +78,13 @@ Add `lastImportantEntry: GameLogEntry | null` to `GameLogResult`. This is comput
 
 ### Component Change: `GameLogTab`
 
-Add optional prop `collapsedSummary?: string`. When the log is collapsed and this prop is provided, render it inline in the header row with `flex: 1`, `overflow: hidden`, `text-overflow: ellipsis`, `white-space: nowrap`, styled as italic muted text.
+Add optional prop `collapsedSummary?: string`. When the log is collapsed and this prop is provided, render it inline in the header row using a `<Text>` with `numberOfLines={1}` (React Native truncation) and `flex: 1`. The existing title `<Text>` should no longer carry `flex: 1` — the summary text takes that flex share instead. Style as italic muted text.
 
 ### GameScreen Wiring
 
-In `GameScreen`, derive the collapsed summary string by applying the existing `formatLogEntryText` function to `lastImportantEntry`. Pass it as `collapsedSummary` to `GameLogTab`.
+In `GameScreen`, derive the collapsed summary string by applying the existing `formatLogEntryText` function (a module-level function in `GameScreen.tsx` — no extraction needed) to `lastImportantEntry`. Pass it as `collapsedSummary` to `GameLogTab`.
+
+Scan `entries` (the full reverse-chronological list, not `latestEntries`) so that important events are not missed when more than 5 entries exist.
 
 ---
 
@@ -90,7 +92,7 @@ In `GameScreen`, derive the collapsed summary string by applying the existing `f
 
 | File                                                  | Change                                                                                                       |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `apps/client/src/components/game/ScoreboardStrip.tsx` | Replace `targetScore` prop with `bidWinner`, `highestBid`, `trump`, `nicknames`; render new right-side block |
+| `apps/client/src/components/game/ScoreboardStrip.tsx` | Replace `targetScore` prop with `bidWinner`, `currentBid`, `trump`, `nicknames`; render new right-side block |
 | `apps/client/src/components/ui/GameScreen.tsx`        | Pass new props to `ScoreboardStrip`; pass `collapsedSummary` to `GameLogTab`                                 |
 | `packages/ui-shared/src/useGameLog.ts`                | Add `lastImportantEntry` to `GameLogResult`                                                                  |
 | `apps/client/src/components/game/GameLogTab.tsx`      | Add `collapsedSummary` prop; render inline when collapsed                                                    |
