@@ -11,6 +11,9 @@ import { getValidPlays, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
 import { playSound } from '../../utils/sounds.js';
 import { triggerHaptic } from '../../utils/haptics.js';
+import { computeHighlightedDabbIds } from './dabbHighlighting.js';
+
+export { computeHighlightedDabbIds };
 
 export interface PlayerHandProps {
   gameState: GameState | null;
