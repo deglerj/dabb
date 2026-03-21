@@ -7,10 +7,11 @@
  * - Staggered sweep to winner's corner (sweepingCardCount from hook)
  */
 import React, { useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { CardView, deriveCardPositions, type SkiaEffects } from '@dabb/game-canvas';
 import type { Player, PlayerIndex } from '@dabb/shared-types';
 import type { TrickAnimationResult } from '@dabb/ui-shared';
+import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 
 const HAND_Y_FRACTION = 0.82;
 const CARD_W = 70;
@@ -33,7 +34,7 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
   effects,
   localPlayerDropOrigin,
 }: TrickAnimationLayerProps) {
-  const { width, height } = useWindowDimensions();
+  const { width, height } = useGameDimensions();
   const { animPhase, displayCards, winnerIndex, winnerPlayerId, sweepingCardCount } = animState;
 
   // Order players by playerIndex so WON_PILE_CORNERS assigns correctly:

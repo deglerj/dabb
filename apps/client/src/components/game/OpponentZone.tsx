@@ -4,7 +4,8 @@
  * Portrait phone: nameplate badge + card count number only.
  */
 import React from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 import type { PlayerIndex } from '@dabb/shared-types';
 
 export interface OpponentZoneProps {
@@ -19,7 +20,7 @@ const CARD_W = 40;
 const CARD_H = 60;
 
 export function OpponentZone({ nickname, cardCount, isConnected, position }: OpponentZoneProps) {
-  const { width, height } = useWindowDimensions();
+  const { width, height } = useGameDimensions();
   const isLandscape = width > height;
   const isTablet = Math.min(width, height) > 600;
   const showCards = isLandscape || isTablet;

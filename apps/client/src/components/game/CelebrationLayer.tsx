@@ -6,7 +6,8 @@
  * - showFireworks: local player won the game (fireworks + "You won the game!")
  */
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 import { Canvas, Rect, Group } from '@shopify/react-native-skia';
 
 export interface CelebrationLayerProps {
@@ -85,7 +86,7 @@ function stepParticles(particles: Particle[], gravity: number): void {
 }
 
 export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLayerProps) {
-  const { width, height } = useWindowDimensions();
+  const { width, height } = useGameDimensions();
   const particles = useRef<Particle[]>([]);
   const rafRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

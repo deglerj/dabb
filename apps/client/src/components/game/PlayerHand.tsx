@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import {
   CardView,
   deriveCardPositions,
@@ -10,6 +10,7 @@ import {
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
 import { playSound } from '../../utils/sounds.js';
+import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 import { triggerHaptic } from '../../utils/haptics.js';
 import { computeHighlightedDabbIds } from './dabbHighlighting.js';
 
@@ -35,7 +36,7 @@ export function PlayerHand({
   discardSelectedIds,
   onToggleDiscard,
 }: PlayerHandProps) {
-  const { width, height } = useWindowDimensions();
+  const { width, height } = useGameDimensions();
   const feltBounds = getFeltBounds(width, height);
 
   if (!gameState) {
