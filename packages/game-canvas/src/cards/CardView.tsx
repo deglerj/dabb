@@ -36,6 +36,7 @@ export interface CardViewProps {
   dimmed?: boolean;
   selected?: boolean;
   highlighted?: boolean;
+  isTrump?: boolean;
 }
 
 const DEFAULT_W = 70;
@@ -60,6 +61,7 @@ export function CardView({
   dimmed = false,
   selected = false,
   highlighted = false,
+  isTrump = false,
 }: CardViewProps) {
   // Snap to initial position on mount (or target if no initial given)
   const x = useSharedValue(initialX ?? targetX);
@@ -186,7 +188,7 @@ export function CardView({
         shouldRasterizeIOS
       >
         {card !== null ? (
-          <CardFace card={card} width={width} height={height} dimmed={dimmed} />
+          <CardFace card={card} width={width} height={height} dimmed={dimmed} isTrump={isTrump} />
         ) : (
           <CardBack width={width} height={height} />
         )}

@@ -60,6 +60,8 @@ export function PlayerHand({
   );
 
   const isTricksPhase = gameState.phase === 'tricks';
+  const isTrumpHighlightPhase =
+    (gameState.phase === 'tricks' || gameState.phase === 'melding') && gameState.trump !== null;
   const isDiscardMode = !!onToggleDiscard;
   const validPlays =
     isTricksPhase && gameState.trump
@@ -98,6 +100,7 @@ export function PlayerHand({
               zIndex={isSelected ? pos.zIndex + 100 : pos.zIndex}
               selected={isSelected}
               highlighted={highlightedIds.has(card.id)}
+              isTrump={isTrumpHighlightPhase && card.suit === gameState.trump}
               onTap={() => {
                 playSound('card-select');
                 triggerHaptic('card-select');
@@ -118,6 +121,7 @@ export function PlayerHand({
             draggable={isTricksPhase && isValid}
             dimmed={isTricksPhase && !isValid}
             highlighted={highlightedIds.has(card.id)}
+            isTrump={isTrumpHighlightPhase && card.suit === gameState.trump}
             effects={isTricksPhase && isValid ? effects : undefined}
             onTap={
               isTricksPhase && isValid
