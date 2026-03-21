@@ -193,9 +193,14 @@ jobs:
           - app: server
             dockerfile: apps/server/Dockerfile
             build_args: ''
+            platforms: linux/amd64,linux/arm64
           - app: client
             dockerfile: apps/client/Dockerfile.web
-            build_args: 'SERVER_URL=https://dabb.degler.info'
+            build_args: |
+              SERVER_URL=https://dabb.degler.info
+              EXPO_PUBLIC_UMAMI_URL=${{ vars.VITE_UMAMI_URL }}
+              EXPO_PUBLIC_UMAMI_WEBSITE_ID=${{ vars.VITE_UMAMI_WEBSITE_ID }}
+            platforms: linux/amd64
 
     steps:
       - name: Checkout
@@ -270,7 +275,7 @@ jobs:
           build-args: ${{ matrix.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platforms }}
 
   build-client-apk:
     name: Build Client APK
