@@ -43,6 +43,7 @@ import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OptionsButton } from './OptionsButton.js';
+import GameScreenErrorBoundary from './GameScreenErrorBoundary.js';
 
 export interface GameScreenProps {
   sessionId: string;
@@ -314,17 +315,9 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     router.replace('/');
   }, [router]);
 
-  // Loading state
-  if (state.phase === 'waiting') {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#c97f00" />
-        <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
-          <OptionsButton />
-        </View>
-      </View>
-    );
-  }
+  const handleReload = useCallback(() => {
+    router.replace('/');
+  }, [router]);
 
   // Phase overlay
   const showBidding = state.phase === 'bidding';
@@ -333,136 +326,156 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   const showMelding = state.phase === 'melding';
 
   return (
-    <View style={styles.outerContainer}>
-      <View style={styles.gameWrapper}>
-        {/* Skia game table background */}
-        <GameTable width={width} height={height} effects={effects} />
+    <GameScreenErrorBoundary
+      state={state}
+      events={events}
+      connected={connected}
+      onReload={handleReload}
+    >
+      {state.phase === 'waiting' ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#c97f00" />
+          <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+            <OptionsButton />
+          </View>
+        </View>
+      ) : (
+        <View style={styles.outerContainer}>
+          <View style={styles.gameWrapper}>
+            {/* Skia game table background */}
+            <GameTable width={width} height={height} effects={effects} />
 
-        {/* Reconnecting banner */}
-        <ReconnectingBanner visible={!connected} />
+            {/* Reconnecting banner */}
+            <ReconnectingBanner visible={!connected} />
 
-        {/* Scoreboard strip at top */}
-        <ScoreboardStrip
-          roundScores={roundScores}
-          totalScores={totalScores}
-          myPlayerIndex={playerIndex}
-          targetScore={state.targetScore}
-          onPress={() => setScoreboardOpen(true)}
-        />
-
-        {/* Opponents */}
-        {Array.from(opponentPositions.entries()).map(([opIdx, pos]) => {
-          const player = state.players[opIdx];
-          const opCards = state.hands.get(opIdx);
-          return (
-            <OpponentZone
-              key={opIdx}
-              playerIndex={opIdx}
-              nickname={nicknames.get(opIdx) ?? player?.nickname ?? `P${opIdx}`}
-              cardCount={opCards?.length ?? 0}
-              isConnected={player?.connected ?? false}
-              position={pos}
+            {/* Scoreboard strip at top */}
+            <ScoreboardStrip
+              roundScores={roundScores}
+              totalScores={totalScores}
+              myPlayerIndex={playerIndex}
+              targetScore={state.targetScore}
+              onPress={() => setScoreboardOpen(true)}
             />
-          );
-        })}
 
-        {/* Trick animation layer */}
-        <TrickAnimationLayer
-          animState={trickAnimState}
-          myPlayerIndex={playerIndex}
-          players={state.players}
-          playerCount={state.playerCount as 3 | 4}
-          effects={effects}
-          localPlayerDropOrigin={lastDropPos}
-        />
+            {/* Opponents */}
+            {Array.from(opponentPositions.entries()).map(([opIdx, pos]) => {
+              const player = state.players[opIdx];
+              const opCards = state.hands.get(opIdx);
+              return (
+                <OpponentZone
+                  key={opIdx}
+                  playerIndex={opIdx}
+                  nickname={nicknames.get(opIdx) ?? player?.nickname ?? `P${opIdx}`}
+                  cardCount={opCards?.length ?? 0}
+                  isConnected={player?.connected ?? false}
+                  position={pos}
+                />
+              );
+            })}
 
-        {/* Player hand */}
-        <PlayerHand
-          gameState={state}
-          playerIndex={playerIndex}
-          cards={myCards}
-          onPlayCard={(cardId, dropPos) => {
-            if (dropPos) {
-              setLastDropPos(dropPos);
-            }
-            onPlayCard(cardId);
-          }}
-          effects={effects}
-          discardSelectedIds={showDabb && dabbStep === 'discard' ? dabbSelectedCards : undefined}
-          onToggleDiscard={showDabb && dabbStep === 'discard' ? handleToggleDabbCard : undefined}
-        />
+            {/* Trick animation layer */}
+            <TrickAnimationLayer
+              animState={trickAnimState}
+              myPlayerIndex={playerIndex}
+              players={state.players}
+              playerCount={state.playerCount as 3 | 4}
+              effects={effects}
+              localPlayerDropOrigin={lastDropPos}
+            />
 
-        {/* Phase overlays */}
-        <PhaseOverlay visible={showBidding}>
-          <BiddingOverlay
-            currentBid={state.currentBid}
-            isMyTurn={isMyBiddingTurn}
-            onBid={onBid}
-            onPass={onPass}
-          />
-        </PhaseOverlay>
+            {/* Player hand */}
+            <PlayerHand
+              gameState={state}
+              playerIndex={playerIndex}
+              cards={myCards}
+              onPlayCard={(cardId, dropPos) => {
+                if (dropPos) {
+                  setLastDropPos(dropPos);
+                }
+                onPlayCard(cardId);
+              }}
+              effects={effects}
+              discardSelectedIds={
+                showDabb && dabbStep === 'discard' ? dabbSelectedCards : undefined
+              }
+              onToggleDiscard={
+                showDabb && dabbStep === 'discard' ? handleToggleDabbCard : undefined
+              }
+            />
 
-        <PhaseOverlay visible={showDabb}>
-          <DabbOverlay
-            step={dabbStep}
-            dabbCards={dabbCards}
-            discardCount={DABB_SIZE[state.playerCount]}
-            selectedCardIds={dabbSelectedCards}
-            onTake={onTakeDabb}
-            onDiscard={handleDiscard}
-            onGoOut={onGoOut}
-          />
-        </PhaseOverlay>
+            {/* Phase overlays */}
+            <PhaseOverlay visible={showBidding}>
+              <BiddingOverlay
+                currentBid={state.currentBid}
+                isMyTurn={isMyBiddingTurn}
+                onBid={onBid}
+                onPass={onPass}
+              />
+            </PhaseOverlay>
 
-        <PhaseOverlay visible={showTrump}>
-          <TrumpOverlay onSelectTrump={onDeclareTrump} />
-        </PhaseOverlay>
+            <PhaseOverlay visible={showDabb}>
+              <DabbOverlay
+                step={dabbStep}
+                dabbCards={dabbCards}
+                discardCount={DABB_SIZE[state.playerCount]}
+                selectedCardIds={dabbSelectedCards}
+                onTake={onTakeDabb}
+                onDiscard={handleDiscard}
+                onGoOut={onGoOut}
+              />
+            </PhaseOverlay>
 
-        <PhaseOverlay visible={showMelding}>
-          <MeldingOverlay
-            melds={detectedMelds}
-            totalPoints={meldTotalPoints}
-            canConfirm={true}
-            onConfirm={handleConfirmMelds}
-          />
-        </PhaseOverlay>
+            <PhaseOverlay visible={showTrump}>
+              <TrumpOverlay onSelectTrump={onDeclareTrump} />
+            </PhaseOverlay>
 
-        {/* Game log */}
-        <View style={styles.logContainer}>
-          <GameLogTab
-            entries={logStrings}
-            isExpanded={logExpanded}
-            onToggle={() => setLogExpanded((v) => !v)}
-          />
+            <PhaseOverlay visible={showMelding}>
+              <MeldingOverlay
+                melds={detectedMelds}
+                totalPoints={meldTotalPoints}
+                canConfirm={true}
+                onConfirm={handleConfirmMelds}
+              />
+            </PhaseOverlay>
+
+            {/* Game log */}
+            <View style={styles.logContainer}>
+              <GameLogTab
+                entries={logStrings}
+                isExpanded={logExpanded}
+                onToggle={() => setLogExpanded((v) => !v)}
+              />
+            </View>
+
+            {/* Celebration layer */}
+            <CelebrationLayer showConfetti={showConfetti} showFireworks={showFireworks} />
+
+            {/* Scoreboard history modal */}
+            <ScoreboardModal
+              visible={scoreboardOpen}
+              onClose={() => setScoreboardOpen(false)}
+              rounds={rounds}
+              currentRound={currentRound}
+              nicknames={nicknames}
+              playerCount={state.playerCount}
+              totalScores={totalScores}
+            />
+
+            {/* Game terminated modal */}
+            <GameTerminatedModal
+              visible={isTerminated}
+              winnerId={winnerPlayer?.id ?? null}
+              winnerNickname={winnerPlayer?.nickname ?? null}
+              isLocalWinner={winnerPlayer?.playerIndex === playerIndex}
+              onDone={handleDone}
+            />
+            <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+              <OptionsButton />
+            </View>
+          </View>
         </View>
-
-        {/* Celebration layer */}
-        <CelebrationLayer showConfetti={showConfetti} showFireworks={showFireworks} />
-
-        {/* Scoreboard history modal */}
-        <ScoreboardModal
-          visible={scoreboardOpen}
-          onClose={() => setScoreboardOpen(false)}
-          rounds={rounds}
-          currentRound={currentRound}
-          nicknames={nicknames}
-          playerCount={state.playerCount}
-          totalScores={totalScores}
-        />
-
-        {/* Game terminated modal */}
-        <GameTerminatedModal
-          visible={isTerminated}
-          winnerId={winnerPlayer?.id ?? null}
-          winnerNickname={winnerPlayer?.nickname ?? null}
-          isLocalWinner={winnerPlayer?.playerIndex === playerIndex}
-          onDone={handleDone}
-        />
-        <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
-          <OptionsButton />
-        </View>
-      </View>
-    </View>
+      )}
+    </GameScreenErrorBoundary>
   );
 }
 
