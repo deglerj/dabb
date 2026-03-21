@@ -18,14 +18,19 @@ No changes to `CardView`, `useTrickAnimationState`, `CardFace`, or any other com
 
 ## Label Rendering
 
-For each card in `displayCards`, render an absolutely positioned `Text` label **centered horizontally above the card**.
+Inside the existing `displayCards.map` block (co-located with each `CardView`), render an absolutely positioned `Text` label centered horizontally above the card, using the already-computed `targetX`/`targetY` values for that card.
+
+Define a local constant `const CARD_W = 70` at the top of the file (matching `CardView`'s `DEFAULT_W`).
 
 Position:
 
-- `left`: `targetX + CARD_W / 2` — center of the card (use `transform: [{ translateX: -50% }]` or measure with a fixed `minWidth` + `textAlign: center`)
+- `left`: `targetX` — same x as the card
 - `top`: `targetY - 20` — 20 px above the card top edge
+- `width`: `CARD_W` — matches the card width so `textAlign: 'center'` centers the text
 
-Content: the `nickname` from the matching `Player` in the `players` prop (match on `playerIndex`). `Player.nickname` is already available; no new props needed.
+Content: the `nickname` from the matching `Player` in the `players` prop (match on `playerIndex`). If no matching player is found, skip the label (render nothing). `Player.nickname` is already available; no new props needed.
+
+Note: labels appear from the first card played — this is intentional, so players can always see whose card is whose during an in-progress trick.
 
 ## Label Styles
 
@@ -55,10 +60,14 @@ Pass `highlighted={animPhase === 'paused' && pc.playerIndex === winnerIndex}` to
 
 Labels are hidden during `sweeping` because cards are animating to the winner's corner and the label positions would lag behind or look detached.
 
-## Layout Note
-
-The label is a `View` with `pointerEvents="none"` (inherited from the parent `StyleSheet.absoluteFill` container). It must use `position: 'absolute'` to not affect layout. Use a fixed `width` (e.g. 70 px = card width) with `textAlign: 'center'` to avoid measuring, so centering is trivial: `left: targetX, top: targetY - 20`.
-
 ## No New Props
 
 `TrickAnimationLayer` already receives `players: Player[]` (which includes `nickname`) and `animState` (which includes `winnerIndex` and `animPhase`). Nothing new needs to be threaded in from `GameScreen`.
+
+## Implementation Note
+
+`winnerIndex` is available on `TrickAnimationResult` but is not currently destructured in `TrickAnimationLayer`. Add it to the existing destructuring:
+
+```ts
+const { animPhase, displayCards, winnerIndex, winnerPlayerId, sweepingCardCount } = animState;
+```
