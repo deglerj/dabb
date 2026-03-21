@@ -1,6 +1,11 @@
 /**
  * GameScreenErrorBoundary — error boundary for the game screen.
  * Captures game state, events, and socket status as a debug snapshot on crash.
+ *
+ * Two-render behaviour: getDerivedStateFromError fires during the render phase
+ * (sets hasError/error, shows error screen immediately without context), then
+ * componentDidCatch fires in the commit phase and sets contextSnapshot via setState,
+ * causing a second render that fills in the game context. This is intentional.
  */
 import React from 'react';
 import * as Clipboard from 'expo-clipboard';

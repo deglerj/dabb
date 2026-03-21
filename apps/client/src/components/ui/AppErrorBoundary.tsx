@@ -17,7 +17,7 @@ interface State {
 class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, State> {
   state: State = { hasError: false, error: null };
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
