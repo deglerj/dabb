@@ -26,12 +26,14 @@ Props:
 
 ```typescript
 interface FlippableCardProps {
-  card: Card;
+  card: Card; // FlippableCard passes card.id to CardFace internally
   flipped: boolean;
   width: number;
   height: number;
 }
 ```
+
+The wrapper `View` must carry explicit `width` and `height` matching the card dimensions, since both `CardBack` and `CardFace` use `position: 'absolute'`. Both children are stacked at `top: 0, left: 0` inside this wrapper; `CardBack` is rendered when `!showFace` and `CardFace` when `showFace`.
 
 ### `DabbOverlay` changes
 
@@ -55,7 +57,7 @@ Each `FlippableCard` uses a single Reanimated shared value `rotateY` (degrees) a
 **Flip sequence (total: ~200ms per card):**
 
 1. `rotateY`: 0° → 90° in 100ms — `Easing.in(Easing.cubic)` — card rotates away
-2. At 90° (edge-on, visually invisible): `runOnJS` sets `showFace = true`, swapping CardBack → CardFace
+2. At 90° (edge-on, visually invisible): `runOnJS` (imported from `react-native-worklets`, per project convention) sets `showFace = true`, swapping CardBack → CardFace
 3. `rotateY`: -90° → 0° in 100ms — `Easing.out(Easing.cubic)` — face rotates in
 
 Implemented with `withSequence(withTiming(...), withTiming(...))` on the shared value, and a `useAnimatedReaction` (or callback in the sequence) to trigger the face swap at the midpoint.
