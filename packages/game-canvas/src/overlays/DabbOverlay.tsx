@@ -4,14 +4,14 @@
  * step='take':    Show 2 CardBack components + Take button.
  * step='discard': Show dabb cards as CardFace + selection + Discard button + Go Out section.
  */
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 import type { Card, Suit } from '@dabb/shared-types';
 import { SUITS } from '@dabb/shared-types';
 import { getSuitColor, SUIT_SYMBOLS } from '@dabb/card-assets';
-import { CardBack } from '../cards/CardBack.js';
+import { FlippableCard } from '../cards/FlippableCard.js';
 
 const CARD_WIDTH = 70;
 const CARD_HEIGHT = 105;
@@ -38,19 +38,60 @@ export function DabbOverlay({
   const { t } = useTranslation();
   const canDiscard = selectedCardIds.length === discardCount;
 
+  const [flippedCount, setFlippedCount] = useState<0 | 1 | 2>(0);
+  const [instant, setInstant] = useState(false);
+  const timer1 = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timer2 = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (step !== 'take') {
+      return;
+    }
+    setFlippedCount(0);
+    setInstant(false);
+    timer1.current = setTimeout(() => setFlippedCount(1), 400);
+    timer2.current = setTimeout(() => setFlippedCount(2), 700);
+    return () => {
+      if (timer1.current) {
+        clearTimeout(timer1.current);
+      }
+      if (timer2.current) {
+        clearTimeout(timer2.current);
+      }
+    };
+  }, [step]);
+
+  function handleTake() {
+    if (timer1.current) {
+      clearTimeout(timer1.current);
+    }
+    if (timer2.current) {
+      clearTimeout(timer2.current);
+    }
+    setFlippedCount(2);
+    setInstant(true);
+    onTake();
+  }
+
   return (
     <View style={styles.container}>
       {step === 'take' ? (
         <>
           <Text style={styles.title}>{t('game.takeDabb')}</Text>
           <View style={styles.cardRow}>
-            {dabbCards.map((card) => (
+            {dabbCards.map((card, i) => (
               <View key={card.id} style={styles.cardWrapper}>
-                <CardBack width={CARD_WIDTH} height={CARD_HEIGHT} />
+                <FlippableCard
+                  card={card}
+                  flipped={flippedCount > i}
+                  instant={instant}
+                  width={CARD_WIDTH}
+                  height={CARD_HEIGHT}
+                />
               </View>
             ))}
           </View>
-          <HapticTouchableOpacity style={styles.primaryButton} onPress={onTake}>
+          <HapticTouchableOpacity style={styles.primaryButton} onPress={handleTake}>
             <Text style={styles.primaryButtonText}>{t('game.takeDabb')}</Text>
           </HapticTouchableOpacity>
         </>
