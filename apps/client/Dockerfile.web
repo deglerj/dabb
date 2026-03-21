@@ -10,7 +10,10 @@ RUN npm install -g pnpm@latest
 WORKDIR /app
 
 # Copy workspace configuration
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+
+# Recreate .npmrc to enable hoisted node_modules layout (excluded from .dockerignore)
+RUN echo "node-linker=hoisted" > .npmrc
 COPY scripts ./scripts
 
 # Copy all package.json files for dependency resolution
