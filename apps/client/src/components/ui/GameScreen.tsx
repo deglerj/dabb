@@ -467,6 +467,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a0f05',
+    overflow: 'hidden',
   },
   loadingContainer: {
     flex: 1,
