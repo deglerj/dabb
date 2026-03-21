@@ -7,13 +7,23 @@
 
 Replace the current white-screen crash with a full-screen error display that shows debug information and offers Reload and Copy actions. Targets developers primarily, but acceptable for all users to see.
 
+## New Dependencies
+
+`expo-clipboard` must be added to `apps/client/package.json`. Use the Expo-managed install command to align the native module version with the installed Expo SDK:
+
+```sh
+npx expo install expo-clipboard --filter @dabb/client
+```
+
+`expo-updates` is **not** required; the imperative `router` singleton from `expo-router` handles reload instead.
+
 ## Architecture
 
 Three new files in `apps/client/src/components/ui/`:
 
 ### `ErrorBoundaryScreen`
 
-Pure display component. Props:
+Pure display component. All text is hardcoded English (it is outside `I18nProvider`). Props:
 
 ```ts
 interface ErrorBoundaryScreenProps {
@@ -24,106 +34,187 @@ interface ErrorBoundaryScreenProps {
 }
 ```
 
-Renders the full-screen error UI. No logic — just layout and theme.
+Renders the full-screen error UI. No logic.
 
 ### `AppErrorBoundary`
 
-React class component (`React.Component`). Placed in `_layout.tsx` wrapping the entire app tree (inside `GestureHandlerRootView` and `SafeAreaProvider`, but outside `I18nProvider` — so it cannot use `useTranslation`; all text is hardcoded English).
+React class component defined at module level. `_layout.tsx`'s default export wraps `RootLayout` so the boundary is a true ancestor:
 
-- Catches any render crash in the app.
-- Shows `ErrorBoundaryScreen` with `error` only (no game context at this level).
-- Reload: `Updates.reloadAsync()` on native, `window.location.reload()` on web, via `Platform.OS` check.
+```tsx
+// _layout.tsx
+function RootLayout() {
+  /* ... existing code ... */
+}
+
+export default function RootLayoutWithBoundary() {
+  return (
+    <AppErrorBoundary>
+      <RootLayout />
+    </AppErrorBoundary>
+  );
+}
+```
+
+- Catches any render crash in the entire app.
+- Shows `ErrorBoundaryScreen` with `error` only (no game context available here).
+- `onReload` is defined as a class method:
+
+```ts
+import { router } from 'expo-router'; // imperative singleton — NOT useRouter()
+import { Platform } from 'react-native';
+
+handleReload = () => {
+  if (Platform.OS === 'web') {
+    window.location.reload(); // safe: tsconfig includes "lib": ["DOM"]
+  } else {
+    router.replace('/');
+  }
+};
+```
 
 ### `GameScreenErrorBoundary`
 
-React class component. Used **inside** `GameScreen`'s return JSX, wrapping all rendered content after hooks have already run.
+React class component. Wraps the **entire** return of `GameScreen` (including the loading branch) so render errors during any phase are caught with game context:
 
 ```tsx
-// Inside GameScreen return:
+// GameScreen.tsx — full return wrapped:
+const handleReload = useCallback(() => router.replace('/'), [router]);
+
 return (
   <GameScreenErrorBoundary
     state={state}
     events={events}
     connected={connected}
-    onReload={() => router.replace('/')}
+    onReload={handleReload}
   >
-    <View style={styles.outerContainer}>{/* all game content */}</View>
+    {state.phase === 'waiting' ? (
+      <LoadingView insets={insets} />   {/* extracted from the early return */}
+    ) : (
+      <View style={styles.outerContainer}>
+        {/* all existing game content */}
+      </View>
+    )}
   </GameScreenErrorBoundary>
 );
 ```
 
-Receives `state`, `events`, `connected`, and `onReload` as props. When a child crashes, it stores the props at the time of the crash and renders `ErrorBoundaryScreen` with game context as `extraContext`.
+Props type:
+
+```ts
+import type { GameState, GameEvent } from '@dabb/shared-types';
+
+interface GameScreenErrorBoundaryProps {
+  state: GameState;
+  events: GameEvent[];
+  connected: boolean;
+  onReload: () => void;
+  children: React.ReactNode;
+}
+```
+
+When a child crashes, `getDerivedStateFromError` stores the error; `componentDidCatch` stores the last-rendered props as a debug snapshot (acknowledged limitation: this is the state at last render, not necessarily perfectly current). The boundary then renders `ErrorBoundaryScreen` with `extraContext` built from the snapshot.
 
 ## Debug Data
 
 ### Error section (always present)
 
-- Error message (string)
-- Stack trace (string)
+- Error message (`error.message`)
+- Stack trace (`error.stack`)
 
-### Game context section (only in `GameScreenErrorBoundary`)
+### Game context section (`GameScreenErrorBoundary` only)
 
-Shown as pretty-printed JSON:
+Passed as `extraContext` to `ErrorBoundaryScreen`:
 
-- `connected: boolean`
-- Selected game state fields: `phase`, `playerCount`, `currentBid`, `bidWinner`, `trump`
-- `eventCount: number` (total events)
-- `recentEvents: string[]` (last 10 event types)
-- Full `state` as a serialized object (Maps converted to plain objects)
+```ts
+{
+  connected,
+  eventCount: events.length,
+  recentEvents: events.slice(-10).map(e => e.type),
+  state: serializeGameState(state),
+}
+```
 
-Maps in `GameState` (`hands`, `roundScores`, `totalScores`) must be serialized via a custom replacer or pre-conversion since `JSON.stringify` skips Maps.
+`GameState` contains several Maps and a Set that `JSON.stringify` cannot serialize. Convert all of them explicitly:
+
+```ts
+import type { GameState } from '@dabb/shared-types';
+
+function serializeGameState(state: GameState): Record<string, unknown> {
+  return {
+    phase: state.phase,
+    round: state.round,
+    playerCount: state.playerCount,
+    players: state.players,
+    targetScore: state.targetScore,
+    dealer: state.dealer,
+    currentBidder: state.currentBidder,
+    firstBidder: state.firstBidder,
+    currentBid: state.currentBid,
+    bidWinner: state.bidWinner,
+    passedPlayers: Array.from(state.passedPlayers), // Set → array
+    trump: state.trump,
+    wentOut: state.wentOut,
+    dabb: state.dabb,
+    dabbCardIds: state.dabbCardIds,
+    hands: Object.fromEntries(state.hands.entries()),
+    currentTrick: state.currentTrick,
+    currentPlayer: state.currentPlayer,
+    lastCompletedTrick: state.lastCompletedTrick,
+    tricksTaken: Object.fromEntries(state.tricksTaken.entries()),
+    declaredMelds: Object.fromEntries(state.declaredMelds.entries()),
+    roundScores: Object.fromEntries(state.roundScores.entries()),
+    totalScores: Object.fromEntries(state.totalScores.entries()),
+  };
+}
+```
 
 ### Copy action
 
-Assembles all displayed info as plain text and calls `Clipboard.setStringAsync` from `expo-clipboard`.
+```ts
+import * as Clipboard from 'expo-clipboard';
+
+const text = [
+  '=== ERROR ===',
+  error.message,
+  '',
+  '=== STACK TRACE ===',
+  error.stack ?? '(no stack)',
+  ...(extraContext ? ['', '=== GAME CONTEXT ===', JSON.stringify(extraContext, null, 2)] : []),
+].join('\n');
+
+await Clipboard.setStringAsync(text);
+```
 
 ## Visual Design
 
-Consistent with the existing wood/paper theme (see `UpdateRequiredScreen` and `theme.ts`):
+Consistent with the existing wood/paper theme (`UpdateRequiredScreen`, `theme.ts`):
 
-| Element                      | Style                                                                      |
-| ---------------------------- | -------------------------------------------------------------------------- |
-| Background                   | `Colors.woodDark` (`#8a5e2e`)                                              |
-| Title "Something went wrong" | `Fonts.display`, `Colors.paperFace`, 24px                                  |
-| Error message                | `Colors.error` (`#a32020`), `Fonts.bodyBold`, 16px                         |
-| Stack trace / JSON           | Monospace (`Lato_400Regular`), `Colors.paperAged`, inside darker inset box |
-| Inset box background         | `Colors.woodGrain` / semi-transparent darker panel                         |
-| Scroll area                  | `ScrollView` for both stack trace and JSON context                         |
-| Reload button                | Amber fill (`Colors.amber`), `Colors.paperFace` label — primary action     |
-| Copy button                  | Transparent fill, amber border, `Colors.amber` label — secondary action    |
+| Element                      | Style                                                                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Background                   | `Colors.woodDark` (`#8a5e2e`)                                                                                                          |
+| Title "Something went wrong" | `Fonts.display`, `Colors.paperFace`, 24px                                                                                              |
+| Error message                | `Colors.paperFace`, `Fonts.bodyBold`, 16px — `Colors.error` (#a32020) has insufficient contrast on `woodDark` and is not used for text |
+| Stack trace / JSON           | `Fonts.body`, `Colors.paperAged`, inside dark inset box (`rgba(0,0,0,0.3)`)                                                            |
+| Scroll area                  | `ScrollView` for stack trace and JSON context                                                                                          |
+| Reload button                | Amber fill (`Colors.amber`), `Colors.paperFace` label — primary action                                                                 |
+| Copy button                  | Transparent fill, `Colors.amber` border and label — secondary action                                                                   |
 
 ## Actions
 
-**Reload**
+**Reload** — see `handleReload` in architecture section above.
 
-- `AppErrorBoundary`: `Platform.OS === 'web' ? window.location.reload() : Updates.reloadAsync()`
-- `GameScreenErrorBoundary`: `router.replace('/')` (passed in as prop from `GameScreen` which uses `useRouter`)
-
-**Copy error info**
-Format as plain text:
-
-```
-=== ERROR ===
-<error.message>
-
-=== STACK TRACE ===
-<error.stack>
-
-=== GAME CONTEXT ===
-<JSON.stringify(extraContext, null, 2)>
-```
-
-Then call `Clipboard.setStringAsync(text)`.
+**Copy** — see copy action in debug data section above.
 
 ## Files Changed
 
-| File                                                        | Change                                                           |
-| ----------------------------------------------------------- | ---------------------------------------------------------------- |
-| `apps/client/src/components/ui/ErrorBoundaryScreen.tsx`     | New                                                              |
-| `apps/client/src/components/ui/AppErrorBoundary.tsx`        | New                                                              |
-| `apps/client/src/components/ui/GameScreenErrorBoundary.tsx` | New                                                              |
-| `apps/client/src/app/_layout.tsx`                           | Wrap app tree with `AppErrorBoundary`                            |
-| `apps/client/src/components/ui/GameScreen.tsx`              | Add `GameScreenErrorBoundary` around return JSX; pass `onReload` |
+| File                                                        | Change                                                                |
+| ----------------------------------------------------------- | --------------------------------------------------------------------- |
+| `apps/client/src/components/ui/ErrorBoundaryScreen.tsx`     | New                                                                   |
+| `apps/client/src/components/ui/AppErrorBoundary.tsx`        | New                                                                   |
+| `apps/client/src/components/ui/GameScreenErrorBoundary.tsx` | New                                                                   |
+| `apps/client/src/app/_layout.tsx`                           | Change default export to `RootLayoutWithBoundary`                     |
+| `apps/client/src/components/ui/GameScreen.tsx`              | Extract loading branch; wrap full return in `GameScreenErrorBoundary` |
+| `apps/client/package.json`                                  | Add `expo-clipboard`                                                  |
 
 ## Out of Scope
 
