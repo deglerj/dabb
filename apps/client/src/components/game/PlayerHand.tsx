@@ -50,14 +50,17 @@ export function PlayerHand({
   const positions = deriveCardPositions(
     {
       handCardIds: sortedCards.map((c) => c.id),
-      // trickCardIds expects TrickCardEntry[] with { cardId, seatIndex }
       trickCardIds: [],
-      // wonPilePlayerIds expects string[]
       wonPilePlayerIds: [],
       opponentCardCounts: {},
     },
     layout
   );
+
+  const { cardScale } = positions;
+  const scaledW = CARD_WIDTH * cardScale;
+  const scaledH = CARD_HEIGHT * cardScale;
+  const liftOffset = 20 * cardScale;
 
   const isTricksPhase = gameState.phase === 'tricks';
   const isTrumpHighlightPhase =
@@ -95,9 +98,11 @@ export function PlayerHand({
               key={card.id}
               card={card.id}
               targetX={pos.x}
-              targetY={isSelected ? pos.y - 20 : pos.y}
+              targetY={isSelected ? pos.y - liftOffset : pos.y}
               targetRotation={pos.rotation}
               zIndex={isSelected ? pos.zIndex + 100 : pos.zIndex}
+              width={scaledW}
+              height={scaledH}
               selected={isSelected}
               highlighted={highlightedIds.has(card.id)}
               isTrump={isTrumpHighlightPhase && card.suit === gameState.trump}
@@ -118,6 +123,8 @@ export function PlayerHand({
             targetY={pos.y}
             targetRotation={pos.rotation}
             zIndex={pos.zIndex}
+            width={scaledW}
+            height={scaledH}
             draggable={isTricksPhase && isValid}
             dimmed={isTricksPhase && !isValid}
             highlighted={highlightedIds.has(card.id)}
