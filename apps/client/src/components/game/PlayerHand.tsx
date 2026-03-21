@@ -13,8 +13,6 @@ import { playSound } from '../../utils/sounds.js';
 import { triggerHaptic } from '../../utils/haptics.js';
 import { computeHighlightedDabbIds } from './dabbHighlighting.js';
 
-export { computeHighlightedDabbIds };
-
 export interface PlayerHandProps {
   gameState: GameState | null;
   playerIndex: PlayerIndex;
