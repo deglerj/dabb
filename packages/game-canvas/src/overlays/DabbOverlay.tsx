@@ -17,6 +17,7 @@ const CARD_WIDTH = 70;
 const CARD_HEIGHT = 105;
 
 export interface DabbOverlayProps {
+  visible: boolean;
   step: 'take' | 'discard';
   dabbCards: Card[];
   discardCount: number;
@@ -27,6 +28,7 @@ export interface DabbOverlayProps {
 }
 
 export function DabbOverlay({
+  visible,
   step,
   dabbCards,
   discardCount,
@@ -44,7 +46,7 @@ export function DabbOverlay({
   const timer2 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (step !== 'take') {
+    if (step !== 'take' || !visible) {
       return;
     }
     setFlippedCount(0);
@@ -59,7 +61,7 @@ export function DabbOverlay({
         clearTimeout(timer2.current);
       }
     };
-  }, [step]);
+  }, [step, visible]);
 
   function handleTake() {
     if (timer1.current) {

@@ -415,6 +415,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
 
             <PhaseOverlay visible={showDabb}>
               <DabbOverlay
+                visible={showDabb}
                 step={dabbStep}
                 dabbCards={dabbCards}
                 discardCount={DABB_SIZE[state.playerCount]}
