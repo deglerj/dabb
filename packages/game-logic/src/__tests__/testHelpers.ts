@@ -117,7 +117,9 @@ export class GameTestHelper {
             }
           }
           if (winner !== null) {
-            this.events.push(createBiddingWonEvent(this.ctx(), winner, state.currentBid));
+            this.events.push(
+              createBiddingWonEvent(this.ctx(), winner, state.currentBid, this.storedDabb)
+            );
           }
         }
       },

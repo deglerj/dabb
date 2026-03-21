@@ -224,6 +224,7 @@ function handleBiddingWon(
     bidWinner: event.payload.playerIndex,
     currentBid: event.payload.winningBid,
     currentBidder: null,
+    dabb: event.payload.dabb ?? state.dabb,
   };
 }
 

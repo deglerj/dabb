@@ -40,10 +40,10 @@ export function DabbOverlay({
   const { t } = useTranslation();
   const canDiscard = selectedCardIds.length === discardCount;
 
-  const [flippedCount, setFlippedCount] = useState<0 | 1 | 2>(0);
+  const [flippedCount, setFlippedCount] = useState(0);
   const [instant, setInstant] = useState(false);
-  const timer1 = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const timer2 = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const cardCount = dabbCards.length;
 
   useEffect(() => {
     if (step !== 'take' || !visible) {
@@ -51,26 +51,19 @@ export function DabbOverlay({
     }
     setFlippedCount(0);
     setInstant(false);
-    timer1.current = setTimeout(() => setFlippedCount(1), 400);
-    timer2.current = setTimeout(() => setFlippedCount(2), 700);
+    timers.current = Array.from({ length: cardCount }, (_, i) =>
+      setTimeout(() => setFlippedCount(i + 1), 400 + i * 300)
+    );
     return () => {
-      if (timer1.current) {
-        clearTimeout(timer1.current);
-      }
-      if (timer2.current) {
-        clearTimeout(timer2.current);
-      }
+      timers.current.forEach(clearTimeout);
+      timers.current = [];
     };
-  }, [step, visible]);
+  }, [step, visible, cardCount]);
 
   function handleTake() {
-    if (timer1.current) {
-      clearTimeout(timer1.current);
-    }
-    if (timer2.current) {
-      clearTimeout(timer2.current);
-    }
-    setFlippedCount(2);
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    setFlippedCount(cardCount);
     setInstant(true);
     onTake();
   }

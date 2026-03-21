@@ -22,6 +22,9 @@ export function filterEventForPlayer(event: GameEvent, playerIndex: PlayerIndex)
     case 'CARDS_DEALT':
       return filterCardsDealt(event, playerIndex);
 
+    case 'BIDDING_WON':
+      return filterBiddingWon(event, playerIndex);
+
     case 'CARDS_DISCARDED':
       return filterCardsDiscarded(event, playerIndex);
 
@@ -57,6 +60,23 @@ function filterCardsDealt(
       // Hide dabb until revealed to bid winner
       dabb: createHiddenCards(event.payload.dabb.length),
     },
+  };
+}
+
+/**
+ * Filter BIDDING_WON - reveal dabb only to the bid winner
+ */
+function filterBiddingWon(
+  event: Extract<GameEvent, { type: 'BIDDING_WON' }>,
+  playerIndex: PlayerIndex
+): GameEvent {
+  if (event.payload.playerIndex === playerIndex) {
+    return event;
+  }
+  const { dabb: _dabb, ...rest } = event.payload;
+  return {
+    ...event,
+    payload: rest,
   };
 }
 
