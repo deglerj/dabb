@@ -68,6 +68,7 @@ export function PlayerHand({
       ? getValidPlays(cards, gameState.currentTrick, gameState.trump)
       : [];
   const validIds = new Set(validPlays.map((c) => c.id));
+  const highlightedIds = computeHighlightedDabbIds(gameState.phase, gameState.dabbCardIds);
 
   const handleDrop = (cardId: string) => (x: number, y: number) => {
     const onFelt =
@@ -98,6 +99,7 @@ export function PlayerHand({
               targetRotation={pos.rotation}
               zIndex={isSelected ? pos.zIndex + 100 : pos.zIndex}
               selected={isSelected}
+              highlighted={highlightedIds.has(card.id)}
               onTap={() => {
                 playSound('card-select');
                 triggerHaptic('card-select');
@@ -117,6 +119,7 @@ export function PlayerHand({
             zIndex={pos.zIndex}
             draggable={isTricksPhase && isValid}
             dimmed={isTricksPhase && !isValid}
+            highlighted={highlightedIds.has(card.id)}
             effects={isTricksPhase && isValid ? effects : undefined}
             onTap={
               isTricksPhase && isValid
