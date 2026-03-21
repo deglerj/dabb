@@ -34,11 +34,15 @@ export interface CardPositionsOutput {
   trickCards: Record<string, CardPosition>;
   wonPiles: Record<string, { x: number; y: number }>;
   opponentHands: Record<string, { x: number; y: number; cardCount: number }>;
+  /** Scale factor applied to card dimensions (1.0 = full size, <1.0 = scaled down to fit). */
+  cardScale: number;
 }
 
 const CARD_WIDTH = 70;
+const CARD_HEIGHT = 105;
 const CARD_OVERLAP = 22;
-const HAND_Y_FRACTION = 0.82;
+const HAND_SIDE_MARGIN = 16;
+const HAND_BOTTOM_MARGIN = 10;
 const TRICK_CENTER_X_FRACTION = 0.5;
 const TRICK_CENTER_Y_FRACTION = 0.45;
 const TRICK_CARD_SPREAD = 80;
@@ -58,15 +62,24 @@ export function deriveCardPositions(
 ): CardPositionsOutput {
   const { width, height } = layout;
 
-  // Player hand
+  // Player hand — scale down if natural width overflows available screen width
   const n = input.handCardIds.length;
-  const handTotalWidth = n * CARD_WIDTH - Math.max(0, n - 1) * CARD_OVERLAP;
+  const naturalWidth = n * CARD_WIDTH - Math.max(0, n - 1) * CARD_OVERLAP;
+  const availableWidth = width - 2 * HAND_SIDE_MARGIN;
+  const cardScale = n === 0 ? 1 : Math.min(1, availableWidth / naturalWidth);
+
+  const scaledW = CARD_WIDTH * cardScale;
+  const scaledH = CARD_HEIGHT * cardScale;
+  const scaledOverlap = CARD_OVERLAP * cardScale;
+
+  const handTotalWidth = n * scaledW - Math.max(0, n - 1) * scaledOverlap;
   const handStartX = (width - handTotalWidth) / 2;
-  const handY = height * HAND_Y_FRACTION;
+  const handY = height - scaledH - HAND_BOTTOM_MARGIN;
+
   const playerHand: Record<string, CardPosition> = {};
   input.handCardIds.forEach((id, i) => {
     playerHand[id] = {
-      x: handStartX + i * (CARD_WIDTH - CARD_OVERLAP),
+      x: handStartX + i * (scaledW - scaledOverlap),
       y: handY,
       rotation: (i - (n - 1) / 2) * 1.8,
       zIndex: i,
@@ -105,5 +118,5 @@ export function deriveCardPositions(
     };
   });
 
-  return { playerHand, trickCards, wonPiles, opponentHands };
+  return { playerHand, trickCards, wonPiles, opponentHands, cardScale };
 }
