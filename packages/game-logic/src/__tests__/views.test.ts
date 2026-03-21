@@ -59,6 +59,20 @@ describe('filterEventForPlayer', () => {
       expect(payload.dabb.every((c) => c.id.startsWith('hidden-'))).toBe(true);
     });
 
+    it('hidden dabb card IDs are not valid suit-rank-copy format (regression: DabbOverlay must not render CardFace for hidden dabb cards)', () => {
+      // Hidden dabb cards use 'hidden-N' format rather than 'suit-rank-copy' (e.g. 'kreuz-ass-0').
+      // Parsing 'hidden-0' as a CardId extracts 'hidden' as the suit, which is not in SUIT_COLORS.
+      // Calling getSuitColor('hidden') crashes with "can't access property 'primary'".
+      // Fix: DabbOverlay step='take' must not render CardFace for these placeholder cards.
+      const filtered = filterEventForPlayer(dealtEvent, 0 as PlayerIndex);
+      const payload = (filtered as typeof dealtEvent).payload;
+      const validSuits = ['kreuz', 'schippe', 'herz', 'bollen'];
+      for (const card of payload.dabb) {
+        const [suitPart] = card.id.split('-');
+        expect(validSuits).not.toContain(suitPart);
+      }
+    });
+
     it('preserves card count for hidden hands', () => {
       const filtered = filterEventForPlayer(dealtEvent, 1 as PlayerIndex);
       const payload = (filtered as typeof dealtEvent).payload;
