@@ -18,6 +18,8 @@ export interface PlayerHandProps {
   cards: Card[];
   onPlayCard: (cardId: string, dropPos?: { x: number; y: number }) => void;
   effects?: SkiaEffects;
+  discardSelectedIds?: string[];
+  onToggleDiscard?: (cardId: string) => void;
 }
 
 export function PlayerHand({
@@ -26,6 +28,8 @@ export function PlayerHand({
   cards,
   onPlayCard,
   effects,
+  discardSelectedIds,
+  onToggleDiscard,
 }: PlayerHandProps) {
   const { width, height } = useWindowDimensions();
   const feltBounds = getFeltBounds(width, height);
@@ -55,6 +59,7 @@ export function PlayerHand({
   );
 
   const isTricksPhase = gameState.phase === 'tricks';
+  const isDiscardMode = !!onToggleDiscard;
   const validPlays =
     isTricksPhase && gameState.trump
       ? getValidPlays(cards, gameState.currentTrick, gameState.trump)
@@ -78,6 +83,25 @@ export function PlayerHand({
         const pos = positions.playerHand[card.id];
         if (!pos) {
           return null;
+        }
+        if (isDiscardMode) {
+          const isSelected = discardSelectedIds?.includes(card.id) ?? false;
+          return (
+            <CardView
+              key={card.id}
+              card={card.id}
+              targetX={pos.x}
+              targetY={isSelected ? pos.y - 20 : pos.y}
+              targetRotation={pos.rotation}
+              zIndex={isSelected ? pos.zIndex + 100 : pos.zIndex}
+              selected={isSelected}
+              onTap={() => {
+                playSound('card-select');
+                triggerHaptic('card-select');
+                onToggleDiscard!(card.id);
+              }}
+            />
+          );
         }
         const isValid = !isTricksPhase || validIds.has(card.id);
         return (

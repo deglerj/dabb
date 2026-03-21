@@ -34,6 +34,7 @@ export interface CardViewProps {
   /** If provided, card arcs from this Y position on mount. */
   initialY?: number;
   dimmed?: boolean;
+  selected?: boolean;
 }
 
 const DEFAULT_W = 70;
@@ -56,6 +57,7 @@ export function CardView({
   initialY,
   effects,
   dimmed = false,
+  selected = false,
 }: CardViewProps) {
   // Snap to initial position on mount (or target if no initial given)
   const x = useSharedValue(initialX ?? targetX);
@@ -185,6 +187,21 @@ export function CardView({
           <CardFace card={card} width={width} height={height} dimmed={dimmed} />
         ) : (
           <CardBack width={width} height={height} />
+        )}
+        {selected && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width,
+              height,
+              borderRadius: width * 0.06,
+              borderWidth: 3,
+              borderColor: '#f39c12',
+            }}
+            pointerEvents="none"
+          />
         )}
       </AnimatedView>
     </GestureDetector>

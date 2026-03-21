@@ -11,7 +11,6 @@ import { useTranslation } from '@dabb/i18n';
 import type { Card, Suit } from '@dabb/shared-types';
 import { SUITS } from '@dabb/shared-types';
 import { getSuitColor, SUIT_SYMBOLS } from '@dabb/card-assets';
-import { CardFace } from '../cards/CardFace.js';
 import { CardBack } from '../cards/CardBack.js';
 
 const CARD_WIDTH = 70;
@@ -20,8 +19,8 @@ const CARD_HEIGHT = 105;
 export interface DabbOverlayProps {
   step: 'take' | 'discard';
   dabbCards: Card[];
+  discardCount: number;
   selectedCardIds: string[];
-  onToggleCard: (cardId: string) => void;
   onTake: () => void;
   onDiscard: () => void;
   onGoOut: (suit: Suit) => void;
@@ -30,14 +29,13 @@ export interface DabbOverlayProps {
 export function DabbOverlay({
   step,
   dabbCards,
+  discardCount,
   selectedCardIds,
-  onToggleCard,
   onTake,
   onDiscard,
   onGoOut,
 }: DabbOverlayProps) {
   const { t } = useTranslation();
-  const discardCount = 2;
   const canDiscard = selectedCardIds.length === discardCount;
 
   return (
@@ -59,27 +57,15 @@ export function DabbOverlay({
       ) : (
         <>
           <Text style={styles.title}>{t('game.discardCards')}</Text>
-          <View style={styles.cardRow}>
-            {dabbCards.map((card) => {
-              const isSelected = selectedCardIds.includes(card.id);
-              return (
-                <HapticTouchableOpacity
-                  key={card.id}
-                  style={[styles.cardWrapper, isSelected && styles.cardWrapperSelected]}
-                  onPress={() => onToggleCard(card.id)}
-                  activeOpacity={0.8}
-                >
-                  <CardFace card={card.id} width={CARD_WIDTH} height={CARD_HEIGHT} />
-                </HapticTouchableOpacity>
-              );
-            })}
-          </View>
+          <Text style={styles.hint}>{t('game.selectCardsToDiscard', { count: discardCount })}</Text>
           <HapticTouchableOpacity
             style={[styles.primaryButton, !canDiscard && styles.primaryButtonDisabled]}
             onPress={onDiscard}
             disabled={!canDiscard}
           >
-            <Text style={styles.primaryButtonText}>{t('game.discard')}</Text>
+            <Text style={styles.primaryButtonText}>
+              {t('game.selectedCount', { selected: selectedCardIds.length, total: discardCount })}
+            </Text>
           </HapticTouchableOpacity>
 
           <View style={styles.divider} />
@@ -110,7 +96,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#3a2800',
-    marginBottom: 12,
+    marginBottom: 6,
+  },
+  hint: {
+    fontSize: 13,
+    color: '#7a6040',
+    marginBottom: 14,
+    textAlign: 'center',
   },
   cardRow: {
     flexDirection: 'row',
@@ -123,9 +115,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 2,
     borderColor: 'transparent',
-  },
-  cardWrapperSelected: {
-    borderColor: '#f39c12',
   },
   primaryButton: {
     backgroundColor: '#8b6914',

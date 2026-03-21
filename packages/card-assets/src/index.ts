@@ -14,7 +14,7 @@ export const SUIT_COLORS: Record<Suit, { primary: string; secondary: string }> =
 export const SUIT_SYMBOLS: Record<Suit, string> = {
   kreuz: '♣',
   schippe: '♠',
-  herz: '❤️',
+  herz: '♥',
   bollen: '♦',
 };
 

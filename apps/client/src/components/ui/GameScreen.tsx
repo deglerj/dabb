@@ -23,6 +23,7 @@ import {
 } from '@dabb/ui-shared';
 import { detectMelds, formatCard, formatSuit } from '@dabb/game-logic';
 import type { PlayerIndex, Card, GameLogEntry } from '@dabb/shared-types';
+import { DABB_SIZE } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
 import { useGame } from '../../hooks/useGame.js';
@@ -261,23 +262,11 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   // Is bid winner (for dabb/trump phases)?
   const isBidWinner = state.bidWinner === playerIndex;
 
-  // Dabb overlay step
-  const dabbStep =
-    state.dabb.length > 0 &&
-    state.hands.get(playerIndex)?.length ===
-      // After taking dabb, hand size increases by dabb size
-      (state.playerCount === 2 ? 22 : state.playerCount === 3 ? 16 : 13)
-      ? ('discard' as const)
-      : ('take' as const);
+  // Dabb overlay step: before taking, dabb array has cards; after taking, it's empty
+  const dabbStep = state.dabb.length === 0 ? ('discard' as const) : ('take' as const);
 
-  // Dabb cards (visible after taking)
-  const dabbCards = useMemo(() => {
-    if (dabbStep === 'discard') {
-      // Show the dabb cards that are now in the player's hand (marked by dabbCardIds)
-      return myCards.filter((c) => state.dabbCardIds.includes(c.id));
-    }
-    return state.dabb;
-  }, [dabbStep, myCards, state.dabb, state.dabbCardIds]);
+  // Dabb cards: only used in the 'take' step to show card backs
+  const dabbCards = dabbStep === 'take' ? state.dabb : [];
 
   const handleToggleDabbCard = useCallback((cardId: string) => {
     setDabbSelectedCards((prev) =>
@@ -397,6 +386,8 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
           onPlayCard(cardId);
         }}
         effects={effects}
+        discardSelectedIds={showDabb && dabbStep === 'discard' ? dabbSelectedCards : undefined}
+        onToggleDiscard={showDabb && dabbStep === 'discard' ? handleToggleDabbCard : undefined}
       />
 
       {/* Phase overlays */}
@@ -413,8 +404,8 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
         <DabbOverlay
           step={dabbStep}
           dabbCards={dabbCards}
+          discardCount={DABB_SIZE[state.playerCount]}
           selectedCardIds={dabbSelectedCards}
-          onToggleCard={handleToggleDabbCard}
           onTake={onTakeDabb}
           onDiscard={handleDiscard}
           onGoOut={onGoOut}
