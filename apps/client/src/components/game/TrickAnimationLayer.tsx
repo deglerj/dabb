@@ -7,12 +7,13 @@
  * - Staggered sweep to winner's corner (sweepingCardCount from hook)
  */
 import React, { useMemo, useEffect } from 'react';
-import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { CardView, deriveCardPositions, type SkiaEffects } from '@dabb/game-canvas';
 import type { Player, PlayerIndex } from '@dabb/shared-types';
 import type { TrickAnimationResult } from '@dabb/ui-shared';
 
 const HAND_Y_FRACTION = 0.82;
+const CARD_W = 70;
 
 export interface TrickAnimationLayerProps {
   animState: TrickAnimationResult;
@@ -33,7 +34,7 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
   localPlayerDropOrigin,
 }: TrickAnimationLayerProps) {
   const { width, height } = useWindowDimensions();
-  const { animPhase, displayCards, winnerPlayerId, sweepingCardCount } = animState;
+  const { animPhase, displayCards, winnerIndex, winnerPlayerId, sweepingCardCount } = animState;
 
   // Order players by playerIndex so WON_PILE_CORNERS assigns correctly:
   // index 0 = bottom-left, 1 = top-right, 2 = top-left, 3 = bottom-right
@@ -125,20 +126,61 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
         const targetRotation = isSweeping ? 0 : settled.rotation;
         const origin = getOrigin(pc.playerIndex);
 
+        const player = players.find((p) => p.playerIndex === pc.playerIndex);
+        const isWinner = animPhase === 'paused' && pc.playerIndex === winnerIndex;
+        const showLabel = animPhase === 'showing' || animPhase === 'paused';
+
         return (
-          <CardView
-            key={pc.cardId}
-            card={pc.cardId}
-            targetX={targetX}
-            targetY={targetY}
-            targetRotation={targetRotation}
-            zIndex={isSweeping ? 10 + i : settled.zIndex}
-            // initialX/Y used only on first mount — CardView arcs from here to target
-            initialX={origin.x}
-            initialY={origin.y}
-          />
+          <React.Fragment key={pc.cardId}>
+            <CardView
+              card={pc.cardId}
+              targetX={targetX}
+              targetY={targetY}
+              targetRotation={targetRotation}
+              zIndex={isSweeping ? 10 + i : settled.zIndex}
+              // initialX/Y used only on first mount — CardView arcs from here to target
+              initialX={origin.x}
+              initialY={origin.y}
+              highlighted={isWinner}
+            />
+            {showLabel && player && (
+              <View
+                style={[styles.labelContainer, { left: targetX, top: targetY - 20, width: CARD_W }]}
+                pointerEvents="none"
+              >
+                <Text
+                  style={[styles.labelText, isWinner && styles.labelTextWinner]}
+                  numberOfLines={1}
+                >
+                  {player.nickname}
+                </Text>
+              </View>
+            )}
+          </React.Fragment>
         );
       })}
     </View>
   );
+});
+
+const styles = StyleSheet.create({
+  labelContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  labelText: {
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'normal',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    textAlign: 'center',
+    overflow: 'hidden',
+  },
+  labelTextWinner: {
+    color: '#ffd700',
+    fontWeight: 'bold',
+  },
 });
