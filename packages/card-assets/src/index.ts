@@ -8,7 +8,7 @@ export const SUIT_COLORS: Record<Suit, { primary: string; secondary: string }> =
   kreuz: { primary: '#C4941A', secondary: '#3C5E26' }, // Acorn golden / olive green
   schippe: { primary: '#1E7B1E', secondary: '#145A14' }, // Leaf forest green
   herz: { primary: '#C41E3A', secondary: '#A01830' }, // Royal Red
-  bollen: { primary: '#9B1515', secondary: '#C89000' }, // Quartered ball: crimson / gold
+  bollen: { primary: '#D46A00', secondary: '#9B1515' }, // Quartered ball: orange / crimson
 };
 
 export const SUIT_SYMBOLS: Record<Suit, string> = {
