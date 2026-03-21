@@ -13,6 +13,9 @@ import { playSound } from '../../utils/sounds.js';
 import { triggerHaptic } from '../../utils/haptics.js';
 import { computeHighlightedDabbIds } from './dabbHighlighting.js';
 
+const CARD_WIDTH = 70;
+const CARD_HEIGHT = 105;
+
 export interface PlayerHandProps {
   gameState: GameState | null;
   playerIndex: PlayerIndex;
