@@ -127,6 +127,7 @@ export interface TranslationKeys {
     youWonRound: string;
     youWonGame: string;
     playerWonGame: string;
+    playerEndedGame: string;
   };
   phases: {
     waiting: string;
