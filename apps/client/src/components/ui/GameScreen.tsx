@@ -169,10 +169,14 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   const { rounds, currentRound } = useRoundHistory(events);
 
   // Game log
-  const { entries: logEntries } = useGameLog(events, state, playerIndex);
+  const { entries: logEntries, lastImportantEntry } = useGameLog(events, state, playerIndex);
   const logStrings = useMemo(
     () => logEntries.map((e) => formatLogEntryText(e, nicknames, t)),
     [logEntries, nicknames, t]
+  );
+  const collapsedSummary = useMemo(
+    () => (lastImportantEntry ? formatLogEntryText(lastImportantEntry, nicknames, t) : undefined),
+    [lastImportantEntry, nicknames, t]
   );
 
   // Opponent positions
@@ -353,7 +357,10 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
               roundScores={roundScores}
               totalScores={totalScores}
               myPlayerIndex={playerIndex}
-              targetScore={state.targetScore}
+              bidWinner={state.bidWinner}
+              currentBid={state.currentBid}
+              trump={state.trump}
+              nicknames={nicknames}
               onPress={() => setScoreboardOpen(true)}
             />
 
@@ -443,6 +450,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
             <View style={styles.logContainer}>
               <GameLogTab
                 entries={logStrings}
+                collapsedSummary={collapsedSummary}
                 isExpanded={logExpanded}
                 onToggle={() => setLogExpanded((v) => !v)}
               />
