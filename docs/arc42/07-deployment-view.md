@@ -41,7 +41,7 @@ flowchart TB
 | Provider       | Hetzner Cloud                      |
 | Server type    | CX23 (2 vCPU, 4 GB RAM, 40 GB SSD) |
 | Location       | Nuremberg, Germany (nbg1)          |
-| OS             | Ubuntu 24.04 LTS                   |
+| OS             | NixOS 25.05                        |
 | Cost           | ~€3.49/month                       |
 | Provisioned by | OpenTofu (`tofu/`)                 |
 
@@ -159,7 +159,7 @@ Security scanning includes:
 
 ## 7.9 OS Maintenance
 
-`unattended-upgrades` is installed and configured via cloud-init. Security patches are applied automatically daily with no manual intervention required.
+The host OS is NixOS 25.05, declared in `deploy/nixos/configuration.nix`. `system.autoUpgrade` is enabled with `allowReboot = true` — the server automatically upgrades to new NixOS releases and reboots when needed. No manual intervention required.
 
 ## 7.10 Deployment Commands
 
@@ -174,7 +174,7 @@ docker compose up -d
 ### Production (manual)
 
 ```bash
-ssh -i ~/.ssh/dabb-deploy dabb@46.224.213.237
+ssh -i ~/.ssh/dabb-deploy dabb@<server-ip>
 cd /opt/dabb
 docker compose -f docker-compose.prod.yml pull server web
 docker compose -f docker-compose.prod.yml up -d
