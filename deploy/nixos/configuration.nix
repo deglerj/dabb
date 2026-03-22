@@ -50,7 +50,7 @@
     home = "/opt/dabb";
     createHome = true;
     shell = pkgs.bash;
-    extraGroups = [ "docker" ];
+    extraGroups = [ "wheel" "docker" ];
     # REPLACE THIS with the contents of ~/.ssh/dabb-deploy.pub
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL6NBBqd7Zn0uD44Eur5KOFnyYq0FrwU3atuVw70c7Gi dabb-deploy"
