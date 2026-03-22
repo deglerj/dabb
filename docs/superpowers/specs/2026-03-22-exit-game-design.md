@@ -41,25 +41,33 @@ On confirm: close the dialog, emit `game:exit`, then immediately `router.replace
 
 `useGame` exposes `onSessionTerminated` to the caller. In `GameScreen`:
 
-- A `sessionTerminated` boolean state is set to `true`.
-- This suppresses the reconnecting banner (checked alongside `connected`).
-- The existing `GameTerminatedModal` already triggers from `state.phase === 'terminated'` (set by the `GAME_TERMINATED` event). Tapping Done navigates to `/`.
+- `sessionTerminated` boolean state is set to `true` (suppresses the reconnecting banner).
+- `terminatedByNickname` string state stores the `terminatedBy` value from the event.
+- The existing `GameTerminatedModal` triggers from `state.phase === 'terminated'` (set by the `GAME_TERMINATED` event). It receives `terminatedByNickname` as a new optional prop.
+- When `terminatedByNickname` is set, the modal title shows `t('game.playerEndedGame', { name })` instead of `t('game.gameEnded')`.
+- Tapping Done navigates to `/`.
 
-The `terminatedBy` nickname is not surfaced in the dialog — `t('game.gameEnded')` is the correct message for a no-winner termination, and the game log already records who terminated.
+A new i18n key `game.playerEndedGame` is added to both locales:
+
+- DE: `"{{name}} hat das Spiel beendet"`
+- EN: `"{{name}} ended the game"`
 
 ## Files Changed
 
-| File                                              | Change                                                                                                                                                                   |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `apps/client/src/components/ui/OptionsDialog.tsx` | Add `onExitGame` prop + Exit Game button with Alert confirmation                                                                                                         |
-| `apps/client/src/components/ui/OptionsButton.tsx` | Add `onExitGame` prop, pass to `OptionsDialog`                                                                                                                           |
-| `apps/client/src/components/ui/GameScreen.tsx`    | Wire `handleExitGame`; pass to the in-game `OptionsButton` only (the loading-state instance gets no `onExitGame`); suppress reconnecting banner when `sessionTerminated` |
-| `packages/ui-shared/src/useSocket.ts`             | Add `onSessionTerminated` callback + handler                                                                                                                             |
-| `apps/client/src/hooks/useGame.ts`                | Thread `onSessionTerminated` through                                                                                                                                     |
+| File                                                      | Change                                                                                                                                                                                                                         |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/client/src/components/ui/OptionsDialog.tsx`         | Add `onExitGame` prop + Exit Game button with Alert confirmation                                                                                                                                                               |
+| `apps/client/src/components/ui/OptionsButton.tsx`         | Add `onExitGame` prop, pass to `OptionsDialog`                                                                                                                                                                                 |
+| `apps/client/src/components/ui/GameScreen.tsx`            | Wire `handleExitGame`; pass to the in-game `OptionsButton` only (the loading-state instance gets no `onExitGame`); suppress reconnecting banner when `sessionTerminated`; pass `terminatedByNickname` to `GameTerminatedModal` |
+| `apps/client/src/components/game/GameTerminatedModal.tsx` | Add `terminatedByNickname?: string` prop; show `game.playerEndedGame` message when set                                                                                                                                         |
+| `packages/ui-shared/src/useSocket.ts`                     | Add `onSessionTerminated` callback + handler                                                                                                                                                                                   |
+| `apps/client/src/hooks/useGame.ts`                        | Thread `onSessionTerminated` through                                                                                                                                                                                           |
+| `packages/i18n/src/locales/de.ts`                         | Add `game.playerEndedGame`                                                                                                                                                                                                     |
+| `packages/i18n/src/locales/en.ts`                         | Add `game.playerEndedGame`                                                                                                                                                                                                     |
+| `packages/i18n/src/types.ts`                              | Add `playerEndedGame` to `game` namespace type                                                                                                                                                                                 |
 
 ## Out of Scope
 
 - Backend changes (already complete)
-- New i18n strings (all strings already defined)
 - New components (all changes are additions to existing files)
 - Waiting room exit (already implemented)
