@@ -83,13 +83,62 @@ export function useGameLog(
       state.currentPlayer === currentPlayerIndex &&
       (state.phase === 'bidding' || state.phase === 'tricks');
 
+    const lastImportantEntry = synthesizeLastImportantEntry(reversedEntries);
+
     return {
       entries: reversedEntries,
       latestEntries: reversedEntries.slice(0, DEFAULT_VISIBLE_ENTRIES),
-      lastImportantEntry: reversedEntries.find((e) => IMPORTANT_ENTRY_TYPES.has(e.type)) ?? null,
+      lastImportantEntry,
       isYourTurn,
     };
   }, [events, state, currentPlayerIndex]);
+}
+
+/**
+ * Finds the most recent important log entry, merging consecutive melds_declared
+ * entries into a single melds_summary entry for the collapsed view.
+ */
+function synthesizeLastImportantEntry(reversedEntries: GameLogEntry[]): GameLogEntry | null {
+  const foundIndex = reversedEntries.findIndex((e) => IMPORTANT_ENTRY_TYPES.has(e.type));
+  if (foundIndex === -1) {
+    return null;
+  }
+
+  const found = reversedEntries[foundIndex];
+  if (found.type !== 'melds_declared') {
+    return found;
+  }
+
+  // Collect all consecutive melds_declared entries starting from foundIndex
+  const meldEntries: GameLogEntry[] = [];
+  for (let i = foundIndex; i < reversedEntries.length; i++) {
+    if (reversedEntries[i].type === 'melds_declared') {
+      meldEntries.push(reversedEntries[i]);
+    } else {
+      break;
+    }
+  }
+
+  if (meldEntries.length === 1) {
+    return found;
+  }
+
+  // meldEntries is newest-first; reverse to get chronological order
+  const chronological = [...meldEntries].reverse();
+
+  return {
+    id: found.id,
+    timestamp: found.timestamp,
+    type: 'melds_summary',
+    playerIndex: null,
+    data: {
+      kind: 'melds_summary',
+      playerMelds: chronological.map((e) => ({
+        playerIndex: e.playerIndex as PlayerIndex,
+        totalPoints: e.data.kind === 'melds_declared' ? e.data.totalPoints : 0,
+      })),
+    },
+  };
 }
 
 /**

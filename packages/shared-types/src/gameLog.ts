@@ -19,6 +19,7 @@ export type GameLogEntryType =
   | 'going_out'
   | 'trump_declared'
   | 'melds_declared'
+  | 'melds_summary'
   | 'card_played'
   | 'trick_won'
   | 'round_scored'
@@ -108,6 +109,14 @@ export interface MeldsDeclaredLogData {
 }
 
 /**
+ * Data for melds_summary log entry (collapsed view only — merges all players' melds_declared entries)
+ */
+export interface MeldsSummaryLogData {
+  kind: 'melds_summary';
+  playerMelds: Array<{ playerIndex: PlayerIndex; totalPoints: number }>;
+}
+
+/**
  * Data for card_played log entry
  */
 export interface CardPlayedLogData {
@@ -169,6 +178,7 @@ export type GameLogEntryData =
   | GoingOutLogData
   | TrumpDeclaredLogData
   | MeldsDeclaredLogData
+  | MeldsSummaryLogData
   | CardPlayedLogData
   | TrickWonLogData
   | RoundScoredLogData

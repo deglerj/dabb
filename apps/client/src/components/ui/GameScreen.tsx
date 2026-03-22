@@ -120,6 +120,15 @@ function formatLogEntryText(
       return d.totalPoints === 0
         ? t('gameLog.meldsNone', { name })
         : t('gameLog.meldsDeclared', { name, points: d.totalPoints });
+    case 'melds_summary':
+      return d.playerMelds
+        .map((pm) => {
+          const pmName = nicknames.get(pm.playerIndex) ?? `P${pm.playerIndex}`;
+          return pm.totalPoints === 0
+            ? t('gameLog.meldsNone', { name: pmName })
+            : t('gameLog.meldsDeclared', { name: pmName, points: pm.totalPoints });
+        })
+        .join(', ');
     case 'card_played':
       return t('gameLog.cardPlayed', { name, card: formatCard(d.card) });
     case 'trick_won':
@@ -132,8 +141,11 @@ function formatLogEntryText(
       });
     case 'game_terminated':
       return t('gameLog.gameTerminated', { name });
-    default:
+    default: {
+      const _exhaustive: never = d;
+      void _exhaustive;
       return entry.type;
+    }
   }
 }
 
