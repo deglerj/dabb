@@ -2,7 +2,16 @@
  * Options dialog — sound toggle, vibration toggle (native only), language selector.
  */
 import React, { useState, useCallback, useEffect } from 'react';
-import { Modal, View, Text, Switch, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  Switch,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  Alert,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation, i18n, persistLanguage, type SupportedLanguage } from '@dabb/i18n';
 import { isMuted, setMuted } from '../../utils/sounds.js';
@@ -12,9 +21,10 @@ import { Colors, Fonts, Shadows } from '../../theme.js';
 interface OptionsDialogProps {
   visible: boolean;
   onClose: () => void;
+  onExitGame?: () => void;
 }
 
-export function OptionsDialog({ visible, onClose }: OptionsDialogProps) {
+export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogProps) {
   const { t } = useTranslation();
 
   // Read current values when dialog renders
@@ -101,6 +111,34 @@ export function OptionsDialog({ visible, onClose }: OptionsDialogProps) {
               ))}
             </View>
           </View>
+
+          {onExitGame && (
+            <>
+              <View style={styles.divider} />
+              <TouchableOpacity
+                style={styles.exitButton}
+                onPress={() => {
+                  Alert.alert(
+                    t('options.exitGameConfirmTitle'),
+                    t('options.exitGameConfirmMessage'),
+                    [
+                      { text: t('common.cancel'), style: 'cancel' },
+                      {
+                        text: t('options.exitGame'),
+                        style: 'destructive',
+                        onPress: () => {
+                          onClose();
+                          onExitGame();
+                        },
+                      },
+                    ]
+                  );
+                }}
+              >
+                <Text style={styles.exitButtonLabel}>{t('options.exitGame')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </TouchableOpacity>
       </TouchableOpacity>
     </Modal>
@@ -188,5 +226,20 @@ const styles = StyleSheet.create({
   },
   flagEmoji: {
     fontSize: 22,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.paperEdge,
+    marginTop: 14,
+    marginBottom: 14,
+  },
+  exitButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  exitButtonLabel: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 14,
+    color: '#d32f2f',
   },
 });
