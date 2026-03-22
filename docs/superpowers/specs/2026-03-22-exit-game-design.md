@@ -34,10 +34,10 @@ On confirm: close the dialog, emit `game:exit`, then immediately `router.replace
 
 ## Other Players Flow
 
-`useSocket` gains an `onSessionTerminated?: (data: { terminatedBy?: string }) => void` callback. When `session:terminated` arrives:
+`useSocket` gains an `onSessionTerminated?: (data: { message: string; terminatedBy?: string }) => void` callback, matching the existing `ServerToClientEvents` shape. When `session:terminated` arrives inside the `useEffect` closure:
 
-1. Call `onSessionTerminated`.
-2. Call `socket.close()` to stop reconnection attempts (the session is gone; reconnection would be futile and show a misleading banner).
+1. Call `newSocket.disconnect()` directly (stops reconnection attempts — the session is gone, reconnection would be futile and show a misleading banner).
+2. Call `callbacksRef.current.onSessionTerminated?.(data)` to notify the consumer.
 
 `useGame` exposes `onSessionTerminated` to the caller. In `GameScreen`:
 
@@ -49,13 +49,13 @@ The `terminatedBy` nickname is not surfaced in the dialog — `t('game.gameEnded
 
 ## Files Changed
 
-| File                                              | Change                                                                                                |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `apps/client/src/components/ui/OptionsDialog.tsx` | Add `onExitGame` prop + Exit Game button with Alert confirmation                                      |
-| `apps/client/src/components/ui/OptionsButton.tsx` | Add `onExitGame` prop, pass to `OptionsDialog`                                                        |
-| `apps/client/src/components/ui/GameScreen.tsx`    | Wire `handleExitGame`; pass to `OptionsButton`; suppress reconnecting banner when `sessionTerminated` |
-| `packages/ui-shared/src/useSocket.ts`             | Add `onSessionTerminated` callback + handler                                                          |
-| `apps/client/src/hooks/useGame.ts`                | Thread `onSessionTerminated` through                                                                  |
+| File                                              | Change                                                                                                                                                                   |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/client/src/components/ui/OptionsDialog.tsx` | Add `onExitGame` prop + Exit Game button with Alert confirmation                                                                                                         |
+| `apps/client/src/components/ui/OptionsButton.tsx` | Add `onExitGame` prop, pass to `OptionsDialog`                                                                                                                           |
+| `apps/client/src/components/ui/GameScreen.tsx`    | Wire `handleExitGame`; pass to the in-game `OptionsButton` only (the loading-state instance gets no `onExitGame`); suppress reconnecting banner when `sessionTerminated` |
+| `packages/ui-shared/src/useSocket.ts`             | Add `onSessionTerminated` callback + handler                                                                                                                             |
+| `apps/client/src/hooks/useGame.ts`                | Thread `onSessionTerminated` through                                                                                                                                     |
 
 ## Out of Scope
 
