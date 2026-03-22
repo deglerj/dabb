@@ -11,9 +11,16 @@
   imports = [ ./hardware-configuration.nix ];
 
   # ── Boot ────────────────────────────────────────────────────────────────────
-  # Hetzner Cloud VMs use UEFI
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  # Hetzner Cloud VMs support EFI but EFI NVRAM vars are not writable in the
+  # installer. efiInstallAsRemovable installs to the fallback path
+  # /boot/EFI/BOOT/BOOTX64.EFI instead of writing an NVRAM entry.
+  boot.loader.grub = {
+    enable = true;
+    efiSupport = true;
+    efiInstallAsRemovable = true;
+    device = "nodev"; # EFI mode — no MBR
+  };
+  boot.loader.efi.efiSysMountPoint = "/boot";
 
   # ── Networking ──────────────────────────────────────────────────────────────
   networking.hostName = "dabb";
@@ -51,7 +58,6 @@
     createHome = true;
     shell = pkgs.bash;
     extraGroups = [ "wheel" "docker" ];
-    # REPLACE THIS with the contents of ~/.ssh/dabb-deploy.pub
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL6NBBqd7Zn0uD44Eur5KOFnyYq0FrwU3atuVw70c7Gi dabb-deploy"
     ];
