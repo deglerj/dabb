@@ -11,16 +11,12 @@
   imports = [ ./hardware-configuration.nix ];
 
   # ── Boot ────────────────────────────────────────────────────────────────────
-  # Hetzner Cloud VMs support EFI but EFI NVRAM vars are not writable in the
-  # installer. efiInstallAsRemovable installs to the fallback path
-  # /boot/EFI/BOOT/BOOTX64.EFI instead of writing an NVRAM entry.
+  # Hetzner Cloud CX VMs use BIOS/legacy boot (no EFI).
+  # GRUB installs into the 1 MB BIOS boot partition on the GPT disk.
   boot.loader.grub = {
     enable = true;
-    efiSupport = true;
-    efiInstallAsRemovable = true;
-    device = "nodev"; # EFI mode — no MBR
+    device = "/dev/sda";
   };
-  boot.loader.efi.efiSysMountPoint = "/boot";
 
   # ── Networking ──────────────────────────────────────────────────────────────
   networking.hostName = "dabb";
