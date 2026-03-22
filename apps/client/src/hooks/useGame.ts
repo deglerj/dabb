@@ -62,6 +62,7 @@ export function useGame({ sessionId, secretId, playerIndex, onSessionTerminated 
     (cardId: CardId) => socket?.emit('game:playCard', { cardId }),
     [socket]
   );
+  const onExit = useCallback(() => socket?.emit('game:exit'), [socket]);
 
   return {
     state,
@@ -80,5 +81,6 @@ export function useGame({ sessionId, secretId, playerIndex, onSessionTerminated 
     onDeclareTrump,
     onDeclareMelds,
     onPlayCard,
+    onExit,
   };
 }

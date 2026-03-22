@@ -156,6 +156,15 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   const insets = useSafeAreaInsets();
   const effects = useSkiaEffects();
 
+  const [terminatedByNickname, setTerminatedByNickname] = useState<string | null>(null);
+
+  const handleSessionTerminated = useCallback(
+    (data: { message: string; terminatedBy?: string }) => {
+      setTerminatedByNickname(data.terminatedBy ?? null);
+    },
+    []
+  );
+
   const {
     state,
     events,
@@ -170,7 +179,8 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     onDeclareTrump,
     onDeclareMelds,
     onPlayCard,
-  } = useGame({ sessionId, secretId, playerIndex });
+    onExit,
+  } = useGame({ sessionId, secretId, playerIndex, onSessionTerminated: handleSessionTerminated });
 
   const [logExpanded, setLogExpanded] = useState(false);
   const [lastDropPos, setLastDropPos] = useState<{ x: number; y: number } | undefined>(undefined);
@@ -331,6 +341,11 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     router.replace('/');
   }, [router]);
 
+  const handleExitGame = useCallback(() => {
+    onExit();
+    router.replace('/');
+  }, [onExit, router]);
+
   const handleReload = useCallback(() => {
     router.replace('/');
   }, [router]);
@@ -362,7 +377,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
             <GameTable width={width} height={height} effects={effects} />
 
             {/* Reconnecting banner */}
-            <ReconnectingBanner visible={!connected} />
+            <ReconnectingBanner visible={!connected && !terminatedByNickname} />
 
             {/* Scoreboard strip at top */}
             <ScoreboardStrip
@@ -488,10 +503,11 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
               winnerId={winnerPlayer?.id ?? null}
               winnerNickname={winnerPlayer?.nickname ?? null}
               isLocalWinner={winnerPlayer?.playerIndex === playerIndex}
+              terminatedByNickname={terminatedByNickname}
               onDone={handleDone}
             />
             <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
-              <OptionsButton />
+              <OptionsButton onExitGame={handleExitGame} />
             </View>
           </View>
         </View>
