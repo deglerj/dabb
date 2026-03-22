@@ -327,7 +327,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   const showBidding = state.phase === 'bidding';
   const showDabb = state.phase === 'dabb' && isBidWinner;
   const showTrump = state.phase === 'trump' && isBidWinner;
-  const showMelding = state.phase === 'melding';
+  const showMelding = state.phase === 'melding' && !(isBidWinner && state.wentOut);
 
   return (
     <GameScreenErrorBoundary

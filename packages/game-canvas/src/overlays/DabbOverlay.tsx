@@ -42,6 +42,7 @@ export function DabbOverlay({
 
   const [flippedCount, setFlippedCount] = useState(0);
   const [instant, setInstant] = useState(false);
+  const [pendingSuit, setPendingSuit] = useState<Suit | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const cardCount = dabbCards.length;
 
@@ -105,18 +106,46 @@ export function DabbOverlay({
           </HapticTouchableOpacity>
 
           <View style={styles.divider} />
-          <Text style={styles.goOutLabel}>{t('game.orGoOut')}</Text>
-          <View style={styles.suitRow}>
-            {SUITS.map((suit) => (
-              <HapticTouchableOpacity
-                key={suit}
-                style={[styles.suitButton, { backgroundColor: getSuitColor(suit) }]}
-                onPress={() => onGoOut(suit)}
-              >
-                <Text style={styles.suitButtonText}>{SUIT_SYMBOLS[suit]}</Text>
-              </HapticTouchableOpacity>
-            ))}
-          </View>
+          {pendingSuit === null ? (
+            <>
+              <Text style={styles.goOutLabel}>{t('game.orGoOut')}</Text>
+              <View style={styles.suitRow}>
+                {SUITS.map((suit) => (
+                  <HapticTouchableOpacity
+                    key={suit}
+                    style={[styles.suitButton, { backgroundColor: getSuitColor(suit) }]}
+                    onPress={() => setPendingSuit(suit)}
+                  >
+                    <Text style={styles.suitButtonText}>{SUIT_SYMBOLS[suit]}</Text>
+                  </HapticTouchableOpacity>
+                ))}
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.confirmTitle}>
+                {t('game.goOutConfirmTitle')} {SUIT_SYMBOLS[pendingSuit]}
+              </Text>
+              <Text style={styles.confirmMessage}>{t('game.goOutConfirmMessage')}</Text>
+              <View style={styles.confirmRow}>
+                <HapticTouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setPendingSuit(null)}
+                >
+                  <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                </HapticTouchableOpacity>
+                <HapticTouchableOpacity
+                  style={[styles.suitButton, { backgroundColor: getSuitColor(pendingSuit) }]}
+                  onPress={() => {
+                    onGoOut(pendingSuit);
+                    setPendingSuit(null);
+                  }}
+                >
+                  <Text style={styles.suitButtonText}>{t('game.goOut')}</Text>
+                </HapticTouchableOpacity>
+              </View>
+            </>
+          )}
         </>
       )}
     </View>
@@ -188,6 +217,36 @@ const styles = StyleSheet.create({
   },
   suitButtonText: {
     color: '#fff',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  confirmTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#3a2800',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  confirmMessage: {
+    fontSize: 12,
+    color: '#7a6040',
+    marginBottom: 12,
+    textAlign: 'center',
+    maxWidth: 240,
+  },
+  confirmRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#c8b090',
+  },
+  cancelButtonText: {
+    color: '#3a2800',
     fontWeight: '600',
     fontSize: 13,
   },
