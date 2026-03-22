@@ -12,6 +12,7 @@ export interface GameTerminatedModalProps {
   winnerId: string | null;
   winnerNickname: string | null;
   isLocalWinner: boolean;
+  terminatedByNickname?: string | null;
   onDone: () => void;
 }
 
@@ -20,12 +21,15 @@ export function GameTerminatedModal({
   winnerId,
   winnerNickname,
   isLocalWinner,
+  terminatedByNickname,
   onDone,
 }: GameTerminatedModalProps) {
   const { t } = useTranslation();
 
   let title: string;
-  if (!winnerId) {
+  if (terminatedByNickname) {
+    title = t('game.playerEndedGame', { name: terminatedByNickname });
+  } else if (!winnerId) {
     title = t('game.gameEnded');
   } else if (isLocalWinner) {
     title = t('game.youWonGame');
