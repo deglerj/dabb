@@ -69,9 +69,10 @@ export class GameTestHelper {
   private sequence = 0;
   private sessionId: string;
 
-  // Named players for 2-player games
+  // Named players
   public alice: PlayerActions;
   public bob: PlayerActions;
+  public charlie: PlayerActions;
 
   // Stored for later phases
   private storedDabb: Card[] = [];
@@ -80,6 +81,7 @@ export class GameTestHelper {
     this.sessionId = sessionId;
     this.alice = this.createPlayerActions(0 as PlayerIndex, 'Alice');
     this.bob = this.createPlayerActions(1 as PlayerIndex, 'Bob');
+    this.charlie = this.createPlayerActions(2 as PlayerIndex, 'Charlie');
   }
 
   static create(sessionId: string): GameTestHelper {
