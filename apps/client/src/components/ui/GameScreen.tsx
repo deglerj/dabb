@@ -262,26 +262,20 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     }
   }, [events, isInitialLoad]);
 
-  // Scoreboard data
+  // Scoreboard data — always produce an entry per player (0 if not yet scored)
   const roundScores = useMemo(() => {
-    const result: Array<{ playerIndex: PlayerIndex; score: number }> = [];
-    state.roundScores.forEach((rs, key) => {
-      // Only include PlayerIndex entries (not Team entries for 4-player)
-      if (typeof key === 'number' && key < state.playerCount) {
-        result.push({ playerIndex: key as PlayerIndex, score: rs.total });
-      }
+    return Array.from({ length: state.playerCount }, (_, i) => {
+      const key = i as PlayerIndex;
+      const rs = state.roundScores.get(key);
+      return { playerIndex: key, score: rs?.total ?? 0 };
     });
-    return result;
   }, [state.roundScores, state.playerCount]);
 
   const totalScores = useMemo(() => {
-    const result: Array<{ playerIndex: PlayerIndex; score: number }> = [];
-    state.totalScores.forEach((score, key) => {
-      if (typeof key === 'number' && key < state.playerCount) {
-        result.push({ playerIndex: key as PlayerIndex, score });
-      }
+    return Array.from({ length: state.playerCount }, (_, i) => {
+      const key = i as PlayerIndex;
+      return { playerIndex: key, score: state.totalScores.get(key) ?? 0 };
     });
-    return result;
   }, [state.totalScores, state.playerCount]);
 
   // Is it my turn for bidding?
