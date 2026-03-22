@@ -114,6 +114,7 @@ const en: TranslationKeys = {
     roundAbbr: '#',
     bidColumn: 'Bid',
     gameEnded: 'Game ended.',
+    youWonRound: 'You won the round! 🎉',
     youWonGame: 'You won the game! 🎉',
     playerWonGame: '{{name}} won the game.',
   },

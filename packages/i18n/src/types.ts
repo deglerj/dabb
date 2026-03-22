@@ -124,6 +124,7 @@ export interface TranslationKeys {
     roundAbbr: string;
     bidColumn: string;
     gameEnded: string;
+    youWonRound: string;
     youWonGame: string;
     playerWonGame: string;
   };
