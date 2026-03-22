@@ -1,6 +1,7 @@
 /**
  * GameLogTab — a collapsible panel showing recent game events in text form.
  * Always mounted; uses height/overflow to show/hide content (no conditional mount).
+ * When collapsed, shows the last important event inline in the header.
  */
 import React, { useRef, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
@@ -10,9 +11,10 @@ export interface GameLogTabProps {
   entries: string[];
   isExpanded: boolean;
   onToggle: () => void;
+  collapsedSummary?: string;
 }
 
-export function GameLogTab({ entries, isExpanded, onToggle }: GameLogTabProps) {
+export function GameLogTab({ entries, isExpanded, onToggle, collapsedSummary }: GameLogTabProps) {
   const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
 
@@ -28,6 +30,13 @@ export function GameLogTab({ entries, isExpanded, onToggle }: GameLogTabProps) {
       <Pressable style={styles.header} onPress={onToggle}>
         <Text style={styles.headerTitle}>{t('gameLog.title')}</Text>
         <Text style={styles.headerCount}>({entries.length})</Text>
+        {!isExpanded && collapsedSummary ? (
+          <Text style={styles.collapsedSummary} numberOfLines={1}>
+            {collapsedSummary}
+          </Text>
+        ) : (
+          <View style={styles.collapsedSummaryPlaceholder} />
+        )}
         <Text style={styles.toggleIcon}>{isExpanded ? '▼' : '▲'}</Text>
       </Pressable>
 
@@ -62,11 +71,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: '#f2e8d0',
-    flex: 1,
   },
   headerCount: {
     fontSize: 12,
     color: '#c8b090',
+  },
+  collapsedSummary: {
+    flex: 1,
+    fontSize: 12,
+    color: '#c8b090',
+    fontStyle: 'italic',
+    paddingLeft: 4,
+  },
+  collapsedSummaryPlaceholder: {
+    flex: 1,
   },
   toggleIcon: {
     fontSize: 12,
