@@ -7,11 +7,21 @@ import type { GameEvent, GameLogEntry, GameState, PlayerIndex, Team } from '@dab
 
 const DEFAULT_VISIBLE_ENTRIES = 5;
 
+const IMPORTANT_ENTRY_TYPES = new Set<GameLogEntry['type']>([
+  'going_out',
+  'trick_won',
+  'round_scored',
+  'melds_declared',
+  'game_finished',
+]);
+
 export interface GameLogResult {
   /** All log entries in reverse chronological order (newest first) */
   entries: GameLogEntry[];
   /** The latest N entries for collapsed view */
   latestEntries: GameLogEntry[];
+  /** The most recent entry considered important (going out, trick/meld/round/game won) */
+  lastImportantEntry: GameLogEntry | null;
   /** Whether it's the current player's turn */
   isYourTurn: boolean;
 }
@@ -76,6 +86,7 @@ export function useGameLog(
     return {
       entries: reversedEntries,
       latestEntries: reversedEntries.slice(0, DEFAULT_VISIBLE_ENTRIES),
+      lastImportantEntry: reversedEntries.find((e) => IMPORTANT_ENTRY_TYPES.has(e.type)) ?? null,
       isYourTurn,
     };
   }, [events, state, currentPlayerIndex]);
