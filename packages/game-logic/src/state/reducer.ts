@@ -181,10 +181,14 @@ function handleBidPlaced(
   state: GameState,
   event: Extract<GameEvent, { type: 'BID_PLACED' }>
 ): GameState {
+  if (state.firstBidder === null) {
+    throw new Error('firstBidder is null during bidding');
+  }
   const nextBidder = getNextBidder(
     event.payload.playerIndex,
     state.playerCount,
-    state.passedPlayers
+    state.passedPlayers,
+    state.firstBidder
   );
 
   return {
@@ -203,9 +207,17 @@ function handlePlayerPassed(
 
   const biddingComplete = isBiddingComplete(state.playerCount, newPassedPlayers);
 
+  if (state.firstBidder === null) {
+    throw new Error('firstBidder is null during bidding');
+  }
   const nextBidder = biddingComplete
     ? null
-    : getNextBidder(event.payload.playerIndex, state.playerCount, newPassedPlayers);
+    : getNextBidder(
+        event.payload.playerIndex,
+        state.playerCount,
+        newPassedPlayers,
+        state.firstBidder
+      );
 
   return {
     ...state,
