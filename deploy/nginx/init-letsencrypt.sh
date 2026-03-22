@@ -44,7 +44,7 @@ EOF
 docker compose -f docker-compose.prod.yml run --rm \
     -v "$PWD/$TMP_CONF:/etc/nginx/conf.d/default.conf:ro" \
     -p "80:80" \
-    nginx nginx -g "daemon off;" &
+    nginx &
 NGINX_PID=$!
 sleep 3
 
