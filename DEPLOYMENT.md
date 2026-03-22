@@ -74,13 +74,15 @@ tofu apply \
 6. Save — DNS propagation takes up to a few hours
 7. Verify: `nslookup dabb.degler.info` and `nslookup analytics.dabb.degler.info` should both return the Hetzner IP
 
-### 5. Copy files to server
+### 5. Clone repo and create .env on server
+
+The deploy workflow runs `git pull` in `/opt/dabb`, so it must be a git clone — not a manual file copy.
 
 ```bash
 SERVER=dabb@<server-ip>
 
-scp -i ~/.ssh/dabb-deploy docker-compose.prod.yml $SERVER:/opt/dabb/
-scp -i ~/.ssh/dabb-deploy -r deploy/ $SERVER:/opt/dabb/
+ssh -i ~/.ssh/dabb-deploy $SERVER \
+  "git clone https://github.com/deglerj/dabb.git /opt/dabb"
 
 # Create .env with secrets
 # IMPORTANT: use openssl rand -hex (not -base64) — base64 output can contain '#'
@@ -183,12 +185,12 @@ Push any change to `main` (or re-run the CI workflow manually). GitHub Actions w
 
 ## Automated Maintenance
 
-| Task                | Frequency            | Automated by        |
-| ------------------- | -------------------- | ------------------- |
-| SSL renewal         | Every 60 days        | certbot container   |
-| OS security patches | Daily                | unattended-upgrades |
-| App deployment      | Every push to `main` | GitHub Actions      |
-| Downtime alerts     | 5-minute intervals   | UptimeRobot (free)  |
+| Task                | Frequency            | Automated by       |
+| ------------------- | -------------------- | ------------------ |
+| SSL renewal         | Every 60 days        | certbot container  |
+| OS security patches | On new NixOS release | NixOS autoUpgrade  |
+| App deployment      | Every push to `main` | GitHub Actions     |
+| Downtime alerts     | 5-minute intervals   | UptimeRobot (free) |
 
 ### UptimeRobot setup (optional)
 
@@ -292,11 +294,11 @@ docker compose -f docker-compose.prod.yml up -d umami
 
 ## Security Checklist
 
-- [x] Strong PostgreSQL password (`openssl rand -base64 32`)
-- [x] SSH key authentication (cloud-init disables password auth by default on Hetzner)
-- [x] Firewall configured via Hetzner Cloud — only ports 22, 80, 443 open
+- [x] Strong PostgreSQL password (`openssl rand -hex 32`)
+- [x] SSH key authentication only — password auth disabled in NixOS config
+- [x] Firewall configured in NixOS (`networking.firewall`) — only ports 22, 80, 443 open
 - [x] SSL/TLS for all public endpoints (Let's Encrypt via certbot)
-- [x] Automatic OS security patches (unattended-upgrades)
+- [x] Automatic OS upgrades with reboot (NixOS `system.autoUpgrade`)
 - [ ] Monitor GitHub Security tab for CVE alerts
 
 ---
