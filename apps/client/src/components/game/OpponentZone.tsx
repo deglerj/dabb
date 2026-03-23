@@ -1,10 +1,11 @@
 /**
  * OpponentZone — renders a single opponent's area on the table.
- * Landscape/tablet: nameplate + fanned card backs + won-pile count.
- * Portrait phone: nameplate badge + card count number only.
+ * Landscape/tablet: nameplate + fanned card backs.
+ * Portrait phone: nameplate only.
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { CardBackView } from '@dabb/game-canvas';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 import type { PlayerIndex } from '@dabb/shared-types';
 
@@ -32,12 +33,13 @@ export function OpponentZone({ nickname, cardCount, isConnected, position }: Opp
           {nickname}
         </Text>
         {!isConnected && <Text style={styles.offlineBadge}>(offline)</Text>}
-        {!showCards && <Text style={styles.cardCountBadge}>{cardCount}</Text>}
       </View>
       {showCards && cardCount > 0 && (
         <View style={styles.cardFan}>
           {Array.from({ length: Math.min(cardCount, 6) }).map((_, i) => (
-            <View key={i} style={[styles.cardBack, { marginLeft: i === 0 ? 0 : -28 }]} />
+            <View key={i} style={{ marginLeft: i === 0 ? 0 : -28 }}>
+              <CardBackView width={CARD_W} height={CARD_H} />
+            </View>
           ))}
         </View>
       )}
@@ -65,14 +67,5 @@ const styles = StyleSheet.create({
   },
   name: { fontSize: 14, color: '#3d2e18', maxWidth: 80 },
   offlineBadge: { fontSize: 11, color: '#999' },
-  cardCountBadge: { fontSize: 13, color: '#8a5e2e' },
   cardFan: { flexDirection: 'row' },
-  cardBack: {
-    width: CARD_W,
-    height: CARD_H,
-    backgroundColor: '#2a6e3c',
-    borderRadius: 3,
-    borderWidth: 1,
-    borderColor: '#1a4a28',
-  },
 });
