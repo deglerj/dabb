@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 625,
     maxHeight: '80%',
     borderWidth: 1,
     borderColor: '#5a3a1a',
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   playerCell: {
-    width: 75,
+    width: 94,
     alignItems: 'center',
   },
   headerText: {
