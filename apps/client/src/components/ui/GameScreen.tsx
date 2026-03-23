@@ -14,6 +14,7 @@ import {
   DabbOverlay,
   TrumpOverlay,
   MeldingOverlay,
+  edgeFraction,
 } from '@dabb/game-canvas';
 import {
   useGameLog,
@@ -52,12 +53,15 @@ export interface GameScreenProps {
 }
 
 /**
- * Compute opponent positions based on player count.
- * Returns a map from opponent seat index to {x,y} coordinates.
+ * Compute opponent positions based on player count and screen dimensions.
+ * Returns a map from opponent seat index to {x,y} pixel coordinates.
+ * x uses the edge-push formula (15%–85%), y is 8% from the top.
  */
 function computeOpponentPositions(
   playerCount: number,
-  myIndex: PlayerIndex
+  myIndex: PlayerIndex,
+  width: number,
+  height: number
 ): Map<PlayerIndex, { x: number; y: number }> {
   const positions = new Map<PlayerIndex, { x: number; y: number }>();
   const opponents: PlayerIndex[] = [];
@@ -68,19 +72,12 @@ function computeOpponentPositions(
     }
   }
 
-  if (opponents.length === 1) {
-    // 2-player: one opponent at top-center
-    positions.set(opponents[0], { x: 180, y: 60 });
-  } else if (opponents.length === 2) {
-    // 3-player: opponents at top-left and top-right
-    positions.set(opponents[0], { x: 100, y: 60 });
-    positions.set(opponents[1], { x: 260, y: 60 });
-  } else if (opponents.length === 3) {
-    // 4-player: opponents at top-left, top-center, top-right
-    positions.set(opponents[0], { x: 60, y: 60 });
-    positions.set(opponents[1], { x: 180, y: 60 });
-    positions.set(opponents[2], { x: 300, y: 60 });
-  }
+  opponents.forEach((opIdx, i) => {
+    positions.set(opIdx, {
+      x: width * edgeFraction(i, opponents.length),
+      y: height * 0.08,
+    });
+  });
 
   return positions;
 }
@@ -203,8 +200,8 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
 
   // Opponent positions
   const opponentPositions = useMemo(
-    () => computeOpponentPositions(state.playerCount, playerIndex),
-    [state.playerCount, playerIndex]
+    () => computeOpponentPositions(state.playerCount, playerIndex, width, height),
+    [state.playerCount, playerIndex, width, height]
   );
 
   // Player's hand cards
