@@ -123,6 +123,9 @@ export interface TranslationKeys {
     scoreHistory: string;
     roundAbbr: string;
     bidColumn: string;
+    bidMet: string;
+    bidMissed: string;
+    wentOut: string;
     gameEnded: string;
     youWonRound: string;
     youWonGame: string;
