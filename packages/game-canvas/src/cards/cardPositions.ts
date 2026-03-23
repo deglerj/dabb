@@ -59,6 +59,20 @@ const WON_PILE_CORNERS: [number, number][] = [
   [0.94, 0.9], // bottom-right (opponent 3)
 ];
 
+/**
+ * Maps opponent index i (0-based, out of n total opponents) to an x-fraction
+ * in the range [0.15, 0.85], giving clear edge-to-edge spread.
+ * Single opponent is centered at 0.5.
+ */
+export function edgeFraction(i: number, n: number): number {
+  const lo = 0.15,
+    hi = 0.85;
+  if (n <= 1) {
+    return 0.5;
+  }
+  return lo + (i / (n - 1)) * (hi - lo);
+}
+
 export function deriveCardPositions(
   input: CardPositionsInput,
   layout: LayoutDimensions
@@ -158,13 +172,12 @@ export function deriveCardPositions(
     wonPiles[playerId] = { x: width * fx, y: height * fy };
   });
 
-  // Opponent hands (evenly spaced along top edge)
+  // Opponent hands — edge-push formula: 15%–85% of canvas width
   const opponentIds = Object.keys(input.opponentCardCounts);
   const opponentHands: Record<string, { x: number; y: number; cardCount: number }> = {};
   opponentIds.forEach((id, i) => {
-    const fraction = (i + 1) / (opponentIds.length + 1);
     opponentHands[id] = {
-      x: width * fraction,
+      x: width * edgeFraction(i, opponentIds.length),
       y: height * 0.08,
       cardCount: input.opponentCardCounts[id] ?? 0,
     };

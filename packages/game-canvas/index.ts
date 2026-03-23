@@ -9,7 +9,7 @@ export type { SkiaEffects } from './src/table/useSkiaEffects.js';
 // Cards
 export { CardView } from './src/cards/CardView.js';
 export type { CardViewProps } from './src/cards/CardView.js';
-export { deriveCardPositions } from './src/cards/cardPositions.js';
+export { deriveCardPositions, edgeFraction } from './src/cards/cardPositions.js';
 export type {
   CardPositionsInput,
   CardPositionsOutput,

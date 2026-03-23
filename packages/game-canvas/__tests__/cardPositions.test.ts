@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { deriveCardPositions, type LayoutDimensions } from '../src/cards/cardPositions.js';
+import {
+  deriveCardPositions,
+  edgeFraction,
+  type LayoutDimensions,
+} from '../src/cards/cardPositions.js';
 
 const CARD_WIDTH = 70;
 const CARD_HEIGHT = 105;
@@ -239,5 +243,46 @@ describe('deriveCardPositions — two-row hand layout', () => {
     const topFirst = result.playerHand['card-10']!.rotation;
     const topLast = result.playerHand['card-11']!.rotation;
     expect(topFirst + topLast).toBeCloseTo(0, 5);
+  });
+});
+
+describe('edgeFraction', () => {
+  it('returns 0.5 for a single opponent', () => {
+    expect(edgeFraction(0, 1)).toBe(0.5);
+  });
+
+  it('maps two opponents to 15% and 85%', () => {
+    expect(edgeFraction(0, 2)).toBeCloseTo(0.15);
+    expect(edgeFraction(1, 2)).toBeCloseTo(0.85);
+  });
+
+  it('maps three opponents to 15%, 50%, 85%', () => {
+    expect(edgeFraction(0, 3)).toBeCloseTo(0.15);
+    expect(edgeFraction(1, 3)).toBeCloseTo(0.5);
+    expect(edgeFraction(2, 3)).toBeCloseTo(0.85);
+  });
+});
+
+describe('deriveCardPositions – opponent hands', () => {
+  it('places a single opponent at 50% of width', () => {
+    const result = deriveCardPositions(
+      { handCardIds: [], trickCardIds: [], wonPilePlayerIds: [], opponentCardCounts: { p1: 8 } },
+      LAYOUT
+    );
+    expect(result.opponentHands['p1']?.x).toBeCloseTo(LAYOUT.width * 0.5);
+  });
+
+  it('places two opponents at 15% and 85% of width', () => {
+    const result = deriveCardPositions(
+      {
+        handCardIds: [],
+        trickCardIds: [],
+        wonPilePlayerIds: [],
+        opponentCardCounts: { p1: 8, p2: 8 },
+      },
+      LAYOUT
+    );
+    expect(result.opponentHands['p1']?.x).toBeCloseTo(LAYOUT.width * 0.15);
+    expect(result.opponentHands['p2']?.x).toBeCloseTo(LAYOUT.width * 0.85);
   });
 });
