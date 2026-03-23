@@ -105,6 +105,7 @@ const de: TranslationKeys = {
     gameTerminatedMessage: '{{name}} hat das Spiel verlassen.',
     backToHome: 'Zurück zum Start',
     goOut: 'Abgehen',
+    goOutLink: 'Abgehen...',
     goOutIn: 'Ab in {{suit}}',
     orGoOut: 'Oder abgehen:',
     goOutConfirmTitle: 'Abgehen?',

@@ -120,6 +120,7 @@ export interface TranslationKeys {
     orGoOut: string;
     goOutConfirmTitle: string;
     goOutConfirmMessage: string;
+    goOutLink: string;
     scoreHistory: string;
     roundAbbr: string;
     bidColumn: string;

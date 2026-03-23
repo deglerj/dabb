@@ -105,6 +105,7 @@ const en: TranslationKeys = {
     gameTerminatedMessage: '{{name}} has left the game.',
     backToHome: 'Back to home',
     goOut: 'Go out',
+    goOutLink: 'Go out...',
     goOutIn: 'Go out in {{suit}}',
     orGoOut: 'Or go out:',
     goOutConfirmTitle: 'Go out?',
