@@ -1,16 +1,15 @@
 /**
- * DabbOverlay — two-step dabb UI.
+ * DabbOverlay — take-dabb UI.
  *
- * step='take':    Show 2 CardBack components + Take button.
- * step='discard': Show dabb cards as CardFace + selection + Discard button + Go Out section.
+ * Shows the dabb cards face-down, flips them one by one on mount,
+ * then lets the bid winner take them. The discard step has been
+ * moved to DiscardOverlay.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
-import type { Card, Suit } from '@dabb/shared-types';
-import { SUITS } from '@dabb/shared-types';
-import { getSuitColor, SUIT_SYMBOLS } from '@dabb/card-assets';
+import type { Card } from '@dabb/shared-types';
 import { FlippableCard } from '../cards/FlippableCard.js';
 
 const CARD_WIDTH = 70;
@@ -18,36 +17,19 @@ const CARD_HEIGHT = 105;
 
 export interface DabbOverlayProps {
   visible: boolean;
-  step: 'take' | 'discard';
   dabbCards: Card[];
-  discardCount: number;
-  selectedCardIds: string[];
   onTake: () => void;
-  onDiscard: () => void;
-  onGoOut: (suit: Suit) => void;
 }
 
-export function DabbOverlay({
-  visible,
-  step,
-  dabbCards,
-  discardCount,
-  selectedCardIds,
-  onTake,
-  onDiscard,
-  onGoOut,
-}: DabbOverlayProps) {
+export function DabbOverlay({ visible, dabbCards, onTake }: DabbOverlayProps) {
   const { t } = useTranslation();
-  const canDiscard = selectedCardIds.length === discardCount;
-
   const [flippedCount, setFlippedCount] = useState(0);
   const [instant, setInstant] = useState(false);
-  const [pendingSuit, setPendingSuit] = useState<Suit | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const cardCount = dabbCards.length;
 
   useEffect(() => {
-    if (step !== 'take' || !visible) {
+    if (!visible) {
       return;
     }
     setFlippedCount(0);
@@ -59,7 +41,7 @@ export function DabbOverlay({
       timers.current.forEach(clearTimeout);
       timers.current = [];
     };
-  }, [step, visible, cardCount]);
+  }, [visible, cardCount]);
 
   function handleTake() {
     timers.current.forEach(clearTimeout);
@@ -71,83 +53,23 @@ export function DabbOverlay({
 
   return (
     <View style={styles.container}>
-      {step === 'take' ? (
-        <>
-          <Text style={styles.title}>{t('game.takeDabb')}</Text>
-          <View style={styles.cardRow}>
-            {dabbCards.map((card, i) => (
-              <View key={card.id} style={styles.cardWrapper}>
-                <FlippableCard
-                  card={card}
-                  flipped={flippedCount > i}
-                  instant={instant}
-                  width={CARD_WIDTH}
-                  height={CARD_HEIGHT}
-                />
-              </View>
-            ))}
+      <Text style={styles.title}>{t('game.takeDabb')}</Text>
+      <View style={styles.cardRow}>
+        {dabbCards.map((card, i) => (
+          <View key={card.id} style={styles.cardWrapper}>
+            <FlippableCard
+              card={card}
+              flipped={flippedCount > i}
+              instant={instant}
+              width={CARD_WIDTH}
+              height={CARD_HEIGHT}
+            />
           </View>
-          <HapticTouchableOpacity style={styles.primaryButton} onPress={handleTake}>
-            <Text style={styles.primaryButtonText}>{t('game.takeDabb')}</Text>
-          </HapticTouchableOpacity>
-        </>
-      ) : (
-        <>
-          <Text style={styles.title}>{t('game.discardCards')}</Text>
-          <Text style={styles.hint}>{t('game.selectCardsToDiscard', { count: discardCount })}</Text>
-          <HapticTouchableOpacity
-            style={[styles.primaryButton, !canDiscard && styles.primaryButtonDisabled]}
-            onPress={onDiscard}
-            disabled={!canDiscard}
-          >
-            <Text style={styles.primaryButtonText}>
-              {t('game.selectedCount', { selected: selectedCardIds.length, total: discardCount })}
-            </Text>
-          </HapticTouchableOpacity>
-
-          <View style={styles.divider} />
-          {pendingSuit === null ? (
-            <>
-              <Text style={styles.goOutLabel}>{t('game.orGoOut')}</Text>
-              <View style={styles.suitRow}>
-                {SUITS.map((suit) => (
-                  <HapticTouchableOpacity
-                    key={suit}
-                    style={[styles.suitButton, { backgroundColor: getSuitColor(suit) }]}
-                    onPress={() => setPendingSuit(suit)}
-                  >
-                    <Text style={styles.suitButtonText}>{SUIT_SYMBOLS[suit]}</Text>
-                  </HapticTouchableOpacity>
-                ))}
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.confirmTitle}>
-                {t('game.goOutConfirmTitle')} {SUIT_SYMBOLS[pendingSuit]}
-              </Text>
-              <Text style={styles.confirmMessage}>{t('game.goOutConfirmMessage')}</Text>
-              <View style={styles.confirmRow}>
-                <HapticTouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => setPendingSuit(null)}
-                >
-                  <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
-                </HapticTouchableOpacity>
-                <HapticTouchableOpacity
-                  style={[styles.suitButton, { backgroundColor: getSuitColor(pendingSuit) }]}
-                  onPress={() => {
-                    onGoOut(pendingSuit);
-                    setPendingSuit(null);
-                  }}
-                >
-                  <Text style={styles.suitButtonText}>{t('game.goOut')}</Text>
-                </HapticTouchableOpacity>
-              </View>
-            </>
-          )}
-        </>
-      )}
+        ))}
+      </View>
+      <HapticTouchableOpacity style={styles.primaryButton} onPress={handleTake}>
+        <Text style={styles.primaryButtonText}>{t('game.takeDabb')}</Text>
+      </HapticTouchableOpacity>
     </View>
   );
 }
@@ -162,12 +84,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#3a2800',
     marginBottom: 6,
-  },
-  hint: {
-    fontSize: 13,
-    color: '#7a6040',
-    marginBottom: 14,
-    textAlign: 'center',
   },
   cardRow: {
     flexDirection: 'row',
@@ -187,67 +103,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 10,
   },
-  primaryButtonDisabled: {
-    backgroundColor: '#bfae90',
-  },
   primaryButtonText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 15,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#c8b090',
-    width: '100%',
-    marginVertical: 12,
-  },
-  goOutLabel: {
-    fontSize: 13,
-    color: '#7a6040',
-    marginBottom: 8,
-  },
-  suitRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  suitButton: {
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  suitButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  confirmTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#3a2800',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  confirmMessage: {
-    fontSize: 12,
-    color: '#7a6040',
-    marginBottom: 12,
-    textAlign: 'center',
-    maxWidth: 240,
-  },
-  confirmRow: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    borderRadius: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#c8b090',
-  },
-  cancelButtonText: {
-    color: '#3a2800',
-    fontWeight: '600',
-    fontSize: 13,
   },
 });

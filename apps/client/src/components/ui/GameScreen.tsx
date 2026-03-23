@@ -12,6 +12,7 @@ import {
   PhaseOverlay,
   BiddingOverlay,
   DabbOverlay,
+  DiscardOverlay,
   TrumpOverlay,
   MeldingOverlay,
   edgeFraction,
@@ -181,7 +182,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
 
   const [logExpanded, setLogExpanded] = useState(false);
   const [lastDropPos, setLastDropPos] = useState<{ x: number; y: number } | undefined>(undefined);
-  const [dabbSelectedCards, setDabbSelectedCards] = useState<string[]>([]);
+  const [slottedCardIds, setSlottedCardIds] = useState<string[]>([]);
   const [scoreboardOpen, setScoreboardOpen] = useState(false);
 
   // Round history
@@ -273,22 +274,29 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   // Is bid winner (for dabb/trump phases)?
   const isBidWinner = state.bidWinner === playerIndex;
 
-  // Dabb overlay step: before taking, dabb array has cards; after taking, it's empty
-  const dabbStep = state.dabb.length === 0 ? ('discard' as const) : ('take' as const);
+  // Discard slot state handlers
+  const discardCount = DABB_SIZE[state.playerCount];
 
-  // Dabb cards: only used in the 'take' step to show card backs
-  const dabbCards = dabbStep === 'take' ? state.dabb : [];
+  const handleSlotCard = useCallback(
+    (cardId: string) => {
+      setSlottedCardIds((prev) => {
+        if (prev.length >= discardCount || prev.includes(cardId)) {
+          return prev;
+        }
+        return [...prev, cardId];
+      });
+    },
+    [discardCount]
+  );
 
-  const handleToggleDabbCard = useCallback((cardId: string) => {
-    setDabbSelectedCards((prev) =>
-      prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
-    );
+  const handleRemoveFromSlot = useCallback((cardId: string) => {
+    setSlottedCardIds((prev) => prev.filter((id) => id !== cardId));
   }, []);
 
   const handleDiscard = useCallback(() => {
-    onDiscard(dabbSelectedCards);
-    setDabbSelectedCards([]);
-  }, [onDiscard, dabbSelectedCards]);
+    onDiscard(slottedCardIds);
+    setSlottedCardIds([]);
+  }, [onDiscard, slottedCardIds]);
 
   // Melds detection for melding overlay
   const detectedMelds = useMemo(() => {
@@ -335,8 +343,16 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
 
   // Phase overlay
   const showBidding = state.phase === 'bidding';
-  const showDabb = state.phase === 'dabb' && isBidWinner;
+  const showDabbTake = state.phase === 'dabb' && isBidWinner && state.dabb.length > 0;
+  const showDiscard = state.phase === 'dabb' && isBidWinner && state.dabb.length === 0;
   const showTrump = state.phase === 'trump' && isBidWinner;
+
+  // Reset slotted cards if discard phase exits unexpectedly (reconnect, phase advance)
+  useEffect(() => {
+    if (!showDiscard) {
+      setSlottedCardIds([]);
+    }
+  }, [showDiscard]);
   const showMelding = state.phase === 'melding' && !(isBidWinner && state.wentOut);
 
   return (
@@ -411,12 +427,8 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
                 onPlayCard(cardId);
               }}
               effects={effects}
-              discardSelectedIds={
-                showDabb && dabbStep === 'discard' ? dabbSelectedCards : undefined
-              }
-              onToggleDiscard={
-                showDabb && dabbStep === 'discard' ? handleToggleDabbCard : undefined
-              }
+              slottedCardIds={showDiscard ? slottedCardIds : undefined}
+              onSlotCard={showDiscard ? handleSlotCard : undefined}
             />
 
             {/* Phase overlays */}
@@ -429,18 +441,18 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
               />
             </PhaseOverlay>
 
-            <PhaseOverlay visible={showDabb}>
-              <DabbOverlay
-                visible={showDabb}
-                step={dabbStep}
-                dabbCards={dabbCards}
-                discardCount={DABB_SIZE[state.playerCount]}
-                selectedCardIds={dabbSelectedCards}
-                onTake={onTakeDabb}
-                onDiscard={handleDiscard}
-                onGoOut={onGoOut}
-              />
+            <PhaseOverlay visible={showDabbTake}>
+              <DabbOverlay visible={showDabbTake} dabbCards={state.dabb} onTake={onTakeDabb} />
             </PhaseOverlay>
+
+            <DiscardOverlay
+              visible={showDiscard}
+              discardCount={discardCount}
+              slottedCardIds={slottedCardIds}
+              onRemoveFromSlot={handleRemoveFromSlot}
+              onDiscard={handleDiscard}
+              onGoOut={onGoOut}
+            />
 
             <PhaseOverlay visible={showTrump}>
               <TrumpOverlay onSelectTrump={onDeclareTrump} />

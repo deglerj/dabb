@@ -23,8 +23,8 @@ export interface PlayerHandProps {
   cards: Card[];
   onPlayCard: (cardId: string, dropPos?: { x: number; y: number }) => void;
   effects?: SkiaEffects;
-  discardSelectedIds?: string[];
-  onToggleDiscard?: (cardId: string) => void;
+  slottedCardIds?: string[];
+  onSlotCard?: (cardId: string) => void;
 }
 
 export function PlayerHand({
@@ -33,8 +33,8 @@ export function PlayerHand({
   cards,
   onPlayCard,
   effects,
-  discardSelectedIds,
-  onToggleDiscard,
+  slottedCardIds,
+  onSlotCard,
 }: PlayerHandProps) {
   const { width, height } = useGameDimensions();
   const feltBounds = getFeltBounds(width, height);
@@ -64,12 +64,11 @@ export function PlayerHand({
   const { cardScale } = positions;
   const scaledW = CARD_WIDTH * cardScale;
   const scaledH = CARD_HEIGHT * cardScale;
-  const liftOffset = 20 * cardScale;
 
   const isTricksPhase = gameState.phase === 'tricks';
   const isTrumpHighlightPhase =
     (gameState.phase === 'tricks' || gameState.phase === 'melding') && gameState.trump !== null;
-  const isDiscardMode = !!onToggleDiscard;
+  const isSlotMode = !!onSlotCard;
   const validPlays =
     isTricksPhase && gameState.trump
       ? getValidPlays(cards, gameState.currentTrick, gameState.trump)
@@ -95,25 +94,26 @@ export function PlayerHand({
         if (!pos) {
           return null;
         }
-        if (isDiscardMode) {
-          const isSelected = discardSelectedIds?.includes(card.id) ?? false;
+        if (isSlotMode) {
+          if (slottedCardIds?.includes(card.id)) {
+            return null; // card is in a slot; hide from hand
+          }
           return (
             <CardView
               key={card.id}
               card={card.id}
               targetX={pos.x}
-              targetY={isSelected ? pos.y - liftOffset : pos.y}
+              targetY={pos.y}
               targetRotation={pos.rotation}
-              zIndex={isSelected ? pos.zIndex + 100 : pos.zIndex}
+              zIndex={pos.zIndex}
               width={scaledW}
               height={scaledH}
-              selected={isSelected}
               highlighted={highlightedIds.has(card.id)}
-              isTrump={isTrumpHighlightPhase && card.suit === gameState.trump}
+              isTrump={false}
               onTap={() => {
                 playSound('card-select');
                 triggerHaptic('card-select');
-                onToggleDiscard!(card.id);
+                onSlotCard!(card.id);
               }}
             />
           );
