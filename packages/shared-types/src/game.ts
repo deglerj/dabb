@@ -198,6 +198,7 @@ export interface RoundHistoryEntry {
   round: number;
   bidWinner: PlayerIndex | null;
   winningBid: number;
+  wentOut?: boolean; // true when the bid winner chose to go out (Abgehen)
   scores: Record<
     PlayerIndex | Team,
     { melds: number; tricks: number; total: number; bidMet: boolean }
