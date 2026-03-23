@@ -1,11 +1,12 @@
 /**
  * DiscardOverlay — card-slot discard UI.
  *
- * Renders a dim scrim + floating dialog with `discardCount` card slots.
- * Tap a slotted card to return it to hand. Confirm with Ablegen once
- * all slots are filled. "Abgehen..." link reveals inline Go Out flow.
+ * Renders a floating dialog with `discardCount` card slots.
+ * Cards are rendered as CardView elements in a separate layer by GameScreen
+ * (positioned via computeDiscardSlotPositions), so slots show outlines only.
+ * Confirm with Ablegen once all slots are filled.
+ * "Abgehen..." link reveals inline Go Out flow.
  *
- * The scrim is visual-only (pointerEvents="none") so hand taps pass through.
  * Rendered as a direct child of gameWrapper in GameScreen (not inside PhaseOverlay).
  */
 import React, { useEffect, useState } from 'react';
@@ -22,16 +23,43 @@ import { useTranslation } from '@dabb/i18n';
 import type { CardId, Suit } from '@dabb/shared-types';
 import { SUITS } from '@dabb/shared-types';
 import { getSuitColor, SUIT_SYMBOLS } from '@dabb/card-assets';
-import { CardFace } from '../cards/CardFace.js';
 
 const CARD_WIDTH = 70;
 const CARD_HEIGHT = 105;
+
+// Layout constants — kept in sync with the StyleSheet below so that
+// GameScreen can compute slot pixel positions via computeDiscardSlotPositions.
+const DIALOG_TOP_FRACTION = 0.28;
+const MIN_DIALOG_WIDTH = 280;
+const DIALOG_H_PADDING = 24;
+const DIALOG_V_PADDING = 18;
+const SLOT_GAP = 10;
+// Approximate height of the title row (fontSize 16 × 1.3 lineHeight + marginBottom 14)
+const TITLE_BLOCK_HEIGHT = 35;
+
+/**
+ * Compute the top-left pixel position of each card slot within the dialog.
+ * Used by GameScreen to position slotted CardView elements above the dialog.
+ */
+export function computeDiscardSlotPositions(
+  discardCount: number,
+  gameWidth: number,
+  gameHeight: number
+): Array<{ x: number; y: number }> {
+  const slotRowWidth = discardCount * CARD_WIDTH + (discardCount - 1) * SLOT_GAP;
+  const dialogWidth = Math.max(MIN_DIALOG_WIDTH, slotRowWidth + 2 * DIALOG_H_PADDING);
+  const dialogLeft = (gameWidth - dialogWidth) / 2;
+  const dialogTop = gameHeight * DIALOG_TOP_FRACTION;
+  return Array.from({ length: discardCount }, (_, i) => ({
+    x: dialogLeft + DIALOG_H_PADDING + i * (CARD_WIDTH + SLOT_GAP),
+    y: dialogTop + DIALOG_V_PADDING + TITLE_BLOCK_HEIGHT,
+  }));
+}
 
 export interface DiscardOverlayProps {
   visible: boolean;
   discardCount: number;
   slottedCardIds: CardId[];
-  onRemoveFromSlot: (cardId: CardId) => void;
   onDiscard: () => void;
   onGoOut: (suit: Suit) => void;
 }
@@ -42,7 +70,6 @@ export function DiscardOverlay({
   visible,
   discardCount,
   slottedCardIds,
-  onRemoveFromSlot,
   onDiscard,
   onGoOut,
 }: DiscardOverlayProps) {
@@ -81,9 +108,6 @@ export function DiscardOverlay({
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {/* Dim scrim — visual only, taps pass through to PlayerHand */}
-      <View style={styles.scrim} pointerEvents="none" />
-
       {/* Floating dialog */}
       <AnimatedView style={[styles.dialog, animatedStyle]} pointerEvents="auto">
         <Text style={styles.title}>{t('game.discardCards')}</Text>
@@ -93,18 +117,9 @@ export function DiscardOverlay({
           {Array.from({ length: discardCount }, (_, i) => {
             const cardId = slottedCardIds[i];
             return (
-              <HapticTouchableOpacity
-                key={i}
-                style={styles.slot}
-                onPress={() => cardId && onRemoveFromSlot(cardId)}
-                disabled={!cardId}
-              >
-                {cardId ? (
-                  <CardFace card={cardId} width={CARD_WIDTH} height={CARD_HEIGHT} />
-                ) : (
-                  <Text style={styles.slotNumber}>{i + 1}</Text>
-                )}
-              </HapticTouchableOpacity>
+              <View key={i} style={styles.slot}>
+                {!cardId && <Text style={styles.slotNumber}>{i + 1}</Text>}
+              </View>
             );
           })}
         </View>
@@ -177,14 +192,6 @@ export function DiscardOverlay({
 }
 
 const styles = StyleSheet.create({
-  scrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
   dialog: {
     position: 'absolute',
     alignSelf: 'center',

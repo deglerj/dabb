@@ -51,9 +51,18 @@ export function PlayerHand({
 
   const sortedCards = sortHand(cards);
 
+  const isSlotMode = !!onSlotCard;
+
+  // In slot mode, slotted cards are rendered as a separate layer by GameScreen;
+  // exclude them here so the remaining hand cards spread to fill the arc without gaps.
+  const displayedCards =
+    isSlotMode && slottedCardIds
+      ? sortedCards.filter((c) => !slottedCardIds.includes(c.id))
+      : sortedCards;
+
   const positions = deriveCardPositions(
     {
-      handCardIds: sortedCards.map((c) => c.id),
+      handCardIds: displayedCards.map((c) => c.id),
       trickCardIds: [],
       wonPilePlayerIds: [],
       opponentCardCounts: {},
@@ -68,7 +77,6 @@ export function PlayerHand({
   const isTricksPhase = gameState.phase === 'tricks';
   const isTrumpHighlightPhase =
     (gameState.phase === 'tricks' || gameState.phase === 'melding') && gameState.trump !== null;
-  const isSlotMode = !!onSlotCard;
   const validPlays =
     isTricksPhase && gameState.trump
       ? getValidPlays(cards, gameState.currentTrick, gameState.trump)
@@ -89,15 +97,12 @@ export function PlayerHand({
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {sortedCards.map((card) => {
+      {displayedCards.map((card) => {
         const pos = positions.playerHand[card.id];
         if (!pos) {
           return null;
         }
         if (isSlotMode) {
-          if (slottedCardIds?.includes(card.id)) {
-            return null; // card is in a slot; hide from hand
-          }
           return (
             <CardView
               key={card.id}
@@ -108,9 +113,15 @@ export function PlayerHand({
               zIndex={pos.zIndex}
               width={scaledW}
               height={scaledH}
+              draggable={true}
               highlighted={highlightedIds.has(card.id)}
               isTrump={false}
               onTap={() => {
+                playSound('card-select');
+                triggerHaptic('card-select');
+                onSlotCard!(card.id);
+              }}
+              onDrop={() => {
                 playSound('card-select');
                 triggerHaptic('card-select');
                 onSlotCard!(card.id);

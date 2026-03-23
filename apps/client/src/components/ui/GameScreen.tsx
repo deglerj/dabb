@@ -11,8 +11,10 @@ import {
   useSkiaEffects,
   PhaseOverlay,
   BiddingOverlay,
+  CardView,
   DabbOverlay,
   DiscardOverlay,
+  computeDiscardSlotPositions,
   TrumpOverlay,
   MeldingOverlay,
   edgeFraction,
@@ -449,10 +451,38 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
               visible={showDiscard}
               discardCount={discardCount}
               slottedCardIds={slottedCardIds}
-              onRemoveFromSlot={handleRemoveFromSlot}
               onDiscard={handleDiscard}
               onGoOut={onGoOut}
             />
+
+            {/* Slotted cards rendered above the dialog so they support drag */}
+            {showDiscard &&
+              computeDiscardSlotPositions(discardCount, width, height).map((pos, i) => {
+                const cardId = slottedCardIds[i];
+                if (!cardId) {
+                  return null;
+                }
+                return (
+                  <CardView
+                    key={cardId}
+                    card={cardId}
+                    targetX={pos.x}
+                    targetY={pos.y}
+                    targetRotation={0}
+                    zIndex={200}
+                    width={70}
+                    height={105}
+                    draggable={true}
+                    onTap={() => {
+                      triggerHaptic('card-select');
+                      handleRemoveFromSlot(cardId);
+                    }}
+                    onDrop={() => {
+                      handleRemoveFromSlot(cardId);
+                    }}
+                  />
+                );
+              })}
 
             <PhaseOverlay visible={showTrump}>
               <TrumpOverlay onSelectTrump={onDeclareTrump} />
