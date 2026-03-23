@@ -260,14 +260,6 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   }, [events, isInitialLoad]);
 
   // Scoreboard data — always produce an entry per player (0 if not yet scored)
-  const roundScores = useMemo(() => {
-    return Array.from({ length: state.playerCount }, (_, i) => {
-      const key = i as PlayerIndex;
-      const rs = state.roundScores.get(key);
-      return { playerIndex: key, score: rs?.total ?? 0 };
-    });
-  }, [state.roundScores, state.playerCount]);
-
   const totalScores = useMemo(() => {
     return Array.from({ length: state.playerCount }, (_, i) => {
       const key = i as PlayerIndex;
@@ -372,7 +364,6 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
 
             {/* Scoreboard strip at top */}
             <ScoreboardStrip
-              roundScores={roundScores}
               totalScores={totalScores}
               myPlayerIndex={playerIndex}
               bidWinner={state.bidWinner}

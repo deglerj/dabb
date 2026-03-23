@@ -1,6 +1,6 @@
 /**
  * ScoreboardStrip — a compact horizontal score display shown at the top of the game screen.
- * Shows round score + total score per player, highlighting the local player.
+ * Shows total score per player, highlighting the local player.
  * Shows highest bid/bidder and current trump on the right.
  * Tappable to open the scoreboard history modal.
  */
@@ -11,7 +11,6 @@ import { formatSuit } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
 
 export interface ScoreboardStripProps {
-  roundScores: Array<{ playerIndex: PlayerIndex; score: number }>;
   totalScores: Array<{ playerIndex: PlayerIndex; score: number }>;
   myPlayerIndex: PlayerIndex;
   bidWinner: PlayerIndex | null;
@@ -22,7 +21,6 @@ export interface ScoreboardStripProps {
 }
 
 export function ScoreboardStrip({
-  roundScores,
   totalScores,
   myPlayerIndex,
   bidWinner,
@@ -39,19 +37,15 @@ export function ScoreboardStrip({
 
   return (
     <TouchableOpacity style={styles.strip} onPress={onPress} activeOpacity={0.7}>
-      {roundScores.map((entry) => {
-        const total = totalScores.find((s) => s.playerIndex === entry.playerIndex);
+      {totalScores.map((entry) => {
         const isMe = entry.playerIndex === myPlayerIndex;
         return (
           <View
             key={entry.playerIndex}
             style={[styles.playerEntry, isMe && styles.playerEntryHighlight]}
           >
-            <Text style={[styles.roundScore, isMe && styles.roundScoreHighlight]}>
-              {entry.score}
-            </Text>
             <Text style={[styles.totalScore, isMe && styles.totalScoreHighlight]}>
-              {total !== undefined ? total.score : 0}
+              {entry.score}
             </Text>
           </View>
         );
@@ -95,20 +89,13 @@ const styles = StyleSheet.create({
   playerEntryHighlight: {
     backgroundColor: '#c97f00',
   },
-  roundScore: {
+  totalScore: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#f2e8d0',
   },
-  roundScoreHighlight: {
-    color: '#fff',
-  },
-  totalScore: {
-    fontSize: 11,
-    color: '#c8b090',
-  },
   totalScoreHighlight: {
-    color: '#ffe8b0',
+    color: '#fff',
   },
   infoBlock: {
     marginLeft: 'auto',
