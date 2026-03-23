@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   playerCell: {
-    width: 60,
+    width: 75,
     alignItems: 'center',
   },
   headerText: {
