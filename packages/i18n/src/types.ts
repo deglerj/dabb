@@ -129,6 +129,10 @@ export interface TranslationKeys {
     youWonGame: string;
     playerWonGame: string;
     playerEndedGame: string;
+    youAndTeammateWonGame: string; // 4-player: "Du und {{name}} habt gewonnen! 🎉"
+    playersWonGame: string; // 4-player: "{{name1}} und {{name2}} haben gewonnen."
+    teamWonRound: string; // 4-player celebration: "Dein Team hat die Runde gewonnen! 🎉"
+    teamWonGame: string; // 4-player celebration: "Dein Team hat gewonnen! 🎉"
   };
   phases: {
     waiting: string;

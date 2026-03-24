@@ -119,6 +119,10 @@ const de: TranslationKeys = {
     youWonGame: 'Du hast gewonnen! 🎉',
     playerWonGame: '{{name}} hat gewonnen.',
     playerEndedGame: '{{name}} hat das Spiel beendet.',
+    youAndTeammateWonGame: 'Du und {{name}} habt gewonnen! 🎉',
+    playersWonGame: '{{name1}} und {{name2}} haben gewonnen.',
+    teamWonRound: 'Dein Team hat die Runde gewonnen! 🎉',
+    teamWonGame: 'Dein Team hat gewonnen! 🎉',
   },
   phases: {
     waiting: 'Warten',
