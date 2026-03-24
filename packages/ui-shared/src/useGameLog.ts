@@ -48,6 +48,33 @@ export function useGameLog(
         });
       }
 
+      // GAME_FINISHED needs playerTeamData to resolve winner names — handle inline
+      if (event.type === 'GAME_FINISHED') {
+        const winnerValue = event.payload.winner;
+        const teamEntries = Array.from(playerTeamData.values());
+        const isTeamWinner =
+          teamEntries.length > 0 && teamEntries.some((e) => e.team === winnerValue);
+
+        let winnerNames: string[];
+        if (isTeamWinner) {
+          winnerNames = Array.from(playerTeamData.entries())
+            .filter(([, data]) => data.team === winnerValue)
+            .map(([, data]) => data.nickname);
+        } else {
+          const entry = playerTeamData.get(winnerValue as PlayerIndex);
+          winnerNames = entry ? [entry.nickname] : [String(winnerValue)];
+        }
+
+        entries.push({
+          id: event.id,
+          timestamp: event.timestamp,
+          type: 'game_finished',
+          playerIndex: null,
+          data: { kind: 'game_finished', winner: winnerValue, winnerNames },
+        });
+        continue;
+      }
+
       const logEntry = eventToLogEntry(event);
       if (logEntry) {
         entries.push(logEntry);
@@ -281,18 +308,6 @@ function eventToLogEntry(event: GameEvent): GameLogEntry | null {
         data: {
           kind: 'round_scored',
           scores: event.payload.scores,
-        },
-      };
-
-    case 'GAME_FINISHED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'game_finished',
-        playerIndex: null,
-        data: {
-          kind: 'game_finished',
-          winner: event.payload.winner,
         },
       };
 

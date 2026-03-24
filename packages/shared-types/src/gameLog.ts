@@ -154,6 +154,7 @@ export interface RoundScoredLogData {
 export interface GameFinishedLogData {
   kind: 'game_finished';
   winner: PlayerIndex | Team;
+  winnerNames: string[]; // Resolved display names — 1 name for 2/3-player, 2 for 4-player team
 }
 
 /**
