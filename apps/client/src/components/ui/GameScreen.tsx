@@ -455,7 +455,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
               onGoOut={onGoOut}
             />
 
-            {/* Slotted cards on the felt, rendered above the panel so they support drag */}
+            {/* Discard zone on the felt: outlines + placed cards */}
             {showDiscard &&
               (() => {
                 const felt = getFeltBounds(width, height);
@@ -465,26 +465,47 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
                 const rowWidth = discardCount * CARD_W + (discardCount - 1) * GAP;
                 const rowX = felt.x + (felt.width - rowWidth) / 2;
                 const rowY = felt.y + (felt.height - CARD_H) / 2;
-                return slottedCardIds.map((cardId, i) => (
-                  <CardView
-                    key={cardId}
-                    card={cardId}
-                    targetX={rowX + i * (CARD_W + GAP)}
-                    targetY={rowY}
-                    targetRotation={0}
-                    zIndex={200}
-                    width={CARD_W}
-                    height={CARD_H}
-                    draggable={true}
-                    onTap={() => {
-                      triggerHaptic('card-select');
-                      handleRemoveFromSlot(cardId);
-                    }}
-                    onDrop={() => {
-                      handleRemoveFromSlot(cardId);
-                    }}
-                  />
-                ));
+                return (
+                  <>
+                    {Array.from({ length: discardCount }, (_, i) => (
+                      <View
+                        key={`slot-${i}`}
+                        style={{
+                          position: 'absolute',
+                          left: rowX + i * (CARD_W + GAP),
+                          top: rowY,
+                          width: CARD_W,
+                          height: CARD_H,
+                          borderRadius: 4,
+                          borderWidth: 2,
+                          borderColor: 'rgba(255,255,255,0.35)',
+                          backgroundColor: 'rgba(255,255,255,0.06)',
+                        }}
+                        pointerEvents="none"
+                      />
+                    ))}
+                    {slottedCardIds.map((cardId, i) => (
+                      <CardView
+                        key={cardId}
+                        card={cardId}
+                        targetX={rowX + i * (CARD_W + GAP)}
+                        targetY={rowY}
+                        targetRotation={0}
+                        zIndex={200}
+                        width={CARD_W}
+                        height={CARD_H}
+                        draggable={true}
+                        onTap={() => {
+                          triggerHaptic('card-select');
+                          handleRemoveFromSlot(cardId);
+                        }}
+                        onDrop={() => {
+                          handleRemoveFromSlot(cardId);
+                        }}
+                      />
+                    ))}
+                  </>
+                );
               })()}
 
             <PhaseOverlay visible={showTrump}>
