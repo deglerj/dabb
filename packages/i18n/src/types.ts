@@ -109,9 +109,6 @@ export interface TranslationKeys {
     melds: string;
     tricks: string;
     gameWinner: string;
-    exitGame: string;
-    exitGameConfirmTitle: string;
-    exitGameConfirmMessage: string;
     gameTerminated: string;
     gameTerminatedMessage: string;
     backToHome: string;
@@ -206,6 +203,9 @@ export interface TranslationKeys {
     sound: string;
     vibration: string;
     language: string;
+    exitGame: string;
+    exitGameConfirmTitle: string;
+    exitGameConfirmMessage: string;
   };
   serverErrors: {
     // Session errors

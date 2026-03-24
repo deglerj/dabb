@@ -98,9 +98,6 @@ const de: TranslationKeys = {
     melds: 'Meldungen',
     tricks: 'Stiche',
     gameWinner: 'Gewinner',
-    exitGame: 'Spiel verlassen',
-    exitGameConfirmTitle: 'Spiel verlassen?',
-    exitGameConfirmMessage: 'Wenn du das Spiel verlässt, wird es für alle Spieler beendet.',
     gameTerminated: 'Spiel abgebrochen',
     gameTerminatedMessage: '{{name}} hat das Spiel verlassen.',
     backToHome: 'Zurück zum Start',
@@ -196,6 +193,9 @@ const de: TranslationKeys = {
     sound: 'Sound',
     vibration: 'Vibration',
     language: 'Sprache',
+    exitGame: 'Spiel verlassen',
+    exitGameConfirmTitle: 'Spiel verlassen?',
+    exitGameConfirmMessage: 'Wenn du das Spiel verlässt, wird es für alle Spieler beendet.',
   },
   serverErrors: {
     // Session errors

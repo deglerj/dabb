@@ -98,9 +98,6 @@ const en: TranslationKeys = {
     melds: 'Melds',
     tricks: 'Tricks',
     gameWinner: 'Winner',
-    exitGame: 'Exit game',
-    exitGameConfirmTitle: 'Exit game?',
-    exitGameConfirmMessage: 'If you leave, the game will end for all players.',
     gameTerminated: 'Game terminated',
     gameTerminatedMessage: '{{name}} has left the game.',
     backToHome: 'Back to home',
@@ -195,6 +192,9 @@ const en: TranslationKeys = {
     sound: 'Sound',
     vibration: 'Vibration',
     language: 'Language',
+    exitGame: 'Exit game',
+    exitGameConfirmTitle: 'Exit game?',
+    exitGameConfirmMessage: 'If you leave, the game will end for all players.',
   },
   serverErrors: {
     // Session errors

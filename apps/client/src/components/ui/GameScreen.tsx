@@ -368,7 +368,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#c97f00" />
           <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
-            <OptionsButton />
+            <OptionsButton onExitGame={handleExitGame} />
           </View>
         </View>
       ) : (
