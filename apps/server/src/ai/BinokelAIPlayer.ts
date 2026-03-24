@@ -371,6 +371,15 @@ export class BinokelAIPlayer implements AIPlayer {
         meldPoints + estimateTrickPoints(hand, bestSuit, gameState.playerCount);
       const diff = estimatedTotal - minBid;
 
+      // Team-aware: if the current bid was set by our teammate, only outbid them when our hand
+      // is clearly strong enough (diff >= 60) — otherwise pass to honour their bid.
+      const partnerIndex = getPartner(playerIndex, gameState);
+      const biddingAgainstPartner =
+        partnerIndex !== null && gameState.lastBidderIndex === partnerIndex;
+      if (biddingAgainstPartner) {
+        return diff >= 60 ? { type: 'bid', amount: minBid } : { type: 'pass' };
+      }
+
       let optimal: AIAction;
 
       // Comfortable margin: always bid
