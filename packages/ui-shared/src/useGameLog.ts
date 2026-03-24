@@ -16,9 +16,9 @@ const IMPORTANT_ENTRY_TYPES = new Set<GameLogEntry['type']>([
 ]);
 
 export interface GameLogResult {
-  /** All log entries in reverse chronological order (newest first) */
+  /** All log entries in chronological order (oldest first) */
   entries: GameLogEntry[];
-  /** The latest N entries for collapsed view */
+  /** The latest N entries for collapsed view (last N, chronological order) */
   latestEntries: GameLogEntry[];
   /** The most recent entry considered important (going out, trick/meld/round/game won) */
   lastImportantEntry: GameLogEntry | null;
@@ -73,9 +73,6 @@ export function useGameLog(
       }
     }
 
-    // Reverse to get newest first
-    const reversedEntries = [...entries].reverse();
-
     // Determine if it's the current player's turn
     const isYourTurn =
       currentPlayerIndex !== null &&
@@ -83,11 +80,11 @@ export function useGameLog(
       state.currentPlayer === currentPlayerIndex &&
       (state.phase === 'bidding' || state.phase === 'tricks');
 
-    const lastImportantEntry = synthesizeLastImportantEntry(reversedEntries);
+    const lastImportantEntry = synthesizeLastImportantEntry(entries);
 
     return {
-      entries: reversedEntries,
-      latestEntries: reversedEntries.slice(0, DEFAULT_VISIBLE_ENTRIES),
+      entries,
+      latestEntries: entries.slice(-DEFAULT_VISIBLE_ENTRIES),
       lastImportantEntry,
       isYourTurn,
     };
@@ -97,34 +94,41 @@ export function useGameLog(
 /**
  * Finds the most recent important log entry, merging consecutive melds_declared
  * entries into a single melds_summary entry for the collapsed view.
+ *
+ * Receives entries in chronological order (oldest first).
  */
-function synthesizeLastImportantEntry(reversedEntries: GameLogEntry[]): GameLogEntry | null {
-  const foundIndex = reversedEntries.findIndex((e) => IMPORTANT_ENTRY_TYPES.has(e.type));
-  if (foundIndex === -1) {
-    return null;
-  }
-
-  const found = reversedEntries[foundIndex];
-  if (found.type !== 'melds_declared') {
-    return found;
-  }
-
-  // Collect all consecutive melds_declared entries starting from foundIndex
-  const meldEntries: GameLogEntry[] = [];
-  for (let i = foundIndex; i < reversedEntries.length; i++) {
-    if (reversedEntries[i].type === 'melds_declared') {
-      meldEntries.push(reversedEntries[i]);
-    } else {
+function synthesizeLastImportantEntry(entries: GameLogEntry[]): GameLogEntry | null {
+  // Reverse scan to find the last important entry
+  let foundIndex = -1;
+  for (let i = entries.length - 1; i >= 0; i--) {
+    if (IMPORTANT_ENTRY_TYPES.has(entries[i].type)) {
+      foundIndex = i;
       break;
     }
   }
 
-  if (meldEntries.length === 1) {
+  if (foundIndex === -1) {
+    return null;
+  }
+
+  const found = entries[foundIndex];
+  if (found.type !== 'melds_declared') {
     return found;
   }
 
-  // meldEntries is newest-first; reverse to get chronological order
-  const chronological = [...meldEntries].reverse();
+  // Find the start of the contiguous melds_declared run by scanning backwards
+  let startIndex = foundIndex;
+  while (startIndex > 0 && entries[startIndex - 1].type === 'melds_declared') {
+    startIndex--;
+  }
+
+  if (startIndex === foundIndex) {
+    // Only one melds_declared entry
+    return found;
+  }
+
+  // Collect entries startIndex..foundIndex inclusive — already chronological (oldest first)
+  const meldEntries = entries.slice(startIndex, foundIndex + 1);
 
   return {
     id: found.id,
@@ -133,7 +137,7 @@ function synthesizeLastImportantEntry(reversedEntries: GameLogEntry[]): GameLogE
     playerIndex: null,
     data: {
       kind: 'melds_summary',
-      playerMelds: chronological.map((e) => ({
+      playerMelds: meldEntries.map((e) => ({
         playerIndex: e.playerIndex as PlayerIndex,
         totalPoints: e.data.kind === 'melds_declared' ? e.data.totalPoints : 0,
       })),
