@@ -195,6 +195,7 @@ function handleBidPlaced(
     ...state,
     currentBid: event.payload.amount,
     currentBidder: nextBidder,
+    lastBidderIndex: event.payload.playerIndex,
   };
 }
 
