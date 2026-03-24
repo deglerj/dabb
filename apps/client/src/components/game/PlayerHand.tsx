@@ -121,10 +121,17 @@ export function PlayerHand({
                 triggerHaptic('card-select');
                 onSlotCard!(card.id);
               }}
-              onDrop={() => {
-                playSound('card-select');
-                triggerHaptic('card-select');
-                onSlotCard!(card.id);
+              onDrop={(x, y) => {
+                const onFelt =
+                  x >= feltBounds.x &&
+                  x <= feltBounds.x + feltBounds.width &&
+                  y >= feltBounds.y &&
+                  y <= feltBounds.y + feltBounds.height;
+                if (onFelt) {
+                  playSound('card-select');
+                  triggerHaptic('card-select');
+                  onSlotCard!(card.id);
+                }
               }}
             />
           );

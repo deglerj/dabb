@@ -34,7 +34,7 @@ export { BiddingOverlay } from './src/overlays/BiddingOverlay.js';
 export type { BiddingOverlayProps } from './src/overlays/BiddingOverlay.js';
 export { DabbOverlay } from './src/overlays/DabbOverlay.js';
 export type { DabbOverlayProps } from './src/overlays/DabbOverlay.js';
-export { DiscardOverlay, computeDiscardSlotPositions } from './src/overlays/DiscardOverlay.js';
+export { DiscardOverlay } from './src/overlays/DiscardOverlay.js';
 export type { DiscardOverlayProps } from './src/overlays/DiscardOverlay.js';
 export { TrumpOverlay } from './src/overlays/TrumpOverlay.js';
 export type { TrumpOverlayProps } from './src/overlays/TrumpOverlay.js';

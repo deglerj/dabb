@@ -14,7 +14,7 @@ import {
   CardView,
   DabbOverlay,
   DiscardOverlay,
-  computeDiscardSlotPositions,
+  getFeltBounds,
   TrumpOverlay,
   MeldingOverlay,
   edgeFraction,
@@ -450,28 +450,31 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
             <DiscardOverlay
               visible={showDiscard}
               discardCount={discardCount}
-              slottedCardIds={slottedCardIds}
+              slottedCount={slottedCardIds.length}
               onDiscard={handleDiscard}
               onGoOut={onGoOut}
             />
 
-            {/* Slotted cards rendered above the dialog so they support drag */}
+            {/* Slotted cards on the felt, rendered above the panel so they support drag */}
             {showDiscard &&
-              computeDiscardSlotPositions(discardCount, width, height).map((pos, i) => {
-                const cardId = slottedCardIds[i];
-                if (!cardId) {
-                  return null;
-                }
-                return (
+              (() => {
+                const felt = getFeltBounds(width, height);
+                const CARD_W = 70;
+                const CARD_H = 105;
+                const GAP = 14;
+                const rowWidth = discardCount * CARD_W + (discardCount - 1) * GAP;
+                const rowX = felt.x + (felt.width - rowWidth) / 2;
+                const rowY = felt.y + (felt.height - CARD_H) / 2;
+                return slottedCardIds.map((cardId, i) => (
                   <CardView
                     key={cardId}
                     card={cardId}
-                    targetX={pos.x}
-                    targetY={pos.y}
+                    targetX={rowX + i * (CARD_W + GAP)}
+                    targetY={rowY}
                     targetRotation={0}
                     zIndex={200}
-                    width={70}
-                    height={105}
+                    width={CARD_W}
+                    height={CARD_H}
                     draggable={true}
                     onTap={() => {
                       triggerHaptic('card-select');
@@ -481,8 +484,8 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
                       handleRemoveFromSlot(cardId);
                     }}
                   />
-                );
-              })}
+                ));
+              })()}
 
             <PhaseOverlay visible={showTrump}>
               <TrumpOverlay onSelectTrump={onDeclareTrump} />

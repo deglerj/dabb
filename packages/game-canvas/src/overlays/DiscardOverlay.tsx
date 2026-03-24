@@ -1,11 +1,10 @@
 /**
- * DiscardOverlay — card-slot discard UI.
+ * DiscardOverlay — compact discard panel.
  *
- * Renders a floating dialog with `discardCount` card slots.
- * Cards are rendered as CardView elements in a separate layer by GameScreen
- * (positioned via computeDiscardSlotPositions), so slots show outlines only.
- * Confirm with Ablegen once all slots are filled.
- * "Abgehen..." link reveals inline Go Out flow.
+ * Shows a small floating panel with a counter, Ablegen confirm button,
+ * and the Go Out flow. Card selection happens on the felt: players drag
+ * cards from hand to the table; slotted cards are rendered as CardView
+ * elements by GameScreen so they can be dragged back.
  *
  * Rendered as a direct child of gameWrapper in GameScreen (not inside PhaseOverlay).
  */
@@ -20,46 +19,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
-import type { CardId, Suit } from '@dabb/shared-types';
+import type { Suit } from '@dabb/shared-types';
 import { SUITS } from '@dabb/shared-types';
 import { getSuitColor, SUIT_SYMBOLS } from '@dabb/card-assets';
-
-const CARD_WIDTH = 70;
-const CARD_HEIGHT = 105;
-
-// Layout constants — kept in sync with the StyleSheet below so that
-// GameScreen can compute slot pixel positions via computeDiscardSlotPositions.
-const DIALOG_TOP_FRACTION = 0.28;
-const MIN_DIALOG_WIDTH = 280;
-const DIALOG_H_PADDING = 24;
-const DIALOG_V_PADDING = 18;
-const SLOT_GAP = 10;
-// Approximate height of the title row (fontSize 16 × 1.3 lineHeight + marginBottom 14)
-const TITLE_BLOCK_HEIGHT = 35;
-
-/**
- * Compute the top-left pixel position of each card slot within the dialog.
- * Used by GameScreen to position slotted CardView elements above the dialog.
- */
-export function computeDiscardSlotPositions(
-  discardCount: number,
-  gameWidth: number,
-  gameHeight: number
-): Array<{ x: number; y: number }> {
-  const slotRowWidth = discardCount * CARD_WIDTH + (discardCount - 1) * SLOT_GAP;
-  const dialogWidth = Math.max(MIN_DIALOG_WIDTH, slotRowWidth + 2 * DIALOG_H_PADDING);
-  const dialogLeft = (gameWidth - dialogWidth) / 2;
-  const dialogTop = gameHeight * DIALOG_TOP_FRACTION;
-  return Array.from({ length: discardCount }, (_, i) => ({
-    x: dialogLeft + DIALOG_H_PADDING + i * (CARD_WIDTH + SLOT_GAP),
-    y: dialogTop + DIALOG_V_PADDING + TITLE_BLOCK_HEIGHT,
-  }));
-}
 
 export interface DiscardOverlayProps {
   visible: boolean;
   discardCount: number;
-  slottedCardIds: CardId[];
+  slottedCount: number;
   onDiscard: () => void;
   onGoOut: (suit: Suit) => void;
 }
@@ -69,7 +36,7 @@ const AnimatedView = Animated.createAnimatedComponent(View);
 export function DiscardOverlay({
   visible,
   discardCount,
-  slottedCardIds,
+  slottedCount,
   onDiscard,
   onGoOut,
 }: DiscardOverlayProps) {
@@ -78,8 +45,8 @@ export function DiscardOverlay({
   const [pendingSuit, setPendingSuit] = useState<Suit | null>(null);
 
   const opacity = useSharedValue(0);
-  const translateY = useSharedValue(-40);
-  const scale = useSharedValue(0.92);
+  const translateY = useSharedValue(-20);
+  const scale = useSharedValue(0.95);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -93,8 +60,8 @@ export function DiscardOverlay({
       scale.value = withSpring(1, { damping: 18, stiffness: 200 });
     } else {
       opacity.value = withTiming(0, { duration: 180, easing: Easing.in(Easing.cubic) });
-      translateY.value = withTiming(-20, { duration: 180 });
-      scale.value = withTiming(0.95, { duration: 180 });
+      translateY.value = withTiming(-10, { duration: 180 });
+      scale.value = withTiming(0.97, { duration: 180 });
       setPendingSuit(null);
       setShowGoOut(false);
     }
@@ -104,39 +71,26 @@ export function DiscardOverlay({
     return null;
   }
 
-  const canDiscard = slottedCardIds.length === discardCount;
+  const canDiscard = slottedCount === discardCount;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {/* Floating dialog */}
-      <AnimatedView style={[styles.dialog, animatedStyle]} pointerEvents="auto">
+      <AnimatedView style={[styles.panel, animatedStyle]} pointerEvents="auto">
         <Text style={styles.title}>{t('game.discardCards')}</Text>
 
-        {/* Card slots */}
-        <View style={styles.slotRow}>
-          {Array.from({ length: discardCount }, (_, i) => {
-            const cardId = slottedCardIds[i];
-            return (
-              <View key={i} style={styles.slot}>
-                {!cardId && <Text style={styles.slotNumber}>{i + 1}</Text>}
-              </View>
-            );
-          })}
+        {/* Counter + confirm row */}
+        <View style={styles.actionRow}>
+          <Text style={styles.counter}>
+            {slottedCount} / {discardCount}
+          </Text>
+          <HapticTouchableOpacity
+            style={[styles.primaryButton, !canDiscard && styles.primaryButtonDisabled]}
+            onPress={onDiscard}
+            disabled={!canDiscard}
+          >
+            <Text style={styles.primaryButtonText}>{t('game.discard')}</Text>
+          </HapticTouchableOpacity>
         </View>
-
-        {/* Counter */}
-        <Text style={styles.counter}>
-          {slottedCardIds.length} / {discardCount}
-        </Text>
-
-        {/* Ablegen button */}
-        <HapticTouchableOpacity
-          style={[styles.primaryButton, !canDiscard && styles.primaryButtonDisabled]}
-          onPress={onDiscard}
-          disabled={!canDiscard}
-        >
-          <Text style={styles.primaryButtonText}>{t('game.discard')}</Text>
-        </HapticTouchableOpacity>
 
         <View style={styles.divider} />
 
@@ -192,10 +146,10 @@ export function DiscardOverlay({
 }
 
 const styles = StyleSheet.create({
-  dialog: {
+  panel: {
     position: 'absolute',
     alignSelf: 'center',
-    top: '28%',
+    top: '14%',
     backgroundColor: '#f2e8d0',
     borderRadius: 6,
     borderWidth: 1,
@@ -205,49 +159,32 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 8,
     elevation: 8,
-    minWidth: 280,
-    paddingHorizontal: 24,
-    paddingVertical: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     alignItems: 'center',
     zIndex: 100,
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#3a2800',
-    marginBottom: 14,
+    marginBottom: 10,
   },
-  slotRow: {
+  actionRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
-  },
-  slot: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#8b6914',
-    borderStyle: 'dashed',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(139, 105, 20, 0.08)',
-  },
-  slotNumber: {
-    fontSize: 18,
-    color: '#c8b090',
-    fontWeight: '300',
+    gap: 14,
   },
   counter: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#7a6040',
-    marginBottom: 10,
+    fontVariant: ['tabular-nums'],
   },
   primaryButton: {
     backgroundColor: '#8b6914',
     borderRadius: 6,
-    paddingHorizontal: 28,
-    paddingVertical: 10,
+    paddingHorizontal: 22,
+    paddingVertical: 8,
   },
   primaryButtonDisabled: {
     backgroundColor: '#bfae90',
@@ -255,13 +192,13 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: 14,
   },
   divider: {
     height: 1,
     backgroundColor: '#c8b090',
     width: '100%',
-    marginVertical: 12,
+    marginVertical: 10,
   },
   goOutLink: {
     fontSize: 13,
