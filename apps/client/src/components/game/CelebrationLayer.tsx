@@ -14,6 +14,7 @@ import { Canvas, Rect, Group } from '@shopify/react-native-skia';
 export interface CelebrationLayerProps {
   showConfetti: boolean;
   showFireworks: boolean;
+  isTeamGame?: boolean;
 }
 
 interface Particle {
@@ -86,7 +87,11 @@ function stepParticles(particles: Particle[], gravity: number): void {
   }
 }
 
-export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLayerProps) {
+export function CelebrationLayer({
+  showConfetti,
+  showFireworks,
+  isTeamGame,
+}: CelebrationLayerProps) {
   const { width, height } = useGameDimensions();
   const { t } = useTranslation();
   const particles = useRef<Particle[]>([]);
@@ -116,7 +121,14 @@ export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLay
         ? createConfetti(width, height)
         : createFireworks(width, height);
       const gravity = isConfetti ? 0.12 : 0.05;
-      setMessage(isConfetti ? t('game.youWonRound') : t('game.youWonGame'));
+
+      let msg: string;
+      if (isConfetti) {
+        msg = isTeamGame ? t('game.teamWonRound') : t('game.youWonRound');
+      } else {
+        msg = isTeamGame ? t('game.teamWonGame') : t('game.youWonGame');
+      }
+      setMessage(msg);
 
       const animate = () => {
         stepParticles(particles.current, gravity);
@@ -127,7 +139,7 @@ export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLay
 
       timerRef.current = setTimeout(stopAnimation, PARTICLE_LIFETIME_MS);
     },
-    [width, height, stopAnimation, t]
+    [width, height, stopAnimation, t, isTeamGame]
   );
 
   useEffect(() => {

@@ -15,12 +15,19 @@ export interface OpponentZoneProps {
   cardCount: number;
   isConnected: boolean;
   position: { x: number; y: number };
+  isTeammate?: boolean;
 }
 
 const CARD_W = 40;
 const CARD_H = 60;
 
-export function OpponentZone({ nickname, cardCount, isConnected, position }: OpponentZoneProps) {
+export function OpponentZone({
+  nickname,
+  cardCount,
+  isConnected,
+  position,
+  isTeammate,
+}: OpponentZoneProps) {
   const { width, height } = useGameDimensions();
   const isLandscape = width > height;
   const isTablet = Math.min(width, height) > 600;
@@ -28,7 +35,8 @@ export function OpponentZone({ nickname, cardCount, isConnected, position }: Opp
 
   return (
     <View style={[styles.container, { left: position.x - 40, top: position.y - 20 }]}>
-      <View style={styles.nameplate}>
+      <View style={[styles.nameplate, isTeammate && styles.nameplateTeammate]}>
+        {isTeammate && <Text style={styles.teammateIcon}>🤝</Text>}
         <Text style={styles.name} numberOfLines={1}>
           {nickname}
         </Text>
@@ -65,6 +73,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  nameplateTeammate: { borderColor: '#3b82f6' },
+  teammateIcon: { fontSize: 12 },
   name: { fontSize: 14, color: '#3d2e18', maxWidth: 80 },
   offlineBadge: { fontSize: 11, color: '#999' },
   cardFan: { flexDirection: 'row' },
