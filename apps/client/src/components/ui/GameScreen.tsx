@@ -26,7 +26,15 @@ import {
   useCelebration,
 } from '@dabb/ui-shared';
 import { detectMelds, formatCard, formatSuit } from '@dabb/game-logic';
-import type { PlayerIndex, Card, GameLogEntry, Suit, Rank } from '@dabb/shared-types';
+import type {
+  PlayerIndex,
+  Card,
+  GameLogEntry,
+  Suit,
+  Rank,
+  Team,
+  TeamScoreEntry,
+} from '@dabb/shared-types';
 import { DABB_SIZE, SUIT_NAMES, formatMeldName } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
@@ -138,7 +146,7 @@ function formatLogEntryText(
       return t('gameLog.roundScored');
     case 'game_finished':
       return t('gameLog.gameFinished', {
-        name: nicknames.get(d.winner as PlayerIndex) ?? String(d.winner),
+        name: d.winnerNames.join(' & '),
       });
     case 'game_terminated':
       return t('gameLog.gameTerminated', { name });
@@ -291,6 +299,39 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     });
   }, [state.totalScores, state.playerCount]);
 
+  // 4-player team mode: compute per-team score entries for scoreboard components
+  const teamScores = useMemo((): TeamScoreEntry[] | undefined => {
+    if (state.playerCount !== 4) {
+      return undefined;
+    }
+    const myPlayer = state.players.find((p) => p.playerIndex === playerIndex);
+    const myTeam = myPlayer?.team;
+    const result: TeamScoreEntry[] = [];
+    for (const team of [0, 1] as Team[]) {
+      const members = state.players
+        .filter((p) => p.team === team)
+        .sort((a, b) => a.playerIndex - b.playerIndex);
+      const names = members.map((p) => nicknames.get(p.playerIndex) ?? p.nickname).join(' & ');
+      const score = state.totalScores.get(team) ?? 0;
+      result.push({ team, names, score, isMyTeam: myTeam === team });
+    }
+    // Ensure local player's team is first
+    return result.sort((a) => (a.isMyTeam ? -1 : 1));
+  }, [state.players, state.totalScores, state.playerCount, playerIndex, nicknames]);
+
+  const teamsByPlayerIndex = useMemo((): Map<PlayerIndex, Team> | undefined => {
+    if (state.playerCount !== 4) {
+      return undefined;
+    }
+    const map = new Map<PlayerIndex, Team>();
+    for (const p of state.players) {
+      if (p.team !== undefined) {
+        map.set(p.playerIndex, p.team);
+      }
+    }
+    return map;
+  }, [state.players, state.playerCount]);
+
   // Is it my turn for bidding?
   const isMyBiddingTurn = state.phase === 'bidding' && state.currentBidder === playerIndex;
 
@@ -341,15 +382,54 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   // Celebration: show confetti for round win, fireworks for game win
   const { showConfetti, showFireworks } = useCelebration(events, playerIndex);
 
-  // Termination
+  // Termination — derive winner info for 4-player (team) and 2/3-player (individual)
   const isTerminated = state.phase === 'terminated' || state.phase === 'finished';
-  const winnerPlayer =
-    state.phase === 'finished'
-      ? state.players.find((p) => {
+
+  const winnerInfo = useMemo(() => {
+    if (state.phase !== 'finished') {
+      return null;
+    }
+    if (state.playerCount === 4) {
+      // 4-player: totalScores keyed by Team
+      const winningTeam =
+        ([0, 1] as Team[]).find((t) => (state.totalScores.get(t) ?? 0) >= state.targetScore) ??
+        null;
+      if (winningTeam === null) {
+        return null;
+      }
+      const myPlayer = state.players.find((p) => p.playerIndex === playerIndex);
+      const isLocalWinner = myPlayer?.team === winningTeam;
+      const winnerNicknames = state.players
+        .filter((p) => p.team === winningTeam)
+        .sort((a, b) => a.playerIndex - b.playerIndex)
+        .map((p) => nicknames.get(p.playerIndex) ?? p.nickname);
+      const winnerId = state.players.find((p) => p.team === winningTeam)?.id ?? null;
+      return { winnerId, winnerNicknames, isLocalWinner };
+    } else {
+      // 2/3-player: totalScores keyed by PlayerIndex
+      const winnerPlayer =
+        state.players.find((p) => {
           const score = state.totalScores.get(p.playerIndex);
           return score !== undefined && score >= state.targetScore;
-        })
-      : null;
+        }) ?? null;
+      if (!winnerPlayer) {
+        return null;
+      }
+      return {
+        winnerId: winnerPlayer.id,
+        winnerNicknames: [nicknames.get(winnerPlayer.playerIndex) ?? winnerPlayer.nickname],
+        isLocalWinner: winnerPlayer.playerIndex === playerIndex,
+      };
+    }
+  }, [
+    state.phase,
+    state.playerCount,
+    state.totalScores,
+    state.targetScore,
+    state.players,
+    playerIndex,
+    nicknames,
+  ]);
 
   const handleDone = useCallback(() => {
     router.replace('/');
@@ -409,13 +489,19 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
               currentBid={state.currentBid}
               trump={state.trump}
               nicknames={nicknames}
+              teamScores={teamScores}
               onPress={() => setScoreboardOpen(true)}
             />
 
             {/* Opponents */}
             {Array.from(opponentPositions.entries()).map(([opIdx, pos]) => {
-              const player = state.players[opIdx];
+              const player = state.players.find((p) => p.playerIndex === opIdx);
               const opCards = state.hands.get(opIdx);
+              const myPlayer = state.players.find((p) => p.playerIndex === playerIndex);
+              const isTeammate =
+                state.playerCount === 4 &&
+                myPlayer?.team !== undefined &&
+                player?.team === myPlayer.team;
               return (
                 <OpponentZone
                   key={opIdx}
@@ -423,6 +509,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
                   nickname={nicknames.get(opIdx) ?? player?.nickname ?? `P${opIdx}`}
                   cardCount={opCards?.length ?? 0}
                   isConnected={player?.connected ?? false}
+                  isTeammate={isTeammate}
                   position={pos}
                 />
               );
@@ -553,7 +640,11 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
             </View>
 
             {/* Celebration layer */}
-            <CelebrationLayer showConfetti={showConfetti} showFireworks={showFireworks} />
+            <CelebrationLayer
+              showConfetti={showConfetti}
+              showFireworks={showFireworks}
+              isTeamGame={state.playerCount === 4}
+            />
 
             {/* Scoreboard history modal */}
             <ScoreboardModal
@@ -564,14 +655,16 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
               nicknames={nicknames}
               playerCount={state.playerCount}
               totalScores={totalScores}
+              teamScores={teamScores}
+              teamsByPlayerIndex={teamsByPlayerIndex}
             />
 
             {/* Game terminated modal */}
             <GameTerminatedModal
               visible={isTerminated}
-              winnerId={winnerPlayer?.id ?? null}
-              winnerNickname={winnerPlayer?.nickname ?? null}
-              isLocalWinner={winnerPlayer?.playerIndex === playerIndex}
+              winnerId={winnerInfo?.winnerId ?? null}
+              winnerNicknames={winnerInfo?.winnerNicknames ?? []}
+              isLocalWinner={winnerInfo?.isLocalWinner ?? false}
               terminatedByNickname={terminatedByNickname}
               onDone={handleDone}
             />
