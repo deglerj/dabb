@@ -26,8 +26,8 @@ import {
   useCelebration,
 } from '@dabb/ui-shared';
 import { detectMelds, formatCard, formatSuit } from '@dabb/game-logic';
-import type { PlayerIndex, Card, GameLogEntry } from '@dabb/shared-types';
-import { DABB_SIZE } from '@dabb/shared-types';
+import type { PlayerIndex, Card, GameLogEntry, Suit, Rank } from '@dabb/shared-types';
+import { DABB_SIZE, SUIT_NAMES, formatMeldName } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
 import { useGame } from '../../hooks/useGame.js';
@@ -41,6 +41,7 @@ import { PlayerHand } from '../game/PlayerHand.js';
 import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
 import { ScoreboardStrip } from '../game/ScoreboardStrip.js';
 import { GameLogTab } from '../game/GameLogTab.js';
+import type { RichLogEntry } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
@@ -192,8 +193,28 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
 
   // Game log
   const { entries: logEntries, lastImportantEntry } = useGameLog(events, state, playerIndex);
-  const logStrings = useMemo(
-    () => logEntries.map((e) => formatLogEntryText(e, nicknames, t)),
+  const richLogEntries = useMemo(
+    (): RichLogEntry[] =>
+      logEntries.map((e) => ({
+        key: e.id,
+        text: formatLogEntryText(e, nicknames, t),
+        detail:
+          e.data.kind === 'melds_declared'
+            ? e.data.melds.map((meld) => ({
+                name: formatMeldName(meld, SUIT_NAMES),
+                cards: meld.cards.map((cardId) => {
+                  const [suit, rank, copy] = cardId.split('-');
+                  return formatCard({
+                    id: cardId,
+                    suit: suit as Suit,
+                    rank: rank as Rank,
+                    copy: Number(copy) as 0 | 1,
+                  });
+                }),
+                points: meld.points,
+              }))
+            : undefined,
+      })),
     [logEntries, nicknames, t]
   );
   const collapsedSummary = useMemo(
@@ -524,7 +545,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
             {/* Game log */}
             <View style={styles.logContainer}>
               <GameLogTab
-                entries={logStrings}
+                entries={richLogEntries}
                 collapsedSummary={collapsedSummary}
                 isExpanded={logExpanded}
                 onToggle={() => setLogExpanded((v) => !v)}
