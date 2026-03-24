@@ -144,6 +144,7 @@ export interface TranslationKeys {
   };
   errors: {
     enterNickname: string;
+    nicknameTooLong: string;
     enterGameCode: string;
     createFailed: string;
     joinFailed: string;
@@ -212,6 +213,7 @@ export interface TranslationKeys {
     SESSION_NOT_FOUND: string;
     SESSION_FULL: string;
     SESSION_CODE_GENERATION_FAILED: string;
+    NICKNAME_TOO_LONG: string;
     // Game start errors
     NOT_ENOUGH_PLAYERS: string;
     GAME_ALREADY_STARTED: string;

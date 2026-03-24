@@ -52,6 +52,10 @@ export default function HomeScreen() {
       setError(t('errors.enterNickname'));
       return;
     }
+    if (nickname.trim().length > 10) {
+      setError(t('errors.nicknameTooLong'));
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -84,6 +88,10 @@ export default function HomeScreen() {
   const handleJoin = async () => {
     if (!nickname.trim()) {
       setError(t('errors.enterNickname'));
+      return;
+    }
+    if (nickname.trim().length > 10) {
+      setError(t('errors.nicknameTooLong'));
       return;
     }
     if (!joinCode.trim()) {
@@ -163,7 +171,7 @@ export default function HomeScreen() {
               onChangeText={setNickname}
               placeholder={t('home.nicknamePlaceholder')}
               placeholderTextColor={Colors.inkFaint}
-              maxLength={20}
+              maxLength={10}
               autoCapitalize="none"
               autoCorrect={false}
             />

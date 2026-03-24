@@ -134,6 +134,7 @@ const de: TranslationKeys = {
   },
   errors: {
     enterNickname: 'Bitte gib einen Spitznamen ein',
+    nicknameTooLong: 'Der Spitzname darf maximal 10 Zeichen lang sein',
     enterGameCode: 'Bitte gib einen Spielcode ein',
     createFailed: 'Spiel konnte nicht erstellt werden',
     joinFailed: 'Spiel konnte nicht beigetreten werden',
@@ -202,6 +203,7 @@ const de: TranslationKeys = {
     SESSION_NOT_FOUND: 'Sitzung nicht gefunden',
     SESSION_FULL: 'Sitzung ist voll',
     SESSION_CODE_GENERATION_FAILED: 'Spielcode konnte nicht erstellt werden',
+    NICKNAME_TOO_LONG: 'Der Spitzname darf maximal 10 Zeichen lang sein',
     // Game start errors
     NOT_ENOUGH_PLAYERS: 'Es werden {{required}} Spieler benötigt',
     GAME_ALREADY_STARTED: 'Spiel hat bereits begonnen',

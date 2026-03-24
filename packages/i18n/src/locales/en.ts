@@ -134,6 +134,7 @@ const en: TranslationKeys = {
   },
   errors: {
     enterNickname: 'Please enter a nickname',
+    nicknameTooLong: 'Nickname must be 10 characters or fewer',
     enterGameCode: 'Please enter a game code',
     createFailed: 'Failed to create game',
     joinFailed: 'Failed to join game',
@@ -201,6 +202,7 @@ const en: TranslationKeys = {
     SESSION_NOT_FOUND: 'Session not found',
     SESSION_FULL: 'Session is full',
     SESSION_CODE_GENERATION_FAILED: 'Failed to generate game code',
+    NICKNAME_TOO_LONG: 'Nickname must be 10 characters or fewer',
     // Game start errors
     NOT_ENOUGH_PLAYERS: '{{required}} players are required',
     GAME_ALREADY_STARTED: 'Game has already started',
