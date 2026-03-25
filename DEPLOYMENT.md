@@ -61,7 +61,34 @@ tofu apply \
 # Note the output: server_ip = "x.x.x.x"
 ```
 
-### 4. Create DNS records at Alfahosting
+### 4. Install NixOS via Hetzner ISO
+
+1. Open [Hetzner Cloud Console](https://console.hetzner.cloud) → the new server → **ISO Images** → mount **NixOS 25.05**
+2. **Power** → **Reboot** — the server boots into the NixOS installer
+3. Open the **Console** tab (KVM), then partition and install:
+
+```bash
+# Partition: 1 MB BIOS boot partition + root (Hetzner CX VMs use legacy BIOS, not EFI)
+parted /dev/sda -- mklabel gpt
+parted /dev/sda -- mkpart 'BIOS boot' 1MB 2MB
+parted /dev/sda -- set 1 bios_grub on
+parted /dev/sda -- mkpart primary ext4 2MB 100%
+
+mkfs.ext4 -L nixos /dev/sda2
+mount /dev/sda2 /mnt
+
+# Generate hardware config, then fetch our configuration.nix
+nixos-generate-config --root /mnt
+curl -fsSL https://raw.githubusercontent.com/deglerj/dabb/main/deploy/nixos/configuration.nix \
+  -o /mnt/etc/nixos/configuration.nix
+
+nixos-install --no-root-passwd
+```
+
+4. Unmount the ISO in Hetzner Console, then **Power** → **Reset**
+5. Verify SSH access: `ssh -i ~/.ssh/dabb-deploy dabb@<server-ip>`
+
+### 5. Create DNS records at Alfahosting
 
 1. Log in at [Alfahosting Kundencenter](https://kundencenter.alfahosting.de)
 2. **Meine Verträge** → click the **Multi L** contract
@@ -74,13 +101,15 @@ tofu apply \
 6. Save — DNS propagation takes up to a few hours
 7. Verify: `nslookup dabb.degler.info` and `nslookup analytics.dabb.degler.info` should both return the Hetzner IP
 
-### 5. Copy files to server
+### 6. Clone repo and create .env on server
+
+The deploy workflow runs `git pull` in `/opt/dabb`, so it must be a git clone — not a manual file copy.
 
 ```bash
 SERVER=dabb@<server-ip>
 
-scp -i ~/.ssh/dabb-deploy docker-compose.prod.yml $SERVER:/opt/dabb/
-scp -i ~/.ssh/dabb-deploy -r deploy/ $SERVER:/opt/dabb/
+ssh -i ~/.ssh/dabb-deploy $SERVER \
+  "git clone https://github.com/deglerj/dabb.git /opt/dabb"
 
 # Create .env with secrets
 # IMPORTANT: use openssl rand -hex (not -base64) — base64 output can contain '#'
@@ -92,7 +121,7 @@ VITE_SERVER_URL=https://dabb.degler.info
 EOF
 ```
 
-### 6. Initialize Let's Encrypt SSL
+### 7. Initialize Let's Encrypt SSL
 
 Wait for DNS to propagate (verify with `nslookup`), then obtain certificates for both domains:
 
@@ -112,7 +141,7 @@ This script:
 2. Runs `certbot certonly --webroot` to obtain the certificate
 3. Restarts nginx with full HTTPS config
 
-### 7. Configure Umami Analytics (optional)
+### 8. Configure Umami Analytics (optional)
 
 After the first deployment, set up Umami for usage tracking:
 
@@ -154,7 +183,7 @@ docker exec -it dabb-postgres psql -U dabb -c "CREATE DATABASE umami;"
 
 Then restart the umami container: `docker compose -f docker-compose.prod.yml restart umami`
 
-### 8. Add GitHub Secrets
+### 9. Add GitHub Secrets
 
 The deploy workflow uses `environment: production`, so secrets must be added to the
 **`production` environment** — not as repository secrets.
@@ -172,7 +201,7 @@ The deploy workflow uses `environment: production`, so secrets must be added to 
 The variable `VITE_SERVER_URL` is not sensitive — add/update it as a regular **repository
 variable** under **Settings** → **Secrets and variables** → **Actions** → **Variables** tab.
 
-### 9. First deployment
+### 10. First deployment
 
 Push any change to `main` (or re-run the CI workflow manually). GitHub Actions will:
 
@@ -183,12 +212,12 @@ Push any change to `main` (or re-run the CI workflow manually). GitHub Actions w
 
 ## Automated Maintenance
 
-| Task                | Frequency            | Automated by        |
-| ------------------- | -------------------- | ------------------- |
-| SSL renewal         | Every 60 days        | certbot container   |
-| OS security patches | Daily                | unattended-upgrades |
-| App deployment      | Every push to `main` | GitHub Actions      |
-| Downtime alerts     | 5-minute intervals   | UptimeRobot (free)  |
+| Task                | Frequency            | Automated by       |
+| ------------------- | -------------------- | ------------------ |
+| SSL renewal         | Every 60 days        | certbot container  |
+| OS security patches | On new NixOS release | NixOS autoUpgrade  |
+| App deployment      | Every push to `main` | GitHub Actions     |
+| Downtime alerts     | 5-minute intervals   | UptimeRobot (free) |
 
 ### UptimeRobot setup (optional)
 
@@ -292,11 +321,11 @@ docker compose -f docker-compose.prod.yml up -d umami
 
 ## Security Checklist
 
-- [x] Strong PostgreSQL password (`openssl rand -base64 32`)
-- [x] SSH key authentication (cloud-init disables password auth by default on Hetzner)
-- [x] Firewall configured via Hetzner Cloud — only ports 22, 80, 443 open
+- [x] Strong PostgreSQL password (`openssl rand -hex 32`)
+- [x] SSH key authentication only — password auth disabled in NixOS config
+- [x] Firewall configured in NixOS (`networking.firewall`) — only ports 22, 80, 443 open
 - [x] SSL/TLS for all public endpoints (Let's Encrypt via certbot)
-- [x] Automatic OS security patches (unattended-upgrades)
+- [x] Automatic OS upgrades with reboot (NixOS `system.autoUpgrade`)
 - [ ] Monitor GitHub Security tab for CVE alerts
 
 ---

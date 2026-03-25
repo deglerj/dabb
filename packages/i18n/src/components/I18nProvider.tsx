@@ -28,8 +28,9 @@ export function I18nProvider({ children, initialLanguage, onLanguageChange }: I1
 
   useEffect(() => {
     if (!i18n.isInitialized) {
-      initI18n(initialLanguage);
-      setIsInitialized(true);
+      void initI18n(initialLanguage).then(() => {
+        setIsInitialized(true);
+      });
     }
   }, [initialLanguage]);
 

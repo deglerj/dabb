@@ -110,24 +110,27 @@ export function persistLanguage(language: SupportedLanguage): void {
 }
 
 /**
- * Initialize i18next instance
+ * Initialize i18next instance. Returns a Promise that resolves when i18n is
+ * fully initialized and the `t()` function is ready to use.
  */
-export function initI18n(initialLanguage?: SupportedLanguage): typeof i18n {
+export function initI18n(initialLanguage?: SupportedLanguage): Promise<typeof i18n> {
   const language = initialLanguage ?? detectLanguageSync();
 
-  i18n.use(initReactI18next).init({
-    resources,
-    lng: language,
-    fallbackLng: DEFAULT_LANGUAGE,
-    interpolation: {
-      escapeValue: false, // React already escapes values
-    },
-    react: {
-      useSuspense: false,
-    },
-  });
-
-  return i18n;
+  return i18n
+    .use(initReactI18next)
+    .init({
+      resources,
+      lng: language,
+      fallbackLng: DEFAULT_LANGUAGE,
+      interpolation: {
+        escapeValue: false, // React already escapes values
+      },
+      react: {
+        useSuspense: false,
+      },
+      showSupportNotice: false,
+    })
+    .then(() => i18n);
 }
 
 export { i18n };

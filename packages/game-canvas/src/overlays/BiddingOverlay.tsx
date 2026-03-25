@@ -5,7 +5,8 @@
  * If not isMyTurn: waiting text.
  */
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, ScrollView, View } from 'react-native';
+import { StyleSheet, Text, ScrollView, View } from 'react-native';
+import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 
 export interface BiddingOverlayProps {
@@ -17,10 +18,9 @@ export interface BiddingOverlayProps {
 
 function generateBidAmounts(): number[] {
   const amounts: number[] = [];
-  for (let bid = 150; bid <= 250; bid += 10) {
+  for (let bid = 150; bid <= 990; bid += 10) {
     amounts.push(bid);
   }
-  amounts.push(300);
   return amounts;
 }
 
@@ -43,15 +43,20 @@ export function BiddingOverlay({ currentBid, isMyTurn, onBid, onPass }: BiddingO
           >
             {bidAmounts
               .filter((amount) => amount > currentBid)
+              .slice(0, 5)
               .map((amount) => (
-                <TouchableOpacity key={amount} style={styles.chip} onPress={() => onBid(amount)}>
+                <HapticTouchableOpacity
+                  key={amount}
+                  style={styles.chip}
+                  onPress={() => onBid(amount)}
+                >
                   <Text style={styles.chipText}>{amount}</Text>
-                </TouchableOpacity>
+                </HapticTouchableOpacity>
               ))}
           </ScrollView>
-          <TouchableOpacity style={styles.passButton} onPress={onPass}>
+          <HapticTouchableOpacity style={styles.passButton} onPress={onPass}>
             <Text style={styles.passText}>{t('game.pass')}</Text>
-          </TouchableOpacity>
+          </HapticTouchableOpacity>
         </>
       ) : (
         <Text style={styles.waitingText}>{t('game.waitingForOtherPlayers')}</Text>

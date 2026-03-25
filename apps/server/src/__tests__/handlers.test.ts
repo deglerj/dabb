@@ -12,6 +12,7 @@ import { setupSocketHandlers } from '../socket/handlers.js';
 vi.mock('../services/sessionService.js', () => ({
   getPlayerBySecretId: vi.fn(),
   getSessionByCode: vi.fn(),
+  getSessionPlayers: vi.fn().mockResolvedValue([]),
   updatePlayerConnection: vi.fn(),
 }));
 

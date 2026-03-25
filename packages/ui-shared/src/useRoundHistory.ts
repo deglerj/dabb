@@ -11,6 +11,7 @@ export interface RoundHistoryResult {
     round: number;
     bidWinner: PlayerIndex | null;
     winningBid: number;
+    wentOut?: boolean;
     meldScores: Record<PlayerIndex, number> | null;
   } | null;
   gameWinner: PlayerIndex | Team | null;
@@ -23,6 +24,7 @@ export function useRoundHistory(events: GameEvent[]): RoundHistoryResult {
       round: number;
       bidWinner: PlayerIndex | null;
       winningBid: number;
+      wentOut?: boolean;
       meldScores: Record<PlayerIndex, number> | null;
     } | null = null;
     let gameWinner: PlayerIndex | Team | null = null;
@@ -32,6 +34,7 @@ export function useRoundHistory(events: GameEvent[]): RoundHistoryResult {
     let bidWinner: PlayerIndex | null = null;
     let winningBid = 0;
     let meldScores: Record<PlayerIndex, number> = {} as Record<PlayerIndex, number>;
+    let wentOut = false;
 
     for (const event of events) {
       switch (event.type) {
@@ -47,11 +50,16 @@ export function useRoundHistory(events: GameEvent[]): RoundHistoryResult {
           bidWinner = null;
           winningBid = 0;
           meldScores = {} as Record<PlayerIndex, number>;
+          wentOut = false;
           break;
 
         case 'BIDDING_WON':
           bidWinner = event.payload.playerIndex;
           winningBid = event.payload.winningBid;
+          break;
+
+        case 'GOING_OUT':
+          wentOut = true;
           break;
 
         case 'MELDS_DECLARED':
@@ -70,6 +78,7 @@ export function useRoundHistory(events: GameEvent[]): RoundHistoryResult {
             round: roundNumber,
             bidWinner,
             winningBid,
+            ...(wentOut ? { wentOut } : {}),
             scores: event.payload.scores as Record<
               PlayerIndex | Team,
               { melds: number; tricks: number; total: number; bidMet: boolean }
@@ -94,6 +103,7 @@ export function useRoundHistory(events: GameEvent[]): RoundHistoryResult {
           round: roundNumber,
           bidWinner,
           winningBid,
+          ...(wentOut ? { wentOut } : {}),
           meldScores: hasMelds ? meldScores : null,
         };
       }

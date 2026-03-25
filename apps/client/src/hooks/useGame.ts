@@ -10,14 +10,19 @@ export interface UseGameOptions {
   sessionId: string;
   secretId: string;
   playerIndex: number;
+  onSessionTerminated?: (data: { message: string; terminatedBy?: string }) => void;
 }
 
-export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
+export function useGame({ sessionId, secretId, playerIndex, onSessionTerminated }: UseGameOptions) {
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
 
-  const { state, events, processEvents, reset } = useGameState({
+  const { state, events, isInitialLoad, processEvents, reset } = useGameState({
     playerIndex: playerIndex as PlayerIndex,
   });
+
+  const handleStateNicknames = useCallback((record: Record<number, string>) => {
+    setNicknames(new Map(Object.entries(record).map(([k, v]) => [Number(k) as PlayerIndex, v])));
+  }, []);
 
   const handlePlayerJoined = useCallback((idx: number, nickname: string) => {
     setNicknames((prev) => {
@@ -32,7 +37,9 @@ export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
     sessionId,
     secretId,
     onEvents: processEvents,
+    onStateNicknames: handleStateNicknames,
     onPlayerJoined: handlePlayerJoined,
+    onSessionTerminated,
   });
 
   const onBid = useCallback((amount: number) => socket?.emit('game:bid', { amount }), [socket]);
@@ -55,10 +62,12 @@ export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
     (cardId: CardId) => socket?.emit('game:playCard', { cardId }),
     [socket]
   );
+  const onExit = useCallback(() => socket?.emit('game:exit'), [socket]);
 
   return {
     state,
     events,
+    isInitialLoad,
     nicknames,
     connected,
     connecting,
@@ -72,5 +81,6 @@ export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
     onDeclareTrump,
     onDeclareMelds,
     onPlayCard,
+    onExit,
   };
 }

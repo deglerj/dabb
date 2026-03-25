@@ -2,7 +2,8 @@
  * TrumpOverlay — four suit coins; tapping one selects trump.
  */
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 import type { Suit } from '@dabb/shared-types';
 import { SUITS, SUIT_NAMES } from '@dabb/shared-types';
@@ -20,7 +21,7 @@ export function TrumpOverlay({ onSelectTrump }: TrumpOverlayProps) {
       <Text style={styles.title}>{t('game.chooseTrump')}</Text>
       <View style={styles.coinsRow}>
         {SUITS.map((suit) => (
-          <TouchableOpacity
+          <HapticTouchableOpacity
             key={suit}
             style={[styles.coin, { backgroundColor: getSuitColor(suit) }]}
             onPress={() => onSelectTrump(suit)}
@@ -28,7 +29,7 @@ export function TrumpOverlay({ onSelectTrump }: TrumpOverlayProps) {
           >
             <Text style={styles.coinSymbol}>{SUIT_SYMBOLS[suit]}</Text>
             <Text style={styles.coinName}>{SUIT_NAMES[suit]}</Text>
-          </TouchableOpacity>
+          </HapticTouchableOpacity>
         ))}
       </View>
     </View>

@@ -3,8 +3,9 @@
  */
 import React from 'react';
 import { Modal, View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
-import type { PlayerIndex, RoundHistoryEntry } from '@dabb/shared-types';
+import type { PlayerIndex, RoundHistoryEntry, Team, TeamScoreEntry } from '@dabb/shared-types';
 import type { RoundHistoryResult } from '@dabb/ui-shared';
+import { useTranslation } from '@dabb/i18n';
 
 export interface ScoreboardModalProps {
   visible: boolean;
@@ -14,6 +15,8 @@ export interface ScoreboardModalProps {
   nicknames: Map<PlayerIndex, string>;
   playerCount: number;
   totalScores: Array<{ playerIndex: PlayerIndex; score: number }>;
+  teamScores?: TeamScoreEntry[];
+  teamsByPlayerIndex?: Map<PlayerIndex, Team>;
 }
 
 export function ScoreboardModal({
@@ -24,11 +27,52 @@ export function ScoreboardModal({
   nicknames,
   playerCount,
   totalScores,
+  teamScores,
+  teamsByPlayerIndex,
 }: ScoreboardModalProps) {
+  const { t } = useTranslation();
   const playerIndices = Array.from({ length: playerCount }, (_, i) => i as PlayerIndex);
 
   function name(pi: PlayerIndex) {
     return nicknames.get(pi) ?? `P${pi}`;
+  }
+
+  function BidBadge({ round }: { round: RoundHistoryEntry }) {
+    if (round.scores === null) {
+      return null;
+    }
+    if (round.wentOut) {
+      return (
+        <View style={[styles.badge, styles.wentOutBadge]}>
+          <Text style={[styles.badgeText, { color: '#c97f00' }]}>🚪 {t('game.wentOut')}</Text>
+        </View>
+      );
+    }
+    // Determine if bid was met — works for both player-keyed and team-keyed scores
+    const bidWinnerKey: PlayerIndex | Team | null =
+      round.bidWinner !== null && teamsByPlayerIndex
+        ? (teamsByPlayerIndex.get(round.bidWinner) ?? round.bidWinner)
+        : round.bidWinner;
+    if (bidWinnerKey !== null && round.scores[bidWinnerKey as PlayerIndex]?.bidMet) {
+      return (
+        <View style={[styles.badge, styles.bidMetBadge]}>
+          <Text style={[styles.badgeText, { color: '#6bcb77' }]}>✓ {t('game.bidMet')}</Text>
+        </View>
+      );
+    }
+    return (
+      <View style={[styles.badge, styles.bidMissedBadge]}>
+        <Text style={[styles.badgeText, { color: '#e05555' }]}>✗ {t('game.bidMissed')}</Text>
+      </View>
+    );
+  }
+
+  // Determine the team of the bid winner (for column highlight)
+  function bidWinnerTeam(round: RoundHistoryEntry): Team | null {
+    if (round.bidWinner === null || !teamsByPlayerIndex) {
+      return null;
+    }
+    return teamsByPlayerIndex.get(round.bidWinner) ?? null;
   }
 
   return (
@@ -36,7 +80,7 @@ export function ScoreboardModal({
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.card}>
           <View style={styles.header}>
-            <Text style={styles.title}>Score History</Text>
+            <Text style={styles.title}>{t('game.scoreHistory')}</Text>
             <Pressable onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeText}>✕</Text>
             </Pressable>
@@ -44,13 +88,23 @@ export function ScoreboardModal({
 
           {/* Column headers */}
           <View style={styles.row}>
-            <Text style={[styles.cell, styles.roundCell, styles.headerText]}>Rd</Text>
-            <Text style={[styles.cell, styles.bidCell, styles.headerText]}>Bid</Text>
-            {playerIndices.map((pi) => (
-              <Text key={pi} style={[styles.cell, styles.playerCell, styles.headerText]}>
-                {name(pi)}
-              </Text>
-            ))}
+            <Text style={[styles.cell, styles.roundCell, styles.headerText]}>
+              {t('game.roundAbbr')}
+            </Text>
+            <Text style={[styles.cell, styles.bidCell, styles.headerText]}>
+              {t('game.bidColumn')}
+            </Text>
+            {teamScores
+              ? teamScores.map((te) => (
+                  <Text key={te.team} style={[styles.cell, styles.playerCell, styles.headerText]}>
+                    {te.names}
+                  </Text>
+                ))
+              : playerIndices.map((pi) => (
+                  <Text key={pi} style={[styles.cell, styles.playerCell, styles.headerText]}>
+                    {name(pi)}
+                  </Text>
+                ))}
           </View>
 
           <ScrollView>
@@ -58,30 +112,78 @@ export function ScoreboardModal({
             {rounds.map((round) => (
               <View key={round.round} style={styles.row}>
                 <Text style={[styles.cell, styles.roundCell]}>{round.round}</Text>
-                <Text style={[styles.cell, styles.bidCell]}>
-                  {round.bidWinner !== null ? `${name(round.bidWinner)} ${round.winningBid}` : '—'}
-                </Text>
-                {playerIndices.map((pi) => {
-                  const score = round.scores?.[pi];
-                  return (
-                    <View key={pi} style={[styles.cell, styles.playerCell]}>
-                      {score ? (
-                        <>
-                          <Text style={styles.scoreDetail}>
-                            {score.melds}m + {score.tricks}t
-                          </Text>
-                          <Text
-                            style={[styles.scoreTotal, score.bidMet ? styles.bidMet : undefined]}
-                          >
-                            {score.total}
-                          </Text>
-                        </>
-                      ) : (
-                        <Text style={styles.scoreTotal}>—</Text>
-                      )}
-                    </View>
-                  );
-                })}
+                <View
+                  style={[
+                    styles.cell,
+                    styles.bidCell,
+                    { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
+                  ]}
+                >
+                  <Text style={{ color: '#c8b090', fontSize: 11 }}>
+                    {round.bidWinner !== null
+                      ? `${name(round.bidWinner)} · ${round.winningBid}`
+                      : '—'}
+                  </Text>
+                  {round.bidWinner !== null && <BidBadge round={round} />}
+                </View>
+                {teamScores
+                  ? teamScores.map((te) => {
+                      const score = round.scores?.[te.team as unknown as PlayerIndex];
+                      const isWinnerTeam = bidWinnerTeam(round) === te.team;
+                      return (
+                        <View key={te.team} style={[styles.cell, styles.playerCell]}>
+                          {score !== undefined ? (
+                            <>
+                              <Text style={styles.scoreDetail}>
+                                {round.wentOut
+                                  ? `🃏 ${score.melds}`
+                                  : `🃏 ${score.melds} + 🏆 ${score.tricks}`}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.scoreTotal,
+                                  isWinnerTeam && score.bidMet ? styles.bidMet : undefined,
+                                  score.total < 0 ? styles.scoreTotalNegative : undefined,
+                                ]}
+                              >
+                                {score.total}
+                              </Text>
+                            </>
+                          ) : (
+                            <Text style={styles.scoreTotal}>—</Text>
+                          )}
+                        </View>
+                      );
+                    })
+                  : playerIndices.map((pi) => {
+                      const score = round.scores?.[pi];
+                      return (
+                        <View key={pi} style={[styles.cell, styles.playerCell]}>
+                          {score !== undefined ? (
+                            <>
+                              <Text style={styles.scoreDetail}>
+                                {round.wentOut
+                                  ? `🃏 ${score.melds}`
+                                  : `🃏 ${score.melds} + 🏆 ${score.tricks}`}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.scoreTotal,
+                                  pi === round.bidWinner && score.bidMet
+                                    ? styles.bidMet
+                                    : undefined,
+                                  score.total < 0 ? styles.scoreTotalNegative : undefined,
+                                ]}
+                              >
+                                {score.total}
+                              </Text>
+                            </>
+                          ) : (
+                            <Text style={styles.scoreTotal}>—</Text>
+                          )}
+                        </View>
+                      );
+                    })}
               </View>
             ))}
 
@@ -89,13 +191,39 @@ export function ScoreboardModal({
             {currentRound && (
               <View style={[styles.row, styles.currentRow]}>
                 <Text style={[styles.cell, styles.roundCell]}>{currentRound.round}</Text>
-                <Text style={[styles.cell, styles.bidCell]}>
-                  {currentRound.bidWinner !== null
-                    ? `${name(currentRound.bidWinner)} ${currentRound.winningBid}`
-                    : '—'}
-                </Text>
-                {playerIndices.map((pi) => (
-                  <Text key={pi} style={[styles.cell, styles.playerCell, styles.scoreTotal]}>
+                <View
+                  style={[
+                    styles.cell,
+                    styles.bidCell,
+                    { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
+                  ]}
+                >
+                  <Text style={{ color: '#c8b090', fontSize: 11 }}>
+                    {currentRound.bidWinner !== null
+                      ? `${name(currentRound.bidWinner)} · ${currentRound.winningBid}`
+                      : '—'}
+                  </Text>
+                  {currentRound.wentOut && (
+                    <View style={[styles.badge, styles.wentOutBadge]}>
+                      <Text style={[styles.badgeText, { color: '#c97f00' }]}>
+                        🚪 {t('game.wentOut')}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                {(
+                  teamScores ??
+                  playerIndices.map((pi) => ({
+                    team: pi as unknown as Team,
+                    names: '',
+                    score: 0,
+                    isMyTeam: false,
+                  }))
+                ).map((entry) => (
+                  <Text
+                    key={String(entry.team)}
+                    style={[styles.cell, styles.playerCell, styles.scoreTotal]}
+                  >
                     —
                   </Text>
                 ))}
@@ -104,16 +232,25 @@ export function ScoreboardModal({
 
             {/* Totals row */}
             <View style={[styles.row, styles.totalsRow]}>
-              <Text style={[styles.cell, styles.roundCell, styles.totalsLabel]}>Total</Text>
+              <Text style={[styles.cell, styles.roundCell, styles.totalsLabel]}>{'='}</Text>
               <Text style={[styles.cell, styles.bidCell]} />
-              {playerIndices.map((pi) => {
-                const entry = totalScores.find((t) => t.playerIndex === pi);
-                return (
-                  <Text key={pi} style={[styles.cell, styles.playerCell, styles.totalsValue]}>
-                    {entry?.score ?? 0}
-                  </Text>
-                );
-              })}
+              {teamScores
+                ? teamScores.map((te) => (
+                    <Text
+                      key={te.team}
+                      style={[styles.cell, styles.playerCell, styles.totalsValue]}
+                    >
+                      {te.score}
+                    </Text>
+                  ))
+                : playerIndices.map((pi) => {
+                    const entry = totalScores.find((s) => s.playerIndex === pi);
+                    return (
+                      <Text key={pi} style={[styles.cell, styles.playerCell, styles.totalsValue]}>
+                        {entry?.score ?? 0}
+                      </Text>
+                    );
+                  })}
             </View>
           </ScrollView>
         </Pressable>
@@ -135,6 +272,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     width: '100%',
+    maxWidth: 625,
     maxHeight: '80%',
     borderWidth: 1,
     borderColor: '#5a3a1a',
@@ -188,7 +326,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   playerCell: {
-    width: 60,
+    width: 94,
     alignItems: 'center',
   },
   headerText: {
@@ -210,6 +348,9 @@ const styles = StyleSheet.create({
   bidMet: {
     color: '#6bcb77',
   },
+  scoreTotalNegative: {
+    color: '#e05555',
+  },
   totalsLabel: {
     color: '#f2e8d0',
     fontWeight: 'bold',
@@ -219,5 +360,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#c97f00',
     textAlign: 'center',
+  },
+  badge: {
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    alignSelf: 'flex-start',
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  bidMetBadge: {
+    backgroundColor: '#1a3d22',
+  },
+  bidMissedBadge: {
+    backgroundColor: '#3d1a1a',
+  },
+  wentOutBadge: {
+    backgroundColor: '#3d2a00',
   },
 });

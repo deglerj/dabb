@@ -16,6 +16,7 @@ export type {
   RoundHistoryEntry,
   RoundScore,
   Team,
+  TeamScoreEntry,
   Trick,
 } from './game.js';
 export {

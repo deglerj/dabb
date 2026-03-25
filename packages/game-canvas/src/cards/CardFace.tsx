@@ -1,7 +1,8 @@
 /**
  * CardFace — antique paper card face rendered as a Skia Canvas.
  *
- * Number cards (Ass, Zehn) show suit symbol in the center.
+ * Ass shows a large suit symbol in the center.
+ * Zehn shows a large "10" in suit color in the center.
  * Face cards (König, Ober, Buabe) show a colored vertical band with the rank
  * initial (K / O / B) displayed prominently in contrasting color.
  *
@@ -20,6 +21,7 @@ export interface CardFaceProps {
   x?: number;
   y?: number;
   dimmed?: boolean;
+  isTrump?: boolean;
 }
 
 const FACE_RANKS = new Set<Rank>(['koenig', 'ober', 'buabe']);
@@ -29,7 +31,15 @@ function parseCardId(id: CardId): { suit: Suit; rank: Rank } {
   return { suit, rank };
 }
 
-export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: CardFaceProps) {
+export function CardFace({
+  card,
+  width,
+  height,
+  x = 0,
+  y = 0,
+  dimmed = false,
+  isTrump = false,
+}: CardFaceProps) {
   const { suit, rank } = useMemo(() => parseCardId(card), [card]);
   const symbol = SUIT_SYMBOLS[suit];
   const color = getSuitColor(suit);
@@ -56,8 +66,9 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
 
   const cornerFontSize = Math.round(width * 0.17);
   const cornerSuitFontSize = Math.round(cornerFontSize * 0.75);
-  // Face cards: larger initial centered in the band; number cards: large suit symbol
-  const centerFontSize = isFace ? Math.round(width * 0.52) : Math.round(width * 0.42);
+  // Face cards / Zehn: rank abbr centered; Ass: large suit symbol
+  const centerFontSize =
+    isFace || rank === '10' ? Math.round(width * 0.52) : Math.round(width * 0.42);
 
   // matchFont uses the system font manager which is not implemented on RN Web.
   // The null guard below falls back to a label-free card canvas on web.
@@ -104,7 +115,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
     // Fallback for platforms where matchFont is unavailable (e.g. RN Web).
     // Uses React Native View/Text which renders correctly on all platforms.
     const cornerSz = Math.round(width * 0.17);
-    const centerSz = isFace ? Math.round(width * 0.52) : Math.round(width * 0.42);
+    const centerSz = isFace || rank === '10' ? Math.round(width * 0.52) : Math.round(width * 0.42);
     return (
       <View
         ref={cardRef}
@@ -127,7 +138,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
         </View>
         <View style={rnStyles.center}>
           <RNText style={{ fontSize: centerSz, color, fontWeight: 'bold' }}>
-            {isFace ? abbr : symbol}
+            {isFace || rank === '10' ? abbr : symbol}
           </RNText>
         </View>
         <View style={[rnStyles.cornerBR, { transform: [{ rotate: '180deg' }] }]}>
@@ -139,6 +150,11 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
         {dimmed && (
           <View
             style={[StyleSheet.absoluteFill, rnStyles.dimOverlay, { borderRadius: width * 0.06 }]}
+          />
+        )}
+        {isTrump && (
+          <View
+            style={[StyleSheet.absoluteFill, rnStyles.trumpOverlay, { borderRadius: width * 0.06 }]}
           />
         )}
       </View>
@@ -161,8 +177,8 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
   const bandWidth = width * 0.4;
   const bandX = (width - bandWidth) / 2;
 
-  // Center rank initial positioned over the band
-  const faceInitial = isFace ? abbr : symbol;
+  // Center: rank abbr for face cards and Zehn; suit symbol for Ass
+  const faceInitial = isFace || rank === '10' ? abbr : symbol;
   const faceInitialWidth = centerFont.measureText(faceInitial).width;
   const centerX = (width - faceInitialWidth) / 2;
   const centerBaselineY = (height + centerFontSize) / 2 - centerFontSize * 0.15;
@@ -225,7 +241,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
             />
           </Group>
 
-          {/* Center: large rank initial (face) or suit symbol (number) */}
+          {/* Center: rank abbr for face cards and Zehn; suit symbol for Ass */}
           <Text
             x={centerX}
             y={centerBaselineY}
@@ -238,6 +254,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
 
       {/* Dim overlay — plain RN View clipped by parent overflow:hidden, no Skia edge artifacts */}
       {dimmed && <View style={[StyleSheet.absoluteFill, rnStyles.dimOverlay]} />}
+      {isTrump && <View style={[StyleSheet.absoluteFill, rnStyles.trumpOverlay]} />}
     </View>
   );
 }
@@ -265,4 +282,5 @@ const rnStyles = StyleSheet.create({
   cornerSuit: { lineHeight: 13 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   dimOverlay: { backgroundColor: 'rgba(0,0,0,0.6)' },
+  trumpOverlay: { backgroundColor: 'rgba(255,200,50,0.15)' },
 });
