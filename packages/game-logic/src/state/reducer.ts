@@ -2,7 +2,15 @@
  * Event sourcing reducer for game state
  */
 
-import { Card, GameEvent, GameState, PlayerIndex, Trick } from '@dabb/shared-types';
+import {
+  Card,
+  GameEvent,
+  GameState,
+  PlayerIndex,
+  type RoundScore,
+  type Team,
+  Trick,
+} from '@dabb/shared-types';
 
 import { getFirstBidder, getNextBidder, isBiddingComplete } from '../phases/bidding.js';
 import { createInitialState, resetForNewRound } from './initial.js';
@@ -173,16 +181,21 @@ function handleBidPlaced(
   state: GameState,
   event: Extract<GameEvent, { type: 'BID_PLACED' }>
 ): GameState {
+  if (state.firstBidder === null) {
+    throw new Error('firstBidder is null during bidding');
+  }
   const nextBidder = getNextBidder(
     event.payload.playerIndex,
     state.playerCount,
-    state.passedPlayers
+    state.passedPlayers,
+    state.firstBidder
   );
 
   return {
     ...state,
     currentBid: event.payload.amount,
     currentBidder: nextBidder,
+    lastBidderIndex: event.payload.playerIndex,
   };
 }
 
@@ -195,9 +208,17 @@ function handlePlayerPassed(
 
   const biddingComplete = isBiddingComplete(state.playerCount, newPassedPlayers);
 
+  if (state.firstBidder === null) {
+    throw new Error('firstBidder is null during bidding');
+  }
   const nextBidder = biddingComplete
     ? null
-    : getNextBidder(event.payload.playerIndex, state.playerCount, newPassedPlayers);
+    : getNextBidder(
+        event.payload.playerIndex,
+        state.playerCount,
+        newPassedPlayers,
+        state.firstBidder
+      );
 
   return {
     ...state,
@@ -216,6 +237,7 @@ function handleBiddingWon(
     bidWinner: event.payload.playerIndex,
     currentBid: event.payload.winningBid,
     currentBidder: null,
+    dabb: event.payload.dabb ?? state.dabb,
   };
 }
 
@@ -385,16 +407,23 @@ function handleRoundScored(
   event: Extract<GameEvent, { type: 'ROUND_SCORED' }>
 ): GameState {
   const totalScores = new Map(state.totalScores);
+  const roundScores = new Map<PlayerIndex | Team, RoundScore>();
 
   for (const [key, score] of Object.entries(event.payload.totalScores)) {
-    const playerOrTeam = parseInt(key) as PlayerIndex;
+    const playerOrTeam = parseInt(key) as PlayerIndex | Team;
     totalScores.set(playerOrTeam, score);
+  }
+
+  for (const [key, score] of Object.entries(event.payload.scores)) {
+    const playerOrTeam = parseInt(key) as PlayerIndex | Team;
+    roundScores.set(playerOrTeam, { melds: score.melds, tricks: score.tricks, total: score.total });
   }
 
   return {
     ...state,
     phase: 'scoring',
     totalScores,
+    roundScores,
   };
 }
 

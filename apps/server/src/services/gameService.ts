@@ -230,7 +230,7 @@ export async function passBid(sessionId: string, playerIndex: PlayerIndex): Prom
   if (isBiddingComplete(state.playerCount, newPassedPlayers)) {
     const winner = getBiddingWinner(state.playerCount, newPassedPlayers);
     if (winner !== null) {
-      events.push(createBiddingWonEvent(ctx(), winner, state.currentBid || 150));
+      events.push(createBiddingWonEvent(ctx(), winner, state.currentBid || 150, state.dabb));
     }
   }
 

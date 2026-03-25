@@ -47,6 +47,13 @@ router.post('/', async (req, res) => {
       });
     }
 
+    if (nickname.trim().length > 10) {
+      return res.status(400).json({
+        error: 'Nickname must be 10 characters or fewer',
+        code: 'NICKNAME_TOO_LONG',
+      });
+    }
+
     const { session, player } = await createSession(playerCount, targetScore, nickname.trim());
 
     const response: CreateSessionResponse = {
@@ -119,6 +126,13 @@ router.post('/:code/join', async (req, res) => {
       return res.status(400).json({
         error: 'Nickname is required',
         code: 'NICKNAME_REQUIRED',
+      });
+    }
+
+    if (nickname.trim().length > 10) {
+      return res.status(400).json({
+        error: 'Nickname must be 10 characters or fewer',
+        code: 'NICKNAME_TOO_LONG',
       });
     }
 

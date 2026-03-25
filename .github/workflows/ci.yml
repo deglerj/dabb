@@ -15,18 +15,18 @@ jobs:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      mobile: ${{ steps.filter.outputs.mobile }}
+      client: ${{ steps.filter.outputs.client }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
-      - name: Check for mobile-related changes
+      - name: Check for client-related changes
         id: filter
         run: |
-          if git diff --name-only HEAD~1 HEAD | grep -qE '^(apps/mobile|packages)/|^(pnpm-lock\.yaml|package\.json|turbo\.json|pnpm-workspace\.yaml)$'; then
-            echo "mobile=true" >> $GITHUB_OUTPUT
+          if git diff --name-only HEAD~1 HEAD | grep -qE '^(apps/client|packages)/|^(pnpm-lock\.yaml|package\.json|turbo\.json|pnpm-workspace\.yaml)$'; then
+            echo "client=true" >> $GITHUB_OUTPUT
           else
-            echo "mobile=false" >> $GITHUB_OUTPUT
+            echo "client=false" >> $GITHUB_OUTPUT
           fi
 
   lint-and-typecheck:
@@ -142,11 +142,47 @@ jobs:
         with:
           sarif_file: osv-results.sarif
 
+  bundle-web:
+    name: Bundle Web Client
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, changes]
+    if: needs.changes.outputs.client == 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.local/share/pnpm/store/v3
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm run build
+
+      - name: Bundle web (catches Metro resolution errors)
+        run: pnpm --filter @dabb/client bundle:web
+
   build-docker:
     name: Build Docker Images
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     needs: [lint-and-typecheck, test]
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -157,12 +193,22 @@ jobs:
         include:
           - app: server
             dockerfile: apps/server/Dockerfile
-          - app: web
-            dockerfile: apps/web/Dockerfile
+            build_args: ''
+            platforms: linux/amd64,linux/arm64
+          - app: client
+            dockerfile: apps/client/Dockerfile.web
+            build_args: |
+              SERVER_URL=https://dabb.degler.info
+              EXPO_PUBLIC_UMAMI_URL=${{ vars.VITE_UMAMI_URL }}
+              EXPO_PUBLIC_UMAMI_WEBSITE_ID=${{ vars.VITE_UMAMI_WEBSITE_ID }}
+            platforms: linux/amd64
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -186,15 +232,6 @@ jobs:
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Validate required variables
-        if: github.event_name != 'pull_request'
-        run: |
-          if [ -z "${{ vars.VITE_SERVER_URL }}" ]; then
-            echo "ERROR: VITE_SERVER_URL repository variable is not set."
-            echo "Set it in: Settings → Secrets and variables → Actions → Variables"
-            exit 1
-          fi
-
       - name: Build Docker image
         uses: docker/build-push-action@v7
         with:
@@ -203,15 +240,12 @@ jobs:
           push: false
           load: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
+          build-args: ${{ matrix.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            VITE_SERVER_URL=${{ vars.VITE_SERVER_URL || 'http://localhost:3000' }}
-            VITE_UMAMI_URL=${{ vars.VITE_UMAMI_URL || '' }}
-            VITE_UMAMI_WEBSITE_ID=${{ vars.VITE_UMAMI_WEBSITE_ID || '' }}
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0 - only uncompromised tag after March 2026 supply chain attack
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
           format: 'sarif'
@@ -226,7 +260,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Run Trivy (table output for logs)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0 - only uncompromised tag after March 2026 supply chain attack
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
           format: 'table'
@@ -242,19 +276,16 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ matrix.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
-          build-args: |
-            VITE_SERVER_URL=${{ vars.VITE_SERVER_URL }}
-            VITE_UMAMI_URL=${{ vars.VITE_UMAMI_URL || '' }}
-            VITE_UMAMI_WEBSITE_ID=${{ vars.VITE_UMAMI_WEBSITE_ID || '' }}
+          platforms: ${{ matrix.platforms }}
 
-  build-mobile:
-    name: Build Mobile APK
+  build-client-apk:
+    name: Build Client APK
     runs-on: ubuntu-latest
     needs: [lint-and-typecheck, test, changes]
-    if: needs.changes.outputs.mobile == 'true'
+    if: needs.changes.outputs.client == 'true'
 
     steps:
       - name: Checkout
@@ -267,7 +298,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: apps/mobile/Dockerfile.android
+          file: apps/client/Dockerfile.android
           push: false
           load: true
           tags: dabb-android-builder:ci
@@ -278,7 +309,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: /tmp/gradle-cache
-          key: ${{ runner.os }}-gradle-${{ hashFiles('apps/mobile/package.json') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('apps/client/package.json') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -294,53 +325,6 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mobile-apk
-          path: apps/mobile/build/dabb.apk
-          retention-days: 7
-
-  # Keep existing web artifact for non-Docker deployments
-  build-web:
-    name: Build Web Artifact
-    runs-on: ubuntu-latest
-    needs: [lint-and-typecheck, test]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v5
-        with:
-          path: ~/.local/share/pnpm/store/v3
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Cache Turbo
-        uses: actions/cache@v5
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
-
-      - name: Install dependencies
-        run: pnpm install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Upload web artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: web-dist
-          path: apps/web/dist
+          name: client-apk
+          path: apps/client/build/dabb.apk
           retention-days: 7

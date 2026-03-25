@@ -111,8 +111,7 @@ The AI plays a reasonable game — it evaluates melds for bidding, chooses trump
 | Monorepo  | pnpm + Turborepo              |
 | Backend   | Node.js + Express + Socket.IO |
 | Database  | PostgreSQL                    |
-| Web       | React + Vite                  |
-| Mobile    | React Native + Expo           |
+| Client    | React Native + Expo           |
 | Types     | TypeScript                    |
 
 ### Project Structure
@@ -120,14 +119,14 @@ The AI plays a reasonable game — it evaluates melds for bidding, chooses trump
 ```
 dabb/
 ├── apps/
-│   ├── web/        # React web client
-│   ├── mobile/     # React Native Android app
+│   ├── client/     # React Native + Expo app (Android/iOS/web)
 │   └── server/     # Node.js backend
 ├── packages/
 │   ├── game-logic/     # Core game engine
 │   ├── shared-types/   # TypeScript types
+│   ├── game-canvas/    # Skia card table rendering
 │   ├── ui-shared/      # Shared React hooks
-│   ├── card-assets/    # SVG card graphics
+│   ├── card-assets/    # Card graphics and constants
 │   └── i18n/           # Internationalization
 └── turbo.json
 ```
@@ -167,11 +166,8 @@ pnpm test
 # Start the backend server
 pnpm --filter @dabb/server dev
 
-# Start the web client (in another terminal)
-pnpm --filter @dabb/web dev
-
-# Start the mobile app
-pnpm --filter @dabb/mobile start
+# Start the client app (in another terminal)
+pnpm --filter @dabb/client start
 ```
 
 ### Mobile Development with Expo Go
@@ -240,13 +236,7 @@ DATABASE_URL=postgresql://localhost:5432/dabb
 PORT=3000
 ```
 
-**apps/web/.env**
-
-```env
-VITE_SERVER_URL=http://localhost:3000
-```
-
-**apps/mobile/.env**
+**apps/client/.env**
 
 ```env
 EXPO_PUBLIC_SERVER_URL=http://localhost:3000

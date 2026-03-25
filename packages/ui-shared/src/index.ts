@@ -1,14 +1,12 @@
 export { useSocket } from './useSocket.js';
 export { useGameState } from './useGameState.js';
-export { useSessionCredentials } from './useLocalStorage.js';
 export { useRoundHistory } from './useRoundHistory.js';
 export type { RoundHistoryResult } from './useRoundHistory.js';
 export { useGameLog } from './useGameLog.js';
 export type { GameLogResult } from './useGameLog.js';
-export { useActionRequired, useActionRequiredCallback } from './useActionRequired.js';
-export type { ActionRequiredResult } from './useActionRequired.js';
+export { useActionRequiredCallback } from './useActionRequired.js';
 export { useCelebration } from './useCelebration.js';
 export type { CelebrationResult } from './useCelebration.js';
-export { useTrickDisplay } from './useTrickDisplay.js';
-export type { TrickDisplayResult } from './useTrickDisplay.js';
+export { useTrickAnimationState } from './useTrickAnimationState.js';
+export type { TrickAnimationResult, TrickAnimPhase } from './useTrickAnimationState.js';
 export { useVersionCheck } from './useVersionCheck.js';

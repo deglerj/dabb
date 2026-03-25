@@ -51,7 +51,7 @@ export default tseslint.config(
   },
   {
     // React-specific rules
-    files: ['apps/web/**/*.tsx', 'apps/mobile/**/*.tsx'],
+    files: ['apps/client/**/*.tsx'],
     rules: {
       // React 19 doesn't need import React
     },
@@ -70,7 +70,8 @@ export default tseslint.config(
       '**/build/**',
       '**/.expo/**',
       '**/coverage/**',
-      'apps/mobile/.expo/**',
+      'apps/client/.expo/**',
+      '**/metro.config.js',
       'web-dist/**',
     ],
   }

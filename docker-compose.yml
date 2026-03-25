@@ -37,7 +37,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://dabb:dabb_dev_password@postgres:5432/dabb
-      CLIENT_URL: http://localhost:8080
+      CLIENT_URL: http://localhost:8081
       UMAMI_URL: http://umami:3000
       # UMAMI_WEBSITE_ID: set this after creating a website in the Umami dashboard
     ports:
@@ -50,26 +50,6 @@ services:
           '-e',
           'require("http").get("http://localhost:3000/health",r=>process.exit(r.statusCode===200?0:1)).on("error",()=>process.exit(1))',
         ]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args:
-        VITE_SERVER_URL: http://localhost:3000
-        # VITE_UMAMI_URL: http://localhost:3001/umami
-        # VITE_UMAMI_WEBSITE_ID: set after creating website in Umami dashboard
-    container_name: dabb-web
-    restart: unless-stopped
-    depends_on:
-      - server
-    ports:
-      - '8080:8080'
-    healthcheck:
-      test: ['CMD', 'nginx', '-t']
       interval: 30s
       timeout: 3s
       retries: 3

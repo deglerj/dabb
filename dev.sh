@@ -15,7 +15,6 @@
 #   db          Connect to PostgreSQL
 #   reset       Stop services and remove volumes (fresh start)
 #   build       Rebuild all images
-#   mobile      Start Expo mobile dev server
 #   apk         Build Android APK in Docker
 #   help        Show this help message
 
@@ -140,20 +139,6 @@ cmd_start() {
         sleep 1
     done
 
-    # Wait for web
-    echo -n "  Web:        "
-    for i in {1..30}; do
-        if curl -sf http://localhost:8080/ &> /dev/null; then
-            echo -e "${GREEN}ready${NC}"
-            break
-        fi
-        if [[ $i -eq 30 ]]; then
-            echo -e "${RED}timeout${NC}"
-            failed=true
-        fi
-        sleep 1
-    done
-
     echo ""
     if [[ "$failed" == "true" ]]; then
         echo -e "${RED}Some services failed to start. Check logs with: ./dev.sh logs${NC}"
@@ -162,15 +147,15 @@ cmd_start() {
     fi
     echo ""
     echo "Access the application:"
-    echo -e "  Web app:    ${BLUE}http://localhost:8080${NC}"
     echo -e "  Server API: ${BLUE}http://localhost:3000${NC}"
     echo -e "  PostgreSQL: ${BLUE}postgresql://dabb:dabb_dev_password@localhost:5432/dabb${NC}"
     echo ""
     echo "Useful commands:"
-    echo "  ./dev.sh mobile   - Start Expo mobile dev server"
     echo "  ./dev.sh logs     - View logs"
     echo "  ./dev.sh status   - Check status"
     echo "  ./dev.sh stop     - Stop services"
+
+    cmd_mobile
 }
 
 # Stop services
@@ -226,14 +211,6 @@ cmd_health() {
         echo -e "${RED}unhealthy${NC}"
     fi
 
-    # Web
-    echo -n "  Web:        "
-    if curl -sf http://localhost:8080/ &> /dev/null; then
-        echo -e "${GREEN}healthy${NC}"
-    else
-        echo -e "${RED}unhealthy${NC}"
-    fi
-
     echo ""
 }
 
@@ -251,13 +228,9 @@ cmd_shell() {
             echo -e "${YELLOW}Opening shell in Server container...${NC}"
             $COMPOSE_CMD exec server sh
             ;;
-        web)
-            echo -e "${YELLOW}Opening shell in Web container...${NC}"
-            $COMPOSE_CMD exec web sh
-            ;;
         *)
             echo -e "${RED}Unknown service: $service${NC}"
-            echo "Available services: postgres, server, web"
+            echo "Available services: postgres, server"
             exit 1
             ;;
     esac
@@ -305,7 +278,7 @@ cmd_mobile() {
     if ! curl -sf http://localhost:3000/health &> /dev/null; then
         echo -e "${RED}not running${NC}"
         echo ""
-        echo -e "${RED}Server is not running. Start it first with: ./dev.sh start${NC}"
+        echo -e "${RED}Server is not running. Wait for it to start first.${NC}"
         exit 1
     fi
     echo -e "${GREEN}ok${NC}"
@@ -330,8 +303,8 @@ cmd_mobile() {
     echo -e "${YELLOW}Starting Expo dev server...${NC}"
     echo ""
 
-    cd apps/mobile
-    EXPO_PUBLIC_SERVER_URL="$server_url" npx expo start --go
+    cd apps/client
+    EXPO_PUBLIC_SERVER_URL="$server_url" npx expo start --go --clear
 }
 
 # Build Android APK in Docker
@@ -341,7 +314,7 @@ cmd_apk() {
     echo ""
 
     echo -e "Building Docker image (this may take a while on first run)..."
-    $RUNTIME build -f apps/mobile/Dockerfile.android -t dabb-android-builder .
+    $RUNTIME build -f apps/client/Dockerfile.android -t dabb-android-builder .
 
     echo ""
     echo -e "${YELLOW}Running APK build...${NC}"
@@ -354,7 +327,7 @@ cmd_apk() {
         dabb-android-builder
 
     echo ""
-    echo -e "${GREEN}APK built successfully: apps/mobile/build/dabb.apk${NC}"
+    echo -e "${GREEN}APK built successfully: apps/client/build/dabb.apk${NC}"
 }
 
 # Show help
@@ -371,15 +344,13 @@ Commands:
   health      Check health of all services
   shell       Open shell in a container
               Usage: ./dev.sh shell <service>
-              Services: postgres, server, web
+              Services: postgres, server
   db          Connect to PostgreSQL CLI
   reset       Stop services and remove volumes (fresh start)
   build       Rebuild all images
               Optional: ./dev.sh build --no-cache
-  mobile      Start Expo mobile dev server
-              Requires: ./dev.sh start (server must be running)
   apk         Build Android APK in Docker container
-              Output: apps/mobile/build/dabb.apk
+              Output: apps/client/build/dabb.apk
   help        Show this help message
 
 Examples:
@@ -388,13 +359,11 @@ Examples:
   ./dev.sh shell server       # Open shell in server container
   ./dev.sh db                 # Connect to PostgreSQL
   ./dev.sh reset              # Fresh start with empty database
-  ./dev.sh mobile             # Start Expo mobile dev server
   ./dev.sh apk               # Build Android APK in Docker
 
 Environment:
   The following defaults are used for local development:
   - Database: dabb / dabb_dev_password
-  - Web:      http://localhost:8080
   - Server:   http://localhost:3000
   - DB Port:  5432
 
@@ -415,7 +384,6 @@ case "$COMMAND" in
     db)      cmd_db "$@" ;;
     reset)   cmd_reset "$@" ;;
     build)   cmd_build "$@" ;;
-    mobile)  cmd_mobile "$@" ;;
     apk)     cmd_apk "$@" ;;
     help|-h|--help) cmd_help ;;
     *)

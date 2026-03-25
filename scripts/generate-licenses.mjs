@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Auto-generates license lists for web and mobile apps.
+// Auto-generates license lists for the client app.
 // Run with: pnpm generate-licenses
 // Also runs automatically after pnpm install (postinstall hook).
 
@@ -11,10 +11,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
 
-const OUTPUT_FILES = [
-  join(repoRoot, 'apps/web/src/generated/licenses.ts'),
-  join(repoRoot, 'apps/mobile/src/generated/licenses.ts'),
-];
+const OUTPUT_FILES = [join(repoRoot, 'apps/client/src/generated/licenses.ts')];
 
 function main() {
   const json = execSync('pnpm licenses list --prod --json', {

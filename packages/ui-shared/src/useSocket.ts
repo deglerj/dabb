@@ -13,10 +13,12 @@ interface UseSocketOptions {
   sessionId: string;
   secretId: string;
   onEvents?: (events: GameEvent[]) => void;
+  onStateNicknames?: (nicknames: Record<number, string>) => void;
   onError?: (error: { message: string; code: string }) => void;
   onPlayerJoined?: (playerIndex: number, nickname: string) => void;
   onPlayerLeft?: (playerIndex: number) => void;
   onPlayerReconnected?: (playerIndex: number) => void;
+  onSessionTerminated?: (data: { message: string; terminatedBy?: string }) => void;
 }
 
 interface UseSocketReturn {
@@ -33,10 +35,12 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
     sessionId,
     secretId,
     onEvents,
+    onStateNicknames,
     onError,
     onPlayerJoined,
     onPlayerLeft,
     onPlayerReconnected,
+    onSessionTerminated,
   } = options;
 
   const [socket, setSocket] = useState<GameSocket | null>(null);
@@ -46,22 +50,34 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
 
   const callbacksRef = useRef({
     onEvents,
+    onStateNicknames,
     onError,
     onPlayerJoined,
     onPlayerLeft,
     onPlayerReconnected,
+    onSessionTerminated,
   });
 
   // Update refs when callbacks change
   useEffect(() => {
     callbacksRef.current = {
       onEvents,
+      onStateNicknames,
       onError,
       onPlayerJoined,
       onPlayerLeft,
       onPlayerReconnected,
+      onSessionTerminated,
     };
-  }, [onEvents, onError, onPlayerJoined, onPlayerLeft, onPlayerReconnected]);
+  }, [
+    onEvents,
+    onStateNicknames,
+    onError,
+    onPlayerJoined,
+    onPlayerLeft,
+    onPlayerReconnected,
+    onSessionTerminated,
+  ]);
 
   useEffect(() => {
     if (!serverUrl || !sessionId || !secretId) {
@@ -95,8 +111,9 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
       callbacksRef.current.onEvents?.(events);
     });
 
-    newSocket.on('game:state', ({ events }) => {
+    newSocket.on('game:state', ({ events, nicknames }) => {
       callbacksRef.current.onEvents?.(events);
+      callbacksRef.current.onStateNicknames?.(nicknames);
     });
 
     newSocket.on('error', (err) => {
@@ -114,6 +131,11 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
 
     newSocket.on('player:reconnected', ({ playerIndex }) => {
       callbacksRef.current.onPlayerReconnected?.(playerIndex);
+    });
+
+    newSocket.on('session:terminated', (data) => {
+      newSocket.disconnect();
+      callbacksRef.current.onSessionTerminated?.(data);
     });
 
     setSocket(newSocket);

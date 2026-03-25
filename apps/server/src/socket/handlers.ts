@@ -25,6 +25,7 @@ import {
 import {
   getPlayerBySecretId,
   getSessionByCode,
+  getSessionPlayers,
   updatePlayerConnection,
 } from '../services/sessionService.js';
 import { getEvents } from '../services/eventService.js';
@@ -146,9 +147,15 @@ export function setupSocketHandlers(io: GameServer) {
 
     // Send current state
     try {
-      const events = await getEvents(sessionId);
+      const [events, players] = await Promise.all([
+        getEvents(sessionId),
+        getSessionPlayers(sessionId),
+      ]);
       const filteredEvents = filterEventsForPlayer(events, playerIndex);
-      socket.emit('game:state', { events: filteredEvents });
+      const nicknames = Object.fromEntries(
+        players.map((p) => [p.playerIndex, p.nickname])
+      ) as Record<number, string>;
+      socket.emit('game:state', { events: filteredEvents, nicknames });
       // Re-initialize AI players in case the server restarted (instances are in-memory only)
       await initializeAIPlayersFromSession(sessionId);
       await checkAndTriggerAI(sessionId, io);

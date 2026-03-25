@@ -225,7 +225,9 @@ export class SimulationEngine {
       if (isBiddingComplete(this.state.playerCount, this.state.passedPlayers)) {
         const winner = getBiddingWinner(this.state.playerCount, this.state.passedPlayers);
         if (winner !== null) {
-          this.emit(createBiddingWonEvent(this.ctx(), winner, this.state.currentBid || 150));
+          this.emit(
+            createBiddingWonEvent(this.ctx(), winner, this.state.currentBid || 150, this.state.dabb)
+          );
         }
       }
     }
