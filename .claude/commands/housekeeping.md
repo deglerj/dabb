@@ -54,93 +54,7 @@ Identify direct dependencies that may be abandoned or no longer actively maintai
 
 6. Present findings as a table: Package | Last Published | Assessment | Proposed Action.
 
-### 2c — Server maintenance
-
-SSH into the production server for a combined health, maintenance, and database check. Run all sub-checks in a single SSH session where possible.
-
-Connect using:
-
-```bash
-ssh -i ~/.ssh/dabb-deploy dabb@dabb.degler.info
-```
-
-#### OS updates and reboot
-
-```bash
-# Check for available apt upgrades
-apt list --upgradable 2>/dev/null
-
-# Check if a reboot is required (file exists when kernel/libc was updated)
-ls /var/run/reboot-required 2>/dev/null && echo "REBOOT REQUIRED" || echo "No reboot needed"
-
-# Show what triggered the reboot requirement if applicable
-cat /var/run/reboot-required.pkgs 2>/dev/null || true
-```
-
-- If upgrades are available: list them and recommend running `sudo apt upgrade` (do NOT run it yourself — this must be done by the user).
-- If a reboot is required: report which packages triggered it and recommend scheduling a maintenance window.
-
-#### Disk and Docker usage
-
-```bash
-# OS disk usage
-df -h /
-
-# Docker overall disk usage
-docker system df
-```
-
-- If Docker reclaimable space exceeds 500 MB, run `docker system prune -f` to remove dangling images and stopped containers (this does **not** remove volumes or running containers and is safe to run automatically).
-- If OS disk usage is above 80%: flag it for the user.
-
-#### SSL certificate expiry
-
-Check the Let's Encrypt certificate served by nginx:
-
-```bash
-echo | openssl s_client -connect dabb.degler.info:443 -servername dabb.degler.info 2>/dev/null \
-  | openssl x509 -noout -dates
-```
-
-- If the certificate expires within **30 days**: warn the user and recommend checking the certbot container logs (`docker compose -f /opt/dabb/docker-compose.prod.yml logs certbot`).
-- If it expires within **7 days**: treat as urgent.
-- Otherwise: report the expiry date and mark as healthy.
-
-#### Database health
-
-Exec into the running Postgres container and run maintenance and health checks:
-
-```bash
-docker exec -i $(docker ps --filter name=postgres --format '{{.Names}}' | head -1) \
-  psql -U postgres -d dabb -c "
-    -- Run maintenance
-    VACUUM ANALYZE;
-
-    -- Table bloat summary (tables with more than 10 MB dead tuples)
-    SELECT relname AS table,
-           n_dead_tup AS dead_rows,
-           pg_size_pretty(pg_total_relation_size(relid)) AS total_size
-    FROM pg_stat_user_tables
-    WHERE n_dead_tup > 1000
-    ORDER BY n_dead_tup DESC;
-
-    -- Overall database size
-    SELECT pg_size_pretty(pg_database_size('dabb')) AS db_size;
-
-    -- Largest tables
-    SELECT relname AS table,
-           pg_size_pretty(pg_total_relation_size(relid)) AS size
-    FROM pg_stat_user_tables
-    ORDER BY pg_total_relation_size(relid) DESC
-    LIMIT 5;
-  "
-```
-
-- Report the database size and top 5 largest tables.
-- If any table has significant dead rows after `VACUUM ANALYZE`, flag it (this should be rare since autovacuum runs automatically).
-- If the database size exceeds 1 GB: flag it for the user.
-
-### 2d — Review TODO / FIXME / HACK comments
+### 2c — Review TODO / FIXME / HACK comments
 
 Find all technical debt markers in the codebase and decide what to do with each.
 
@@ -160,7 +74,7 @@ Find all technical debt markers in the codebase and decide what to do with each.
 
 4. Do **not** spend time fixing the underlying issues now — the goal is to ensure every marker is either tracked in an issue or removed if no longer relevant.
 
-### 2e — Fix linter findings
+### 2d — Fix linter findings
 
 1. Run the linter:
 
@@ -181,6 +95,16 @@ Find all technical debt markers in the codebase and decide what to do with each.
 5. If lint fixes changed any files, commit them:
    - Stage only the changed source files (not generated files)
    - Use a commit message like `Fix ESLint findings`
+
+### 2e — Self improvement
+
+Check for improvements and fixes in the Claude Code setup for this project.
+
+1. Check if CLAUDE.md is up-to-date and contain valid instructions
+
+2. Check if commands are up-to-date and contain valid instructions
+
+3. Check if the project's Claude Code setup matches current best practices and suggest improvements (if there are any)
 
 ---
 
