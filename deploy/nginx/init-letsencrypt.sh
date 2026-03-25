@@ -44,13 +44,16 @@ EOF
 docker compose -f docker-compose.prod.yml run --rm \
     -v "$PWD/$TMP_CONF:/etc/nginx/conf.d/default.conf:ro" \
     -p "80:80" \
-    nginx nginx -g "daemon off;" &
+    nginx &
 NGINX_PID=$!
 sleep 3
 
-# Run certbot to get the initial certificate
-docker compose -f docker-compose.prod.yml run --rm certbot \
-    certbot certonly \
+# Run certbot to get the initial certificate.
+# --entrypoint certbot overrides the renewal-loop entrypoint defined in docker-compose.prod.yml.
+docker compose -f docker-compose.prod.yml run --rm \
+    --entrypoint certbot \
+    certbot \
+    certonly \
     --webroot \
     --webroot-path /var/www/certbot \
     --email "$EMAIL" \

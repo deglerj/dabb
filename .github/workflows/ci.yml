@@ -182,6 +182,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     needs: [lint-and-typecheck, test]
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -192,10 +193,22 @@ jobs:
         include:
           - app: server
             dockerfile: apps/server/Dockerfile
+            build_args: ''
+            platforms: linux/amd64,linux/arm64
+          - app: client
+            dockerfile: apps/client/Dockerfile.web
+            build_args: |
+              SERVER_URL=https://dabb.degler.info
+              EXPO_PUBLIC_UMAMI_URL=${{ vars.VITE_UMAMI_URL }}
+              EXPO_PUBLIC_UMAMI_WEBSITE_ID=${{ vars.VITE_UMAMI_WEBSITE_ID }}
+            platforms: linux/amd64
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -227,11 +240,12 @@ jobs:
           push: false
           load: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
+          build-args: ${{ matrix.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0 - only uncompromised tag after March 2026 supply chain attack
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
           format: 'sarif'
@@ -246,7 +260,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Run Trivy (table output for logs)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0 - only uncompromised tag after March 2026 supply chain attack
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
           format: 'table'
@@ -262,9 +276,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ matrix.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platforms }}
 
   build-client-apk:
     name: Build Client APK

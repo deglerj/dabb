@@ -7,11 +7,21 @@ import type { GameEvent, GameLogEntry, GameState, PlayerIndex, Team } from '@dab
 
 const DEFAULT_VISIBLE_ENTRIES = 5;
 
+const IMPORTANT_ENTRY_TYPES = new Set<GameLogEntry['type']>([
+  'going_out',
+  'trick_won',
+  'round_scored',
+  'melds_declared',
+  'game_finished',
+]);
+
 export interface GameLogResult {
-  /** All log entries in reverse chronological order (newest first) */
+  /** All log entries in chronological order (oldest first) */
   entries: GameLogEntry[];
-  /** The latest N entries for collapsed view */
+  /** The latest N entries for collapsed view (last N, chronological order) */
   latestEntries: GameLogEntry[];
+  /** The most recent entry considered important (going out, trick/meld/round/game won) */
+  lastImportantEntry: GameLogEntry | null;
   /** Whether it's the current player's turn */
   isYourTurn: boolean;
 }
@@ -36,6 +46,33 @@ export function useGameLog(
           nickname: event.payload.nickname,
           team: event.payload.team,
         });
+      }
+
+      // GAME_FINISHED needs playerTeamData to resolve winner names — handle inline
+      if (event.type === 'GAME_FINISHED') {
+        const winnerValue = event.payload.winner;
+        const teamEntries = Array.from(playerTeamData.values());
+        const isTeamWinner =
+          teamEntries.length > 0 && teamEntries.some((e) => e.team === winnerValue);
+
+        let winnerNames: string[];
+        if (isTeamWinner) {
+          winnerNames = Array.from(playerTeamData.entries())
+            .filter(([, data]) => data.team === winnerValue)
+            .map(([, data]) => data.nickname);
+        } else {
+          const entry = playerTeamData.get(winnerValue as PlayerIndex);
+          winnerNames = entry ? [entry.nickname] : [String(winnerValue)];
+        }
+
+        entries.push({
+          id: event.id,
+          timestamp: event.timestamp,
+          type: 'game_finished',
+          playerIndex: null,
+          data: { kind: 'game_finished', winner: winnerValue, winnerNames },
+        });
+        continue;
       }
 
       const logEntry = eventToLogEntry(event);
@@ -63,9 +100,6 @@ export function useGameLog(
       }
     }
 
-    // Reverse to get newest first
-    const reversedEntries = [...entries].reverse();
-
     // Determine if it's the current player's turn
     const isYourTurn =
       currentPlayerIndex !== null &&
@@ -73,12 +107,69 @@ export function useGameLog(
       state.currentPlayer === currentPlayerIndex &&
       (state.phase === 'bidding' || state.phase === 'tricks');
 
+    const lastImportantEntry = synthesizeLastImportantEntry(entries);
+
     return {
-      entries: reversedEntries,
-      latestEntries: reversedEntries.slice(0, DEFAULT_VISIBLE_ENTRIES),
+      entries,
+      latestEntries: entries.slice(-DEFAULT_VISIBLE_ENTRIES),
+      lastImportantEntry,
       isYourTurn,
     };
   }, [events, state, currentPlayerIndex]);
+}
+
+/**
+ * Finds the most recent important log entry, merging consecutive melds_declared
+ * entries into a single melds_summary entry for the collapsed view.
+ *
+ * Receives entries in chronological order (oldest first).
+ */
+function synthesizeLastImportantEntry(entries: GameLogEntry[]): GameLogEntry | null {
+  // Reverse scan to find the last important entry
+  let foundIndex = -1;
+  for (let i = entries.length - 1; i >= 0; i--) {
+    if (IMPORTANT_ENTRY_TYPES.has(entries[i].type)) {
+      foundIndex = i;
+      break;
+    }
+  }
+
+  if (foundIndex === -1) {
+    return null;
+  }
+
+  const found = entries[foundIndex];
+  if (found.type !== 'melds_declared') {
+    return found;
+  }
+
+  // Find the start of the contiguous melds_declared run by scanning backwards
+  let startIndex = foundIndex;
+  while (startIndex > 0 && entries[startIndex - 1].type === 'melds_declared') {
+    startIndex--;
+  }
+
+  if (startIndex === foundIndex) {
+    // Only one melds_declared entry
+    return found;
+  }
+
+  // Collect entries startIndex..foundIndex inclusive — already chronological (oldest first)
+  const meldEntries = entries.slice(startIndex, foundIndex + 1);
+
+  return {
+    id: found.id,
+    timestamp: found.timestamp,
+    type: 'melds_summary',
+    playerIndex: null,
+    data: {
+      kind: 'melds_summary',
+      playerMelds: meldEntries.map((e) => ({
+        playerIndex: e.playerIndex as PlayerIndex,
+        totalPoints: e.data.kind === 'melds_declared' ? e.data.totalPoints : 0,
+      })),
+    },
+  };
 }
 
 /**
@@ -217,18 +308,6 @@ function eventToLogEntry(event: GameEvent): GameLogEntry | null {
         data: {
           kind: 'round_scored',
           scores: event.payload.scores,
-        },
-      };
-
-    case 'GAME_FINISHED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'game_finished',
-        playerIndex: null,
-        data: {
-          kind: 'game_finished',
-          winner: event.payload.winner,
         },
       };
 

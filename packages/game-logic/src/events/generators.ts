@@ -134,12 +134,13 @@ export function createPlayerPassedEvent(
 export function createBiddingWonEvent(
   ctx: EventContext,
   playerIndex: PlayerIndex,
-  winningBid: number
+  winningBid: number,
+  dabb: Card[]
 ): BiddingWonEvent {
   return {
     ...createBaseEvent(ctx),
     type: 'BIDDING_WON',
-    payload: { playerIndex, winningBid },
+    payload: { playerIndex, winningBid, dabb },
   };
 }
 

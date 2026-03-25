@@ -4,6 +4,8 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    cooldown:
+      default-days: 5
     ignore:
       # expo SDK 55 requires react-native 0.83.x; 0.84.0 broke the Kotlin
       # Promise interface in a way expo-modules-core 55.x doesn't handle.
@@ -31,13 +33,19 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    cooldown:
+      default-days: 5
 
   - package-ecosystem: 'docker'
     directory: '/apps/server'
     schedule:
       interval: 'weekly'
+    cooldown:
+      default-days: 5
 
   - package-ecosystem: 'docker'
     directory: '/apps/client'
     schedule:
       interval: 'weekly'
+    cooldown:
+      default-days: 5

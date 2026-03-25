@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { AIDifficulty, PlayerIndex } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import { Colors, Fonts, Shadows } from '../../theme.js';
+import { OptionsButton } from './OptionsButton.js';
 
 interface WaitingRoomScreenProps {
   sessionCode: string;
@@ -240,6 +241,9 @@ function WaitingRoomScreen({
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+        <OptionsButton />
+      </View>
     </View>
   );
 }
@@ -492,6 +496,10 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontSize: 15,
     fontFamily: Fonts.body,
+  },
+  optionsButtonContainer: {
+    position: 'absolute',
+    right: 16,
   },
 });
 

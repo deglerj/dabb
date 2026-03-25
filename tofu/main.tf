@@ -43,10 +43,10 @@ resource "hcloud_firewall" "dabb" {
 resource "hcloud_server" "dabb" {
   name         = "dabb"
   server_type  = "cx23"
-  image        = "ubuntu-24.04"
-  location     = "nbg1" # Nuremberg, Germany
+  image        = "ubuntu-24.04" # Placeholder — overwritten by NixOS install via ISO
+  location     = "nbg1"         # Nuremberg, Germany
   ssh_keys     = [hcloud_ssh_key.deploy.id]
   firewall_ids = [hcloud_firewall.dabb.id]
-  user_data    = file("${path.module}/cloud-init.yml")
+  # No user_data: NixOS is installed manually via Hetzner ISO image
 }
 

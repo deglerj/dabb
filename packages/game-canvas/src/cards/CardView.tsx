@@ -34,6 +34,9 @@ export interface CardViewProps {
   /** If provided, card arcs from this Y position on mount. */
   initialY?: number;
   dimmed?: boolean;
+  selected?: boolean;
+  highlighted?: boolean;
+  isTrump?: boolean;
 }
 
 const DEFAULT_W = 70;
@@ -56,6 +59,9 @@ export function CardView({
   initialY,
   effects,
   dimmed = false,
+  selected = false,
+  highlighted = false,
+  isTrump = false,
 }: CardViewProps) {
   // Snap to initial position on mount (or target if no initial given)
   const x = useSharedValue(initialX ?? targetX);
@@ -182,9 +188,39 @@ export function CardView({
         shouldRasterizeIOS
       >
         {card !== null ? (
-          <CardFace card={card} width={width} height={height} dimmed={dimmed} />
+          <CardFace card={card} width={width} height={height} dimmed={dimmed} isTrump={isTrump} />
         ) : (
           <CardBack width={width} height={height} />
+        )}
+        {selected && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width,
+              height,
+              borderRadius: width * 0.06,
+              borderWidth: 3,
+              borderColor: '#f39c12',
+            }}
+            pointerEvents="none"
+          />
+        )}
+        {highlighted && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width,
+              height,
+              borderRadius: width * 0.06,
+              borderWidth: 2,
+              borderColor: '#ffd700',
+            }}
+            pointerEvents="none"
+          />
         )}
       </AnimatedView>
     </GestureDetector>

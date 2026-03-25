@@ -36,6 +36,11 @@ else
     echo "    react-native directory not found in pnpm store"
 fi
 
+echo "==> Installing Skia prebuilt binaries..."
+cd /app/apps/client
+npx install-skia
+cd /app
+
 echo "==> Building APK with Gradle..."
 cd apps/client/android
 ./gradlew assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a

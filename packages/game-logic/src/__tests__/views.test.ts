@@ -59,6 +59,20 @@ describe('filterEventForPlayer', () => {
       expect(payload.dabb.every((c) => c.id.startsWith('hidden-'))).toBe(true);
     });
 
+    it('hidden dabb card IDs are not valid suit-rank-copy format (regression: DabbOverlay must not render CardFace for hidden dabb cards)', () => {
+      // Hidden dabb cards use 'hidden-N' format rather than 'suit-rank-copy' (e.g. 'kreuz-ass-0').
+      // Parsing 'hidden-0' as a CardId extracts 'hidden' as the suit, which is not in SUIT_COLORS.
+      // Calling getSuitColor('hidden') crashes with "can't access property 'primary'".
+      // Fix: DabbOverlay step='take' must not render CardFace for these placeholder cards.
+      const filtered = filterEventForPlayer(dealtEvent, 0 as PlayerIndex);
+      const payload = (filtered as typeof dealtEvent).payload;
+      const validSuits = ['kreuz', 'schippe', 'herz', 'bollen'];
+      for (const card of payload.dabb) {
+        const [suitPart] = card.id.split('-');
+        expect(validSuits).not.toContain(suitPart);
+      }
+    });
+
     it('preserves card count for hidden hands', () => {
       const filtered = filterEventForPlayer(dealtEvent, 1 as PlayerIndex);
       const payload = (filtered as typeof dealtEvent).payload;
@@ -71,6 +85,41 @@ describe('filterEventForPlayer', () => {
       const filtered = filterEventForPlayer(dealtEvent, 1 as PlayerIndex);
       const payload = (filtered as typeof dealtEvent).payload;
       expect(payload.hands[1 as PlayerIndex]).toEqual(dealtEvent.payload.hands[1 as PlayerIndex]);
+    });
+  });
+
+  describe('BIDDING_WON', () => {
+    const dabbCards = [visibleCard('bollen', 'koenig'), visibleCard('schippe', 'ass')];
+    const biddingWonEvent: Extract<GameEvent, { type: 'BIDDING_WON' }> = {
+      ...baseEvent(2),
+      type: 'BIDDING_WON',
+      payload: {
+        playerIndex: 0 as PlayerIndex,
+        winningBid: 200,
+        dabb: dabbCards,
+      },
+    };
+
+    it('reveals dabb to the bid winner (regression: flip animation crashed with hidden cards)', () => {
+      // Before fix: dabb cards were hidden when DabbOverlay opened, causing CardFace to crash
+      // with "SUIT_COLORS[suit] is undefined" when the flip animation ran.
+      // Fix: BIDDING_WON includes actual dabb cards for the bid winner.
+      const filtered = filterEventForPlayer(biddingWonEvent, 0 as PlayerIndex);
+      const payload = (filtered as typeof biddingWonEvent).payload;
+      expect(payload.dabb).toEqual(dabbCards);
+    });
+
+    it('strips dabb from BIDDING_WON for non-winners', () => {
+      const filtered = filterEventForPlayer(biddingWonEvent, 1 as PlayerIndex);
+      const payload = (filtered as typeof biddingWonEvent).payload;
+      expect(payload.dabb).toBeUndefined();
+    });
+
+    it('preserves winningBid and playerIndex for all players', () => {
+      const filtered = filterEventForPlayer(biddingWonEvent, 1 as PlayerIndex);
+      const payload = (filtered as typeof biddingWonEvent).payload;
+      expect(payload.playerIndex).toBe(0);
+      expect(payload.winningBid).toBe(200);
     });
   });
 

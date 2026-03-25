@@ -2,7 +2,7 @@
  * GameTable
  *
  * Full-bleed Skia <Canvas> rendering:
- * - Static: wood surround, felt surface, trick zone border
+ * - Static: wood surround, felt surface
  * - Dynamic (via effects prop): card shadow, felt ripple, sweep particles
  *
  * Usage:
@@ -14,7 +14,6 @@ import React, { useMemo } from 'react';
 import {
   Canvas,
   Fill,
-  Path,
   Skia,
   Circle,
   RoundedRect,
@@ -67,15 +66,6 @@ export function GameTable({
 
   const feltUniforms = useMemo(() => ({ iResolution: [feltW, feltH] }), [feltW, feltH]);
   const woodUniforms = useMemo(() => ({ iResolution: [width, height] }), [width, height]);
-
-  // Trick zone oval
-  const trickPath = useMemo(() => {
-    const path = Skia.Path.Make();
-    const cx = width / 2;
-    const cy = height / 2;
-    path.addOval(Skia.XYWHRect(cx - width * 0.22, cy - height * 0.18, width * 0.44, height * 0.36));
-    return path;
-  }, [width, height]);
 
   // Card-shaped shadow driven by shared values
   const shadowOpacity = useDerivedValue(() => effects.shadowElevation.value * 0.45);
@@ -142,15 +132,6 @@ export function GameTable({
       <Fill clip={rrect(rect(surround, surround, feltW, feltH), 8, 8)}>
         <Shader source={feltEffect} uniforms={feltUniforms} />
       </Fill>
-
-      {/* Trick zone border */}
-      <Path
-        path={trickPath}
-        color="rgba(255,255,255,0.10)"
-        style="stroke"
-        strokeWidth={1.5}
-        antiAlias
-      />
 
       {/* Flying card shadow */}
       <RoundedRect

@@ -5,37 +5,48 @@
 import React from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
 import { Colors, Fonts, Shadows } from '../../theme.js';
+import { useTranslation } from '@dabb/i18n';
 
 export interface GameTerminatedModalProps {
   visible: boolean;
   winnerId: string | null;
-  winnerNickname: string | null;
+  winnerNicknames: string[];
   isLocalWinner: boolean;
+  terminatedByNickname?: string | null;
   onDone: () => void;
-}
-
-function resolveTitle(
-  winnerId: string | null,
-  winnerNickname: string | null,
-  isLocalWinner: boolean
-): string {
-  if (!winnerId) {
-    return 'Game ended.';
-  }
-  if (isLocalWinner) {
-    return 'You won the game! 🎉';
-  }
-  return `${winnerNickname ?? 'Someone'} won the game.`;
 }
 
 export function GameTerminatedModal({
   visible,
   winnerId,
-  winnerNickname,
+  winnerNicknames,
   isLocalWinner,
+  terminatedByNickname,
   onDone,
 }: GameTerminatedModalProps) {
-  const title = resolveTitle(winnerId, winnerNickname, isLocalWinner);
+  const { t } = useTranslation();
+
+  let title: string;
+  if (terminatedByNickname) {
+    title = t('game.playerEndedGame', { name: terminatedByNickname });
+  } else if (!winnerId) {
+    title = t('game.gameEnded');
+  } else if (isLocalWinner) {
+    if (winnerNicknames.length === 2) {
+      // 4-player: "Du und Anna habt gewonnen! 🎉"
+      const teammateName = winnerNicknames[1] ?? winnerNicknames[0];
+      title = t('game.youAndTeammateWonGame', { name: teammateName });
+    } else {
+      title = t('game.youWonGame');
+    }
+  } else {
+    if (winnerNicknames.length === 2) {
+      // 4-player: "Bob und Chris haben gewonnen."
+      title = t('game.playersWonGame', { name1: winnerNicknames[0], name2: winnerNicknames[1] });
+    } else {
+      title = t('game.playerWonGame', { name: winnerNicknames[0] ?? t('common.player') });
+    }
+  }
 
   return (
     <Modal transparent animationType="fade" visible={visible}>
@@ -43,7 +54,7 @@ export function GameTerminatedModal({
         <View style={styles.card}>
           <Text style={styles.title}>{title}</Text>
           <Pressable style={styles.button} onPress={onDone}>
-            <Text style={styles.buttonLabel}>Done</Text>
+            <Text style={styles.buttonLabel}>{t('common.done')}</Text>
           </Pressable>
         </View>
       </View>
