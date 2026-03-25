@@ -23,8 +23,8 @@ export interface PlayerHandProps {
   cards: Card[];
   onPlayCard: (cardId: string, dropPos?: { x: number; y: number }) => void;
   effects?: SkiaEffects;
-  discardSelectedIds?: string[];
-  onToggleDiscard?: (cardId: string) => void;
+  slottedCardIds?: string[];
+  onSlotCard?: (cardId: string) => void;
 }
 
 export function PlayerHand({
@@ -33,8 +33,8 @@ export function PlayerHand({
   cards,
   onPlayCard,
   effects,
-  discardSelectedIds,
-  onToggleDiscard,
+  slottedCardIds,
+  onSlotCard,
 }: PlayerHandProps) {
   const { width, height } = useGameDimensions();
   const feltBounds = getFeltBounds(width, height);
@@ -51,9 +51,18 @@ export function PlayerHand({
 
   const sortedCards = sortHand(cards);
 
+  const isSlotMode = !!onSlotCard;
+
+  // In slot mode, slotted cards are rendered as a separate layer by GameScreen;
+  // exclude them here so the remaining hand cards spread to fill the arc without gaps.
+  const displayedCards =
+    isSlotMode && slottedCardIds
+      ? sortedCards.filter((c) => !slottedCardIds.includes(c.id))
+      : sortedCards;
+
   const positions = deriveCardPositions(
     {
-      handCardIds: sortedCards.map((c) => c.id),
+      handCardIds: displayedCards.map((c) => c.id),
       trickCardIds: [],
       wonPilePlayerIds: [],
       opponentCardCounts: {},
@@ -64,12 +73,10 @@ export function PlayerHand({
   const { cardScale } = positions;
   const scaledW = CARD_WIDTH * cardScale;
   const scaledH = CARD_HEIGHT * cardScale;
-  const liftOffset = 20 * cardScale;
 
   const isTricksPhase = gameState.phase === 'tricks';
   const isTrumpHighlightPhase =
     (gameState.phase === 'tricks' || gameState.phase === 'melding') && gameState.trump !== null;
-  const isDiscardMode = !!onToggleDiscard;
   const validPlays =
     isTricksPhase && gameState.trump
       ? getValidPlays(cards, gameState.currentTrick, gameState.trump)
@@ -90,30 +97,41 @@ export function PlayerHand({
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {sortedCards.map((card) => {
+      {displayedCards.map((card) => {
         const pos = positions.playerHand[card.id];
         if (!pos) {
           return null;
         }
-        if (isDiscardMode) {
-          const isSelected = discardSelectedIds?.includes(card.id) ?? false;
+        if (isSlotMode) {
           return (
             <CardView
               key={card.id}
               card={card.id}
               targetX={pos.x}
-              targetY={isSelected ? pos.y - liftOffset : pos.y}
+              targetY={pos.y}
               targetRotation={pos.rotation}
-              zIndex={isSelected ? pos.zIndex + 100 : pos.zIndex}
+              zIndex={pos.zIndex}
               width={scaledW}
               height={scaledH}
-              selected={isSelected}
+              draggable={true}
               highlighted={highlightedIds.has(card.id)}
-              isTrump={isTrumpHighlightPhase && card.suit === gameState.trump}
+              isTrump={false}
               onTap={() => {
                 playSound('card-select');
                 triggerHaptic('card-select');
-                onToggleDiscard!(card.id);
+                onSlotCard!(card.id);
+              }}
+              onDrop={(x, y) => {
+                const onFelt =
+                  x >= feltBounds.x &&
+                  x <= feltBounds.x + feltBounds.width &&
+                  y >= feltBounds.y &&
+                  y <= feltBounds.y + feltBounds.height;
+                if (onFelt) {
+                  playSound('card-select');
+                  triggerHaptic('card-select');
+                  onSlotCard!(card.id);
+                }
               }}
             />
           );

@@ -490,3 +490,61 @@ describe('Two-Player Round Integration', () => {
     expect(game.state.totalScores.get(1 as PlayerIndex)).toBe(90);
   });
 });
+
+describe('Three-Player Bidding Duel Chain', () => {
+  it('runs duels in order: bob vs charlie, then winner vs alice (dealer)', () => {
+    const game = GameTestHelper.create('test-duel');
+    game.alice.joins();
+    game.bob.joins();
+    game.charlie.joins();
+
+    // dealer=0 (alice), firstBidder=1 (bob), biddingOrder=[bob(1), charlie(2), alice(0)]
+    game.startGame({ playerCount: 3, targetScore: 1000, dealer: 0 as PlayerIndex });
+    // Empty hands suffice — we are only testing bidding turn order
+    game.dealCards({ alice: [], bob: [], dabb: [] });
+
+    // Duel 1: bob (firstBidder) vs charlie
+    expect(game.state.currentBidder).toBe(1); // bob opens
+    game.bob.bids(150);
+    expect(game.state.currentBidder).toBe(2); // charlie responds
+
+    game.charlie.bids(160);
+    expect(game.state.currentBidder).toBe(1); // back to bob
+
+    game.bob.passes();
+    // Duel 1 over: charlie won. Duel 2: charlie vs alice (last challenger)
+    expect(game.state.currentBidder).toBe(0); // alice is next challenger
+
+    game.alice.bids(170);
+    expect(game.state.currentBidder).toBe(2); // charlie responds
+
+    game.charlie.passes();
+    // Bidding complete: alice wins
+    expect(game.state.phase).toBe('dabb');
+    expect(game.state.bidWinner).toBe(0); // alice
+    expect(game.state.currentBid).toBe(170);
+  });
+
+  it('ends bidding immediately when new challenger passes without raising', () => {
+    const game = GameTestHelper.create('test-duel-instant-pass');
+    game.alice.joins();
+    game.bob.joins();
+    game.charlie.joins();
+
+    game.startGame({ playerCount: 3, targetScore: 1000, dealer: 0 as PlayerIndex });
+    game.dealCards({ alice: [], bob: [], dabb: [] });
+
+    // Duel 1: bob vs charlie
+    game.bob.bids(150);
+    game.charlie.passes(); // charlie passes immediately
+
+    // Duel 2: bob vs alice — alice goes first as challenger
+    expect(game.state.currentBidder).toBe(0); // alice is challenger
+    game.alice.passes(); // alice passes immediately
+
+    // Bidding complete: bob wins with 150
+    expect(game.state.phase).toBe('dabb');
+    expect(game.state.bidWinner).toBe(1); // bob
+    expect(game.state.currentBid).toBe(150);
+  });
+});

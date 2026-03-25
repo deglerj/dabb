@@ -67,6 +67,7 @@ export interface GameState {
   currentBidder: PlayerIndex | null;
   firstBidder: PlayerIndex | null; // Player who starts each round (plays first card in tricks)
   passedPlayers: Set<PlayerIndex>;
+  lastBidderIndex: PlayerIndex | null; // Player who last placed a bid (null at round start)
 
   // Trump state
   trump: Suit | null;
@@ -193,11 +194,20 @@ export const DABB_SIZE: Record<PlayerCount, number> = {
 export const MIN_BID = 150;
 export const BID_INCREMENT = 10;
 
+/** Used by ScoreboardStrip and ScoreboardModal in 4-player team games */
+export interface TeamScoreEntry {
+  team: Team;
+  names: string; // e.g. "Anna & Bob" — pre-formatted by caller
+  score: number;
+  isMyTeam: boolean;
+}
+
 // Round history for scoreboard
 export interface RoundHistoryEntry {
   round: number;
   bidWinner: PlayerIndex | null;
   winningBid: number;
+  wentOut?: boolean; // true when the bid winner chose to go out (Abgehen)
   scores: Record<
     PlayerIndex | Team,
     { melds: number; tricks: number; total: number; bidMet: boolean }

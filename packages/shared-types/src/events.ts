@@ -52,6 +52,7 @@ export interface BiddingWonEvent extends BaseEvent {
   payload: {
     playerIndex: PlayerIndex;
     winningBid: number;
+    dabb?: Card[];
   };
 }
 

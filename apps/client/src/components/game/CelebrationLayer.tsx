@@ -7,12 +7,14 @@
  */
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from '@dabb/i18n';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 import { Canvas, Rect, Group } from '@shopify/react-native-skia';
 
 export interface CelebrationLayerProps {
   showConfetti: boolean;
   showFireworks: boolean;
+  isTeamGame?: boolean;
 }
 
 interface Particle {
@@ -85,12 +87,18 @@ function stepParticles(particles: Particle[], gravity: number): void {
   }
 }
 
-export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLayerProps) {
+export function CelebrationLayer({
+  showConfetti,
+  showFireworks,
+  isTeamGame,
+}: CelebrationLayerProps) {
   const { width, height } = useGameDimensions();
+  const { t } = useTranslation();
   const particles = useRef<Particle[]>([]);
   const rafRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [_tick, setTick] = useState(0);
+  const [message, setMessage] = useState('');
 
   const stopAnimation = useCallback(() => {
     if (rafRef.current !== null) {
@@ -102,6 +110,7 @@ export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLay
       timerRef.current = null;
     }
     particles.current = [];
+    setMessage('');
     setTick((t) => t + 1);
   }, []);
 
@@ -113,6 +122,14 @@ export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLay
         : createFireworks(width, height);
       const gravity = isConfetti ? 0.12 : 0.05;
 
+      let msg: string;
+      if (isConfetti) {
+        msg = isTeamGame ? t('game.teamWonRound') : t('game.youWonRound');
+      } else {
+        msg = isTeamGame ? t('game.teamWonGame') : t('game.youWonGame');
+      }
+      setMessage(msg);
+
       const animate = () => {
         stepParticles(particles.current, gravity);
         setTick((t) => t + 1);
@@ -122,7 +139,7 @@ export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLay
 
       timerRef.current = setTimeout(stopAnimation, PARTICLE_LIFETIME_MS);
     },
-    [width, height, stopAnimation]
+    [width, height, stopAnimation, t, isTeamGame]
   );
 
   useEffect(() => {
@@ -136,8 +153,7 @@ export function CelebrationLayer({ showConfetti, showFireworks }: CelebrationLay
     return stopAnimation;
   }, [showConfetti, showFireworks, startAnimation, stopAnimation]);
 
-  const visible = showConfetti || showFireworks || particles.current.length > 0;
-  const message = showFireworks ? 'You won the game!' : showConfetti ? 'You won the round!' : '';
+  const visible = message !== '' || particles.current.length > 0;
 
   return (
     <View style={[styles.overlay, { opacity: visible ? 1 : 0 }]} pointerEvents="none">

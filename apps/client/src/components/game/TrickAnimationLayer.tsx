@@ -37,10 +37,21 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
   const { width, height } = useGameDimensions();
   const { animPhase, displayCards, winnerIndex, winnerPlayerId, sweepingCardCount } = animState;
 
-  // Order players by playerIndex so WON_PILE_CORNERS assigns correctly:
-  // index 0 = bottom-left, 1 = top-right, 2 = top-left, 3 = bottom-right
+  // Local player at index 0 (bottom-left), then opponents descending so that
+  // the rightmost opponent gets WON_PILE_CORNERS[1]=topRight and the leftmost gets [2]=topLeft.
   const { positions, sweepDest, getOrigin } = useMemo(() => {
-    const sortedPlayers = [...players].sort((a, b) => a.playerIndex - b.playerIndex);
+    // Opponents are sorted descending so the rightmost opponent (highest playerIndex,
+    // positioned at edgeFraction 85%) maps to WON_PILE_CORNERS[1]=topRight and the
+    // leftmost (lowest playerIndex, edgeFraction 15%) maps to WON_PILE_CORNERS[2]=topLeft.
+    const sortedPlayers = [...players].sort((a, b) => {
+      if (a.playerIndex === myPlayerIndex) {
+        return -1;
+      }
+      if (b.playerIndex === myPlayerIndex) {
+        return 1;
+      }
+      return b.playerIndex - a.playerIndex; // descending: rightmost opponent first
+    });
     const wonPilePlayerIds = sortedPlayers.map((p) => p.id);
 
     // Opponents need an entry in opponentCardCounts so deriveCardPositions computes

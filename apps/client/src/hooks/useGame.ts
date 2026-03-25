@@ -10,9 +10,10 @@ export interface UseGameOptions {
   sessionId: string;
   secretId: string;
   playerIndex: number;
+  onSessionTerminated?: (data: { message: string; terminatedBy?: string }) => void;
 }
 
-export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
+export function useGame({ sessionId, secretId, playerIndex, onSessionTerminated }: UseGameOptions) {
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
 
   const { state, events, isInitialLoad, processEvents, reset } = useGameState({
@@ -38,6 +39,7 @@ export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
     onEvents: processEvents,
     onStateNicknames: handleStateNicknames,
     onPlayerJoined: handlePlayerJoined,
+    onSessionTerminated,
   });
 
   const onBid = useCallback((amount: number) => socket?.emit('game:bid', { amount }), [socket]);
@@ -60,6 +62,7 @@ export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
     (cardId: CardId) => socket?.emit('game:playCard', { cardId }),
     [socket]
   );
+  const onExit = useCallback(() => socket?.emit('game:exit'), [socket]);
 
   return {
     state,
@@ -78,5 +81,6 @@ export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions) {
     onDeclareTrump,
     onDeclareMelds,
     onPlayCard,
+    onExit,
   };
 }

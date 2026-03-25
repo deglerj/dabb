@@ -18,6 +18,7 @@ interface UseSocketOptions {
   onPlayerJoined?: (playerIndex: number, nickname: string) => void;
   onPlayerLeft?: (playerIndex: number) => void;
   onPlayerReconnected?: (playerIndex: number) => void;
+  onSessionTerminated?: (data: { message: string; terminatedBy?: string }) => void;
 }
 
 interface UseSocketReturn {
@@ -39,6 +40,7 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
     onPlayerJoined,
     onPlayerLeft,
     onPlayerReconnected,
+    onSessionTerminated,
   } = options;
 
   const [socket, setSocket] = useState<GameSocket | null>(null);
@@ -53,6 +55,7 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
     onPlayerJoined,
     onPlayerLeft,
     onPlayerReconnected,
+    onSessionTerminated,
   });
 
   // Update refs when callbacks change
@@ -64,8 +67,17 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
       onPlayerJoined,
       onPlayerLeft,
       onPlayerReconnected,
+      onSessionTerminated,
     };
-  }, [onEvents, onStateNicknames, onError, onPlayerJoined, onPlayerLeft, onPlayerReconnected]);
+  }, [
+    onEvents,
+    onStateNicknames,
+    onError,
+    onPlayerJoined,
+    onPlayerLeft,
+    onPlayerReconnected,
+    onSessionTerminated,
+  ]);
 
   useEffect(() => {
     if (!serverUrl || !sessionId || !secretId) {
@@ -119,6 +131,11 @@ export function useSocket(options: UseSocketOptions): UseSocketReturn {
 
     newSocket.on('player:reconnected', ({ playerIndex }) => {
       callbacksRef.current.onPlayerReconnected?.(playerIndex);
+    });
+
+    newSocket.on('session:terminated', (data) => {
+      newSocket.disconnect();
+      callbacksRef.current.onSessionTerminated?.(data);
     });
 
     setSocket(newSocket);

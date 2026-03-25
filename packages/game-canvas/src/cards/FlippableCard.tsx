@@ -86,8 +86,11 @@ export function FlippableCard({ card, flipped, instant, width, height }: Flippab
     <AnimatedView style={[{ width, height }, animatedStyle]}>
       {/* Both children are position:absolute — wrapper provides the bounding box */}
       <View style={{ width, height }}>
-        {!showFace && <CardBack width={width} height={height} />}
-        {showFace && <CardFace card={card.id} width={width} height={height} />}
+        {/* Show CardBack if face isn't revealed yet, or if the card data is still hidden (placeholder) */}
+        {(!showFace || card.id.startsWith('hidden-')) && <CardBack width={width} height={height} />}
+        {showFace && !card.id.startsWith('hidden-') && (
+          <CardFace card={card.id} width={width} height={height} />
+        )}
       </View>
     </AnimatedView>
   );
