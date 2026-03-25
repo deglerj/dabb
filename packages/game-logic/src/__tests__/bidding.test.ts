@@ -20,20 +20,87 @@ describe('Bidding Logic', () => {
   });
 
   describe('getNextBidder', () => {
-    it('returns next player who has not passed', () => {
-      const passed = new Set<0 | 1 | 2 | 3>();
-      expect(getNextBidder(0, 4, passed)).toBe(1);
-      expect(getNextBidder(3, 4, passed)).toBe(0);
+    // 3-player, dealer=0, firstBidder=1, biddingOrder=[1,2,0]
+    describe('3-player duel chain (firstBidder=1)', () => {
+      const playerCount = 3 as const;
+      const firstBidder = 1 as const;
+
+      it('after P1 bids (Duel 1): returns challenger P2', () => {
+        const passed = new Set<0 | 1 | 2>();
+        expect(getNextBidder(1, playerCount, passed, firstBidder)).toBe(2);
+      });
+
+      it('after P2 bids (Duel 1): returns survivor P1', () => {
+        const passed = new Set<0 | 1 | 2>();
+        expect(getNextBidder(2, playerCount, passed, firstBidder)).toBe(1);
+      });
+
+      it('after P2 passes (Duel 1 → Duel 2): returns next challenger P0', () => {
+        const passed = new Set<0 | 1 | 2>([2]);
+        expect(getNextBidder(2, playerCount, passed, firstBidder)).toBe(0);
+      });
+
+      it('after P0 bids (Duel 2): returns survivor P1', () => {
+        const passed = new Set<0 | 1 | 2>([2]);
+        expect(getNextBidder(0, playerCount, passed, firstBidder)).toBe(1);
+      });
+
+      it('after P1 bids (Duel 2): returns challenger P0', () => {
+        const passed = new Set<0 | 1 | 2>([2]);
+        expect(getNextBidder(1, playerCount, passed, firstBidder)).toBe(0);
+      });
+
+      it('after P0 passes (Duel 2 → bidding ends): returns null', () => {
+        const passed = new Set<0 | 1 | 2>([2, 0]);
+        expect(getNextBidder(0, playerCount, passed, firstBidder)).toBe(null);
+      });
     });
 
-    it('skips passed players', () => {
-      const passed = new Set<0 | 1 | 2 | 3>([1]);
-      expect(getNextBidder(0, 4, passed)).toBe(2);
+    // 4-player, dealer=0, firstBidder=1, biddingOrder=[1,2,3,0]
+    describe('4-player duel chain (firstBidder=1)', () => {
+      const playerCount = 4 as const;
+      const firstBidder = 1 as const;
+
+      it('after P1 bids (Duel 1): returns challenger P2', () => {
+        const passed = new Set<0 | 1 | 2 | 3>();
+        expect(getNextBidder(1, playerCount, passed, firstBidder)).toBe(2);
+      });
+
+      it('after P2 passes (Duel 1 → Duel 2): returns next challenger P3', () => {
+        const passed = new Set<0 | 1 | 2 | 3>([2]);
+        expect(getNextBidder(2, playerCount, passed, firstBidder)).toBe(3);
+      });
+
+      it('after P3 passes (Duel 2 → Duel 3): returns next challenger P0', () => {
+        const passed = new Set<0 | 1 | 2 | 3>([2, 3]);
+        expect(getNextBidder(3, playerCount, passed, firstBidder)).toBe(0);
+      });
+
+      it('after P0 passes (Duel 3 → bidding ends): returns null', () => {
+        const passed = new Set<0 | 1 | 2 | 3>([2, 3, 0]);
+        expect(getNextBidder(0, playerCount, passed, firstBidder)).toBe(null);
+      });
+
+      it('after P3 bids (Duel 2): returns survivor P1', () => {
+        const passed = new Set<0 | 1 | 2 | 3>([2]);
+        expect(getNextBidder(3, playerCount, passed, firstBidder)).toBe(1);
+      });
     });
 
-    it('returns null if no active players', () => {
-      const passed = new Set<0 | 1 | 2 | 3>([0, 1, 2, 3]);
-      expect(getNextBidder(0, 4, passed)).toBe(null);
+    // 2-player: single duel
+    describe('2-player (firstBidder=1)', () => {
+      const playerCount = 2 as const;
+      const firstBidder = 1 as const;
+
+      it('after P1 bids: returns challenger P0', () => {
+        const passed = new Set<0 | 1>();
+        expect(getNextBidder(1, playerCount, passed, firstBidder)).toBe(0);
+      });
+
+      it('after P0 passes (bidding ends): returns null', () => {
+        const passed = new Set<0 | 1>([0]);
+        expect(getNextBidder(0, playerCount, passed, firstBidder)).toBe(null);
+      });
     });
   });
 

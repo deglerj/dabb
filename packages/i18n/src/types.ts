@@ -109,9 +109,6 @@ export interface TranslationKeys {
     melds: string;
     tricks: string;
     gameWinner: string;
-    exitGame: string;
-    exitGameConfirmTitle: string;
-    exitGameConfirmMessage: string;
     gameTerminated: string;
     gameTerminatedMessage: string;
     backToHome: string;
@@ -120,12 +117,22 @@ export interface TranslationKeys {
     orGoOut: string;
     goOutConfirmTitle: string;
     goOutConfirmMessage: string;
+    goOutLink: string;
     scoreHistory: string;
     roundAbbr: string;
     bidColumn: string;
+    bidMet: string;
+    bidMissed: string;
+    wentOut: string;
     gameEnded: string;
+    youWonRound: string;
     youWonGame: string;
     playerWonGame: string;
+    playerEndedGame: string;
+    youAndTeammateWonGame: string; // 4-player: "Du und {{name}} habt gewonnen! 🎉"
+    playersWonGame: string; // 4-player: "{{name1}} und {{name2}} haben gewonnen."
+    teamWonRound: string; // 4-player celebration: "Dein Team hat die Runde gewonnen! 🎉"
+    teamWonGame: string; // 4-player celebration: "Dein Team hat gewonnen! 🎉"
   };
   phases: {
     waiting: string;
@@ -141,6 +148,7 @@ export interface TranslationKeys {
   };
   errors: {
     enterNickname: string;
+    nicknameTooLong: string;
     enterGameCode: string;
     createFailed: string;
     joinFailed: string;
@@ -200,12 +208,16 @@ export interface TranslationKeys {
     sound: string;
     vibration: string;
     language: string;
+    exitGame: string;
+    exitGameConfirmTitle: string;
+    exitGameConfirmMessage: string;
   };
   serverErrors: {
     // Session errors
     SESSION_NOT_FOUND: string;
     SESSION_FULL: string;
     SESSION_CODE_GENERATION_FAILED: string;
+    NICKNAME_TOO_LONG: string;
     // Game start errors
     NOT_ENOUGH_PLAYERS: string;
     GAME_ALREADY_STARTED: string;

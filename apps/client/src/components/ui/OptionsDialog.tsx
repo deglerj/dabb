@@ -12,9 +12,10 @@ import { Colors, Fonts, Shadows } from '../../theme.js';
 interface OptionsDialogProps {
   visible: boolean;
   onClose: () => void;
+  onExitGame?: () => void;
 }
 
-export function OptionsDialog({ visible, onClose }: OptionsDialogProps) {
+export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogProps) {
   const { t } = useTranslation();
 
   // Read current values when dialog renders
@@ -23,6 +24,7 @@ export function OptionsDialog({ visible, onClose }: OptionsDialogProps) {
   const [language, setLanguage] = useState<SupportedLanguage>(
     () => (i18n.language as SupportedLanguage) ?? 'de'
   );
+  const [confirmingExit, setConfirmingExit] = useState(false);
 
   // Reset state when dialog is re-opened to avoid showing stale values
   useEffect(() => {
@@ -30,6 +32,7 @@ export function OptionsDialog({ visible, onClose }: OptionsDialogProps) {
       setSoundEnabled(!isMuted());
       setHapticsEnabledState(isHapticsEnabled());
       setLanguage((i18n.language as SupportedLanguage) ?? 'de');
+      setConfirmingExit(false);
     }
   }, [visible]);
 
@@ -101,6 +104,41 @@ export function OptionsDialog({ visible, onClose }: OptionsDialogProps) {
               ))}
             </View>
           </View>
+
+          {onExitGame && (
+            <>
+              <View style={styles.divider} />
+              {!confirmingExit ? (
+                <TouchableOpacity style={styles.exitButton} onPress={() => setConfirmingExit(true)}>
+                  <Text style={styles.exitButtonLabel}>{t('options.exitGame')}</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.exitConfirm}>
+                  <Text style={styles.exitConfirmTitle}>{t('options.exitGameConfirmTitle')}</Text>
+                  <Text style={styles.exitConfirmMessage}>
+                    {t('options.exitGameConfirmMessage')}
+                  </Text>
+                  <View style={styles.exitConfirmButtons}>
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => setConfirmingExit(false)}
+                    >
+                      <Text style={styles.cancelButtonLabel}>{t('common.cancel')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.exitButtonConfirm}
+                      onPress={() => {
+                        onClose();
+                        onExitGame();
+                      }}
+                    >
+                      <Text style={styles.exitButtonLabel}>{t('options.exitGame')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </>
+          )}
         </TouchableOpacity>
       </TouchableOpacity>
     </Modal>
@@ -188,5 +226,57 @@ const styles = StyleSheet.create({
   },
   flagEmoji: {
     fontSize: 22,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.paperEdge,
+    marginTop: 14,
+    marginBottom: 14,
+  },
+  exitButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  exitButtonLabel: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 14,
+    color: '#d32f2f',
+  },
+  exitConfirm: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  exitConfirmTitle: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 14,
+    color: Colors.inkDark,
+  },
+  exitConfirmMessage: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
+    color: Colors.inkMid,
+    textAlign: 'center',
+  },
+  exitConfirmButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  cancelButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: Colors.paperAged,
+  },
+  cancelButtonLabel: {
+    fontFamily: Fonts.body,
+    fontSize: 14,
+    color: Colors.inkDark,
+  },
+  exitButtonConfirm: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: '#fdecea',
   },
 });

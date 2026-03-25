@@ -8,7 +8,11 @@ import { Feather } from '@expo/vector-icons';
 import { Colors } from '../../theme.js';
 import { OptionsDialog } from './OptionsDialog.js';
 
-export function OptionsButton() {
+interface OptionsButtonProps {
+  onExitGame?: () => void;
+}
+
+export function OptionsButton({ onExitGame }: OptionsButtonProps) {
   const [dialogVisible, setDialogVisible] = useState(false);
 
   return (
@@ -16,7 +20,11 @@ export function OptionsButton() {
       <TouchableOpacity style={styles.button} onPress={() => setDialogVisible(true)} hitSlop={8}>
         <Feather name="settings" size={20} color={Colors.paperFace} />
       </TouchableOpacity>
-      <OptionsDialog visible={dialogVisible} onClose={() => setDialogVisible(false)} />
+      <OptionsDialog
+        visible={dialogVisible}
+        onClose={() => setDialogVisible(false)}
+        onExitGame={onExitGame}
+      />
     </>
   );
 }

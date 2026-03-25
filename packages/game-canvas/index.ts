@@ -9,7 +9,9 @@ export type { SkiaEffects } from './src/table/useSkiaEffects.js';
 // Cards
 export { CardView } from './src/cards/CardView.js';
 export type { CardViewProps } from './src/cards/CardView.js';
-export { deriveCardPositions } from './src/cards/cardPositions.js';
+export { CardBackView } from './src/cards/CardBackView.js';
+export type { CardBackViewProps } from './src/cards/CardBackView.js';
+export { deriveCardPositions, edgeFraction } from './src/cards/cardPositions.js';
 export type {
   CardPositionsInput,
   CardPositionsOutput,
@@ -32,6 +34,8 @@ export { BiddingOverlay } from './src/overlays/BiddingOverlay.js';
 export type { BiddingOverlayProps } from './src/overlays/BiddingOverlay.js';
 export { DabbOverlay } from './src/overlays/DabbOverlay.js';
 export type { DabbOverlayProps } from './src/overlays/DabbOverlay.js';
+export { DiscardOverlay } from './src/overlays/DiscardOverlay.js';
+export type { DiscardOverlayProps } from './src/overlays/DiscardOverlay.js';
 export { TrumpOverlay } from './src/overlays/TrumpOverlay.js';
 export type { TrumpOverlayProps } from './src/overlays/TrumpOverlay.js';
 export { MeldingOverlay } from './src/overlays/MeldingOverlay.js';

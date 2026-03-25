@@ -181,16 +181,21 @@ function handleBidPlaced(
   state: GameState,
   event: Extract<GameEvent, { type: 'BID_PLACED' }>
 ): GameState {
+  if (state.firstBidder === null) {
+    throw new Error('firstBidder is null during bidding');
+  }
   const nextBidder = getNextBidder(
     event.payload.playerIndex,
     state.playerCount,
-    state.passedPlayers
+    state.passedPlayers,
+    state.firstBidder
   );
 
   return {
     ...state,
     currentBid: event.payload.amount,
     currentBidder: nextBidder,
+    lastBidderIndex: event.payload.playerIndex,
   };
 }
 
@@ -203,9 +208,17 @@ function handlePlayerPassed(
 
   const biddingComplete = isBiddingComplete(state.playerCount, newPassedPlayers);
 
+  if (state.firstBidder === null) {
+    throw new Error('firstBidder is null during bidding');
+  }
   const nextBidder = biddingComplete
     ? null
-    : getNextBidder(event.payload.playerIndex, state.playerCount, newPassedPlayers);
+    : getNextBidder(
+        event.payload.playerIndex,
+        state.playerCount,
+        newPassedPlayers,
+        state.firstBidder
+      );
 
   return {
     ...state,
@@ -224,6 +237,7 @@ function handleBiddingWon(
     bidWinner: event.payload.playerIndex,
     currentBid: event.payload.winningBid,
     currentBidder: null,
+    dabb: event.payload.dabb ?? state.dabb,
   };
 }
 

@@ -21,6 +21,7 @@ export interface CardFaceProps {
   x?: number;
   y?: number;
   dimmed?: boolean;
+  isTrump?: boolean;
 }
 
 const FACE_RANKS = new Set<Rank>(['koenig', 'ober', 'buabe']);
@@ -30,7 +31,15 @@ function parseCardId(id: CardId): { suit: Suit; rank: Rank } {
   return { suit, rank };
 }
 
-export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: CardFaceProps) {
+export function CardFace({
+  card,
+  width,
+  height,
+  x = 0,
+  y = 0,
+  dimmed = false,
+  isTrump = false,
+}: CardFaceProps) {
   const { suit, rank } = useMemo(() => parseCardId(card), [card]);
   const symbol = SUIT_SYMBOLS[suit];
   const color = getSuitColor(suit);
@@ -143,6 +152,11 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
             style={[StyleSheet.absoluteFill, rnStyles.dimOverlay, { borderRadius: width * 0.06 }]}
           />
         )}
+        {isTrump && (
+          <View
+            style={[StyleSheet.absoluteFill, rnStyles.trumpOverlay, { borderRadius: width * 0.06 }]}
+          />
+        )}
       </View>
     );
   }
@@ -240,6 +254,7 @@ export function CardFace({ card, width, height, x = 0, y = 0, dimmed = false }: 
 
       {/* Dim overlay — plain RN View clipped by parent overflow:hidden, no Skia edge artifacts */}
       {dimmed && <View style={[StyleSheet.absoluteFill, rnStyles.dimOverlay]} />}
+      {isTrump && <View style={[StyleSheet.absoluteFill, rnStyles.trumpOverlay]} />}
     </View>
   );
 }
@@ -267,4 +282,5 @@ const rnStyles = StyleSheet.create({
   cornerSuit: { lineHeight: 13 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   dimOverlay: { backgroundColor: 'rgba(0,0,0,0.6)' },
+  trumpOverlay: { backgroundColor: 'rgba(255,200,50,0.15)' },
 });

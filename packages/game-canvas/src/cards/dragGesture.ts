@@ -57,5 +57,9 @@ export function createCardGesture(opts: CardGestureOptions) {
       }
     });
 
+  if (!opts.draggable) {
+    return tap;
+  }
+
   return Gesture.Exclusive(pan, tap);
 }

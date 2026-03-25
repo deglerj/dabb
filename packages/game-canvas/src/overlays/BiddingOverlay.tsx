@@ -18,10 +18,9 @@ export interface BiddingOverlayProps {
 
 function generateBidAmounts(): number[] {
   const amounts: number[] = [];
-  for (let bid = 150; bid <= 250; bid += 10) {
+  for (let bid = 150; bid <= 990; bid += 10) {
     amounts.push(bid);
   }
-  amounts.push(300);
   return amounts;
 }
 

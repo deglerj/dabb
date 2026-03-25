@@ -389,6 +389,7 @@ export const licenseGroups: { license: string; packages: string[] }[] = [
       'expo',
       'expo-asset',
       'expo-audio',
+      'expo-clipboard',
       'expo-constants',
       'expo-file-system',
       'expo-font',
