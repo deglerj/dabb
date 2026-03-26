@@ -49,3 +49,9 @@ updates:
       interval: 'weekly'
     cooldown:
       default-days: 5
+    ignore:
+      # JDK 25 is non-LTS and breaks the Android build: CMake configuration fails
+      # for react-native-worklets, react-native-screens, and react-native-skia due
+      # to restricted method access tightened in JDK 25. Stick with JDK 21 (LTS).
+      - dependency-name: 'eclipse-temurin'
+        versions: ['>=22']
