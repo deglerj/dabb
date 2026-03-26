@@ -5,32 +5,31 @@
 ```mermaid
 flowchart TB
     subgraph apps
-        web
-        mobile
+        client["client (web + Android/iOS)"]
         server
     end
 
     subgraph packages
         types[shared-types]
         logic[game-logic]
+        canvas[game-canvas]
         ui[ui-shared]
         assets[card-assets]
         i18n[i18n]
     end
 
-    web --> types
-    web --> logic
-    web --> ui
-    web --> assets
-    web --> i18n
-
-    mobile --> types
-    mobile --> logic
-    mobile --> assets
-    mobile --> i18n
+    client --> types
+    client --> logic
+    client --> canvas
+    client --> ui
+    client --> assets
+    client --> i18n
 
     server --> types
     server --> logic
+
+    canvas --> types
+    canvas --> assets
 
     ui --> types
     ui --> logic
@@ -91,16 +90,17 @@ src/
 
 ```
 src/
-├── useSocket.ts           # Socket.IO connection hook
-├── useGameState.ts        # Event-sourced state management
-├── useRoundHistory.ts     # Round history computation for scoreboard
-├── useGameLog.ts          # Game log entries hook
-├── useActionRequired.ts   # Your-turn detection hook
-├── useCelebration.ts      # Win celebration effects hook
-├── useTrickDisplay.ts     # Trick display timing hook
-├── useVersionCheck.ts     # Server version check hook
-└── useLocalStorage.ts     # Session credential persistence
+├── useSocket.ts                # Socket.IO connection hook
+├── useGameState.ts             # Event-sourced state management
+├── useRoundHistory.ts          # Round history computation for scoreboard
+├── useGameLog.ts               # Game log entries hook
+├── useActionRequired.ts        # Your-turn detection hook
+├── useCelebration.ts           # Win celebration effects hook
+├── useTrickAnimationState.ts   # Trick animation phase state machine
+└── useVersionCheck.ts          # Server version check hook
 ```
+
+Session credential persistence lives in the client app: `apps/client/src/hooks/useStorage.ts`.
 
 ### @dabb/server
 

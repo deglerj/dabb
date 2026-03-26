@@ -1,4 +1,4 @@
-Perform full project housekeeping: merge dependencies, review docs, check server health, fix lint, and improve test coverage.
+Perform full project housekeeping: merge dependencies, review docs, audit stale dependencies, fix lint, and improve test coverage.
 
 ## Step 1 — Merge Dependabot PRs
 

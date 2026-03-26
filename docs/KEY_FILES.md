@@ -25,7 +25,7 @@
 | `packages/ui-shared/src/useActionRequired.ts`                | Your-turn detection hook                                                        |
 | `packages/ui-shared/src/useCelebration.ts`                   | Win celebration effects hook                                                    |
 | `packages/ui-shared/src/useTrickAnimationState.ts`           | Trick animation phase state machine                                             |
-| `packages/ui-shared/src/useLocalStorage.ts`                  | Session credentials hook                                                        |
+| `apps/client/src/hooks/useStorage.ts`                        | Session credential persistence (AsyncStorage / localStorage)                    |
 | `packages/game-canvas/src/cards/cardPositions.ts`            | Single source of truth for all card positions (trick, hand, won-pile, opponent) |
 | `packages/game-canvas/src/cards/CardView.tsx`                | Animated card with arc flight (initialX/Y)                                      |
 | `apps/client/src/components/game/TrickAnimationLayer.tsx`    | Full-screen trick card animation overlay                                        |
