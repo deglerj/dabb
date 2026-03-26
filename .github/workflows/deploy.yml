@@ -29,7 +29,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy to Hetzner
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: dabb
@@ -40,4 +40,5 @@ jobs:
             docker compose -f docker-compose.prod.yml pull server web
             docker compose -f docker-compose.prod.yml up -d --remove-orphans --force-recreate web
             docker compose -f docker-compose.prod.yml up -d
+            docker exec dabb-nginx nginx -s reload
             docker image prune -f
