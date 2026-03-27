@@ -19,7 +19,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "i18next": "^25.9.0",
+    "i18next": "^25.10.4",
     "react-i18next": "^16.6.0"
   },
   "peerDependencies": {
