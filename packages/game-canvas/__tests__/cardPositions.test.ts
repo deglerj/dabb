@@ -19,9 +19,14 @@ const LAYOUT: LayoutDimensions = {
   playerCount: 3,
 };
 
+const SUITS_CYCLE = ['kreuz', 'schippe', 'herz', 'bollen'] as const;
+
 function makeInput(cardCount: number) {
   return {
-    handCardIds: Array.from({ length: cardCount }, (_, i) => `card-${i}`),
+    handCards: Array.from({ length: cardCount }, (_, i) => ({
+      id: `card-${i}`,
+      suit: SUITS_CYCLE[i % 4]!,
+    })),
     trickCardIds: [],
     wonPilePlayerIds: [],
     opponentCardCounts: {},
@@ -32,7 +37,11 @@ describe('deriveCardPositions', () => {
   it('places player hand cards in bottom third of screen', () => {
     const result = deriveCardPositions(
       {
-        handCardIds: ['c1', 'c2', 'c3'],
+        handCards: [
+          { id: 'c1', suit: 'kreuz' },
+          { id: 'c2', suit: 'schippe' },
+          { id: 'c3', suit: 'herz' },
+        ],
         trickCardIds: [],
         wonPilePlayerIds: [],
         opponentCardCounts: {},
@@ -47,7 +56,11 @@ describe('deriveCardPositions', () => {
   it('spreads hand cards horizontally left to right', () => {
     const result = deriveCardPositions(
       {
-        handCardIds: ['c1', 'c2', 'c3'],
+        handCards: [
+          { id: 'c1', suit: 'kreuz' },
+          { id: 'c2', suit: 'schippe' },
+          { id: 'c3', suit: 'herz' },
+        ],
         trickCardIds: [],
         wonPilePlayerIds: [],
         opponentCardCounts: {},
@@ -62,7 +75,7 @@ describe('deriveCardPositions', () => {
   it('places trick cards near screen center', () => {
     const result = deriveCardPositions(
       {
-        handCardIds: [],
+        handCards: [],
         trickCardIds: [{ cardId: 't1', seatIndex: 1 }],
         wonPilePlayerIds: [],
         opponentCardCounts: {},
@@ -79,7 +92,7 @@ describe('deriveCardPositions', () => {
   it('returns a won pile position for each player ID', () => {
     const result = deriveCardPositions(
       {
-        handCardIds: [],
+        handCards: [],
         trickCardIds: [],
         wonPilePlayerIds: ['p0', 'p1', 'p2'],
         opponentCardCounts: {},
@@ -266,7 +279,7 @@ describe('edgeFraction', () => {
 describe('deriveCardPositions – opponent hands', () => {
   it('places a single opponent at 50% of width', () => {
     const result = deriveCardPositions(
-      { handCardIds: [], trickCardIds: [], wonPilePlayerIds: [], opponentCardCounts: { p1: 8 } },
+      { handCards: [], trickCardIds: [], wonPilePlayerIds: [], opponentCardCounts: { p1: 8 } },
       LAYOUT
     );
     expect(result.opponentHands['p1']?.x).toBeCloseTo(LAYOUT.width * 0.5);
@@ -275,7 +288,7 @@ describe('deriveCardPositions – opponent hands', () => {
   it('places two opponents at 15% and 85% of width', () => {
     const result = deriveCardPositions(
       {
-        handCardIds: [],
+        handCards: [],
         trickCardIds: [],
         wonPilePlayerIds: [],
         opponentCardCounts: { p1: 8, p2: 8 },

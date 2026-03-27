@@ -62,7 +62,7 @@ export function PlayerHand({
 
   const positions = deriveCardPositions(
     {
-      handCardIds: displayedCards.map((c) => c.id),
+      handCards: displayedCards.map((c) => ({ id: c.id, suit: c.suit })),
       trickCardIds: [],
       wonPilePlayerIds: [],
       opponentCardCounts: {},

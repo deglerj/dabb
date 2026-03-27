@@ -68,7 +68,7 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
 
     const pos = deriveCardPositions(
       {
-        handCardIds: [],
+        handCards: [],
         trickCardIds: displayCards.map((pc) => ({ cardId: pc.cardId, seatIndex: pc.playerIndex })),
         wonPilePlayerIds,
         opponentCardCounts,
