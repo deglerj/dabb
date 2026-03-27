@@ -12,7 +12,7 @@ import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 import { Canvas, Rect, Group } from '@shopify/react-native-skia';
 
 export interface CelebrationLayerProps {
-  showConfetti: boolean;
+  confettiRound: number; // 0 = no confetti, >0 = round that triggered it
   showFireworks: boolean;
   isTeamGame?: boolean;
 }
@@ -88,7 +88,7 @@ function stepParticles(particles: Particle[], gravity: number): void {
 }
 
 export function CelebrationLayer({
-  showConfetti,
+  confettiRound,
   showFireworks,
   isTeamGame,
 }: CelebrationLayerProps) {
@@ -143,7 +143,7 @@ export function CelebrationLayer({
   );
 
   useEffect(() => {
-    if (showConfetti) {
+    if (confettiRound > 0) {
       startAnimation(true);
     } else if (showFireworks) {
       startAnimation(false);
@@ -151,7 +151,7 @@ export function CelebrationLayer({
       stopAnimation();
     }
     return stopAnimation;
-  }, [showConfetti, showFireworks, startAnimation, stopAnimation]);
+  }, [confettiRound, showFireworks, startAnimation, stopAnimation]);
 
   const visible = message !== '' || particles.current.length > 0;
 

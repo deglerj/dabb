@@ -6,13 +6,16 @@
  *
  * Note: ROUND_SCORED and NEW_ROUND_STARTED events arrive in the same batch from the server,
  * so we track which round triggered the confetti and only clear it when a NEW round is scored.
+ *
+ * confettiRound is exposed as a number (not boolean) so consumers can detect a NEW win even
+ * when the player wins consecutive rounds (boolean true→true would not trigger effects).
  */
 
 import { useMemo } from 'react';
 import type { GameEvent, PlayerIndex, Team } from '@dabb/shared-types';
 
 export interface CelebrationResult {
-  showConfetti: boolean;
+  confettiRound: number; // 0 = no confetti, >0 = round that triggered it (changes each win)
   showFireworks: boolean;
 }
 
@@ -22,15 +25,14 @@ export function useCelebration(
 ): CelebrationResult {
   return useMemo(() => {
     if (playerIndex === null) {
-      return { showConfetti: false, showFireworks: false };
+      return { confettiRound: 0, showFireworks: false };
     }
 
-    let showConfetti = false;
+    let confettiRound = 0; // Track which round triggered confetti (0 = none)
     let showFireworks = false;
     let lastBidWinner: PlayerIndex | null = null;
     let lastBidWinnerTeam: Team | null = null;
     let gameFinished = false;
-    let confettiRound = 0; // Track which round triggered confetti
     let currentRound = 1;
     const playerTeams = new Map<PlayerIndex, Team>();
 
@@ -44,7 +46,6 @@ export function useCelebration(
 
         case 'GAME_STARTED':
           // Reset at game start
-          showConfetti = false;
           showFireworks = false;
           lastBidWinner = null;
           lastBidWinnerTeam = null;
@@ -60,7 +61,6 @@ export function useCelebration(
           // Only clear confetti if it was triggered in a previous round
           // (not the current scoring → new round transition)
           if (confettiRound > 0 && confettiRound < currentRound - 1) {
-            showConfetti = false;
             confettiRound = 0;
           }
           break;
@@ -73,7 +73,6 @@ export function useCelebration(
         case 'ROUND_SCORED': {
           // Clear any previous round's confetti before checking this round
           if (confettiRound > 0 && confettiRound < currentRound) {
-            showConfetti = false;
             confettiRound = 0;
           }
 
@@ -92,7 +91,6 @@ export function useCelebration(
           const sideScore = event.payload.scores[sideKey];
 
           if (isOnWinningSide && sideScore?.bidMet && !gameFinished) {
-            showConfetti = true;
             confettiRound = currentRound;
           }
           break;
@@ -101,7 +99,6 @@ export function useCelebration(
         case 'GAME_FINISHED': {
           // Check if the current player won the game
           // Stop confetti if game ends (fireworks take over)
-          showConfetti = false;
           confettiRound = 0;
           const currentPlayerTeam = playerTeams.get(playerIndex) ?? null;
           const playerWon =
@@ -117,13 +114,12 @@ export function useCelebration(
 
         case 'GAME_TERMINATED':
           // Game terminated, stop all celebrations
-          showConfetti = false;
           showFireworks = false;
           confettiRound = 0;
           break;
       }
     }
 
-    return { showConfetti, showFireworks };
+    return { confettiRound, showFireworks };
   }, [events, playerIndex]);
 }
