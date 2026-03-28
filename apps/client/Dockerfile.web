@@ -51,8 +51,16 @@ RUN cd packages/shared-types && pnpm run build && \
 ARG SERVER_URL
 RUN node -e "const fs=require('fs'); const a=JSON.parse(fs.readFileSync('apps/client/app.json','utf8')); a.expo.extra.serverUrl=process.env.SERVER_URL; fs.writeFileSync('apps/client/app.json', JSON.stringify(a, null, 2));"
 
+ARG EXPO_PUBLIC_UMAMI_URL
+ARG EXPO_PUBLIC_UMAMI_WEBSITE_ID
+
 # Bundle the web app
 RUN pnpm --filter @dabb/client bundle:web
+
+# Inject Umami tracking script if analytics vars are provided
+RUN if [ -n "$EXPO_PUBLIC_UMAMI_URL" ] && [ -n "$EXPO_PUBLIC_UMAMI_WEBSITE_ID" ]; then \
+      sed -i "s|</head>|<script async src=\"$EXPO_PUBLIC_UMAMI_URL/script.js\" data-website-id=\"$EXPO_PUBLIC_UMAMI_WEBSITE_ID\"></script></head>|" apps/client/dist/index.html; \
+    fi
 
 # Stage 2: Serve with nginx
 FROM cgr.dev/chainguard/nginx:latest
