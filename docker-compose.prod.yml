@@ -102,6 +102,12 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://dabb:${POSTGRES_PASSWORD}@postgres:5432/umami}
       APP_SECRET: ${UMAMI_APP_SECRET:?UMAMI_APP_SECRET is required}
       DISABLE_BOT_CHECK: 1
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/api/heartbeat']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - dabb-internal
       - dabb-external
