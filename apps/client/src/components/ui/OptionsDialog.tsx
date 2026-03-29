@@ -117,6 +117,7 @@ export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogPro
           {/* GitHub link */}
           <View style={styles.githubRow}>
             <TouchableOpacity
+              accessibilityRole="link"
               onPress={() => void Linking.openURL('https://github.com/deglerj/dabb')}
             >
               <Text style={styles.githubLink}>{t('info.sourceCode')}</Text>

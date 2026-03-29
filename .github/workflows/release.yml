@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           token: ${{ secrets.GITHUB_PAT }}
           fetch-depth: 0
@@ -77,11 +77,12 @@ jobs:
           echo "**Play now (web):** https://dabb.degler.info" >> /tmp/release-notes.md
           echo "**Android:** [Google Play internal track](https://play.google.com/store/apps/details?id=com.dabb.binokel)" >> /tmp/release-notes.md
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release (draft)
         run: |
           gh release create "v${{ inputs.version }}" \
             --title "v${{ inputs.version }}" \
-            --notes-file /tmp/release-notes.md
+            --notes-file /tmp/release-notes.md \
+            --draft
         env:
           GH_TOKEN: ${{ secrets.GITHUB_PAT }}
 
@@ -89,7 +90,7 @@ jobs:
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
       - name: Build Android builder image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
         with:
           context: .
           file: apps/client/Dockerfile.android
@@ -123,7 +124,7 @@ jobs:
             -e SIGNING_STORE_PASSWORD="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
             -e SIGNING_KEY_ALIAS="${{ secrets.ANDROID_KEY_ALIAS }}" \
             -e SIGNING_KEY_PASSWORD="${{ secrets.ANDROID_KEY_PASSWORD }}" \
-            -e VERSION_CODE="${{ github.run_number }}" \
+            -e VERSION_CODE="$(echo '${{ inputs.version }}' | awk -F. '{printf "%d%03d%03d", $1, $2, $3}')" \
             dabb-android-builder:release \
             apps/client/scripts/build-aab.sh
 
@@ -135,6 +136,11 @@ jobs:
           releaseFiles: apps/client/build/dabb.aab
           track: internal
           status: completed
+
+      - name: Publish GitHub Release
+        run: gh release edit "v${{ inputs.version }}" --draft=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_PAT }}
 
       - name: Clean up keystore
         if: always()
