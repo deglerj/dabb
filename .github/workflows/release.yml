@@ -1,0 +1,147 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number without v prefix (e.g. 2.1.0)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Release v${{ inputs.version }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          token: ${{ secrets.GITHUB_PAT }}
+          fetch-depth: 0
+
+      - name: Validate version format
+        run: |
+          if ! [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ERROR: version must be semver format (e.g. 2.1.0)"
+            exit 1
+          fi
+
+      - name: Check tag does not already exist
+        run: |
+          if git ls-remote --tags origin "refs/tags/v${{ inputs.version }}" | grep -q .; then
+            echo "ERROR: tag v${{ inputs.version }} already exists"
+            exit 1
+          fi
+
+      - name: Validate CHANGELOG entry
+        run: |
+          if ! grep -q "^## \[${{ inputs.version }}\]" CHANGELOG.md; then
+            echo "ERROR: No entry for version ${{ inputs.version }} found in CHANGELOG.md"
+            echo "Add a '## [${{ inputs.version }}] - YYYY-MM-DD' section to CHANGELOG.md and commit it before triggering this workflow."
+            exit 1
+          fi
+
+      - name: Bump versions
+        run: |
+          VERSION="${{ inputs.version }}"
+          jq --arg v "$VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json
+          jq --arg v "$VERSION" '.version = $v' apps/server/package.json > tmp.json && mv tmp.json apps/server/package.json
+          jq --arg v "$VERSION" '.version = $v' apps/client/package.json > tmp.json && mv tmp.json apps/client/package.json
+          jq --arg v "$VERSION" '.expo.version = $v' apps/client/app.json > tmp.json && mv tmp.json apps/client/app.json
+
+      - name: Commit and push version bump
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add package.json apps/server/package.json apps/client/package.json apps/client/app.json
+          git commit -m "chore: release v${{ inputs.version }}"
+          git push
+
+      - name: Create and push tag
+        run: |
+          git tag "v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      - name: Extract changelog section
+        run: |
+          VERSION="${{ inputs.version }}"
+          awk "/^## \[$VERSION\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md \
+            > /tmp/release-notes.md
+          echo "" >> /tmp/release-notes.md
+          echo "---" >> /tmp/release-notes.md
+          echo "" >> /tmp/release-notes.md
+          echo "**Play now (web):** https://dabb.degler.info" >> /tmp/release-notes.md
+          echo "**Android:** [Google Play internal track](https://play.google.com/store/apps/details?id=com.dabb.binokel)" >> /tmp/release-notes.md
+
+      - name: Create GitHub Release (draft)
+        run: |
+          gh release create "v${{ inputs.version }}" \
+            --title "v${{ inputs.version }}" \
+            --notes-file /tmp/release-notes.md \
+            --draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_PAT }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+
+      - name: Build Android builder image
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        with:
+          context: .
+          file: apps/client/Dockerfile.android
+          push: false
+          load: true
+          tags: dabb-android-builder:release
+          cache-from: type=gha,scope=android-builder
+          cache-to: type=gha,mode=max,scope=android-builder
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v5
+        with:
+          path: /tmp/gradle-cache
+          key: ${{ runner.os }}-gradle-aab-${{ hashFiles('apps/client/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-aab-
+            ${{ runner.os }}-gradle-
+
+      - name: Decode keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > /tmp/dabb-keystore.jks
+
+      - name: Build AAB in Docker
+        run: |
+          mkdir -p /tmp/gradle-cache
+          docker run --rm \
+            -v "${{ github.workspace }}:/app" \
+            -v /tmp/gradle-cache:/gradle-cache \
+            -v /tmp/dabb-keystore.jks:/tmp/dabb-keystore.jks:ro \
+            -e GRADLE_USER_HOME=/gradle-cache \
+            -e SIGNING_KEYSTORE_PATH=/tmp/dabb-keystore.jks \
+            -e SIGNING_STORE_PASSWORD="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            -e SIGNING_KEY_ALIAS="${{ secrets.ANDROID_KEY_ALIAS }}" \
+            -e SIGNING_KEY_PASSWORD="${{ secrets.ANDROID_KEY_PASSWORD }}" \
+            -e VERSION_CODE="$(echo '${{ inputs.version }}' | awk -F. '{printf "%d%03d%03d", $1, $2, $3}')" \
+            dabb-android-builder:release \
+            apps/client/scripts/build-aab.sh
+
+      - name: Upload to Play Store (internal)
+        uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb # v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+          packageName: com.dabb.binokel
+          releaseFiles: apps/client/build/dabb.aab
+          track: internal
+          status: completed
+
+      - name: Publish GitHub Release
+        run: gh release edit "v${{ inputs.version }}" --draft=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_PAT }}
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f /tmp/dabb-keystore.jks

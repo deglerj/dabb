@@ -2,7 +2,16 @@
  * Options dialog — sound toggle, vibration toggle (native only), language selector.
  */
 import React, { useState, useCallback, useEffect } from 'react';
-import { Modal, View, Text, Switch, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  Switch,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  Linking,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation, i18n, persistLanguage, type SupportedLanguage } from '@dabb/i18n';
 import { isMuted, setMuted } from '../../utils/sounds.js';
@@ -103,6 +112,16 @@ export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogPro
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+
+          {/* GitHub link */}
+          <View style={styles.githubRow}>
+            <TouchableOpacity
+              accessibilityRole="link"
+              onPress={() => void Linking.openURL('https://github.com/deglerj/dabb')}
+            >
+              <Text style={styles.githubLink}>{t('info.sourceCode')}</Text>
+            </TouchableOpacity>
           </View>
 
           {onExitGame && (
@@ -226,6 +245,19 @@ const styles = StyleSheet.create({
   },
   flagEmoji: {
     fontSize: 22,
+  },
+  githubRow: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.paperEdge,
+    paddingTop: 12,
+    marginTop: 6,
+    alignItems: 'center',
+  },
+  githubLink: {
+    fontFamily: Fonts.body,
+    fontSize: 11,
+    color: Colors.inkFaint,
+    textDecorationLine: 'underline',
   },
   divider: {
     height: 1,
