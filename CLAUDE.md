@@ -114,4 +114,4 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 Version sources: root `package.json` (server) and `apps/client/app.json` `expo.version` — keep in sync.
 
-Bump type: MAJOR (breaking protocol change), MINOR (new user feature), PATCH (bug fix/internal). Update all five `package.json`/`app.json` files and add an entry to `CHANGELOG.md` in user-friendly language (no jargon). MAJOR bumps must note that users must update the app.
+Bump type: MAJOR (breaking protocol change), MINOR (new user feature), PATCH (bug fix/internal). Update all four version files (`package.json` root, `apps/client/package.json`, `apps/server/package.json`, `apps/client/app.json`) and add an entry to `CHANGELOG.md` in user-friendly language (no jargon). MAJOR bumps must note that users must update the app.
