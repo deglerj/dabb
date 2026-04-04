@@ -9,6 +9,7 @@ import {
   applyEvent,
   applyEvents,
   calculateMeldPoints,
+  calculatePlayerTrickRawPoints,
   calculateTrickPoints,
   createBidPlacedEvent,
   createBiddingWonEvent,
@@ -403,8 +404,11 @@ export class SimulationEngine {
       for (let i = 0; i < 4; i++) {
         const idx = i as PlayerIndex;
         const melds = calculateMeldPoints(this.state.declaredMelds.get(idx) || []);
-        const tricksCards = this.state.tricksTaken.get(idx) || [];
-        const tricksRaw = tricksCards.reduce((sum, tc) => sum + calculateTrickPoints(tc), 0);
+        const tricksRaw = calculatePlayerTrickRawPoints(
+          idx,
+          this.state.tricksTaken,
+          this.state.lastCompletedTrick?.winnerIndex ?? null
+        );
         playerMelds.set(idx, melds);
         playerTricks.set(idx, Math.round(tricksRaw / 10) * 10);
       }
@@ -424,8 +428,11 @@ export class SimulationEngine {
       for (let i = 0; i < this.state.playerCount; i++) {
         const idx = i as PlayerIndex;
         const melds = calculateMeldPoints(this.state.declaredMelds.get(idx) || []);
-        const tricksCards = this.state.tricksTaken.get(idx) || [];
-        const tricksRaw = tricksCards.reduce((sum, tc) => sum + calculateTrickPoints(tc), 0);
+        const tricksRaw = calculatePlayerTrickRawPoints(
+          idx,
+          this.state.tricksTaken,
+          this.state.lastCompletedTrick?.winnerIndex ?? null
+        );
         // Binokel rule: trick points rounded to nearest 10 (5 rounds up)
         const tricks = Math.round(tricksRaw / 10) * 10;
         const rawTotal = melds + tricks;

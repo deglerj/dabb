@@ -21,7 +21,11 @@ Key events: `GameStartedEvent`, `CardsDealtEvent`, `BidPlacedEvent`, `PlayerPass
 
 ### Anti-Cheat
 
-Events are filtered before sending to clients so players only see their own cards. `CARDS_DEALT`, `CARDS_DISCARDED`, and `MELDING_COMPLETE` are never included in the game log.
+Events are filtered before sending to clients so players only see their own cards (`packages/game-logic/src/state/views.ts`):
+
+- `CARDS_DEALT`: each player sees only their own hand; other hands and the dabb are replaced with hidden card placeholders.
+- `BIDDING_WON`: the `dabb` field is stripped for non-winners (only the bid winner sees the dabb contents).
+- `CARDS_DISCARDED`: only the discarding player sees the actual card IDs; others receive placeholder IDs of the same count.
 
 ### Scoreboard & Game Log
 

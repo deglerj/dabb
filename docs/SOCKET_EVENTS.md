@@ -249,17 +249,19 @@ Events sent from the server to clients.
 Full game state on connection.
 
 ```typescript
-socket.on('game:state', ({ events }) => {
+socket.on('game:state', ({ events, nicknames }) => {
   // Rebuild game state from all events
   const state = applyEvents(events);
+  // nicknames maps playerIndex → display name
 });
 ```
 
 **Payload:**
 
-| Field    | Type          | Description                                  |
-| -------- | ------------- | -------------------------------------------- |
-| `events` | `GameEvent[]` | All events (filtered for this player's view) |
+| Field       | Type                          | Description                                  |
+| ----------- | ----------------------------- | -------------------------------------------- |
+| `events`    | `GameEvent[]`                 | All events (filtered for this player's view) |
+| `nicknames` | `Record<PlayerIndex, string>` | Map of player index to nickname              |
 
 ---
 
@@ -397,9 +399,10 @@ socket.on('error', ({ message, code, params }) => {
 Events containing opponent cards are filtered before sending to clients (see `packages/game-logic/src/state/views.ts`):
 
 - `CARDS_DEALT` - Only shows the receiving player's own hand; other players' hands are replaced with hidden card placeholders. The dabb is also hidden at this stage.
-- `CARDS_DISCARDED` - Only the discarding player sees their actual card IDs; other players receive a count of hidden cards.
+- `BIDDING_WON` - The `dabb` field is included only for the bid winner; non-winners receive the event without the dabb contents. This reveals the dabb to the bid winner at the moment bidding ends.
+- `CARDS_DISCARDED` - Only the discarding player sees their actual card IDs; other players receive placeholder IDs of the same count.
 
-`DABB_TAKEN` is broadcast to all players unmodified — the dabb cards are revealed to everyone when the bid winner picks them up.
+`DABB_TAKEN` is broadcast to all players unmodified — it carries `dabbCards` which everyone can see (the bid winner has already seen them via `BIDDING_WON`).
 
 This prevents clients from seeing other players' hand contents.
 

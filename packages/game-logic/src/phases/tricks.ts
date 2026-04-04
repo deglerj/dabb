@@ -2,7 +2,7 @@
  * Trick-taking logic for Binokel
  */
 
-import { Card, CardId, RANK_POINTS, Rank, Suit, Trick } from '@dabb/shared-types';
+import { Card, CardId, type PlayerIndex, RANK_POINTS, Rank, Suit, Trick } from '@dabb/shared-types';
 
 /**
  * Card strength ordering (higher index = stronger)
@@ -143,6 +143,24 @@ export function isValidPlay(card: Card, hand: Card[], trick: Trick, trump: Suit)
  */
 export function calculateTrickPoints(cards: Card[]): number {
   return cards.reduce((sum, card) => sum + RANK_POINTS[card.rank], 0);
+}
+
+/**
+ * Bonus points awarded for winning the last trick
+ */
+export const LAST_TRICK_BONUS = 10;
+
+/**
+ * Calculate raw (pre-rounding) trick points for a player, including the last trick bonus.
+ */
+export function calculatePlayerTrickRawPoints(
+  playerIndex: PlayerIndex,
+  tricksTaken: Map<PlayerIndex, Card[][]>,
+  lastTrickWinner: PlayerIndex | null
+): number {
+  const tricks = tricksTaken.get(playerIndex) ?? [];
+  const raw = tricks.reduce((sum, trick) => sum + calculateTrickPoints(trick), 0);
+  return raw + (lastTrickWinner === playerIndex ? LAST_TRICK_BONUS : 0);
 }
 
 /**

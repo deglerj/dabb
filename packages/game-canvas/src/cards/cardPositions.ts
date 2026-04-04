@@ -23,7 +23,7 @@ export interface TrickCardEntry {
 }
 
 export interface CardPositionsInput {
-  handCardIds: string[];
+  handCards: { id: string; suit: string }[];
   trickCardIds: TrickCardEntry[];
   wonPilePlayerIds: string[]; // ordered list of player IDs (determines corner assignment)
   opponentCardCounts: Record<string, number>; // playerId → remaining card count
@@ -73,6 +73,34 @@ export function edgeFraction(i: number, n: number): number {
   return lo + (i / (n - 1)) * (hi - lo);
 }
 
+/**
+ * Given a sorted hand, returns the index at which to split into top and bottom rows.
+ * Picks the suit boundary closest to n/2. Ties favour the smaller index (larger top row).
+ * Falls back to Math.ceil(n/2) when all cards share one suit.
+ */
+function findSuitBoundarySplit(cards: { id: string; suit: string }[]): number {
+  const n = cards.length;
+  const boundaries: number[] = [];
+  for (let i = 1; i < n; i++) {
+    if (cards[i]!.suit !== cards[i - 1]!.suit) {
+      boundaries.push(i);
+    }
+  }
+  if (boundaries.length === 0) {
+    return Math.ceil(n / 2);
+  }
+  const target = n / 2;
+  let best = boundaries[0]!;
+  for (const b of boundaries) {
+    const bDist = Math.abs(b - target);
+    const bestDist = Math.abs(best - target);
+    if (bDist < bestDist || (bDist === bestDist && b < best)) {
+      best = b;
+    }
+  }
+  return best;
+}
+
 export function deriveCardPositions(
   input: CardPositionsInput,
   layout: LayoutDimensions
@@ -80,7 +108,7 @@ export function deriveCardPositions(
   const { width, height } = layout;
 
   // Player hand — two-row mode on narrow screens when hand exceeds MAX_CARDS_PER_ROW
-  const n = input.handCardIds.length;
+  const n = input.handCards.length;
   const availableWidth = width - 2 * HAND_SIDE_MARGIN;
   const isTwoRowMode = width < MOBILE_BREAKPOINT_WIDTH && n > MAX_CARDS_PER_ROW;
 
@@ -88,27 +116,29 @@ export function deriveCardPositions(
   let cardScale: number;
 
   if (isTwoRowMode) {
-    const bottomIds = input.handCardIds.slice(0, MAX_CARDS_PER_ROW);
-    const topIds = input.handCardIds.slice(MAX_CARDS_PER_ROW);
-    const bottomCount = bottomIds.length;
-    const topCount = topIds.length;
+    const splitIndex = findSuitBoundarySplit(input.handCards);
+    const topCards = input.handCards.slice(0, splitIndex); // first suits → top row (read first)
+    const bottomCards = input.handCards.slice(splitIndex); // later suits → bottom row (read second)
+    const topCount = topCards.length;
+    const bottomCount = bottomCards.length;
+    const largerCount = Math.max(topCount, bottomCount);
 
-    // Scale driven by the bottom row (more cards → more constrained)
-    const bottomNaturalWidth =
-      bottomCount * CARD_WIDTH - Math.max(0, bottomCount - 1) * CARD_OVERLAP;
-    cardScale = n === 0 ? 1 : Math.min(1, availableWidth / bottomNaturalWidth);
+    // Scale driven by the larger row
+    const largerNaturalWidth =
+      largerCount * CARD_WIDTH - Math.max(0, largerCount - 1) * CARD_OVERLAP;
+    cardScale = n === 0 ? 1 : Math.min(1, availableWidth / largerNaturalWidth);
 
     const scaledW = CARD_WIDTH * cardScale;
     const scaledH = CARD_HEIGHT * cardScale;
     const scaledOverlap = CARD_OVERLAP * cardScale;
 
-    // Bottom row
+    // Bottom row — later suits, rendered lower (closer to player), higher z-index
     const bottomTotalWidth = bottomCount * scaledW - Math.max(0, bottomCount - 1) * scaledOverlap;
     const bottomStartX = (width - bottomTotalWidth) / 2;
     const bottomY = height - scaledH - HAND_BOTTOM_MARGIN;
 
-    bottomIds.forEach((id, i) => {
-      playerHand[id] = {
+    bottomCards.forEach((card, i) => {
+      playerHand[card.id] = {
         x: bottomStartX + i * (scaledW - scaledOverlap),
         y: bottomY,
         rotation: (i - (bottomCount - 1) / 2) * 1.8,
@@ -116,13 +146,13 @@ export function deriveCardPositions(
       };
     });
 
-    // Top row — overlaps bottom row by ROW_OVERLAP fraction of card height
+    // Top row — first suits, rendered higher, lower z-index (partially behind bottom row)
     const topTotalWidth = topCount * scaledW - Math.max(0, topCount - 1) * scaledOverlap;
     const topStartX = (width - topTotalWidth) / 2;
     const topY = bottomY - scaledH * (1 - ROW_OVERLAP);
 
-    topIds.forEach((id, i) => {
-      playerHand[id] = {
+    topCards.forEach((card, i) => {
+      playerHand[card.id] = {
         x: topStartX + i * (scaledW - scaledOverlap),
         y: topY,
         rotation: (i - (topCount - 1) / 2) * 1.8,
@@ -142,8 +172,8 @@ export function deriveCardPositions(
     const handStartX = (width - handTotalWidth) / 2;
     const handY = height - scaledH - HAND_BOTTOM_MARGIN;
 
-    input.handCardIds.forEach((id, i) => {
-      playerHand[id] = {
+    input.handCards.forEach((card, i) => {
+      playerHand[card.id] = {
         x: handStartX + i * (scaledW - scaledOverlap),
         y: handY,
         rotation: (i - (n - 1) / 2) * 1.8,

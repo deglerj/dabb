@@ -25,6 +25,7 @@ import {
 } from '../services/sessionService.js';
 import { registerAIPlayer, unregisterAIPlayer } from '../services/aiControllerService.js';
 import { getLastSequence } from '../services/eventService.js';
+import { trackEvent } from '../services/analyticsService.js';
 
 const router = Router();
 
@@ -146,6 +147,8 @@ router.post('/:code/join', async (req, res) => {
     }
 
     const player = await joinSession(session.id, nickname.trim());
+
+    trackEvent('game-joined');
 
     const response: JoinSessionResponse = {
       sessionId: session.id,

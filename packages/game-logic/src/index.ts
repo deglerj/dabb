@@ -30,6 +30,7 @@ export { calculateMeldPoints, detectMelds } from './melds/index.js';
 
 // Phases
 export {
+  calculatePlayerTrickRawPoints,
   calculateTrickPoints,
   canPass,
   determineTrickWinner,
@@ -41,6 +42,7 @@ export {
   isBiddingComplete,
   isValidBid,
   isValidPlay,
+  LAST_TRICK_BONUS,
 } from './phases/index.js';
 
 // State

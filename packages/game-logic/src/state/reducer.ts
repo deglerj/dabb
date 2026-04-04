@@ -265,15 +265,22 @@ function handleCardsDiscarded(
 ): GameState {
   const currentHand = state.hands.get(event.payload.playerIndex) || [];
   const discardedIds = new Set(event.payload.discardedCards);
+  const discardedCards = currentHand.filter((c) => discardedIds.has(c.id));
   const newHand = currentHand.filter((c) => !discardedIds.has(c.id));
 
   const newHands = new Map(state.hands);
   newHands.set(event.payload.playerIndex, newHand);
 
+  // Discarded dabb cards count as trick points for the bid winner
+  const newTricksTaken = new Map(state.tricksTaken);
+  const bidWinnerTricks = newTricksTaken.get(event.payload.playerIndex) || [];
+  newTricksTaken.set(event.payload.playerIndex, [...bidWinnerTricks, discardedCards]);
+
   return {
     ...state,
     phase: 'trump',
     hands: newHands,
+    tricksTaken: newTricksTaken,
   };
 }
 

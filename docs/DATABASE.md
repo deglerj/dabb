@@ -123,7 +123,7 @@ Migration files follow the naming convention: `NNNN_description.sql`
 1. Create a new SQL file with the next sequence number:
 
    ```
-   apps/server/src/db/migrations/0004_your_description.sql
+   apps/server/src/db/migrations/0005_your_description.sql
    ```
 
 2. Write your SQL migration. For idempotent migrations, use:

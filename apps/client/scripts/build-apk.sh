@@ -19,6 +19,9 @@ echo "==> Generating native Android project..."
 cd apps/client
 npx expo prebuild --platform android --clean
 
+echo "==> Configuring Gradle JVM memory..."
+echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m" >> android/gradle.properties
+
 echo "==> Fixing Hermes path for pnpm..."
 cd /app
 RN_DIR=$(find node_modules/.pnpm -type d -name "react-native" -path "*react-native@*/node_modules/react-native" 2>/dev/null | head -1)

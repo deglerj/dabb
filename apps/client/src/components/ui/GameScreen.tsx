@@ -380,7 +380,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
   }, [onDeclareMelds, detectedMelds]);
 
   // Celebration: show confetti for round win, fireworks for game win
-  const { showConfetti, showFireworks } = useCelebration(events, playerIndex);
+  const { confettiRound, showFireworks } = useCelebration(events, playerIndex);
 
   // Termination — derive winner info for 4-player (team) and 2/3-player (individual)
   const isTerminated = state.phase === 'terminated' || state.phase === 'finished';
@@ -641,7 +641,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
 
             {/* Celebration layer */}
             <CelebrationLayer
-              showConfetti={showConfetti}
+              confettiRound={confettiRound}
               showFireworks={showFireworks}
               isTeamGame={state.playerCount === 4}
             />

@@ -122,22 +122,28 @@ export function CardView({
 
     const cfg = { duration: 150, easing: Easing.out(Easing.quad) };
 
-    const onEnter = () => {
+    const onEnter = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') {
+        return;
+      }
       isHovered.current = true;
       hoverLiftY.value = withTiming(-18, cfg);
       hoverScaleMult.value = withTiming(1.05, cfg);
       hoverRotDelta.value = withTiming(targetRotation, cfg);
     };
 
-    const onLeave = () => {
+    const onLeave = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') {
+        return;
+      }
       isHovered.current = false;
       hoverLiftY.value = withTiming(0, cfg);
       hoverScaleMult.value = withTiming(1, cfg);
       hoverRotDelta.value = withTiming(0, cfg);
     };
 
-    el.addEventListener('mouseenter', onEnter);
-    el.addEventListener('mouseleave', onLeave);
+    el.addEventListener('pointerenter', onEnter);
+    el.addEventListener('pointerleave', onLeave);
 
     // targetRotation changed while cursor is still over this card — snap delta immediately
     // so the card stays at 0° rotation. Known: rotation.value is mid-animation at this point,
@@ -147,10 +153,10 @@ export function CardView({
     }
 
     return () => {
-      el.removeEventListener('mouseenter', onEnter);
-      el.removeEventListener('mouseleave', onLeave);
+      el.removeEventListener('pointerenter', onEnter);
+      el.removeEventListener('pointerleave', onLeave);
       // isHovered is intentionally NOT reset: the cleanup + re-run is synchronous,
-      // so no mouseleave fires between them, and the ref stays accurate.
+      // so no pointerleave fires between them, and the ref stays accurate.
     };
   }, [targetRotation, hoverLiftY, hoverScaleMult, hoverRotDelta]);
 
