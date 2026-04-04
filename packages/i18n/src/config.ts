@@ -128,7 +128,6 @@ export function initI18n(initialLanguage?: SupportedLanguage): Promise<typeof i1
       react: {
         useSuspense: false,
       },
-      showSupportNotice: false,
     })
     .then(() => i18n);
 }
