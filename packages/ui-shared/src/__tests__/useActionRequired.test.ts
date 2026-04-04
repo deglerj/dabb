@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { renderHook } from '@testing-library/react';
-import { useActionRequired } from '../useActionRequired.js';
+import { describe, it, expect, vi } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { useActionRequired, useActionRequiredCallback } from '../useActionRequired.js';
 import type { GameState, PlayerIndex } from '@dabb/shared-types';
 
 function makeState(overrides: Partial<GameState>): GameState {
@@ -121,5 +121,77 @@ describe('useActionRequired', () => {
     const state = makeState({ phase: 'finished' });
     const { result } = renderHook(() => useActionRequired(state, 0 as PlayerIndex));
     expect(result.current).toEqual({ actionRequired: false, actionType: null });
+  });
+});
+
+describe('useActionRequiredCallback', () => {
+  it('does not call callback on initial render even when action is required', () => {
+    const callback = vi.fn();
+    const state = makeState({ phase: 'bidding', currentBidder: 0 });
+    renderHook(() => useActionRequiredCallback(state, 0 as PlayerIndex, callback));
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('calls callback when action transitions from not required to required', () => {
+    const callback = vi.fn();
+    // Start with no action required (different bidder)
+    let state = makeState({ phase: 'bidding', currentBidder: 1 });
+    const { rerender } = renderHook(
+      ({ s }: { s: GameState }) => useActionRequiredCallback(s, 0 as PlayerIndex, callback),
+      { initialProps: { s: state } }
+    );
+
+    expect(callback).not.toHaveBeenCalled();
+
+    // Now it's our turn — action becomes required
+    act(() => {
+      state = makeState({ phase: 'bidding', currentBidder: 0 });
+      rerender({ s: state });
+    });
+
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call callback when action stays required', () => {
+    const callback = vi.fn();
+    let state = makeState({ phase: 'bidding', currentBidder: 0 });
+    const { rerender } = renderHook(
+      ({ s }: { s: GameState }) => useActionRequiredCallback(s, 0 as PlayerIndex, callback),
+      { initialProps: { s: state } }
+    );
+
+    // Stays required — same phase, same bidder
+    act(() => {
+      state = makeState({ phase: 'bidding', currentBidder: 0 });
+      rerender({ s: state });
+    });
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('does not call callback when action transitions from required to not required', () => {
+    const callback = vi.fn();
+    // Start with action required
+    let state = makeState({ phase: 'bidding', currentBidder: 0 });
+    const { rerender } = renderHook(
+      ({ s }: { s: GameState }) => useActionRequiredCallback(s, 0 as PlayerIndex, callback),
+      { initialProps: { s: state } }
+    );
+
+    // Action goes away — other player's turn
+    act(() => {
+      state = makeState({ phase: 'bidding', currentBidder: 1 });
+      rerender({ s: state });
+    });
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('returns the same result as useActionRequired', () => {
+    const state = makeState({ phase: 'tricks', currentPlayer: 1 });
+    const { result } = renderHook(() =>
+      useActionRequiredCallback(state, 1 as PlayerIndex, vi.fn())
+    );
+    expect(result.current).toEqual({ actionRequired: true, actionType: 'play_card' });
   });
 });
