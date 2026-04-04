@@ -42,13 +42,12 @@ nginx handles TLS termination and reverse proxying directly, eliminating the nee
 
 ## Implementation Notes
 
-- Server: `CX23` type, `ubuntu-24.04` image, `nbg1` location (Nuremberg)
-- Firewall: only ports 22, 80, 443 open; all other ports blocked at Hetzner level
-- Deploy user: `dabb` system user with bash shell, member of `docker` group
-  - Must use `/bin/bash` (not `/usr/sbin/nologin`) to allow SSH-based CI deployments
-  - SSH `authorized_keys` copied from root during cloud-init
-- Docker: installed via official Docker install script (`get.docker.com`), not from Ubuntu repos
-  - Ubuntu 24.04's default repos do not include `docker-compose-plugin`; the official Docker apt repository is required
+- Server: `CX23` type, `nbg1` location (Nuremberg)
+- OS: NixOS 25.05, installed manually via Hetzner ISO image (see `deploy/nixos/configuration.nix`)
+- Firewall: only ports 22, 80, 443 open; configured via NixOS `networking.firewall`
+- Deploy user: `dabb` system user with bash shell, member of `docker` group; declared in NixOS config
+- Docker: installed via NixOS `virtualisation.docker` module; weekly auto-prune enabled
+- OS upgrades: `system.autoUpgrade` with `allowReboot = true` — NixOS handles automatic upgrades
 - Passwords: generate with `openssl rand -hex 32` — base64 passwords may contain `#` which breaks PostgreSQL connection URL parsing
 - Web container healthcheck: must use `127.0.0.1:8080` not `localhost:8080` — the internal nginx only binds IPv4, but `localhost` resolves to `[::1]` (IPv6) inside Alpine containers
 
@@ -64,7 +63,7 @@ nginx handles TLS termination and reverse proxying directly, eliminating the nee
 ### Negative
 
 - ~€42/year hosting cost (previously free)
-- Must manage OS patching (mitigated by `unattended-upgrades`)
+- Must manage OS patching (mitigated by NixOS `system.autoUpgrade`)
 - Database backups are self-managed (no managed database service)
 
 ### Neutral

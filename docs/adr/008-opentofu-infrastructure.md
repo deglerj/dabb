@@ -30,10 +30,12 @@ We will use **OpenTofu** (`tofu/` directory) to provision the Hetzner server. Op
 
 - **SSH key** (`hcloud_ssh_key`): the deploy keypair uploaded to Hetzner
 - **Firewall** (`hcloud_firewall`): ingress rules for ports 22, 80, 443
-- **Server** (`hcloud_server`): CX23 instance with Ubuntu 24.04, cloud-init config
+- **Server** (`hcloud_server`): CX23 instance, `nbg1` location
 
 ### What OpenTofu does NOT manage
 
+- OS installation: NixOS 25.05 is installed manually via Hetzner ISO image after server creation
+- OS configuration: declared in `deploy/nixos/configuration.nix` (users, Docker, firewall, autoUpgrade)
 - Docker Compose services (managed by GitHub Actions deploy workflow)
 - Application config (`.env` file on server — created manually once)
 - DNS records (managed at Alfahosting — no API integration needed)
@@ -43,15 +45,16 @@ We will use **OpenTofu** (`tofu/` directory) to provision the Hetzner server. Op
 
 Terraform state is stored **locally** (`tofu/terraform.tfstate`). This is appropriate for a single-developer hobby project. The state file is gitignored. For a team setup, remote state (e.g. Terraform Cloud, S3 backend) should be considered.
 
-### cloud-init
+### OS Bootstrap
 
-The server bootstraps itself via `tofu/cloud-init.yml` on first boot:
+Unlike the original Ubuntu-based setup, the server runs **NixOS 25.05**, installed manually via Hetzner's ISO image feature after OpenTofu creates the server. NixOS handles all system configuration declaratively:
 
-1. Installs Docker via the official install script (`get.docker.com`) — required because Ubuntu 24.04's default apt repos do not include `docker-compose-plugin`
-2. Creates the `dabb` system user with `/bin/bash` shell and home at `/opt/dabb`
-3. Copies root's `authorized_keys` to the `dabb` user (Hetzner injects the SSH key into root only)
-4. Adds `dabb` to the `docker` group
-5. Configures `unattended-upgrades` for automatic OS security patches
+- Docker is installed and managed via `virtualisation.docker` (with weekly `autoPrune`)
+- The `dabb` system user (bash shell, home `/opt/dabb`, `docker` group) is declared in config
+- SSH authorized keys are declared directly in the NixOS config
+- OS upgrades are automated via `system.autoUpgrade` with `allowReboot = true`
+
+See `deploy/nixos/configuration.nix` for the full configuration and `DEPLOYMENT.md` for the one-time installation sequence.
 
 ## Consequences
 
@@ -66,10 +69,7 @@ The server bootstraps itself via `tofu/cloud-init.yml` on first boot:
 
 - Local state file means only one person can run `tofu apply` safely
 - OpenTofu must be installed locally (`brew install opentofu` on macOS)
-
-### Neutral
-
-- cloud-init errors appear as `status: error` even when the `runcmd` section runs successfully — verify with `cloud-init status --long` rather than just the exit code
+- NixOS must be installed manually via Hetzner ISO after `tofu apply` — there is no automated OS bootstrap step
 
 ## Usage
 
@@ -94,5 +94,5 @@ tofu destroy \
 
 - [ADR 007](007-hetzner-hosting.md) — Hetzner as hosting provider
 - [tofu/main.tf](../../tofu/main.tf) — OpenTofu configuration
-- [tofu/cloud-init.yml](../../tofu/cloud-init.yml) — Server bootstrap script
+- [deploy/nixos/configuration.nix](../../deploy/nixos/configuration.nix) — NixOS server configuration
 - [DEPLOYMENT.md](../../DEPLOYMENT.md) — Full setup sequence

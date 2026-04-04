@@ -18,12 +18,12 @@ We will use a **monorepo** structure with:
 ```
 dabb/
 ├── apps/
-│   ├── web/        # React web app
-│   ├── mobile/     # React Native app
+│   ├── client/     # React Native + Expo app (Android/iOS/web)
 │   └── server/     # Node.js backend
 ├── packages/
 │   ├── shared-types/   # TypeScript types
 │   ├── game-logic/     # Game rules
+│   ├── game-canvas/    # Skia card table rendering
 │   ├── ui-shared/      # React hooks
 │   ├── card-assets/    # SVG graphics
 │   └── i18n/           # Internationalization (de/en)
