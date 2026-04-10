@@ -321,14 +321,14 @@ importers:
   packages/i18n:
     dependencies:
       i18next:
-        specifier: ^26.0.2
-        version: 26.0.2(typescript@6.0.2)
+        specifier: ^26.0.3
+        version: 26.0.3(typescript@6.0.2)
       react:
         specifier: 19.2.4
         version: 19.2.4
       react-i18next:
         specifier: ^16.6.0
-        version: 16.6.0(i18next@26.0.2(typescript@6.0.2))(react@19.2.4)(typescript@6.0.2)
+        version: 16.6.0(i18next@26.0.3(typescript@6.0.2))(react@19.2.4)(typescript@6.0.2)
     devDependencies:
       '@types/react':
         specifier: ^19.2.14
@@ -3585,8 +3585,8 @@ packages:
   hyphenate-style-name@1.1.0:
     resolution: {integrity: sha512-WDC/ui2VVRrz3jOVi+XtjqkDjiVjTtFaAGiW37k6b+ohyQ5wYDOGkvCZa8+H0nx3gyvv0+BST9xuOgIyGQ00gw==}
 
-  i18next@26.0.2:
-    resolution: {integrity: sha512-WsK0SdP+7tGzsxpT+Us1s2nvOyx657DatBodaNZe4KcPTPYzkVfRKUygN69mB+sCbbnifRuKz+Ya5JRzd8DNHw==}
+  i18next@26.0.3:
+    resolution: {integrity: sha512-1571kXINxHKY7LksWp8wP+zP0YqHSSpl/OW0Y0owFEf2H3s8gCAffWaZivcz14rMkOvn3R/psiQxVsR9t2Nafg==}
     peerDependencies:
       typescript: ^5 || ^6
     peerDependenciesMeta:
@@ -9316,7 +9316,7 @@ snapshots:
 
   hyphenate-style-name@1.1.0: {}
 
-  i18next@26.0.2(typescript@6.0.2):
+  i18next@26.0.3(typescript@6.0.2):
     dependencies:
       '@babel/runtime': 7.29.2
     optionalDependencies:
@@ -10520,11 +10520,11 @@ snapshots:
     dependencies:
       react: 19.2.4
 
-  react-i18next@16.6.0(i18next@26.0.2(typescript@6.0.2))(react@19.2.4)(typescript@6.0.2):
+  react-i18next@16.6.0(i18next@26.0.3(typescript@6.0.2))(react@19.2.4)(typescript@6.0.2):
     dependencies:
       '@babel/runtime': 7.29.2
       html-parse-stringify: 3.0.1
-      i18next: 26.0.2(typescript@6.0.2)
+      i18next: 26.0.3(typescript@6.0.2)
       react: 19.2.4
       use-sync-external-store: 1.6.0(react@19.2.4)
     optionalDependencies:
