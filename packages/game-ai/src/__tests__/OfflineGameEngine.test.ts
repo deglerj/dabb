@@ -81,6 +81,28 @@ describe('OfflineGameEngine', () => {
     expect(view2.state.round).toBe(view1.state.round);
   });
 
+  it('advances game state after dispatch with human action', async () => {
+    const engine = new OfflineGameEngine({
+      playerCount: 2,
+      difficulty: 'hard',
+      humanPlayerIndex: 0,
+    });
+    await engine.start();
+
+    const beforeView = engine.getViewForPlayer(0);
+    expect(beforeView.state.phase).toBe('bidding');
+
+    await engine.dispatch({ type: 'bid', amount: 150 });
+
+    const afterView = engine.getViewForPlayer(0);
+    // After human bids, AI acts and the game is still in a valid state
+    expect(['bidding', 'dabb', 'trump', 'melding', 'tricks', 'finished']).toContain(
+      afterView.state.phase
+    );
+    // The event log grew
+    expect(afterView.events.length).toBeGreaterThan(beforeView.events.length);
+  });
+
   it('onStateChange fires for each emitted event batch', async () => {
     const engine = new OfflineGameEngine({
       playerCount: 2,
