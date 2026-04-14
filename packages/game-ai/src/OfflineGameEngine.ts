@@ -88,6 +88,9 @@ export class OfflineGameEngine {
   }
 
   async dispatch(action: AIAction): Promise<void> {
+    if (!this.state) {
+      throw new Error('OfflineGameEngine.start() must be called before dispatch()');
+    }
     this.applyAction(this.options.humanPlayerIndex, action);
     await this.runUntilHumanTurn();
   }
