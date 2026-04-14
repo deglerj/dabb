@@ -11,7 +11,7 @@ describe('OfflineGameEngine', () => {
     });
 
     const states: GameState[] = [];
-    engine.onStateChange = (state) => {
+    engine.onStateChange = (state: GameState) => {
       states.push(state);
     };
 
