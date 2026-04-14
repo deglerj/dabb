@@ -1,7 +1,5 @@
 /**
- * AI module exports
+ * AI module — re-exports from @dabb/game-ai shared package.
  */
-
-export type { AIPlayer, AIPlayerFactory, AIDifficulty } from './AIPlayer.js';
-export { DefaultAIPlayerFactory, defaultAIPlayerFactory } from './AIPlayer.js';
-export { BinokelAIPlayer } from './BinokelAIPlayer.js';
+export type { AIPlayer, AIPlayerFactory, AIDifficulty } from '@dabb/game-ai';
+export { DefaultAIPlayerFactory, defaultAIPlayerFactory, BinokelAIPlayer } from '@dabb/game-ai';

@@ -178,6 +178,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@dabb/game-ai':
+        specifier: workspace:*
+        version: link:../../packages/game-ai
       '@dabb/game-logic':
         specifier: workspace:*
         version: link:../../packages/game-logic
@@ -255,6 +258,28 @@ importers:
       typescript:
         specifier: ^6.0.2
         version: 6.0.2
+
+  packages/game-ai:
+    dependencies:
+      '@dabb/game-logic':
+        specifier: workspace:*
+        version: link:../game-logic
+      '@dabb/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^4.1.2
+        version: 4.1.2(vitest@4.1.2(@types/node@25.5.0)(jsdom@29.0.1)(vite@7.3.1(@types/node@25.5.0)(lightningcss@1.32.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)))
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^4.1.2
+        version: 4.1.2(@types/node@25.5.0)(jsdom@29.0.1)(vite@7.3.1(@types/node@25.5.0)(lightningcss@1.32.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/game-canvas:
     dependencies:
