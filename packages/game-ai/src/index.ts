@@ -1,3 +1,3 @@
-// packages/game-ai/src/index.ts
-// Populated in Task 2
-export {};
+export type { AIPlayer, AIPlayerFactory, AIDifficulty } from './AIPlayer.js';
+export { DefaultAIPlayerFactory, defaultAIPlayerFactory } from './AIPlayer.js';
+export { BinokelAIPlayer } from './BinokelAIPlayer.js';

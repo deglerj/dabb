@@ -17,6 +17,7 @@
     "simulate": "tsx src/simulation/runner.ts"
   },
   "dependencies": {
+    "@dabb/game-ai": "workspace:*",
     "@dabb/game-logic": "workspace:*",
     "@dabb/shared-types": "workspace:*",
     "cors": "^2.8.5",
