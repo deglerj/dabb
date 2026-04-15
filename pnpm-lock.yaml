@@ -57,6 +57,9 @@ importers:
       '@dabb/card-assets':
         specifier: workspace:*
         version: link:../../packages/card-assets
+      '@dabb/game-ai':
+        specifier: workspace:*
+        version: link:../../packages/game-ai
       '@dabb/game-canvas':
         specifier: workspace:*
         version: link:../../packages/game-canvas

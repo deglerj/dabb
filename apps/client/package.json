@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@dabb/card-assets": "workspace:*",
+    "@dabb/game-ai": "workspace:*",
     "@dabb/game-canvas": "workspace:*",
     "@dabb/game-logic": "workspace:*",
     "@dabb/i18n": "workspace:*",
