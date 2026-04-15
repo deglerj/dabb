@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { OfflineGameEngine } from '@dabb/game-ai';
 import type { GameInterface } from '@dabb/ui-shared';
+import { AI_NAMES } from '@dabb/shared-types';
 import type {
   CardId,
   GameEvent,
@@ -33,14 +34,15 @@ function buildNicknames(
   humanNickname: string,
   humanIndex: PlayerIndex
 ): Map<PlayerIndex, string> {
+  const shuffled = [...AI_NAMES].sort(() => Math.random() - 0.5);
   const map = new Map<PlayerIndex, string>();
+  let aiNameIndex = 0;
   for (let i = 0; i < playerCount; i++) {
     const idx = i as PlayerIndex;
     if (idx === humanIndex) {
       map.set(idx, humanNickname);
     } else {
-      const aiNumber = idx < humanIndex ? idx + 1 : idx;
-      map.set(idx, `KI ${aiNumber}`);
+      map.set(idx, shuffled[aiNameIndex++]);
     }
   }
   return map;

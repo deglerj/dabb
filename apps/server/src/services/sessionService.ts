@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { PlayerCount, PlayerIndex, SessionStatus, Team } from '@dabb/shared-types';
-import { GameError, SERVER_ERROR_CODES } from '@dabb/shared-types';
+import { AI_NAMES, GameError, SERVER_ERROR_CODES } from '@dabb/shared-types';
 
 import { pool } from '../db/pool.js';
 import { generateSessionCode } from '../utils/sessionCode.js';
@@ -27,35 +27,6 @@ export interface Player {
   isAI: boolean;
   aiDifficulty?: string;
 }
-
-// German boomer generation first names for AI players
-export const AI_NAMES = [
-  'Hans',
-  'Greta',
-  'Helga',
-  'Werner',
-  'Ingrid',
-  'Horst',
-  'Gerda',
-  'Klaus',
-  'Irmgard',
-  'Günther',
-  'Hildegard',
-  'Dieter',
-  'Ursula',
-  'Manfred',
-  'Erika',
-  'Siegfried',
-  'Renate',
-  'Wolfgang',
-  'Brigitte',
-  'Helmut',
-  'Christa',
-  'Rolf',
-  'Elfriede',
-  'Heinz',
-  'Lieselotte',
-] as const;
 
 export async function createSession(
   playerCount: PlayerCount,

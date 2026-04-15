@@ -73,6 +73,7 @@ export type {
 } from './api.js';
 
 // AI types
+export { AI_NAMES } from './ai.js';
 export type {
   AIAction,
   AIBidAction,
