@@ -307,6 +307,7 @@ export const licenseGroups: { license: string; packages: string[] }[] = [
       '@types/node',
       '@types/react',
       '@types/react-dom',
+      '@types/react-test-renderer',
       '@types/stack-utils',
       '@types/yargs',
       '@types/yargs-parser',
