@@ -103,7 +103,7 @@ describe('OfflineGameEngine', () => {
     expect(afterView.events.length).toBeGreaterThan(beforeView.events.length);
   });
 
-  it('onStateChange fires for each emitted event batch', async () => {
+  it('onStateChange fires exactly once per start() call with all events batched', async () => {
     const engine = new OfflineGameEngine({
       playerCount: 2,
       difficulty: 'hard',
@@ -111,11 +111,15 @@ describe('OfflineGameEngine', () => {
     });
 
     let callCount = 0;
-    engine.onStateChange = () => {
+    let lastNewEventsCount = 0;
+    engine.onStateChange = (_state, newEvents) => {
       callCount++;
+      lastNewEventsCount = newEvents.length;
     };
     await engine.start();
 
-    expect(callCount).toBeGreaterThan(2);
+    expect(callCount).toBe(1);
+    // start() emits player-joined × N, game-started, cards-dealt, plus any AI bidding events
+    expect(lastNewEventsCount).toBeGreaterThan(2);
   });
 });
