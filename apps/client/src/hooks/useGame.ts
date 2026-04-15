@@ -1,8 +1,10 @@
 /**
  * useGame — connects to the game server and manages game state.
+ * Implements GameInterface for use with GameScreen.
  */
 import { useCallback, useState } from 'react';
 import { useSocket, useGameState } from '@dabb/ui-shared';
+import type { GameInterface } from '@dabb/ui-shared';
 import { SERVER_URL } from '../constants.js';
 import type { CardId, Suit, PlayerIndex, Meld } from '@dabb/shared-types';
 
@@ -10,13 +12,13 @@ export interface UseGameOptions {
   sessionId: string;
   secretId: string;
   playerIndex: number;
-  onSessionTerminated?: (data: { message: string; terminatedBy?: string }) => void;
 }
 
-export function useGame({ sessionId, secretId, playerIndex, onSessionTerminated }: UseGameOptions) {
+export function useGame({ sessionId, secretId, playerIndex }: UseGameOptions): GameInterface {
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
+  const [terminatedByNickname, setTerminatedByNickname] = useState<string | null>(null);
 
-  const { state, events, isInitialLoad, processEvents, reset } = useGameState({
+  const { state, events, isInitialLoad, processEvents } = useGameState({
     playerIndex: playerIndex as PlayerIndex,
   });
 
@@ -32,14 +34,21 @@ export function useGame({ sessionId, secretId, playerIndex, onSessionTerminated 
     });
   }, []);
 
-  const { socket, connected, connecting, error } = useSocket({
+  const handleSessionTerminated = useCallback(
+    (data: { message: string; terminatedBy?: string }) => {
+      setTerminatedByNickname(data.terminatedBy ?? null);
+    },
+    []
+  );
+
+  const { socket, connected } = useSocket({
     serverUrl: SERVER_URL,
     sessionId,
     secretId,
     onEvents: processEvents,
     onStateNicknames: handleStateNicknames,
     onPlayerJoined: handlePlayerJoined,
-    onSessionTerminated,
+    onSessionTerminated: handleSessionTerminated,
   });
 
   const onBid = useCallback((amount: number) => socket?.emit('game:bid', { amount }), [socket]);
@@ -70,9 +79,7 @@ export function useGame({ sessionId, secretId, playerIndex, onSessionTerminated 
     isInitialLoad,
     nicknames,
     connected,
-    connecting,
-    error,
-    reset,
+    terminatedByNickname,
     onBid,
     onPass,
     onTakeDabb,

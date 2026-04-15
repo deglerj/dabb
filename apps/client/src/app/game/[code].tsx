@@ -14,6 +14,8 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WithSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
 import { storageGet } from '../../hooks/useStorage.js';
+import { useGame } from '../../hooks/useGame.js';
+import type { GameInterface } from '@dabb/ui-shared';
 import type { PlayerIndex } from '@dabb/shared-types';
 
 type StoredSession = {
@@ -46,6 +48,12 @@ export default function GameRoute() {
     })();
   }, [code, router]);
 
+  const game = useGame(
+    credentials
+      ? { sessionId: code, secretId: credentials.secretId, playerIndex: credentials.playerIndex }
+      : { sessionId: '', secretId: '', playerIndex: 0 }
+  );
+
   if (!credentials) {
     return (
       <View style={styles.loading}>
@@ -58,11 +66,7 @@ export default function GameRoute() {
     <WithSkiaWeb
       getComponent={() =>
         import('../../components/ui/GameScreen.js') as unknown as Promise<{
-          default: React.ComponentType<{
-            sessionId: string;
-            secretId: string;
-            playerIndex: PlayerIndex;
-          }>;
+          default: React.ComponentType<{ game: GameInterface; playerIndex: PlayerIndex }>;
         }>
       }
       opts={{ locateFile: (file: string) => `/${file}` }}
@@ -71,11 +75,7 @@ export default function GameRoute() {
           <ActivityIndicator size="large" />
         </View>
       }
-      componentProps={{
-        sessionId: code,
-        secretId: credentials.secretId,
-        playerIndex: credentials.playerIndex,
-      }}
+      componentProps={{ game, playerIndex: credentials.playerIndex }}
     />
   );
 }
