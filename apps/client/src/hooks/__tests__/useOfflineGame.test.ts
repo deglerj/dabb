@@ -121,6 +121,17 @@ describe('useOfflineGame', () => {
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'bid', amount: 180 });
   });
 
+  it('AI opponent names stay stable across re-renders (regression)', () => {
+    const { result, rerender } = renderHook(() =>
+      useOfflineGame({ playerCount: 2, difficulty: 'medium', nickname: 'Hans', resume: false })
+    );
+
+    const namesBefore = result.current.nicknames.get(1);
+    rerender();
+    const namesAfter = result.current.nicknames.get(1);
+    expect(namesAfter).toBe(namesBefore);
+  });
+
   it('onExit clears storage', async () => {
     const { storageDelete } = await import('../useStorage.js');
     const { result } = renderHook(() =>

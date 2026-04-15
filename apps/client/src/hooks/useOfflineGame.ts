@@ -2,7 +2,7 @@
  * useOfflineGame — offline game hook that wraps OfflineGameEngine.
  * Implements GameInterface for use with GameScreen.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OfflineGameEngine } from '@dabb/game-ai';
 import type { GameInterface } from '@dabb/ui-shared';
 import { AI_NAMES } from '@dabb/shared-types';
@@ -60,7 +60,10 @@ export function useOfflineGame({
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const nicknames = buildNicknames(playerCount, nickname, HUMAN_PLAYER_INDEX);
+  const nicknames = useMemo(
+    () => buildNicknames(playerCount, nickname, HUMAN_PLAYER_INDEX),
+    [] // Intentionally empty — names must not change after game starts
+  );
 
   useEffect(() => {
     let cancelled = false;
