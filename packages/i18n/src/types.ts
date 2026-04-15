@@ -47,6 +47,18 @@ export interface TranslationKeys {
     gameCodePlaceholder: string;
     create: string;
     join: string;
+    playOffline: string;
+    createOnline: string;
+    joinOnline: string;
+    resumeGame: string;
+  };
+  offline: {
+    difficulty: string;
+    difficultyEasy: string;
+    difficultyMedium: string;
+    difficultyHard: string;
+    startGame: string;
+    aiPlayerName: string;
   };
   waitingRoom: {
     title: string;

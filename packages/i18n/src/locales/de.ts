@@ -36,6 +36,18 @@ const de: TranslationKeys = {
     gameCodePlaceholder: 'z.B. schnell-fuchs-42',
     create: 'Erstellen',
     join: 'Beitreten',
+    playOffline: 'Lokal gegen KI',
+    createOnline: 'Online-Spiel erstellen',
+    joinOnline: 'Online-Spiel beitreten',
+    resumeGame: 'Weiterspielen',
+  },
+  offline: {
+    difficulty: 'Schwierigkeit',
+    difficultyEasy: 'Einfach',
+    difficultyMedium: 'Mittel',
+    difficultyHard: 'Schwer',
+    startGame: 'Spielen',
+    aiPlayerName: 'KI {{index}}',
   },
   waitingRoom: {
     title: 'Warteraum',
