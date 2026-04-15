@@ -1,6 +1,6 @@
 {
   "name": "@dabb/client",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "main": "index.ts",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');fs.mkdirSync('public',{recursive:true});fs.copyFileSync('../../node_modules/canvaskit-wasm/bin/full/canvaskit.wasm','public/canvaskit.wasm')\"",
