@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { PlayerIndex, GameState, Suit, Rank } from '@dabb/shared-types';
 import { GameError } from '@dabb/shared-types';
-import { BinokelAIPlayer } from '../ai/BinokelAIPlayer.js';
+import { BinokelAIPlayer } from '../ai/index.js';
 
 // Mock the database pool
 const mockQuery = vi.fn();

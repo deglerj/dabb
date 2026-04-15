@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [2.1.0] - 2026-04-14
+
+### Neues
+
+- **Lokal gegen KI**: Spiele Binokel offline gegen KI-Gegner — kein Internet nötig. Wähle Spieleranzahl und Schwierigkeit. Das Spiel wird automatisch gespeichert und kann jederzeit fortgesetzt werden.
+
 ## [2.0.0] - 2026-03-14
 
 ### Breaking Changes
