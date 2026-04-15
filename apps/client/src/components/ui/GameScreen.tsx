@@ -4,6 +4,7 @@
  * trick area, scoreboard, overlays, log, celebration, and termination modal.
  */
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import type { GameInterface } from '@dabb/ui-shared';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
@@ -38,7 +39,6 @@ import type {
 import { DABB_SIZE, SUIT_NAMES, formatMeldName } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
-import { useGame } from '../../hooks/useGame.js';
 import { useGameDimensions, MAX_GAME_WIDTH } from '../../hooks/useGameDimensions.js';
 import { useTurnNotification } from '../../hooks/useTurnNotification.js';
 import { useTurnHaptic } from '../../hooks/useTurnHaptic.js';
@@ -59,8 +59,7 @@ import { OptionsButton } from './OptionsButton.js';
 import GameScreenErrorBoundary from './GameScreenErrorBoundary.js';
 
 export interface GameScreenProps {
-  sessionId: string;
-  secretId: string;
+  game: GameInterface;
   playerIndex: PlayerIndex;
 }
 
@@ -158,21 +157,12 @@ function formatLogEntryText(
   }
 }
 
-export default function GameScreen({ sessionId, secretId, playerIndex }: GameScreenProps) {
+export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const { width, height } = useGameDimensions();
   const insets = useSafeAreaInsets();
   const effects = useSkiaEffects();
-
-  const [terminatedByNickname, setTerminatedByNickname] = useState<string | null>(null);
-
-  const handleSessionTerminated = useCallback(
-    (data: { message: string; terminatedBy?: string }) => {
-      setTerminatedByNickname(data.terminatedBy ?? null);
-    },
-    []
-  );
 
   const {
     state,
@@ -180,6 +170,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     isInitialLoad,
     nicknames,
     connected,
+    terminatedByNickname,
     onBid,
     onPass,
     onTakeDabb,
@@ -189,7 +180,7 @@ export default function GameScreen({ sessionId, secretId, playerIndex }: GameScr
     onDeclareMelds,
     onPlayCard,
     onExit,
-  } = useGame({ sessionId, secretId, playerIndex, onSessionTerminated: handleSessionTerminated });
+  } = game;
 
   const [logExpanded, setLogExpanded] = useState(false);
   const [lastDropPos, setLastDropPos] = useState<{ x: number; y: number } | undefined>(undefined);
