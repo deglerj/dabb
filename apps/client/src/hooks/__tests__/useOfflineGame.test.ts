@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { AI_NAMES } from '@dabb/shared-types';
 import { renderHook, act } from '@testing-library/react';
 import { useOfflineGame } from '../useOfflineGame.js';
 
@@ -104,8 +105,8 @@ describe('useOfflineGame', () => {
     });
 
     expect(result.current.nicknames.get(0)).toBe('Hans');
-    // AI players get generated names
-    expect(result.current.nicknames.get(1)).toMatch(/KI|AI/);
+    // AI players get a name from the shared AI_NAMES list
+    expect(AI_NAMES).toContain(result.current.nicknames.get(1));
   });
 
   it('onBid calls engine.dispatch with bid action', async () => {

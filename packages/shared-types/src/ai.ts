@@ -60,6 +60,37 @@ export type AIAction =
   | AIPlayCardAction;
 
 /**
+ * German boomer-generation first names for AI players (used in both online and offline modes).
+ */
+export const AI_NAMES = [
+  'Hans',
+  'Greta',
+  'Helga',
+  'Werner',
+  'Ingrid',
+  'Horst',
+  'Gerda',
+  'Klaus',
+  'Irmgard',
+  'Günther',
+  'Hildegard',
+  'Dieter',
+  'Ursula',
+  'Manfred',
+  'Erika',
+  'Siegfried',
+  'Renate',
+  'Wolfgang',
+  'Brigitte',
+  'Helmut',
+  'Christa',
+  'Rolf',
+  'Elfriede',
+  'Heinz',
+  'Lieselotte',
+] as const;
+
+/**
  * Context provided to AI for making decisions
  */
 export interface AIDecisionContext {
