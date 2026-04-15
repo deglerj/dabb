@@ -73,6 +73,7 @@ export class OfflineGameEngine {
   private state!: GameState;
   private sequence = 0;
   private aiPlayers: Map<PlayerIndex, AIPlayer> = new Map();
+  private pendingEvents: GameEvent[] = [];
 
   onStateChange: StateChangeCallback | null = null;
 
@@ -85,6 +86,7 @@ export class OfflineGameEngine {
       this.initialize();
     }
     await this.runUntilHumanTurn();
+    this.flush();
   }
 
   async dispatch(action: AIAction): Promise<void> {
@@ -93,6 +95,14 @@ export class OfflineGameEngine {
     }
     this.applyAction(this.options.humanPlayerIndex, action);
     await this.runUntilHumanTurn();
+    this.flush();
+  }
+
+  private flush(): void {
+    if (this.pendingEvents.length > 0 && this.onStateChange) {
+      this.onStateChange(this.state, this.pendingEvents);
+      this.pendingEvents = [];
+    }
   }
 
   getViewForPlayer(playerIndex: PlayerIndex): { state: GameState; events: GameEvent[] } {
@@ -119,7 +129,7 @@ export class OfflineGameEngine {
   private emit(event: GameEvent): void {
     this.events.push(event);
     this.state = applyEvent(this.state, event);
-    this.onStateChange?.(this.state, [event]);
+    this.pendingEvents.push(event);
   }
 
   private createAI(): void {
