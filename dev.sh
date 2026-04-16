@@ -321,6 +321,7 @@ cmd_apk() {
     echo ""
 
     $RUNTIME run --rm \
+        --network=host \
         -v "$(pwd):/app" \
         -v dabb-gradle-cache:/gradle-cache \
         -e GRADLE_USER_HOME=/gradle-cache \
