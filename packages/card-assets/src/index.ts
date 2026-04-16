@@ -12,10 +12,10 @@ export const SUIT_COLORS: Record<Suit, { primary: string; secondary: string }> =
 };
 
 export const SUIT_SYMBOLS: Record<Suit, string> = {
-  kreuz: '♣',
-  schippe: '♠',
-  herz: '♥',
-  bollen: '♦',
+  kreuz: '♣\uFE0E',
+  schippe: '♠\uFE0E',
+  herz: '♥\uFE0E',
+  bollen: '♦\uFE0E',
 };
 
 export const RANK_DISPLAY: Record<Rank, string> = {
