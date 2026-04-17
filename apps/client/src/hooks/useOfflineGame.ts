@@ -70,13 +70,22 @@ export function useOfflineGame({
 
     const init = async () => {
       let existingEvents: GameEvent[] | undefined;
+      let resolvedPlayerCount = playerCount;
+      let resolvedDifficulty = difficulty;
 
       if (resume) {
         try {
           const raw = await storageGet(STORAGE_KEY);
           if (raw) {
-            const payload = JSON.parse(raw) as { events: GameEvent[] };
+            const payload = JSON.parse(raw) as {
+              events: GameEvent[];
+              config?: { playerCount: PlayerCount; difficulty: AIDifficulty };
+            };
             existingEvents = payload.events;
+            if (payload.config) {
+              resolvedPlayerCount = payload.config.playerCount;
+              resolvedDifficulty = payload.config.difficulty;
+            }
           }
         } catch {
           // Storage read failed — start fresh
@@ -84,8 +93,8 @@ export function useOfflineGame({
       }
 
       const engine = new OfflineGameEngine({
-        playerCount,
-        difficulty,
+        playerCount: resolvedPlayerCount,
+        difficulty: resolvedDifficulty,
         humanPlayerIndex: HUMAN_PLAYER_INDEX,
         existingEvents,
       });

@@ -81,8 +81,8 @@ export function GameLogTab({ entries, isExpanded, onToggle, collapsedSummary }: 
           {entries.map((entry) => (
             <View key={entry.key}>
               <Text style={styles.entryText}>{entry.text}</Text>
-              {entry.detail?.map((meld) => (
-                <Text key={meld.cards.join('-')} style={styles.meldDetailText}>
+              {entry.detail?.map((meld, i) => (
+                <Text key={i} style={styles.meldDetailText}>
                   {meld.name}: {meld.cards.join(', ')} ({meld.points})
                 </Text>
               ))}
