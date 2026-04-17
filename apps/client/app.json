@@ -4,7 +4,7 @@
     "slug": "dabb-client",
     "scheme": "dabb",
     "version": "2.1.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
