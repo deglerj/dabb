@@ -102,7 +102,21 @@ export class OfflineGameEngine {
     if (!this.state) {
       throw new Error('OfflineGameEngine.start() must be called before dispatch()');
     }
+
+    const isTrickCardPlay = this.state.phase === 'tricks' && action.type === 'playCard';
+    const lastCompletedTrickBefore = isTrickCardPlay ? this.state.lastCompletedTrick : undefined;
+
     this.applyAction(this.options.humanPlayerIndex, action);
+
+    if (isTrickCardPlay) {
+      // Flush human's card immediately so the animation layer sees it before AI responds
+      this.flush();
+      const trickJustCompleted = this.state.lastCompletedTrick !== lastCompletedTrickBefore;
+      if (trickJustCompleted) {
+        await sleep(AI_TRICK_COMPLETE_DELAY_MS);
+      }
+    }
+
     await this.runUntilHumanTurn();
     this.flush();
   }
