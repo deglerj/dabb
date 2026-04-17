@@ -68,6 +68,15 @@ export interface PersistPayload {
 
 export type StateChangeCallback = (state: GameState, newEvents: GameEvent[]) => void;
 
+// Delay between individual AI card plays within a trick (allows fly-in animation to show)
+const AI_CARD_PLAY_DELAY_MS = 700;
+// Delay after a trick completes — must cover PAUSE_DURATION (3000ms) + sweep animation (~1000ms) + buffer
+const AI_TRICK_COMPLETE_DELAY_MS = 4500;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export class OfflineGameEngine {
   private events: GameEvent[] = [];
   private state!: GameState;
@@ -211,7 +220,18 @@ export class OfflineGameEngine {
         playerIndex: actor,
         sessionId: 'offline',
       });
+
+      const isTrickCardPlay = this.state.phase === 'tricks' && action.type === 'playCard';
+      const lastCompletedTrickBefore = this.state.lastCompletedTrick;
+
       this.applyAction(actor, action);
+
+      if (isTrickCardPlay) {
+        // Flush immediately so the UI sees this card arrive before the next one
+        this.flush();
+        const trickJustCompleted = this.state.lastCompletedTrick !== lastCompletedTrickBefore;
+        await sleep(trickJustCompleted ? AI_TRICK_COMPLETE_DELAY_MS : AI_CARD_PLAY_DELAY_MS);
+      }
     }
   }
 
