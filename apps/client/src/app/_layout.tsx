@@ -7,7 +7,9 @@ import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 import { useFonts, IMFellEnglishSC_400Regular } from '@expo-google-fonts/im-fell-english-sc';
 import { Caveat_400Regular, Caveat_700Bold } from '@expo-google-fonts/caveat';
 import { Lato_400Regular, Lato_700Bold } from '@expo-google-fonts/lato';
@@ -21,6 +23,11 @@ import { loadSoundPreferences } from '../utils/sounds.js';
 import { loadHapticsPreferences } from '../utils/haptics.js';
 
 SplashScreen.preventAutoHideAsync();
+
+if (Platform.OS === 'android') {
+  void NavigationBar.setVisibilityAsync('hidden');
+  void NavigationBar.setBehaviorAsync('overlay-swipe');
+}
 
 function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -57,6 +64,7 @@ function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
+      <StatusBar hidden />
       <SafeAreaProvider>
         <I18nProvider>
           <Stack screenOptions={{ headerShown: false }} />

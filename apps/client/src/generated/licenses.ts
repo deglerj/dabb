@@ -425,6 +425,7 @@ export const licenseGroups: { license: string; packages: string[] }[] = [
       'expo-linking',
       'expo-modules-autolinking',
       'expo-modules-core',
+      'expo-navigation-bar',
       'expo-router',
       'expo-secure-store',
       'expo-server',

@@ -114,6 +114,8 @@ export class OfflineGameEngine {
       const trickJustCompleted = this.state.lastCompletedTrick !== lastCompletedTrickBefore;
       if (trickJustCompleted) {
         await sleep(AI_TRICK_COMPLETE_DELAY_MS);
+      } else {
+        await sleep(AI_CARD_PLAY_DELAY_MS);
       }
     }
 
