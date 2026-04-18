@@ -172,11 +172,9 @@ export async function checkAndTriggerAI(
 
     pendingAIActions.add(actionKey);
 
-    // Schedule AI action with a small delay for more natural feel
-    // After a trick is won, add extra delay so clients can display the completed trick
     const delay = afterTrickWon
-      ? 3000 + 500 + Math.random() * 500 // 3500-4000ms (trick display pause + normal delay)
-      : 500 + Math.random() * 500; // 500-1000ms
+      ? 1750 + Math.random() * 250 // 1750-2000ms (trick display pause + normal delay)
+      : 250 + Math.random() * 250; // 250-500ms
     setTimeout(async () => {
       try {
         await executeAIAction(sessionId, activePlayer!, io);

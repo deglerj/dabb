@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import GameScreen from '../../components/ui/GameScreen.js';
 import { storageGet } from '../../hooks/useStorage.js';
+import { useGame } from '../../hooks/useGame.js';
 import type { PlayerIndex } from '@dabb/shared-types';
 
 type StoredSession = {
@@ -35,6 +36,12 @@ export default function GameRoute() {
     })();
   }, [code, router]);
 
+  const game = useGame(
+    credentials
+      ? { sessionId: code, secretId: credentials.secretId, playerIndex: credentials.playerIndex }
+      : { sessionId: '', secretId: '', playerIndex: 0 }
+  );
+
   if (!credentials) {
     return (
       <View style={styles.loading}>
@@ -43,13 +50,7 @@ export default function GameRoute() {
     );
   }
 
-  return (
-    <GameScreen
-      sessionId={code}
-      secretId={credentials.secretId}
-      playerIndex={credentials.playerIndex}
-    />
-  );
+  return <GameScreen game={game} playerIndex={credentials.playerIndex} />;
 }
 
 const styles = StyleSheet.create({

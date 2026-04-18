@@ -19,8 +19,13 @@ echo "==> Generating native Android project..."
 cd apps/client
 npx expo prebuild --platform android --clean
 
-echo "==> Configuring Gradle JVM memory..."
-echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m" >> android/gradle.properties
+echo "==> Configuring Gradle properties..."
+# Disable JDK toolchain auto-download: React Native's Gradle plugin declares a Java toolchain
+# requirement and Gradle 9's foojay resolver tries to download it from the internet, which
+# hangs in container environments. Point it at the JDK already installed in the image instead.
+echo "org.gradle.daemon=false" >> android/gradle.properties
+echo "org.gradle.java.installations.auto-download=false" >> android/gradle.properties
+echo "org.gradle.java.installations.fromEnv=JAVA_HOME" >> android/gradle.properties
 
 echo "==> Fixing Hermes path for pnpm..."
 cd /app
@@ -46,11 +51,11 @@ cd /app
 
 echo "==> Building APK with Gradle..."
 cd apps/client/android
-./gradlew assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
+./gradlew assembleDebug -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86_64
 
 echo "==> Copying APK to output directory..."
 cd /app/apps/client
 mkdir -p build
-cp android/app/build/outputs/apk/release/app-release.apk build/dabb.apk
+cp android/app/build/outputs/apk/debug/app-debug.apk build/dabb.apk
 
 echo "==> Build complete: apps/client/build/dabb.apk"
