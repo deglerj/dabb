@@ -1,7 +1,6 @@
--- Dabb (Binokel) Database Schema - Initial Migration
--- This migration creates the base tables for the event-sourced game system
+-- Dabb (Binokel) consolidated schema
+-- Replaces postgres-migrations 0001-0004
 
--- Game sessions
 CREATE TABLE IF NOT EXISTS sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code VARCHAR(50) UNIQUE NOT NULL,
@@ -12,20 +11,20 @@ CREATE TABLE IF NOT EXISTS sessions (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Players in sessions
 CREATE TABLE IF NOT EXISTS players (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
-  secret_id UUID NOT NULL UNIQUE,
+  secret_id UUID,
   nickname VARCHAR(50) NOT NULL,
   player_index SMALLINT NOT NULL CHECK (player_index >= 0 AND player_index < 4),
   team SMALLINT CHECK (team IS NULL OR team IN (0, 1)),
   connected BOOLEAN NOT NULL DEFAULT true,
+  is_ai BOOLEAN NOT NULL DEFAULT false,
+  ai_difficulty VARCHAR(10) DEFAULT 'medium',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (session_id, player_index)
 );
 
--- Event store (event sourcing)
 CREATE TABLE IF NOT EXISTS events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
@@ -36,15 +35,13 @@ CREATE TABLE IF NOT EXISTS events (
   UNIQUE (session_id, sequence)
 );
 
--- Indexes
 CREATE INDEX IF NOT EXISTS idx_sessions_code ON sessions(code);
 CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status);
 CREATE INDEX IF NOT EXISTS idx_players_session_id ON players(session_id);
-CREATE INDEX IF NOT EXISTS idx_players_secret_id ON players(secret_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_players_secret_id_unique ON players(secret_id) WHERE is_ai = false AND secret_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_events_session_id ON events(session_id);
 CREATE INDEX IF NOT EXISTS idx_events_session_sequence ON events(session_id, sequence);
 
--- Trigger to update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN

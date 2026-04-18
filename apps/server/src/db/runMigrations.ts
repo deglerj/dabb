@@ -1,9 +1,9 @@
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
-import { migrate } from 'postgres-migrations';
+import { runner } from 'node-pg-migrate';
 
-import { pool } from './pool.js';
+import { env } from '../config/env.js';
 import logger from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,7 +13,13 @@ export async function runMigrations(): Promise<void> {
   const migrationsDir = join(__dirname, 'migrations');
 
   try {
-    await migrate({ client: pool }, migrationsDir);
+    await runner({
+      databaseUrl: env.DATABASE_URL,
+      dir: migrationsDir,
+      direction: 'up',
+      migrationsTable: 'pgmigrations',
+      verbose: false,
+    });
     logger.info('Database migrations completed');
   } catch (error) {
     logger.error({ error }, 'Database migration failed');
