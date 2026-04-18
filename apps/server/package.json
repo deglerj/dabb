@@ -1,6 +1,6 @@
 {
   "name": "@dabb/server",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
@@ -17,6 +17,7 @@
     "simulate": "tsx src/simulation/runner.ts"
   },
   "dependencies": {
+    "@dabb/game-ai": "workspace:*",
     "@dabb/game-logic": "workspace:*",
     "@dabb/shared-types": "workspace:*",
     "cors": "^2.8.5",
@@ -34,12 +35,12 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
-    "@vitest/coverage-v8": "^4.1.2",
+    "@vitest/coverage-v8": "^4.1.4",
     "socket.io-client": "^4.8.3",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.4"
   }
 }

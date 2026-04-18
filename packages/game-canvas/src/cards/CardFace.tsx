@@ -111,8 +111,8 @@ export function CardFace({
     }
   }, [centerFontSize]);
 
-  if (!cornerFont || !cornerSuitFont || !centerFont) {
-    // Fallback for platforms where matchFont is unavailable (e.g. RN Web).
+  if (Platform.OS === 'android' || !cornerFont || !cornerSuitFont || !centerFont) {
+    // Fallback for platforms where matchFont is unavailable or broken (RN Web, Android).
     // Uses React Native View/Text which renders correctly on all platforms.
     const cornerSz = Math.round(width * 0.17);
     const centerSz = isFace || rank === '10' ? Math.round(width * 0.52) : Math.round(width * 0.42);

@@ -170,24 +170,27 @@ pnpm --filter @dabb/server dev
 pnpm --filter @dabb/client start
 ```
 
-### Mobile Development with Expo Go
+### Mobile Development on Android
 
-To test the mobile app on a physical device using [Expo Go](https://expo.dev/go):
+The app uses `@shopify/react-native-skia` and `react-native-reanimated` v4, which are not reliably supported in Expo Go. A **custom development build** is required.
 
-1. **Install Expo Go** on your phone (iOS App Store / Google Play)
+#### One-time setup: build and install the dev APK
 
-2. **Start the Docker services**, then **start the Expo dev server:**
+```bash
+./dev.sh apk
+```
 
-   ```bash
-   ./dev.sh start
-   ./dev.sh mobile
-   ```
+This builds a debug APK inside Docker and outputs it to `apps/client/build/dabb.apk`. Install it on your Android device via ADB or by copying the file.
 
-   This auto-detects your LAN IP and configures `EXPO_PUBLIC_SERVER_URL` so physical devices can reach the server.
+#### Daily workflow
 
-3. **Scan the QR code** shown by Expo in the terminal with your phone's camera (iOS) or Expo Go app (Android)
+```bash
+./dev.sh start
+```
 
-**Note:** Your phone and computer must be on the same WiFi network.
+This starts the server, then launches the Metro bundler (`./dev.sh mobile`). Open the installed dev build on your device — it will connect to Metro and load the JS bundle over your LAN. Subsequent JS changes hot-reload automatically without rebuilding the APK.
+
+**Note:** Your phone and computer must be on the same WiFi network. The LAN IP is auto-detected and printed in the terminal.
 
 ### Local Development with Docker/Podman
 

@@ -304,7 +304,7 @@ cmd_mobile() {
     echo ""
 
     cd apps/client
-    EXPO_PUBLIC_SERVER_URL="$server_url" npx expo start --go --clear
+    EXPO_PUBLIC_SERVER_URL="$server_url" npx expo start --clear
 }
 
 # Build Android APK in Docker
@@ -321,6 +321,7 @@ cmd_apk() {
     echo ""
 
     $RUNTIME run --rm \
+        --network=host \
         -v "$(pwd):/app" \
         -v dabb-gradle-cache:/gradle-cache \
         -e GRADLE_USER_HOME=/gradle-cache \

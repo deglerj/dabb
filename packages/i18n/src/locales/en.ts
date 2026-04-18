@@ -36,6 +36,18 @@ const en: TranslationKeys = {
     gameCodePlaceholder: 'e.g. quick-fox-42',
     create: 'Create',
     join: 'Join',
+    playOffline: 'Local vs AI',
+    createOnline: 'Create Online Game',
+    joinOnline: 'Join Online Game',
+    resumeGame: 'Resume Game',
+  },
+  offline: {
+    difficulty: 'Difficulty',
+    difficultyEasy: 'Easy',
+    difficultyMedium: 'Medium',
+    difficultyHard: 'Hard',
+    startGame: 'Play',
+    aiPlayerName: 'AI {{index}}',
   },
   waitingRoom: {
     title: 'Waiting Room',

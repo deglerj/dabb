@@ -10,3 +10,4 @@ export type { CelebrationResult } from './useCelebration.js';
 export { useTrickAnimationState } from './useTrickAnimationState.js';
 export type { TrickAnimationResult, TrickAnimPhase } from './useTrickAnimationState.js';
 export { useVersionCheck } from './useVersionCheck.js';
+export type { GameInterface } from './GameInterface.js';

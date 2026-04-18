@@ -1,5 +1,5 @@
 {
-  "name": "@dabb/ui-shared",
+  "name": "@dabb/game-ai",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,13 +8,15 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist coverage",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -22,16 +24,11 @@
   "dependencies": {
     "@dabb/game-logic": "workspace:*",
     "@dabb/shared-types": "workspace:*",
-    "socket.io-client": "^4.8.3"
-  },
-  "peerDependencies": {
-    "react": ">=18.0.0"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@testing-library/react": "^16.3.2",
-    "@types/react": "^19.2.14",
+    "@types/node": "^25.5.2",
     "@vitest/coverage-v8": "^4.1.4",
-    "jsdom": "^29.0.1",
     "typescript": "^6.0.2",
     "vitest": "^4.1.4"
   }

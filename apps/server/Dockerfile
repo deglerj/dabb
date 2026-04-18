@@ -16,6 +16,7 @@ COPY scripts ./scripts
 # Copy all package.json files for dependency resolution
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/game-logic/package.json ./packages/game-logic/
+COPY packages/game-ai/package.json ./packages/game-ai/
 COPY apps/server/package.json ./apps/server/
 
 # Install dependencies with pnpm (--ignore-scripts skips postinstall which requires the full workspace)
@@ -24,12 +25,14 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 # Copy source files
 COPY packages/shared-types ./packages/shared-types
 COPY packages/game-logic ./packages/game-logic
+COPY packages/game-ai ./packages/game-ai
 COPY apps/server ./apps/server
 COPY tsconfig.base.json ./
 
 # Build packages sequentially to ensure proper dependency resolution
 RUN cd packages/shared-types && pnpm run build && \
     cd ../game-logic && pnpm run build && \
+    cd ../game-ai && pnpm run build && \
     cd ../../apps/server && pnpm run build
 
 # Stage 2: Production
@@ -46,6 +49,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/game-logic/package.json ./packages/game-logic/
+COPY packages/game-ai/package.json ./packages/game-ai/
 COPY apps/server/package.json ./apps/server/
 
 # Install production dependencies (ignore scripts to skip husky which is a devDependency)
@@ -54,6 +58,7 @@ RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 # Copy built files from builder stage
 COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
 COPY --from=builder /app/packages/game-logic/dist ./packages/game-logic/dist
+COPY --from=builder /app/packages/game-ai/dist ./packages/game-ai/dist
 COPY --from=builder /app/apps/server/dist ./apps/server/dist
 
 # Use numeric UID 65532 (nonroot) — more robust than username-based USER
