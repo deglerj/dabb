@@ -12,6 +12,7 @@ flowchart TB
     subgraph packages
         types[shared-types]
         logic[game-logic]
+        gameai[game-ai]
         canvas[game-canvas]
         ui[ui-shared]
         assets[card-assets]
@@ -20,6 +21,7 @@ flowchart TB
 
     client --> types
     client --> logic
+    client --> gameai
     client --> canvas
     client --> ui
     client --> assets
@@ -27,6 +29,7 @@ flowchart TB
 
     server --> types
     server --> logic
+    server --> gameai
 
     canvas --> types
     canvas --> assets
@@ -34,21 +37,25 @@ flowchart TB
     ui --> types
     ui --> logic
 
+    gameai --> types
+    gameai --> logic
+
     logic --> types
 ```
 
 ### Package Overview
 
-| Package              | Purpose                                        |
-| -------------------- | ---------------------------------------------- |
-| `@dabb/shared-types` | TypeScript types shared across all apps        |
-| `@dabb/game-logic`   | Core game rules, state reducer, meld detection |
-| `@dabb/ui-shared`    | React hooks for socket and state management    |
-| `@dabb/card-assets`  | SVG card graphics and utilities                |
-| `@dabb/i18n`         | Internationalization (German, English)         |
-| `@dabb/client`       | React Native + Expo client (Android/iOS/web)   |
-| `@dabb/game-canvas`  | Skia-based game canvas rendering               |
-| `@dabb/server`       | Express + Socket.IO backend                    |
+| Package              | Purpose                                                  |
+| -------------------- | -------------------------------------------------------- |
+| `@dabb/shared-types` | TypeScript types shared across all apps                  |
+| `@dabb/game-logic`   | Core game rules, state reducer, meld detection           |
+| `@dabb/game-ai`      | AI player logic, offline game engine (OfflineGameEngine) |
+| `@dabb/ui-shared`    | React hooks for socket and state management              |
+| `@dabb/card-assets`  | SVG card graphics and utilities                          |
+| `@dabb/i18n`         | Internationalization (German, English)                   |
+| `@dabb/client`       | React Native + Expo client (Android/iOS/web)             |
+| `@dabb/game-canvas`  | Skia-based game canvas rendering                         |
+| `@dabb/server`       | Express + Socket.IO backend                              |
 
 ## 5.2 Level 2: Packages
 
@@ -86,6 +93,18 @@ src/
     └── views.ts      # Player view filtering (anti-cheat)
 ```
 
+### @dabb/game-ai
+
+```
+src/
+├── AIPlayer.ts             # AI player interface, factory, and AIDifficulty type
+├── BinokelAIPlayer.ts      # AI decision logic (easy/medium/hard difficulty)
+├── OfflineGameEngine.ts    # Offline single-player engine (human + AI, no server)
+└── index.ts                # Public exports
+```
+
+Used by both the server (live games, simulation) and the client (offline mode).
+
 ### @dabb/ui-shared
 
 ```
@@ -118,8 +137,7 @@ src/
 │   ├── cleanupService.ts          # Inactive session cleanup
 │   └── analyticsService.ts        # Umami analytics (fire-and-forget)
 ├── ai/
-│   ├── AIPlayer.ts               # AI player interface & factory
-│   └── BinokelAIPlayer.ts        # AI decision logic (easy/medium/hard)
+│   └── index.ts                  # Re-exports from @dabb/game-ai
 ├── scheduler/
 │   └── cleanupScheduler.ts       # Cleanup background job
 ├── simulation/
@@ -130,9 +148,11 @@ src/
 └── index.ts          # Server entry point
 ```
 
+AI player logic (`AIPlayer`, `BinokelAIPlayer`) lives in the shared `@dabb/game-ai` package and is re-exported from `apps/server/src/ai/index.ts`.
+
 #### Simulation Module
 
-The simulation module provides a standalone CLI tool for running AI-vs-AI games entirely in-memory, without requiring a database, HTTP server, or Socket.IO connections. It reuses the same `@dabb/game-logic` pure functions and `BinokelAIPlayer` that the live server uses, ensuring simulation behavior matches production.
+The simulation module provides a standalone CLI tool for running AI-vs-AI games entirely in-memory, without requiring a database, HTTP server, or Socket.IO connections. It reuses the same `@dabb/game-logic` pure functions and `@dabb/game-ai`'s `BinokelAIPlayer` that the live server uses, ensuring simulation behavior matches production.
 
 | Component          | Responsibility                                                          |
 | ------------------ | ----------------------------------------------------------------------- |

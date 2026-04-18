@@ -6,7 +6,7 @@
 
 ```
 apps/{client, server}
-packages/{shared-types, game-logic, game-canvas, ui-shared, card-assets, i18n}
+packages/{shared-types, game-logic, game-ai, game-canvas, ui-shared, card-assets, i18n}
 docs/{arc42/, adr/, AI_STRATEGY.md, API.md, SOCKET_EVENTS.md, DATABASE.md, KEY_FILES.md}
 deploy/  .github/workflows/  dev.sh  docker-compose.yml  DEPLOYMENT.md
 ```

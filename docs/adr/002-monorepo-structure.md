@@ -23,6 +23,7 @@ dabb/
 ├── packages/
 │   ├── shared-types/   # TypeScript types
 │   ├── game-logic/     # Game rules
+│   ├── game-ai/        # AI player logic and offline game engine
 │   ├── game-canvas/    # Skia card table rendering
 │   ├── ui-shared/      # React hooks
 │   ├── card-assets/    # SVG graphics
