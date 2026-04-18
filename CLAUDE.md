@@ -17,7 +17,7 @@ deploy/  .github/workflows/  dev.sh  docker-compose.yml  DEPLOYMENT.md
 
 All state is managed through events stored in PostgreSQL and replayed via a reducer (`packages/game-logic/src/state/reducer.ts`). Enables reconnection, debugging, and anti-cheat.
 
-Key events: `GameStartedEvent`, `CardsDealtEvent`, `BidPlacedEvent`, `PlayerPassedEvent`, `BiddingWonEvent`, `DabbTakenEvent`, `CardsDiscardedEvent`, `GoingOutEvent`, `TrumpDeclaredEvent`, `MeldsDeclaredEvent`, `MeldingCompleteEvent`, `CardPlayedEvent`, `TrickWonEvent`, `RoundScoredEvent`, `GameFinishedEvent`, `GameTerminatedEvent`.
+Key events: `GameStartedEvent`, `CardsDealtEvent`, `BidPlacedEvent`, `PlayerPassedEvent`, `BiddingWonEvent`, `DabbTakenEvent`, `CardsDiscardedEvent`, `GoingOutEvent`, `TrumpDeclaredEvent`, `MeldsDeclaredEvent`, `MeldingCompleteEvent`, `CardPlayedEvent`, `TrickWonEvent`, `RoundScoredEvent`, `GameFinishedEvent`, `GameTerminatedEvent`, `PlayerJoinedEvent`, `PlayerLeftEvent`, `PlayerReconnectedEvent`, `NewRoundStartedEvent`.
 
 ### Anti-Cheat
 
@@ -42,7 +42,7 @@ Languages: `de` (default), `en`. Use `useTranslation()` from `@dabb/i18n`. Swabi
 
 ### Server Error Internationalization
 
-Server throws `GameError(SERVER_ERROR_CODES.X, params)`. Socket emits `{ message: code, code, params }`. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Bidding, Dabb, Trump, Melding, Tricks, AI, General). Add error: `/add-error` skill.
+Server throws `GameError(SERVER_ERROR_CODES.X, params)`. Socket emits `{ message: code, code, params }`. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Game start, General game, Bidding, Dabb, Going out, Trump, Melding, Tricks, Game termination, AI, Generic fallback). Add error: `/add-error` skill.
 
 ## Commands
 
@@ -99,7 +99,7 @@ Tests in `__tests__/` directories alongside source files. Run: `pnpm test` or `p
 4. **Swabian names** — Kreuz/Schippe/Herz/Bollen, Buabe not Unter
 5. **Strict mode** — TypeScript strict is enabled
 6. **Workspace imports** — use `@dabb/*` package imports
-7. **Update documentation** — after API/endpoint/socket/schema changes update `docs/API.md`, `docs/SOCKET_EVENTS.md`, `docs/DATABASE.md`, and `CLAUDE.md` for new key files
+7. **Update documentation** — after API/endpoint/socket/schema changes update `docs/API.md`, `docs/SOCKET_EVENTS.md`, `docs/DATABASE.md`, and `CLAUDE.md` for new key files; use `/update-docs` skill for automated review
 8. **Verify CI before committing** — always run `/ci-check` (build + lint + test must all pass)
 
 ## Game Rules Reference
@@ -109,6 +109,18 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 **Going Out (Abgehen)**: After taking dabb, before discarding, bid winner can choose a trump suit to go out in. Bid winner loses their bid as points; opponents each get melds + 40 bonus. Round ends immediately. `wentOut: boolean` in GameState.
 
 **AI Simulation**: `pnpm simulate` runs AI-only games in-memory (no DB/server). See `docs/AI_STRATEGY.md`. CLI flags: `--players`, `--games`, `--concurrency`, `--target-score`, `--max-actions`, `--timeout`, `--output-dir`.
+
+## Available Skills / Slash Commands
+
+| Skill               | Purpose                                            |
+| ------------------- | -------------------------------------------------- |
+| `/ci-check`         | Run full CI suite locally (build + lint + test)    |
+| `/fix-ci`           | Diagnose and fix a failing CI run on GitHub        |
+| `/add-error`        | Add a new server error code end-to-end             |
+| `/add-language`     | Add a new i18n language end-to-end                 |
+| `/update-docs`      | Review recent changes and sync documentation       |
+| `/merge-dependabot` | Merge all open Dependabot PRs one at a time        |
+| `/housekeeping`     | Full project housekeeping (deps, docs, stale code) |
 
 ## Versioning & Changelog
 
