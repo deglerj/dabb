@@ -55,6 +55,7 @@
   "packageManager": "pnpm@10.33.0",
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@shopify/react-native-skia",
       "esbuild"
     ],
     "overrides": {
