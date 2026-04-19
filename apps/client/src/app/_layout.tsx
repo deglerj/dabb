@@ -26,7 +26,6 @@ SplashScreen.preventAutoHideAsync();
 
 if (Platform.OS === 'android') {
   void NavigationBar.setVisibilityAsync('hidden');
-  void NavigationBar.setBehaviorAsync('overlay-swipe');
 }
 
 function RootLayout() {
