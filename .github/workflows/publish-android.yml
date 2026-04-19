@@ -64,6 +64,13 @@ jobs:
             dabb-android-builder:publish \
             apps/client/scripts/build-aab.sh
 
+      - name: Upload AAB as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dabb.aab
+          path: apps/client/build/dabb.aab
+          retention-days: 7
+
       - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
