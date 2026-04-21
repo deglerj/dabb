@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '@dabb/i18n';
 import type { PlayerCount } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
@@ -200,9 +200,12 @@ export default function HomeScreen() {
             <Text style={styles.version}>v{APP_VERSION}</Text>
           </View>
         </ScrollView>
-        <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+        <SafeAreaView
+          edges={['right']}
+          style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+        >
           <OptionsButton />
-        </View>
+        </SafeAreaView>
       </View>
     );
   }
@@ -356,9 +359,12 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-      <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+      <SafeAreaView
+        edges={['right']}
+        style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+      >
         <OptionsButton />
-      </View>
+      </SafeAreaView>
     </View>
   );
 }
