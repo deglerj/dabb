@@ -3,7 +3,8 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import GameScreen from '../../components/ui/GameScreen.js';
 import { storageGet } from '../../hooks/useStorage.js';
-import { useGame } from '../../hooks/useGame.js';
+import { useFirebaseGame } from '../../hooks/useFirebaseGame.js';
+import { useAI } from '../../hooks/useAI.js';
 import type { PlayerIndex } from '@dabb/shared-types';
 
 type StoredSession = {
@@ -36,11 +37,19 @@ export default function GameRoute() {
     })();
   }, [code, router]);
 
-  const game = useGame(
+  const game = useFirebaseGame(
     credentials
-      ? { sessionId: code, secretId: credentials.secretId, playerIndex: credentials.playerIndex }
-      : { sessionId: '', secretId: '', playerIndex: 0 }
+      ? { sessionCode: code, secretId: credentials.secretId, playerIndex: credentials.playerIndex }
+      : { sessionCode: '', secretId: '', playerIndex: 0 as PlayerIndex }
   );
+
+  useAI({
+    sessionCode: code ?? '',
+    secretId: credentials?.secretId ?? '',
+    rawEvents: game.rawEvents ?? [],
+    players: game.players ?? [],
+    aiPlayerIndices: game.aiPlayerIndices ?? [],
+  });
 
   if (!credentials) {
     return (
