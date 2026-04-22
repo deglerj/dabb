@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository_owner }}/dabb
-
 jobs:
   changes:
     name: Detect Changes
@@ -182,110 +178,6 @@ jobs:
 
       - name: Bundle web (catches Metro resolution errors)
         run: pnpm --filter @dabb/client bundle:web
-
-  build-docker:
-    name: Build Docker Images
-    runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
-    needs: [lint-and-typecheck, test]
-    timeout-minutes: 30
-    permissions:
-      contents: read
-      packages: write
-      security-events: write
-
-    strategy:
-      matrix:
-        include:
-          - app: server
-            dockerfile: apps/server/Dockerfile
-            build_args: ''
-            platforms: linux/amd64,linux/arm64
-          - app: client
-            dockerfile: apps/client/Dockerfile.web
-            build_args: |
-              SERVER_URL=https://dabb.degler.info
-              EXPO_PUBLIC_UMAMI_URL=${{ vars.VITE_UMAMI_URL }}
-              EXPO_PUBLIC_UMAMI_WEBSITE_ID=${{ vars.VITE_UMAMI_WEBSITE_ID }}
-            platforms: linux/amd64
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix=
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v7.1.0
-        with:
-          context: .
-          file: ${{ matrix.dockerfile }}
-          push: false
-          load: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
-          build-args: ${{ matrix.build_args }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0 - only uncompromised tag after March 2026 supply chain attack
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          ignore-unfixed: true
-
-      - name: Upload Trivy scan results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-      - name: Run Trivy (table output for logs)
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0 - only uncompromised tag after March 2026 supply chain attack
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:scan
-          format: 'table'
-          severity: 'CRITICAL,HIGH,MEDIUM'
-          ignore-unfixed: true
-
-      - name: Push Docker image
-        if: github.event_name != 'pull_request'
-        uses: docker/build-push-action@v7.1.0
-        with:
-          context: .
-          file: ${{ matrix.dockerfile }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: ${{ matrix.build_args }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: ${{ matrix.platforms }}
 
   build-client-apk:
     name: Build Client APK
