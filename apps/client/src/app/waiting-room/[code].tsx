@@ -180,7 +180,11 @@ export default function WaitingRoomRoute() {
     } catch {
       // Ignore errors on leave
     }
-    await storageDelete(`dabb-${code}`);
+    try {
+      await storageDelete(`dabb-${code}`);
+    } catch {
+      // Ignore — leaving regardless
+    }
     router.replace('/');
   };
 
