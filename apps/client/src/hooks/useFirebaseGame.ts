@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGameState } from '@dabb/ui-shared';
 import type { GameInterface } from '@dabb/ui-shared';
 import { applyEvents } from '@dabb/game-logic';
@@ -202,6 +202,11 @@ export function useFirebaseGame({
     [pushAction, sessionCode, playerIndex]
   );
 
+  const aiPlayerIndices = useMemo(
+    () => players.filter((p) => p.isAI).map((p) => p.playerIndex),
+    [players]
+  );
+
   return {
     state,
     events,
@@ -220,6 +225,6 @@ export function useFirebaseGame({
     onExit,
     rawEvents: rawEventsRef.current,
     players,
-    aiPlayerIndices: players.filter((p) => p.isAI).map((p) => p.playerIndex),
+    aiPlayerIndices,
   };
 }
