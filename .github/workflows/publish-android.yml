@@ -72,7 +72,7 @@ jobs:
           retention-days: 7
 
       - name: Upload to Play Store
-        uses: r0adkll/upload-google-play@v1.1.4
+        uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
           packageName: com.dabb.binokel
