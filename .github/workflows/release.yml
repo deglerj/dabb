@@ -129,7 +129,7 @@ jobs:
             apps/client/scripts/build-aab.sh
 
       - name: Upload to Play Store (internal)
-        uses: r0adkll/upload-google-play@7f5b759879c088a86faf85d18779f7f14e79a086 # v1
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
           packageName: com.dabb.binokel
