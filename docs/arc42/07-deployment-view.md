@@ -69,7 +69,7 @@ Write access is gated by `secretHash` — only players who registered for a sess
 }
 ```
 
-See `docs/FIREBASE_SETUP.md` → Section 4 for the full rules.
+The full rules are also documented in `DEPLOYMENT.md` → Firebase Setup section.
 
 > **Note:** Event data in Firebase is readable by all session participants. Client-side filtering (`filterEventForPlayer` in `useGameState.ts`) hides opponents' cards in the UI, but raw events are readable from RTDB. This is an accepted trade-off for the serverless architecture.
 
