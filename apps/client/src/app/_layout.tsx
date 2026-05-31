@@ -13,6 +13,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   I18nProvider,
+  DEFAULT_LANGUAGE,
   setStorageAdapter,
   detectLanguageAsync,
   type SupportedLanguage,
@@ -41,7 +42,9 @@ function RootLayout() {
   const [language, setLanguage] = useState<SupportedLanguage | null>(null);
 
   useEffect(() => {
-    void detectLanguageAsync().then(setLanguage);
+    void detectLanguageAsync()
+      .then(setLanguage)
+      .catch(() => setLanguage(DEFAULT_LANGUAGE));
   }, []);
 
   useEffect(() => {
