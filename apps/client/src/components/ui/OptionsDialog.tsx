@@ -13,6 +13,7 @@ import {
   Linking,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useTranslation, i18n, persistLanguage, type SupportedLanguage } from '@dabb/i18n';
 import { isMuted, setMuted } from '../../utils/sounds.js';
 import { isHapticsEnabled, setHapticsEnabled } from '../../utils/haptics.js';
@@ -26,6 +27,7 @@ interface OptionsDialogProps {
 
 export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogProps) {
   const { t } = useTranslation();
+  const router = useRouter();
 
   // Read current values when dialog renders
   const [soundEnabled, setSoundEnabled] = useState(() => !isMuted());
@@ -114,8 +116,16 @@ export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogPro
             </View>
           </View>
 
-          {/* GitHub link */}
+          {/* Info links */}
           <View style={styles.githubRow}>
+            <TouchableOpacity
+              onPress={() => {
+                onClose();
+                router.push('/rules');
+              }}
+            >
+              <Text style={styles.githubLink}>{t('rules.title')}</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="link"
               onPress={() => void Linking.openURL('https://github.com/deglerj/dabb')}
