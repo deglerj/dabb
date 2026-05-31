@@ -19,7 +19,8 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { AIDifficulty, PlayerIndex } from '@dabb/shared-types';
+import type { PlayerIndex } from '@dabb/shared-types';
+import type { AIDifficulty } from '@dabb/game-ai';
 import { useTranslation } from '@dabb/i18n';
 import { Colors, Fonts, Shadows } from '../../theme.js';
 import { OptionsButton } from './OptionsButton.js';
