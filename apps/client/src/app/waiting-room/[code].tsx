@@ -1,25 +1,41 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSocket } from '@dabb/ui-shared';
 import WaitingRoomScreen from '../../components/ui/WaitingRoomScreen.js';
 import { storageDelete, storageGet } from '../../hooks/useStorage.js';
-import { SERVER_URL } from '../../constants.js';
-import type { PlayerIndex, AIDifficulty, GameEvent } from '@dabb/shared-types';
+import type { PlayerIndex, AIDifficulty } from '@dabb/shared-types';
+import {
+  subscribeToPlayers,
+  subscribeToSessionStatus,
+  addAIPlayer,
+  removeAIPlayer,
+  getSessionMeta,
+  setupPresence,
+  setSessionStatus,
+} from '../../firebase/session.js';
+import { pushEvents } from '../../firebase/events.js';
+import { hashSecretId } from '../../firebase/secretId.js';
+import {
+  createStartGameEvents,
+  createTerminateGameEvents,
+} from '../../firebase/gameEventFactory.js';
+import type { PlayerInfo } from '../../firebase/gameEventFactory.js';
+import { applyEvents } from '@dabb/game-logic';
 
 type PlayerEntry = {
   nickname: string;
   connected: boolean;
   isAI: boolean;
-  aiDifficulty?: AIDifficulty;
 };
 
 type StoredSession = {
   secretId: string;
-  playerId: string;
   playerIndex: PlayerIndex;
   playerCount?: number;
 };
+
+const AI_NAMES = ['Bot Fritz', 'Bot Hilde', 'Bot Klaus', 'Bot Liesel'];
+let aiNameIndex = 0;
 
 export default function WaitingRoomRoute() {
   const { code } = useLocalSearchParams<{ code: string }>();
@@ -29,8 +45,9 @@ export default function WaitingRoomRoute() {
   const [players, setPlayers] = useState<Map<PlayerIndex, PlayerEntry>>(new Map());
   const [isAddingAI, setIsAddingAI] = useState(false);
   const [selectedAIDifficulty, setSelectedAIDifficulty] = useState<AIDifficulty>('medium');
+  const [sessionPlayerCount, setSessionPlayerCount] = useState(0);
+  const [firebasePlayers, setFirebasePlayers] = useState<PlayerInfo[]>([]);
 
-  // Load credentials from storage on mount
   useEffect(() => {
     if (!code) {
       router.replace('/');
@@ -38,20 +55,23 @@ export default function WaitingRoomRoute() {
     }
     void (async () => {
       try {
-        const [sessionRaw, storedNickname] = await Promise.all([
+        const [sessionRaw, storedNickname, meta] = await Promise.all([
           storageGet(`dabb-${code}`),
           storageGet('dabb-nickname'),
+          getSessionMeta(code),
         ]);
-        if (!sessionRaw) {
+        if (!sessionRaw || !meta) {
           router.replace('/');
           return;
         }
         const session = JSON.parse(sessionRaw) as StoredSession;
         setCredentials(session);
-        const ownNickname = storedNickname ?? '';
-        // Seed own player — server emits player:joined only to *other* sockets
+        setSessionPlayerCount(meta.playerCount);
+
         setPlayers(
-          new Map([[session.playerIndex, { nickname: ownNickname, connected: true, isAI: false }]])
+          new Map([
+            [session.playerIndex, { nickname: storedNickname ?? '', connected: true, isAI: false }],
+          ])
         );
       } catch {
         router.replace('/');
@@ -59,68 +79,42 @@ export default function WaitingRoomRoute() {
     })();
   }, [code, router]);
 
-  const handlePlayerJoined = useCallback(
-    (idx: number, playerNickname: string, isAI = false, aiDifficulty?: AIDifficulty) => {
-      setPlayers((prev) => {
-        const next = new Map(prev);
-        next.set(idx as PlayerIndex, {
-          nickname: playerNickname,
-          connected: true,
-          isAI,
-          aiDifficulty,
-        });
-        return next;
+  useEffect(() => {
+    if (!code || !credentials) {
+      return;
+    }
+    const cleanupPresence = setupPresence(code, credentials.playerIndex);
+
+    const unsubPlayers = subscribeToPlayers(code, (fbPlayers) => {
+      const infos: PlayerInfo[] = Object.entries(fbPlayers).map(([idx, p]) => ({
+        playerIndex: Number(idx) as PlayerIndex,
+        nickname: p.nickname,
+        isAI: p.isAI,
+        team: null,
+      }));
+      setFirebasePlayers(infos);
+
+      const newMap = new Map<PlayerIndex, PlayerEntry>();
+      infos.forEach((p) => {
+        newMap.set(p.playerIndex, { nickname: p.nickname, connected: true, isAI: p.isAI });
       });
-    },
-    []
-  );
-
-  const handlePlayerLeft = useCallback((idx: number) => {
-    setPlayers((prev) => {
-      const next = new Map(prev);
-      const p = next.get(idx as PlayerIndex);
-      if (p) {
-        next.set(idx as PlayerIndex, { ...p, connected: false });
-      }
-      return next;
+      setPlayers(newMap);
     });
-  }, []);
 
-  const handlePlayerReconnected = useCallback((idx: number) => {
-    setPlayers((prev) => {
-      const next = new Map(prev);
-      const p = next.get(idx as PlayerIndex);
-      if (p) {
-        next.set(idx as PlayerIndex, { ...p, connected: true });
+    const unsubStatus = subscribeToSessionStatus(code, (status) => {
+      if (status === 'active') {
+        router.replace({ pathname: '/game/[code]', params: { code } });
+      } else if (status === 'terminated') {
+        router.replace('/');
       }
-      return next;
     });
-  }, []);
 
-  const handleEvents = useCallback(
-    (events: GameEvent[]) => {
-      const started = events.some((e) => e.type === 'GAME_STARTED');
-      if (started) {
-        router.replace({
-          pathname: '/game/[code]',
-          params: { code },
-        });
-      }
-    },
-    [router, code]
-  );
-
-  // Note: useSocket called unconditionally (Rules of Hooks).
-  // Passes empty secretId while credentials are loading — socket won't connect until it's non-empty.
-  const { emit, error: _connectionError } = useSocket({
-    serverUrl: SERVER_URL,
-    sessionId: code ?? '',
-    secretId: credentials?.secretId ?? '',
-    onEvents: handleEvents,
-    onPlayerJoined: handlePlayerJoined,
-    onPlayerLeft: handlePlayerLeft,
-    onPlayerReconnected: handlePlayerReconnected,
-  });
+    return () => {
+      cleanupPresence();
+      unsubPlayers();
+      unsubStatus();
+    };
+  }, [code, credentials, router]);
 
   if (!credentials) {
     return (
@@ -130,45 +124,81 @@ export default function WaitingRoomRoute() {
     );
   }
 
-  const { playerIndex, playerCount } = credentials;
+  const { playerIndex, playerCount, secretId: credentialsSecretId } = credentials;
   const isHost = playerIndex === 0;
 
-  const handleStartGame = () => {
-    emit?.('game:start');
+  const handleStartGame = async () => {
+    if (!code) {
+      return;
+    }
+    try {
+      const secretHash = await hashSecretId(credentialsSecretId);
+      const meta = await getSessionMeta(code);
+      if (!meta) {
+        return;
+      }
+
+      let seq = 0;
+      const seqGen = () => ++seq;
+
+      const events = createStartGameEvents(
+        code,
+        seqGen,
+        firebasePlayers,
+        meta.playerCount,
+        meta.targetScore
+      );
+      await pushEvents(code, events, secretHash);
+      await setSessionStatus(code, 'active');
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to start game');
+    }
   };
 
   const handleLeave = async () => {
-    emit?.('game:exit');
-    await storageDelete(`dabb-${code}`);
+    if (!code || !credentials) {
+      return;
+    }
+    try {
+      const secretHash = await hashSecretId(credentialsSecretId);
+      const meta = await getSessionMeta(code);
+      if (meta && meta.status === 'active') {
+        const emptyState = applyEvents([]);
+        const termEvents = createTerminateGameEvents(
+          code,
+          (() => {
+            let n = 0;
+            return () => ++n;
+          })(),
+          emptyState,
+          playerIndex
+        );
+        await pushEvents(code, termEvents, secretHash);
+      }
+    } catch {
+      // Ignore errors on leave
+    }
+    try {
+      await storageDelete(`dabb-${code}`);
+    } catch {
+      // Ignore — leaving regardless
+    }
     router.replace('/');
   };
 
   const handleAddAI = async () => {
-    if (!credentials.secretId || isAddingAI) {
+    if (!code || isAddingAI) {
       return;
     }
     setIsAddingAI(true);
     try {
-      const response = await fetch(`${SERVER_URL}/api/sessions/${code}/ai`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Secret-Id': credentials.secretId },
-        body: JSON.stringify({ difficulty: selectedAIDifficulty }),
-      });
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        Alert.alert('Error', data.error ?? 'Failed to add AI player');
+      const meta = await getSessionMeta(code);
+      if (!meta) {
         return;
       }
-      const {
-        playerIndex: idx,
-        nickname: aiNickname,
-        aiDifficulty,
-      } = (await response.json()) as {
-        playerIndex: number;
-        nickname: string;
-        aiDifficulty: AIDifficulty;
-      };
-      handlePlayerJoined(idx, aiNickname, true, aiDifficulty);
+      const aiName = AI_NAMES[aiNameIndex % AI_NAMES.length];
+      aiNameIndex++;
+      await addAIPlayer(code, meta.players, meta.playerCount, aiName);
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to add AI player');
     } finally {
@@ -177,24 +207,11 @@ export default function WaitingRoomRoute() {
   };
 
   const handleRemoveAI = async (playerIdx: PlayerIndex) => {
-    if (!credentials.secretId) {
+    if (!code) {
       return;
     }
     try {
-      const response = await fetch(`${SERVER_URL}/api/sessions/${code}/ai/${playerIdx}`, {
-        method: 'DELETE',
-        headers: { 'X-Secret-Id': credentials.secretId },
-      });
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        Alert.alert('Error', data.error ?? 'Failed to remove AI player');
-        return;
-      }
-      setPlayers((prev) => {
-        const next = new Map(prev);
-        next.delete(playerIdx);
-        return next;
-      });
+      await removeAIPlayer(code, playerIdx);
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to remove AI player');
     }
@@ -204,7 +221,7 @@ export default function WaitingRoomRoute() {
     <WaitingRoomScreen
       sessionCode={code}
       players={players}
-      playerCount={playerCount ?? 0}
+      playerCount={sessionPlayerCount || (playerCount ?? 0)}
       isHost={isHost}
       onStartGame={handleStartGame}
       onLeave={handleLeave}

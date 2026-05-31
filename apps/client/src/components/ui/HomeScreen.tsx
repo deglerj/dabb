@@ -12,13 +12,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '@dabb/i18n';
 import type { PlayerCount } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import { Colors, Fonts } from '../../theme.js';
 import { storageGet, storageSet } from '../../hooks/useStorage.js';
-import { createSession, joinSession } from '../../utils/api.js';
+import { createSession, joinSession } from '../../firebase/session.js';
 import { APP_VERSION } from '../../constants.js';
 import { OptionsButton } from './OptionsButton.js';
 
@@ -82,18 +82,17 @@ export default function HomeScreen() {
     setLoading(true);
     setError('');
     try {
-      const sessionData = await createSession(nickname.trim(), playerCount);
+      const result = await createSession(nickname.trim(), playerCount);
       await storageSet(
-        `dabb-${sessionData.sessionCode}`,
+        `dabb-${result.sessionCode}`,
         JSON.stringify({
-          secretId: sessionData.secretId,
-          playerId: sessionData.playerId,
-          playerIndex: sessionData.playerIndex,
+          secretId: result.secretId,
+          playerIndex: result.playerIndex,
           playerCount,
         })
       );
       await storageSet('dabb-nickname', nickname.trim());
-      router.push({ pathname: '/waiting-room/[code]', params: { code: sessionData.sessionCode } });
+      router.push({ pathname: '/waiting-room/[code]', params: { code: result.sessionCode } });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
@@ -117,20 +116,17 @@ export default function HomeScreen() {
     setLoading(true);
     setError('');
     try {
-      const sessionData = await joinSession(joinCode.trim(), nickname.trim());
+      const result = await joinSession(joinCode.trim(), nickname.trim());
+      const code = joinCode.trim().toLowerCase();
       await storageSet(
-        `dabb-${joinCode.trim().toUpperCase()}`,
+        `dabb-${code}`,
         JSON.stringify({
-          secretId: sessionData.secretId,
-          playerId: sessionData.playerId,
-          playerIndex: sessionData.playerIndex,
+          secretId: result.secretId,
+          playerIndex: result.playerIndex,
         })
       );
       await storageSet('dabb-nickname', nickname.trim());
-      router.push({
-        pathname: '/waiting-room/[code]',
-        params: { code: joinCode.trim().toUpperCase() },
-      });
+      router.push({ pathname: '/waiting-room/[code]', params: { code } });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
@@ -200,9 +196,12 @@ export default function HomeScreen() {
             <Text style={styles.version}>v{APP_VERSION}</Text>
           </View>
         </ScrollView>
-        <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+        <SafeAreaView
+          edges={['right']}
+          style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+        >
           <OptionsButton />
-        </View>
+        </SafeAreaView>
       </View>
     );
   }
@@ -356,9 +355,12 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-      <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+      <SafeAreaView
+        edges={['right']}
+        style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+      >
         <OptionsButton />
-      </View>
+      </SafeAreaView>
     </View>
   );
 }

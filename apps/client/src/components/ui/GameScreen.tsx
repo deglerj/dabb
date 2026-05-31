@@ -54,7 +54,7 @@ import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OptionsButton } from './OptionsButton.js';
 import GameScreenErrorBoundary from './GameScreenErrorBoundary.js';
 
@@ -459,9 +459,12 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
       {state.phase === 'waiting' ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#c97f00" />
-          <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+          <SafeAreaView
+            edges={['right']}
+            style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+          >
             <OptionsButton onExitGame={handleExitGame} />
-          </View>
+          </SafeAreaView>
         </View>
       ) : (
         <View style={styles.outerContainer}>
@@ -659,9 +662,12 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               terminatedByNickname={terminatedByNickname}
               onDone={handleDone}
             />
-            <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+            <SafeAreaView
+              edges={['right']}
+              style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+            >
               <OptionsButton onExitGame={handleExitGame} />
-            </View>
+            </SafeAreaView>
           </View>
         </View>
       )}

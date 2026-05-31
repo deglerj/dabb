@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { AIDifficulty, PlayerIndex } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 import { Colors, Fonts, Shadows } from '../../theme.js';
@@ -241,9 +241,12 @@ function WaitingRoomScreen({
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <View style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}>
+      <SafeAreaView
+        edges={['right']}
+        style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+      >
         <OptionsButton />
-      </View>
+      </SafeAreaView>
     </View>
   );
 }

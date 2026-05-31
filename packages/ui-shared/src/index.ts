@@ -1,4 +1,3 @@
-export { useSocket } from './useSocket.js';
 export { useGameState } from './useGameState.js';
 export { useRoundHistory } from './useRoundHistory.js';
 export type { RoundHistoryResult } from './useRoundHistory.js';
@@ -9,5 +8,4 @@ export { useCelebration } from './useCelebration.js';
 export type { CelebrationResult } from './useCelebration.js';
 export { useTrickAnimationState } from './useTrickAnimationState.js';
 export type { TrickAnimationResult, TrickAnimPhase } from './useTrickAnimationState.js';
-export { useVersionCheck } from './useVersionCheck.js';
 export type { GameInterface } from './GameInterface.js';
