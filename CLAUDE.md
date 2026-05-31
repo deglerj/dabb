@@ -50,7 +50,7 @@ Languages: `de` (default), `en`. Use `useTranslation()` from `@dabb/i18n`. Swabi
 
 ### Game Error Codes
 
-`GameError(SERVER_ERROR_CODES.X, params)` is thrown client-side in `gameEventFactory.ts` when a player makes an invalid move. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Game start, General game, Bidding, Dabb, Going out, Trump, Melding, Tricks, Game termination, AI, Generic fallback). Add error: `/add-error` skill.
+`GameError(GAME_ERROR_CODES.X, params)` is thrown client-side in `gameEventFactory.ts` when a player makes an invalid move. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Game start, General game, Bidding, Dabb, Going out, Trump, Melding, Tricks, Game termination, AI, Generic fallback). Add error: `/add-error` skill.
 
 ## Commands
 

@@ -96,4 +96,4 @@ export type {
 
 // Error types
 export type { ServerErrorCode } from './errors.js';
-export { GameError, SERVER_ERROR_CODES } from './errors.js';
+export { GameError, GAME_ERROR_CODES } from './errors.js';

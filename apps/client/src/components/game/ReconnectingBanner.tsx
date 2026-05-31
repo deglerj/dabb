@@ -1,5 +1,5 @@
 /**
- * ReconnectingBanner — thin banner shown at the top when the socket connection is lost.
+ * ReconnectingBanner — thin banner shown at the top when the Firebase connection is lost.
  * Always mounted; visibility is controlled via opacity. Non-interactive (pointerEvents none).
  */
 import React from 'react';
