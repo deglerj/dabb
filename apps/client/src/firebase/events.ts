@@ -21,7 +21,9 @@ export async function pushEvents(
     if (!newKey) {
       throw new Error('Failed to generate Firebase key');
     }
-    updates[`sessions/${sessionCode}/events/${newKey}`] = { ...event, authorHash };
+    updates[`sessions/${sessionCode}/events/${newKey}`] = JSON.parse(
+      JSON.stringify({ ...event, authorHash })
+    ) as StoredEvent;
   }
 
   await update(ref(db), updates);
