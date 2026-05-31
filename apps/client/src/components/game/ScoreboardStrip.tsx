@@ -6,6 +6,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { PlayerIndex, Suit, TeamScoreEntry } from '@dabb/shared-types';
 import { formatSuit } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
@@ -32,13 +33,24 @@ export function ScoreboardStrip({
   onPress,
 }: ScoreboardStripProps) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const bidderName = bidWinner !== null ? (nicknames.get(bidWinner) ?? `P${bidWinner}`) : null;
   const bidText = bidderName !== null ? `${bidderName} · ${currentBid}` : '—';
   const trumpText = trump !== null ? formatSuit(trump) : '—';
 
   return (
-    <TouchableOpacity style={styles.strip} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[
+        styles.strip,
+        {
+          paddingLeft: Math.max(8, insets.left + 4),
+          paddingRight: Math.max(60, insets.right + 60),
+        },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       {teamScores
         ? // 4-player team mode: two colour-coded team boxes
           teamScores.map((entry) => (

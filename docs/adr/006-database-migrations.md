@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted (updated: migrated from postgres-migrations to node-pg-migrate)
 
 ## Context
 
@@ -16,9 +16,9 @@ A specific issue arose when adding the `terminated` status to the sessions table
 
 ## Decision
 
-We will use **postgres-migrations** for database schema management:
+We use **node-pg-migrate** for database schema management:
 
-1. **Numbered SQL files** in `apps/server/src/db/migrations/` (e.g., `0001_initial_schema.sql`)
+1. **Numbered SQL files** in `apps/server/src/db/migrations/` (e.g., `1_initial_schema.sql`)
 2. **Automatic tracking** via `pgmigrations` table
 3. **Server startup migrations**: Migrations run automatically before the server accepts connections
 4. **Idempotent migrations**: Use `IF NOT EXISTS` and conditional checks for safe re-runs
@@ -27,16 +27,16 @@ We will use **postgres-migrations** for database schema management:
 
 ```
 apps/server/src/db/migrations/
-├── 0001_initial_schema.sql      # Base tables
-├── 0002_add_terminated_status.sql  # Constraint fix
-└── NNNN_description.sql         # Future migrations
+├── 1_initial_schema.sql         # Full schema (consolidated)
+└── 2_description.sql            # Future migrations
 ```
 
-### Why postgres-migrations?
+### Why node-pg-migrate?
 
-- **Minimal**: ~50KB, no complex dependencies
-- **Simple**: Plain SQL files, no TypeScript/JS migration code
+- **Actively maintained**: postgres-migrations is no longer maintained
+- **Plain SQL files**: No TypeScript/JS migration code required
 - **Reliable**: Runs in transactions, tracks state in `pgmigrations`
+- **Down migrations**: Supports rollbacks via `-- Down Migration` section in SQL files
 - **Compatible**: Works with node-postgres (pg) which we already use
 
 ## Consequences
@@ -46,21 +46,20 @@ apps/server/src/db/migrations/
 - **Automatic schema updates**: Production databases stay in sync
 - **Safe rollouts**: New server versions apply migrations on startup
 - **Audit trail**: `pgmigrations` table shows migration history
-- **Idempotent**: Safe to re-run migrations
 - **No downtime**: Migrations run before accepting connections
+- **Rollback support**: Down migrations possible when needed
 
 ### Negative
 
-- **Additional dependency**: postgres-migrations package added
 - **Startup delay**: Brief delay while migrations check/run
-- **No rollback**: postgres-migrations doesn't support down migrations (manual intervention needed)
+- **New connection**: node-pg-migrate opens its own DB connection (separate from pool)
 
 ## Alternatives Considered
 
-1. **node-pg-migrate**: More features (rollbacks, TypeScript migrations) but heavier
+1. **postgres-migrations**: Previously used, no longer maintained
 2. **Knex migrations**: Requires Knex ORM, adds significant complexity
 3. **Prisma Migrate**: Requires Prisma ORM, complete paradigm shift
-4. **Manual SQL scripts**: Current approach, doesn't scale
+4. **Manual SQL scripts**: Doesn't scale
 
 ## Implementation Notes
 
@@ -74,9 +73,17 @@ pnpm --filter @dabb/server dev
 pnpm --filter @dabb/server db:migrate
 ```
 
-### Writing Idempotent Migrations
+### Writing SQL Migrations
 
-For constraints that may already exist:
+```sql
+-- Up migration (whole file, or up to -- Down Migration marker)
+ALTER TABLE my_table ADD COLUMN new_col VARCHAR(50);
+
+-- Down Migration
+ALTER TABLE my_table DROP COLUMN new_col;
+```
+
+For idempotent constraint changes:
 
 ```sql
 DO $$
@@ -92,6 +99,6 @@ BEGIN
 END $$;
 ```
 
-### Docker Changes
+### Docker
 
-The `docker-compose.yml` no longer mounts `schema.sql` to `/docker-entrypoint-initdb.d/`. The server handles all schema setup via migrations.
+`docker-compose.yml` does not mount `schema.sql` to `/docker-entrypoint-initdb.d/`. The server handles all schema setup via migrations.

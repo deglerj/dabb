@@ -35,8 +35,9 @@
 | `apps/server/src/services/gameService.ts`                    | Game logic service                                                              |
 | `apps/server/src/services/sessionService.ts`                 | Session management                                                              |
 | `apps/server/src/services/cleanupService.ts`                 | Inactive session cleanup                                                        |
-| `apps/server/src/ai/AIPlayer.ts`                             | AI player interface & factory                                                   |
-| `apps/server/src/ai/BinokelAIPlayer.ts`                      | AI player decision logic (easy/medium/hard)                                     |
+| `packages/game-ai/src/AIPlayer.ts`                           | AI player interface & factory                                                   |
+| `packages/game-ai/src/BinokelAIPlayer.ts`                    | AI player decision logic (easy/medium/hard)                                     |
+| `packages/game-ai/src/OfflineGameEngine.ts`                  | Offline single-player game engine (human + AI, no server)                       |
 | `apps/server/src/services/aiControllerService.ts`            | AI player lifecycle management                                                  |
 | `apps/server/src/scheduler/cleanupScheduler.ts`              | Cleanup background job                                                          |
 | `apps/server/src/db/pool.ts`                                 | Database connection pool                                                        |
@@ -47,6 +48,8 @@
 | `packages/i18n/src/types.ts`                                 | i18n types and config                                                           |
 | `packages/i18n/src/config.ts`                                | i18next initialization                                                          |
 | `packages/i18n/src/components/I18nProvider.tsx`              | React i18n provider                                                             |
-| `apps/server/src/simulation/SimulationEngine.ts`             | In-memory AI game engine                                                        |
+| `apps/server/src/simulation/SimulationEngine.ts`             | In-memory AI game engine (server-side simulation CLI)                           |
 | `apps/server/src/simulation/runner.ts`                       | Simulation CLI entry point                                                      |
+| `apps/server/src/services/analyticsService.ts`               | Umami analytics (fire-and-forget, no-op when unconfigured)                      |
+| `apps/client/src/hooks/useOfflineGame.ts`                    | Offline game state hook (wraps OfflineGameEngine for React)                     |
 | `docs/AI_STRATEGY.md`                                        | AI decision strategy docs                                                       |

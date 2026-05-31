@@ -100,6 +100,15 @@ Don't have enough friends online? Add AI players to fill empty seats:
 
 The AI plays a reasonable game — it evaluates melds for bidding, chooses trump strategically, and follows trick-taking rules with card-counting heuristics. See [`docs/AI_STRATEGY.md`](docs/AI_STRATEGY.md) for details on its decision logic.
 
+### Offline Mode
+
+Want to practice without a server connection? The app also supports a fully offline single-player mode:
+
+1. From the home screen, select **Play Offline**
+2. Choose the **number of players** and **AI difficulty** (easy/medium/hard)
+3. Play against AI opponents locally — no server, no account needed
+4. Your game is automatically saved and can be resumed later
+
 ---
 
 ## Development
@@ -123,6 +132,7 @@ dabb/
 │   └── server/     # Node.js backend
 ├── packages/
 │   ├── game-logic/     # Core game engine
+│   ├── game-ai/        # AI player logic and offline game engine
 │   ├── shared-types/   # TypeScript types
 │   ├── game-canvas/    # Skia card table rendering
 │   ├── ui-shared/      # Shared React hooks

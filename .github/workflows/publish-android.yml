@@ -23,10 +23,10 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@v4.1.0
 
       - name: Build Android builder image
-        uses: docker/build-push-action@v7.1.0
+        uses: docker/build-push-action@v7.2.0
         with:
           context: .
           file: apps/client/Dockerfile.android
@@ -64,8 +64,15 @@ jobs:
             dabb-android-builder:publish \
             apps/client/scripts/build-aab.sh
 
+      - name: Upload AAB as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dabb.aab
+          path: apps/client/build/dabb.aab
+          retention-days: 7
+
       - name: Upload to Play Store
-        uses: r0adkll/upload-google-play@v1
+        uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
           packageName: com.dabb.binokel

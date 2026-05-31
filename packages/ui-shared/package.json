@@ -21,8 +21,7 @@
   },
   "dependencies": {
     "@dabb/game-logic": "workspace:*",
-    "@dabb/shared-types": "workspace:*",
-    "socket.io-client": "^4.8.3"
+    "@dabb/shared-types": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18.0.0"
@@ -32,7 +31,7 @@
     "@types/react": "^19.2.14",
     "@vitest/coverage-v8": "^4.1.4",
     "jsdom": "^29.0.1",
-    "typescript": "^6.0.2",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.4"
   }
 }

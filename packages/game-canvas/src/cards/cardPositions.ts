@@ -184,7 +184,8 @@ export function deriveCardPositions(
 
   // Trick cards
   const tc = input.trickCardIds.length;
-  const trickStartX = width * TRICK_CENTER_X_FRACTION - ((tc - 1) * TRICK_CARD_SPREAD) / 2;
+  const trickStartX =
+    width * TRICK_CENTER_X_FRACTION - ((tc - 1) * TRICK_CARD_SPREAD + CARD_WIDTH) / 2;
   const trickCards: Record<string, CardPosition> = {};
   input.trickCardIds.forEach(({ cardId }, i) => {
     trickCards[cardId] = {
