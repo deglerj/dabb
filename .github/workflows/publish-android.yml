@@ -65,7 +65,7 @@ jobs:
             apps/client/scripts/build-aab.sh
 
       - name: Upload AAB as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dabb.aab
           path: apps/client/build/dabb.aab
