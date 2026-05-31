@@ -262,6 +262,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     marginTop: 6,
     alignItems: 'center',
+    gap: 8,
   },
   githubLink: {
     fontFamily: Fonts.body,
