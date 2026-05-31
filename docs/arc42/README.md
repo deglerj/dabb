@@ -23,31 +23,24 @@ This documentation follows the [Arc42](https://arc42.org/) template for software
 
 **Dabb** is a multiplayer implementation of the traditional Swabian card game Binokel. It features:
 
-- Real-time multiplayer gameplay via Socket.IO
-- Event-sourced game state for reliability
+- Real-time multiplayer via Firebase Realtime Database (serverless P2P)
+- Event-sourced game state for reliability and reconnection support
 - Cross-platform clients (Web + Android)
 - TypeScript monorepo architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                         Clients                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │   Web App    │  │  Mobile App  │  │    (Future)  │       │
-│  │   (React)    │  │   (Expo)     │  │              │       │
-│  └──────┬───────┘  └──────┬───────┘  └──────────────┘       │
+│  ┌──────────────┐  ┌──────────────┐                          │
+│  │   Web App    │  │  Mobile App  │                          │
+│  │   (React)    │  │   (Expo)     │                          │
+│  └──────┬───────┘  └──────┬───────┘                          │
 │         │                 │                                  │
 │         └────────┬────────┘                                  │
-│                  │ Socket.IO                                 │
+│                  │ HTTPS (Firebase SDK)                      │
 │         ┌────────▼────────┐                                  │
-│         │     Server      │                                  │
-│         │   (Express +    │                                  │
-│         │   Socket.IO)    │                                  │
-│         └────────┬────────┘                                  │
-│                  │                                           │
-│         ┌────────▼────────┐                                  │
-│         │   PostgreSQL    │                                  │
-│         │   (Events +     │                                  │
-│         │   Sessions)     │                                  │
+│         │  Firebase RTDB  │                                  │
+│         │  (Google Cloud) │                                  │
 │         └─────────────────┘                                  │
 └─────────────────────────────────────────────────────────────┘
 ```

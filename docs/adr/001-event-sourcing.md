@@ -19,7 +19,7 @@ We will use **Event Sourcing** to manage game state:
 
 1. All game actions are stored as immutable events
 2. Game state is computed by replaying events through a reducer
-3. Events are persisted in PostgreSQL
+3. Events are persisted in Firebase Realtime Database (append-only log per session)
 4. Clients receive filtered events based on their player index
 
 ## Consequences

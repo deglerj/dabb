@@ -101,7 +101,7 @@ src/
 └── index.ts                # Public exports
 ```
 
-Used by both the server (live games, simulation) and the client (offline mode).
+Used by the server (AI simulation CLI) and the client (offline mode).
 
 ### @dabb/ui-shared
 

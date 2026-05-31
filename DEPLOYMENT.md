@@ -58,7 +58,7 @@ Runs when triggered manually or on release tags.
 
 ## Firebase Setup
 
-The Firebase project (`dabb`) must be configured once manually. See `docs/FIREBASE_SETUP.md` for the setup steps (create project, create RTDB, configure security rules, register app).
+The Firebase project (`dabb`) must be configured once manually. Steps: create a Firebase project, enable Realtime Database (`europe-west1`), register the web/Android app, copy the config values as environment variables, and apply the security rules below.
 
 **Firebase security rules** (set in Firebase Console → Realtime Database → Rules):
 

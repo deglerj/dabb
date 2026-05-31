@@ -34,7 +34,7 @@
 | ------------------ | -------------------------------------------------------------- |
 | **Event Sourcing** | Pattern where state is derived from a sequence of events       |
 | **Reducer**        | Function that takes current state and event, returns new state |
-| **Socket.IO**      | Library for real-time bidirectional communication              |
+| **Firebase RTDB**  | Firebase Realtime Database — the P2P backend for game events   |
 | **Monorepo**       | Single repository containing multiple packages/apps            |
 | **Turborepo**      | Build system for JavaScript/TypeScript monorepos               |
 | **Expo**           | Framework for building React Native apps                       |

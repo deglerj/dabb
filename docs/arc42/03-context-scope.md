@@ -9,24 +9,25 @@ flowchart TB
     subgraph dabb [Dabb System]
         web[Web App]
         mobile[Mobile App]
-        server[Server]
-        db[(PostgreSQL)]
+    end
+
+    subgraph google [Google Cloud]
+        firebase[(Firebase\nRealtime Database)]
     end
 
     player -->|Play via browser| web
     player -->|Play via Android| mobile
-    web -->|Socket.IO| server
-    mobile -->|Socket.IO| server
-    server -->|Store events| db
+    web -->|HTTPS / Firebase SDK| firebase
+    mobile -->|HTTPS / Firebase SDK| firebase
 ```
 
 ### Communication Partners
 
-| Partner        | Interface         | Description               |
-| -------------- | ----------------- | ------------------------- |
-| Web Browser    | HTTPS + WebSocket | React SPA                 |
-| Android Device | HTTPS + WebSocket | Expo app                  |
-| PostgreSQL     | TCP/IP            | Event and session storage |
+| Partner        | Interface            | Description                             |
+| -------------- | -------------------- | --------------------------------------- |
+| Web Browser    | HTTPS                | Expo/React web bundle (static hosting)  |
+| Android Device | HTTPS                | Expo Android app                        |
+| Firebase RTDB  | HTTPS / Firebase SDK | Append-only event log, session metadata |
 
 ## 3.2 Technical Context
 
@@ -37,27 +38,16 @@ flowchart TB
         android[Android App]
     end
 
-    subgraph app [Application Layer]
-        express[Express Server]
-        socketio[Socket.IO]
+    subgraph data [Firebase / Google Cloud]
+        rtdb[(Firebase\nRealtime Database)]
     end
 
-    subgraph data [Data Layer]
-        db[(PostgreSQL)]
-    end
-
-    web -->|"WebSocket (Socket.IO)"| socketio
-    android -->|"WebSocket (Socket.IO)"| socketio
-    web -->|"HTTP (REST API)"| express
-    android -->|"HTTP (REST API)"| express
-    express -->|SQL| db
-    socketio -->|SQL| db
+    web -->|"HTTPS (Firebase SDK)"| rtdb
+    android -->|"HTTPS (Firebase SDK)"| rtdb
 ```
 
 ### Technical Interfaces
 
-| Interface | Protocol   | Purpose                                      |
-| --------- | ---------- | -------------------------------------------- |
-| REST API  | HTTP/JSON  | Session management (create, join, reconnect) |
-| WebSocket | Socket.IO  | Real-time game events                        |
-| Database  | PostgreSQL | Persistent storage                           |
+| Interface     | Protocol             | Purpose                                        |
+| ------------- | -------------------- | ---------------------------------------------- |
+| Firebase RTDB | HTTPS / Firebase SDK | Real-time event log: game events, session meta |

@@ -2,14 +2,13 @@
 
 ## 2.1 Technical Constraints
 
-| Constraint       | Background                                         |
-| ---------------- | -------------------------------------------------- |
-| TypeScript       | Chosen for type safety across frontend and backend |
-| pnpm + Turborepo | Monorepo tooling for shared code                   |
-| PostgreSQL       | Relational database for event storage              |
-| Socket.IO        | WebSocket library for real-time communication      |
-| React 19         | Modern React with compiler optimizations           |
-| Expo             | React Native framework for mobile development      |
+| Constraint       | Background                                                |
+| ---------------- | --------------------------------------------------------- |
+| TypeScript       | Chosen for type safety across all packages                |
+| pnpm + Turborepo | Monorepo tooling for shared code                          |
+| Firebase RTDB    | Serverless P2P backend; append-only event log per session |
+| React 19         | Modern React with compiler optimizations                  |
+| Expo             | React Native framework for mobile development             |
 
 ## 2.2 Organizational Constraints
 

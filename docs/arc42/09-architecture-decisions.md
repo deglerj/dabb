@@ -51,4 +51,4 @@ See the [Architecture Decision Records](../adr/) for detailed decisions:
 ### Custom Dev Build (ADR 010)
 
 - `@shopify/react-native-skia` (v2+) and `react-native-reanimated` v4 require native modules absent from Expo Go
-- Developers build a custom APK once via `./dev.sh apk`; subsequent JS changes hot-reload via Metro
+- Developers build a custom APK once via `apps/client/scripts/build-apk.sh`; subsequent JS changes hot-reload via Metro

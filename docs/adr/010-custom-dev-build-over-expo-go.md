@@ -19,7 +19,7 @@ The original development workflow used `expo start --go`, forcing Expo Go. This 
 
 ## Decision
 
-Remove the `--go` flag from `dev.sh`'s Expo start command. Developers must build a custom development APK via `./dev.sh apk` and install it once. Subsequent development sessions use Metro for fast JS-only hot-reloading against that installed APK.
+Remove the `--go` flag from the Expo start command. Developers must build a custom development APK via `apps/client/scripts/build-apk.sh` and install it once. Subsequent development sessions use Metro for fast JS-only hot-reloading against that installed APK.
 
 ## Consequences
 

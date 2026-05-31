@@ -6,10 +6,8 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
-[![Node.js](https://img.shields.io/badge/Node.js-22-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Expo](https://img.shields.io/badge/Expo-55-000020.svg?logo=expo&logoColor=white)](https://expo.dev/)
-[![Socket.IO](https://img.shields.io/badge/Socket.IO-4-010101.svg?logo=socket.io&logoColor=white)](https://socket.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1.svg?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Firebase](https://img.shields.io/badge/Firebase-RTDB-FFCA28.svg?logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Turborepo](https://img.shields.io/badge/Turborepo-2-EF4444.svg?logo=turborepo&logoColor=white)](https://turbo.build/)
 [![pnpm](https://img.shields.io/badge/pnpm-10-F69220.svg?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![Vitest](https://img.shields.io/badge/Vitest-4-6E9F18.svg?logo=vitest&logoColor=white)](https://vitest.dev/)
@@ -115,13 +113,12 @@ Want to practice without a server connection? The app also supports a fully offl
 
 ### Tech Stack
 
-| Component | Technology                    |
-| --------- | ----------------------------- |
-| Monorepo  | pnpm + Turborepo              |
-| Backend   | Node.js + Express + Socket.IO |
-| Database  | PostgreSQL                    |
-| Client    | React Native + Expo           |
-| Types     | TypeScript                    |
+| Component | Technology                 |
+| --------- | -------------------------- |
+| Monorepo  | pnpm + Turborepo           |
+| Backend   | Firebase Realtime Database |
+| Client    | React Native + Expo        |
+| Types     | TypeScript                 |
 
 ### Project Structure
 
@@ -129,7 +126,7 @@ Want to practice without a server connection? The app also supports a fully offl
 dabb/
 ├── apps/
 │   ├── client/     # React Native + Expo app (Android/iOS/web)
-│   └── server/     # Node.js backend
+│   └── server/     # AI simulation CLI only (pnpm simulate)
 ├── packages/
 │   ├── game-logic/     # Core game engine
 │   ├── game-ai/        # AI player logic and offline game engine
@@ -141,17 +138,13 @@ dabb/
 └── turbo.json
 ```
 
+> **No application server.** The game backend is Firebase Realtime Database — clients connect directly. `apps/server` exists only for the `pnpm simulate` AI testing CLI.
+
 ### Prerequisites
-
-**For Docker/Podman development (recommended):**
-
-- Docker or Podman with compose support
-
-**For native development:**
 
 - Node.js 22+
 - pnpm 10+
-- PostgreSQL 16+
+- Firebase project with Realtime Database (for local development; see `DEPLOYMENT.md`)
 
 ### Installation
 
@@ -173,10 +166,7 @@ pnpm test
 ### Development Server
 
 ```bash
-# Start the backend server
-pnpm --filter @dabb/server dev
-
-# Start the client app (in another terminal)
+# Start the client app (connects directly to Firebase RTDB — no local server needed)
 pnpm --filter @dabb/client start
 ```
 
@@ -187,7 +177,8 @@ The app uses `@shopify/react-native-skia` and `react-native-reanimated` v4, whic
 #### One-time setup: build and install the dev APK
 
 ```bash
-./dev.sh apk
+cd apps/client
+./scripts/build-apk.sh
 ```
 
 This builds a debug APK inside Docker and outputs it to `apps/client/build/dabb.apk`. Install it on your Android device via ADB or by copying the file.
@@ -195,76 +186,40 @@ This builds a debug APK inside Docker and outputs it to `apps/client/build/dabb.
 #### Daily workflow
 
 ```bash
-./dev.sh start
+pnpm --filter @dabb/client start
 ```
 
-This starts the server, then launches the Metro bundler (`./dev.sh mobile`). Open the installed dev build on your device — it will connect to Metro and load the JS bundle over your LAN. Subsequent JS changes hot-reload automatically without rebuilding the APK.
+Open the installed dev build on your device — it will connect to Metro and load the JS bundle over your LAN. Subsequent JS changes hot-reload automatically without rebuilding the APK.
 
-**Note:** Your phone and computer must be on the same WiFi network. The LAN IP is auto-detected and printed in the terminal.
-
-### Local Development with Docker/Podman
-
-The easiest way to run the full stack locally is using the `dev.sh` script, which works with both Docker and Podman (with docker aliases):
-
-```bash
-# Start all services (PostgreSQL, Server, Web)
-./dev.sh start
-
-# Or using pnpm
-pnpm run docker:start
-```
-
-**Access points:**
-
-- Web app: http://localhost:8080
-- Server API: http://localhost:3000
-- PostgreSQL: `postgresql://dabb:dabb_dev_password@localhost:5432/dabb`
-
-**Available commands:**
-
-| Command                    | Description                                     |
-| -------------------------- | ----------------------------------------------- |
-| `./dev.sh start`           | Start all services                              |
-| `./dev.sh stop`            | Stop all services                               |
-| `./dev.sh restart`         | Restart all services                            |
-| `./dev.sh logs`            | Follow logs (add service name to filter)        |
-| `./dev.sh status`          | Show container status                           |
-| `./dev.sh health`          | Health check all services                       |
-| `./dev.sh shell <service>` | Open shell in container (postgres, server, web) |
-| `./dev.sh db`              | Connect to PostgreSQL CLI                       |
-| `./dev.sh reset`           | Remove all data and start fresh                 |
-| `./dev.sh build`           | Rebuild images                                  |
-| `./dev.sh mobile`          | Start Expo mobile dev server                    |
-
-**Requirements:** Docker or Podman with compose support.
+**Note:** Your phone and computer must be on the same WiFi network.
 
 ### Environment Variables
 
-Create `.env` files in the respective apps:
-
-**apps/server/.env**
+Create `apps/client/.env.local` with your Firebase project credentials:
 
 ```env
-DATABASE_URL=postgresql://localhost:5432/dabb
-PORT=3000
+EXPO_PUBLIC_FIREBASE_API_KEY=...
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+EXPO_PUBLIC_FIREBASE_DATABASE_URL=...
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=...
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+EXPO_PUBLIC_FIREBASE_APP_ID=...
 ```
 
-**apps/client/.env**
-
-```env
-EXPO_PUBLIC_SERVER_URL=http://localhost:3000
-```
+See `DEPLOYMENT.md` for Firebase project setup instructions.
 
 ---
 
 ## Architecture
 
-The project uses **event sourcing** for reliable game state management:
+The project uses **Firebase P2P** with **event sourcing** for reliable game state management:
 
-1. All game actions are stored as **events** in the database
-2. Game state is computed by **replaying events** through a reducer
-3. **Reconnection** is handled by syncing missed events
-4. **Anti-cheat** filtering ensures players only see their own cards
+1. All game actions are stored as **events** in Firebase Realtime Database
+2. Clients read and write events directly — no application server intermediary
+3. Game state is computed by **replaying events** through a reducer
+4. **Reconnection** is handled by fetching and replaying all events from Firebase
+5. **Client-side filtering** ensures players only see their own cards
 
 See the [Architecture Documentation](docs/arc42/) for details.
 
