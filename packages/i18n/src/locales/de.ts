@@ -184,6 +184,23 @@ const de: TranslationKeys = {
   },
   rules: {
     title: 'Spielregeln',
+    sectionGoal: 'Ziel',
+    goal: 'Wer zuerst 1000 Punkte erreicht, gewinnt. Bei 4 Spielern spielen je zwei zusammen.',
+    sectionBidding: 'Reizen',
+    bidding:
+      'Geboten wird ab 150. Der Höchstbietende nimmt den Dabb (verdeckte Karten), legt Karten ab und wählt Trumpf. Optional: Abgehen – Runde endet sofort, Gegner kassieren Meldepunkte + 40 Bonus.',
+    melds: 'Melden',
+    meldsIntro: 'Vor den Stichen Meldungen ablegen:',
+    meldPaar: 'Paar (König + Ober, gleiche Farbe)',
+    meldFamilie: 'Familie (Ass–Zehn–König–Ober–Buabe, gleiche Farbe)',
+    meldBinokel: 'Binokel (Ober Schippe + Buabe Bollen)',
+    meldDoppelBinokel: 'Doppel-Binokel',
+    meldFour: 'Vier Asse / Könige / Ober / Buaben',
+    trumpSuffix: 'in Trumpf',
+    sectionTricks: 'Stiche',
+    tricks:
+      'Du musst die angespielte Farbe bedienen. Kannst du bedienen, musst du höher stechen, wenn möglich. Kannst du nicht bedienen, musst du Trumpf spielen.',
+    cardValues: 'Kartenwerte: Ass 11 · Zehn 10 · König 4 · Ober 3 · Buabe 2.',
   },
   info: {
     title: 'Über Dabb',

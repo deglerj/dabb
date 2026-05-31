@@ -183,6 +183,23 @@ const en: TranslationKeys = {
   },
   rules: {
     title: 'Game Rules',
+    sectionGoal: 'Goal',
+    goal: 'First to 1,000 points wins. With 4 players, two players form a team.',
+    sectionBidding: 'Bidding',
+    bidding:
+      'Bidding starts at 150. The highest bidder takes the Dabb (hidden cards), discards some, and picks the trump suit. Optionally, go out — the round ends immediately and opponents score their melds plus a 40-point bonus.',
+    melds: 'Melds',
+    meldsIntro: 'Declare melds before tricks:',
+    meldPaar: 'Paar – König + Ober of same suit',
+    meldFamilie: 'Familie – Ass–Zehn–König–Ober–Buabe of same suit',
+    meldBinokel: 'Binokel – Ober Schippe + Buabe Bollen',
+    meldDoppelBinokel: 'Doppel-Binokel',
+    meldFour: 'Four Asse / Könige / Ober / Buaben',
+    trumpSuffix: 'in trump',
+    sectionTricks: 'Tricks',
+    tricks:
+      "You must play a card of the led suit if you have one. If you can follow suit, you must play higher than the winning card if possible. If you can't follow suit, you must play trump.",
+    cardValues: 'Card values: Ass 11 · Zehn 10 · König 4 · Ober 3 · Buabe 2.',
   },
   info: {
     title: 'About Dabb',
