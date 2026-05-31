@@ -27,7 +27,7 @@ flowchart TB
     client --> assets
     client --> i18n
 
-    server --> types
+    server["server (simulation CLI)"] --> types
     server --> logic
     server --> gameai
 
@@ -50,12 +50,12 @@ flowchart TB
 | `@dabb/shared-types` | TypeScript types shared across all apps                  |
 | `@dabb/game-logic`   | Core game rules, state reducer, meld detection           |
 | `@dabb/game-ai`      | AI player logic, offline game engine (OfflineGameEngine) |
-| `@dabb/ui-shared`    | React hooks for socket and state management              |
+| `@dabb/ui-shared`    | React hooks for game state, round history, and log       |
 | `@dabb/card-assets`  | SVG card graphics and utilities                          |
 | `@dabb/i18n`         | Internationalization (German, English)                   |
 | `@dabb/client`       | React Native + Expo client (Android/iOS/web)             |
 | `@dabb/game-canvas`  | Skia-based game canvas rendering                         |
-| `@dabb/server`       | Express + Socket.IO backend                              |
+| `@dabb/server`       | AI simulation CLI (`pnpm simulate`)                      |
 
 ## 5.2 Level 2: Packages
 
@@ -68,9 +68,7 @@ src/
 ├── events.ts      # GameEvent union type
 ├── errors.ts      # Error codes and GameError
 ├── gameLog.ts     # Game log entry types
-├── ai.ts          # AI action and context types
-├── api.ts         # REST API types
-└── socket.ts      # Socket.IO event types
+└── ai.ts          # AI action and context types
 ```
 
 ### @dabb/game-logic
@@ -109,50 +107,28 @@ Used by both the server (live games, simulation) and the client (offline mode).
 
 ```
 src/
-├── useSocket.ts                # Socket.IO connection hook
 ├── useGameState.ts             # Event-sourced state management
 ├── useRoundHistory.ts          # Round history computation for scoreboard
 ├── useGameLog.ts               # Game log entries hook
 ├── useActionRequired.ts        # Your-turn detection hook
 ├── useCelebration.ts           # Win celebration effects hook
-├── useTrickAnimationState.ts   # Trick animation phase state machine
-└── useVersionCheck.ts          # Server version check hook
+└── useTrickAnimationState.ts   # Trick animation phase state machine
 ```
 
 Session credential persistence lives in the client app: `apps/client/src/hooks/useStorage.ts`.
 
-### @dabb/server
+### @dabb/server (simulation CLI only)
 
 ```
 src/
-├── routes/
-│   ├── sessions.ts   # Session management REST API routes
-│   ├── events.ts     # Event export REST API route
-│   └── version.ts    # Version check REST API route
-├── services/
-│   ├── sessionService.ts          # Session/player management
-│   ├── eventService.ts            # Event persistence
-│   ├── gameService.ts             # Game action handlers
-│   ├── aiControllerService.ts     # AI player lifecycle management
-│   ├── cleanupService.ts          # Inactive session cleanup
-│   └── analyticsService.ts        # Umami analytics (fire-and-forget)
 ├── ai/
 │   └── index.ts                  # Re-exports from @dabb/game-ai
-├── scheduler/
-│   └── cleanupScheduler.ts       # Cleanup background job
-├── simulation/
-│   ├── SimulationEngine.ts       # In-memory AI game engine
-│   └── runner.ts                 # CLI entry point
-├── socket/
-│   └── handlers.ts   # Socket.IO event handlers
-└── index.ts          # Server entry point
+└── simulation/
+    ├── SimulationEngine.ts       # In-memory AI game engine
+    └── runner.ts                 # CLI entry point (`pnpm simulate`)
 ```
 
-AI player logic (`AIPlayer`, `BinokelAIPlayer`) lives in the shared `@dabb/game-ai` package and is re-exported from `apps/server/src/ai/index.ts`.
-
-#### Simulation Module
-
-The simulation module provides a standalone CLI tool for running AI-vs-AI games entirely in-memory, without requiring a database, HTTP server, or Socket.IO connections. It reuses the same `@dabb/game-logic` pure functions and `@dabb/game-ai`'s `BinokelAIPlayer` that the live server uses, ensuring simulation behavior matches production.
+The server package exists solely to provide the AI simulation CLI. It has no database, HTTP server, or Socket.IO dependencies.
 
 | Component          | Responsibility                                                          |
 | ------------------ | ----------------------------------------------------------------------- |

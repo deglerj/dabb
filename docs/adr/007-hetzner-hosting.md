@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded — Hetzner server decommissioned in 2026-05. App migrated to Firebase P2P; web client deployed as static files via SFTP to Alfahosting.
 
 ## Date
 

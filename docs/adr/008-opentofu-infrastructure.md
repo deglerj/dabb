@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded — Hetzner server decommissioned in 2026-05; OpenTofu infrastructure torn down. No server infrastructure to manage.
 
 ## Date
 

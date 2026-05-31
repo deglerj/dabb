@@ -31,7 +31,7 @@ Dabb is a multiplayer implementation of the Swabian card game **Binokel** that a
 
 | Priority | Quality Goal        | Scenario                                              |
 | -------- | ------------------- | ----------------------------------------------------- |
-| 1        | **Reliability**     | Game state is never lost, even after server restart   |
+| 1        | **Reliability**     | Game state is never lost, even after connection drops |
 | 2        | **Responsiveness**  | UI responds to user actions within 100ms              |
 | 3        | **Security**        | Players cannot see other players' cards               |
 | 4        | **Usability**       | New players can join a game within 30 seconds         |

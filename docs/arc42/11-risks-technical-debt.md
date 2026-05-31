@@ -2,12 +2,12 @@
 
 ## 11.1 Risks
 
-| Risk                                    | Probability | Impact | Mitigation                               |
-| --------------------------------------- | ----------- | ------ | ---------------------------------------- |
-| Event storage grows unbounded           | Medium      | Medium | Implement event compaction / archival    |
-| Socket.IO scalability limits            | Low         | High   | Use Redis adapter for horizontal scaling |
-| Mobile app store rejection              | Medium      | Medium | Follow platform guidelines strictly      |
-| Player cheating via client modification | Low         | Medium | Server-side validation of all moves      |
+| Risk                                  | Probability | Impact | Mitigation                                          |
+| ------------------------------------- | ----------- | ------ | --------------------------------------------------- |
+| Firebase RTDB storage grows unbounded | Medium      | Medium | Implement session cleanup / TTL rules               |
+| Firebase vendor lock-in               | Low         | Medium | Game logic is pure — could migrate to another store |
+| Mobile app store rejection            | Medium      | Medium | Follow platform guidelines strictly                 |
+| Player cheating via raw RTDB reads    | Low         | Low    | Accepted trade-off for serverless architecture      |
 
 ## 11.2 Technical Debt
 
