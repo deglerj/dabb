@@ -53,7 +53,7 @@ function main() {
     console.log(`Written: ${outputFile}`);
   }
 
-  execSync(`pnpm prettier --write ${OUTPUT_FILES.join(' ')}`, {
+  execSync(`pnpm oxfmt ${OUTPUT_FILES.join(' ')}`, {
     cwd: repoRoot,
     stdio: 'inherit',
   });
