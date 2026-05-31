@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { PlayerIndex, GameState, Suit, Rank } from '@dabb/shared-types';
-import { BinokelAIPlayer } from '../ai/index.js';
+import { BinokelAIPlayer } from '@dabb/game-ai';
 
 describe('BinokelAIPlayer - 4-player team-aware bidding', () => {
   function makeBiddingState(overrides: Partial<GameState> = {}): GameState {

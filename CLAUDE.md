@@ -5,13 +5,13 @@
 ## Project Structure
 
 ```
-apps/{client, server}
+apps/{client, simulate}
 packages/{shared-types, game-logic, game-ai, game-canvas, ui-shared, card-assets, i18n}
 docs/{arc42/, adr/, design/, AI_STRATEGY.md, KEY_FILES.md}
 .github/workflows/  DEPLOYMENT.md  CHANGELOG.md
 ```
 
-> **Note:** `apps/server` exists solely for the AI simulation CLI (`pnpm simulate`). There is no application server — the game backend is Firebase Realtime Database.
+> **Note:** `apps/simulate` is the AI simulation CLI (`pnpm simulate`). There is no application server — the game backend is Firebase Realtime Database.
 
 ## Key Patterns
 

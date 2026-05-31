@@ -123,7 +123,6 @@ After Step 2 is complete (especially after lint fixes from step 2e are committed
 3. Prioritize by importance:
    - `packages/game-logic/` — highest priority (core rules)
    - `packages/shared-types/` logic helpers — high priority
-   - `apps/server/src/services/` — medium priority
    - UI hooks in `packages/ui-shared/` — medium priority
    - React components — lower priority
 

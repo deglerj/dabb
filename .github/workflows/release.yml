@@ -49,7 +49,7 @@ jobs:
         run: |
           VERSION="${{ inputs.version }}"
           jq --arg v "$VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json
-          jq --arg v "$VERSION" '.version = $v' apps/server/package.json > tmp.json && mv tmp.json apps/server/package.json
+          jq --arg v "$VERSION" '.version = $v' apps/simulate/package.json > tmp.json && mv tmp.json apps/simulate/package.json
           jq --arg v "$VERSION" '.version = $v' apps/client/package.json > tmp.json && mv tmp.json apps/client/package.json
           jq --arg v "$VERSION" '.expo.version = $v' apps/client/app.json > tmp.json && mv tmp.json apps/client/app.json
 
@@ -57,7 +57,7 @@ jobs:
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git add package.json apps/server/package.json apps/client/package.json apps/client/app.json
+          git add package.json apps/simulate/package.json apps/client/package.json apps/client/app.json
           git commit -m "chore: release v${{ inputs.version }}"
           git push
 

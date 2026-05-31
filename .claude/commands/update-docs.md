@@ -6,9 +6,6 @@ Run `git diff main...HEAD` to see all changes on this branch. If on the main bra
 
 Read the diff carefully and categorize the changes:
 
-- **REST API changes**: modified routes in `apps/server/src/routes/`, `apps/server/src/app.ts`, or REST-related types in `packages/shared-types/src/api.ts`
-- **Socket.IO changes**: modified `apps/server/src/socket/handlers.ts` or `packages/shared-types/src/socket.ts`
-- **Database changes**: new or modified files in `apps/server/src/db/migrations/`
 - **User-facing feature changes**: new game phases, new major UI features, new language support, new commands
 - **Architectural changes**: new packages, new major patterns, new external dependencies, infrastructure changes, significant new design decisions
 - **CLAUDE.md-worthy changes**: new key files, new patterns or conventions that future AI assistants need to know

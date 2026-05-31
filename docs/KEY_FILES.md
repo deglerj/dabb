@@ -37,8 +37,8 @@
 | `packages/game-ai/src/BinokelAIPlayer.ts`                    | AI player decision logic (easy/medium/hard)                                     |
 | `packages/game-ai/src/OfflineGameEngine.ts`                  | Offline single-player game engine (human + AI)                                  |
 | `apps/client/src/hooks/useOfflineGame.ts`                    | Offline game state hook (wraps OfflineGameEngine for React)                     |
-| `apps/server/src/simulation/SimulationEngine.ts`             | In-memory AI game engine (`pnpm simulate`)                                      |
-| `apps/server/src/simulation/runner.ts`                       | Simulation CLI entry point                                                      |
+| `apps/simulate/src/simulation/SimulationEngine.ts`           | In-memory AI game engine (`pnpm simulate`)                                      |
+| `apps/simulate/src/simulation/runner.ts`                     | Simulation CLI entry point                                                      |
 | `packages/i18n/src/locales/de.ts`                            | German translations                                                             |
 | `packages/i18n/src/locales/en.ts`                            | English translations                                                            |
 | `packages/i18n/src/types.ts`                                 | i18n types and config                                                           |

@@ -9,31 +9,28 @@
     "dev": "turbo run dev",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "clean": "turbo run clean && rm -rf node_modules",
     "typecheck": "turbo run typecheck",
-    "simulate": "pnpm --filter @dabb/server simulate",
+    "simulate": "pnpm --filter @dabb/simulate simulate",
     "generate-licenses": "node scripts/generate-licenses.mjs",
     "postinstall": "node scripts/generate-licenses.mjs",
     "prepare": "husky"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.2.1",
-    "globals": "^17.4.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.3.3",
     "oxfmt": "^0.52.0",
+    "oxlint": "^1.67.0",
     "turbo": "^2.9.6",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.58.0"
+    "typescript": "^6.0.3"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
+      "oxlint --fix",
       "oxfmt"
     ],
     "*.{json,md,yml,yaml}": [

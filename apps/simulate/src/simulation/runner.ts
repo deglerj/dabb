@@ -12,7 +12,7 @@ import { formatEventLog } from '@dabb/game-logic';
 import type { PlayerCount } from '@dabb/shared-types';
 
 import { SimulationEngine, type SimulationResult } from './SimulationEngine.js';
-import type { AIDifficulty } from '../ai/index.js';
+import type { AIDifficulty } from '@dabb/game-ai';
 
 interface RunnerOptions {
   players: PlayerCount;

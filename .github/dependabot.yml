@@ -41,7 +41,7 @@ updates:
       default-days: 5
 
   - package-ecosystem: 'docker'
-    directory: '/apps/server'
+    directory: '/apps/simulate'
     schedule:
       interval: 'weekly'
     cooldown:

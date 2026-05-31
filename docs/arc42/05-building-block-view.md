@@ -55,7 +55,7 @@ flowchart TB
 | `@dabb/i18n`         | Internationalization (German, English)                   |
 | `@dabb/client`       | React Native + Expo client (Android/iOS/web)             |
 | `@dabb/game-canvas`  | Skia-based game canvas rendering                         |
-| `@dabb/server`       | AI simulation CLI (`pnpm simulate`)                      |
+| `@dabb/simulate`     | AI simulation CLI (`pnpm simulate`)                      |
 
 ## 5.2 Level 2: Packages
 
@@ -101,7 +101,7 @@ src/
 └── index.ts                # Public exports
 ```
 
-Used by the server (AI simulation CLI) and the client (offline mode).
+Used by the simulation CLI (`@dabb/simulate`) and the client (offline mode).
 
 ### @dabb/ui-shared
 
@@ -117,12 +117,10 @@ src/
 
 Session credential persistence lives in the client app: `apps/client/src/hooks/useStorage.ts`.
 
-### @dabb/server (simulation CLI only)
+### @dabb/simulate (simulation CLI)
 
 ```
 src/
-├── ai/
-│   └── index.ts                  # Re-exports from @dabb/game-ai
 └── simulation/
     ├── SimulationEngine.ts       # In-memory AI game engine
     └── runner.ts                 # CLI entry point (`pnpm simulate`)

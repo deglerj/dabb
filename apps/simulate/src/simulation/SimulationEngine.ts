@@ -44,7 +44,7 @@ import type {
   Team,
 } from '@dabb/shared-types';
 
-import { defaultAIPlayerFactory, type AIPlayer, type AIDifficulty } from '../ai/index.js';
+import { defaultAIPlayerFactory, type AIPlayer, type AIDifficulty } from '@dabb/game-ai';
 
 // Team scoring helpers for 4-player games
 function simGetPlayerTeam(state: GameState, playerIndex: PlayerIndex): Team {

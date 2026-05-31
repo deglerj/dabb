@@ -1,7 +1,7 @@
 /**
  * OfflineGameEngine — drives a local Dabb game for offline play.
  *
- * Mirrors SimulationEngine (apps/server/src/simulation/SimulationEngine.ts)
+ * Mirrors SimulationEngine (apps/simulate/src/simulation/SimulationEngine.ts)
  * but pauses when it's the human player's turn, waiting for dispatch().
  */
 import { v4 as uuidv4 } from 'uuid';
