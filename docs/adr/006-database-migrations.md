@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (updated: migrated from postgres-migrations to node-pg-migrate)
+Superseded — PostgreSQL and the Node.js server were decommissioned in 2026-05. No database infrastructure exists; game state is stored in Firebase RTDB.
 
 ## Context
 

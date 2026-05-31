@@ -3,7 +3,8 @@ import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import WaitingRoomScreen from '../../components/ui/WaitingRoomScreen.js';
 import { storageDelete, storageGet } from '../../hooks/useStorage.js';
-import type { PlayerIndex, AIDifficulty } from '@dabb/shared-types';
+import type { PlayerIndex } from '@dabb/shared-types';
+import type { AIDifficulty } from '@dabb/game-ai';
 import {
   subscribeToPlayers,
   subscribeToSessionStatus,

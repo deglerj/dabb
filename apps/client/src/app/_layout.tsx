@@ -1,5 +1,5 @@
 import './global.css';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
@@ -10,10 +10,19 @@ import { useFonts, IMFellEnglishSC_400Regular } from '@expo-google-fonts/im-fell
 import { Caveat_400Regular, Caveat_700Bold } from '@expo-google-fonts/caveat';
 import { Lato_400Regular, Lato_700Bold } from '@expo-google-fonts/lato';
 import * as SplashScreen from 'expo-splash-screen';
-import { I18nProvider } from '@dabb/i18n';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  I18nProvider,
+  DEFAULT_LANGUAGE,
+  setStorageAdapter,
+  detectLanguageAsync,
+  type SupportedLanguage,
+} from '@dabb/i18n';
 import AppErrorBoundary from '../components/ui/AppErrorBoundary.js';
 import { loadSoundPreferences } from '../utils/sounds.js';
 import { loadHapticsPreferences } from '../utils/haptics.js';
+
+setStorageAdapter(AsyncStorage);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,18 +39,26 @@ function RootLayout() {
     Lato_700Bold,
   });
 
+  const [language, setLanguage] = useState<SupportedLanguage | null>(null);
+
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
+    void detectLanguageAsync()
+      .then(setLanguage)
+      .catch(() => setLanguage(DEFAULT_LANGUAGE));
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded && language !== null) {
+      void SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, language]);
 
   useEffect(() => {
     void loadSoundPreferences();
     void loadHapticsPreferences();
   }, []);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || language === null) {
     return null;
   }
 
@@ -49,7 +66,7 @@ function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <StatusBar hidden />
       <SafeAreaProvider>
-        <I18nProvider>
+        <I18nProvider initialLanguage={language}>
           <Stack screenOptions={{ headerShown: false }} />
         </I18nProvider>
       </SafeAreaProvider>

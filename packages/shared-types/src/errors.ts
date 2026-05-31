@@ -1,8 +1,8 @@
 /**
- * Server error codes for internationalization.
- * Server sends error codes, clients translate them.
+ * Game error codes for internationalization.
+ * Thrown client-side in gameEventFactory; clients translate them via i18n key `serverErrors.*`.
  */
-export const SERVER_ERROR_CODES = {
+export const GAME_ERROR_CODES = {
   // Session errors
   SESSION_NOT_FOUND: 'SESSION_NOT_FOUND',
   SESSION_FULL: 'SESSION_FULL',
@@ -61,7 +61,7 @@ export const SERVER_ERROR_CODES = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 } as const;
 
-export type ServerErrorCode = (typeof SERVER_ERROR_CODES)[keyof typeof SERVER_ERROR_CODES];
+export type ServerErrorCode = (typeof GAME_ERROR_CODES)[keyof typeof GAME_ERROR_CODES];
 
 /**
  * Error class for game-related errors that includes an error code

@@ -57,21 +57,6 @@ export type {
   TrumpDeclaredEvent,
 } from './events.js';
 
-// API types
-export type {
-  AddAIPlayerResponse,
-  AIDifficulty,
-  ApiError,
-  CreateSessionRequest,
-  CreateSessionResponse,
-  JoinSessionRequest,
-  JoinSessionResponse,
-  ReconnectRequest,
-  ReconnectResponse,
-  SessionInfoResponse,
-  SessionStatus,
-} from './api.js';
-
 // AI types
 export { AI_NAMES } from './ai.js';
 export type {
@@ -86,14 +71,6 @@ export type {
   AIPlayCardAction,
   AITakeDabbAction,
 } from './ai.js';
-
-// Socket types
-export type {
-  ClientToServerEvents,
-  InterServerEvents,
-  ServerToClientEvents,
-  SocketData,
-} from './socket.js';
 
 // Game log types
 export type {
@@ -119,4 +96,4 @@ export type {
 
 // Error types
 export type { ServerErrorCode } from './errors.js';
-export { GameError, SERVER_ERROR_CODES } from './errors.js';
+export { GameError, GAME_ERROR_CODES } from './errors.js';

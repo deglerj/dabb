@@ -42,7 +42,7 @@ import type {
   Suit,
   Team,
 } from '@dabb/shared-types';
-import { DABB_SIZE, GameError, SERVER_ERROR_CODES } from '@dabb/shared-types';
+import { DABB_SIZE, GameError, GAME_ERROR_CODES } from '@dabb/shared-types';
 
 export type SeqGen = () => number;
 
@@ -114,13 +114,13 @@ export function createBidPlacedEvents(
   amount: number
 ): GameEvent[] {
   if (state.phase !== 'bidding') {
-    throw new GameError(SERVER_ERROR_CODES.NOT_IN_BIDDING_PHASE);
+    throw new GameError(GAME_ERROR_CODES.NOT_IN_BIDDING_PHASE);
   }
   if (state.currentBidder !== playerIndex) {
-    throw new GameError(SERVER_ERROR_CODES.NOT_YOUR_TURN_TO_BID);
+    throw new GameError(GAME_ERROR_CODES.NOT_YOUR_TURN_TO_BID);
   }
   if (!isValidBid(amount, state.currentBid)) {
-    throw new GameError(SERVER_ERROR_CODES.INVALID_BID_AMOUNT);
+    throw new GameError(GAME_ERROR_CODES.INVALID_BID_AMOUNT);
   }
   return [createBidPlacedEvent(ctx(sessionCode, seq), playerIndex, amount)];
 }
@@ -132,13 +132,13 @@ export function createPlayerPassedEvents(
   playerIndex: PlayerIndex
 ): GameEvent[] {
   if (state.phase !== 'bidding') {
-    throw new GameError(SERVER_ERROR_CODES.NOT_IN_BIDDING_PHASE);
+    throw new GameError(GAME_ERROR_CODES.NOT_IN_BIDDING_PHASE);
   }
   if (state.currentBidder !== playerIndex) {
-    throw new GameError(SERVER_ERROR_CODES.NOT_YOUR_TURN);
+    throw new GameError(GAME_ERROR_CODES.NOT_YOUR_TURN);
   }
   if (!canPass(state.currentBid)) {
-    throw new GameError(SERVER_ERROR_CODES.FIRST_BIDDER_MUST_BID);
+    throw new GameError(GAME_ERROR_CODES.FIRST_BIDDER_MUST_BID);
   }
 
   const events: GameEvent[] = [];
@@ -166,10 +166,10 @@ export function createTakeDabbEvents(
   playerIndex: PlayerIndex
 ): GameEvent[] {
   if (state.phase !== 'dabb') {
-    throw new GameError(SERVER_ERROR_CODES.NOT_IN_DABB_PHASE);
+    throw new GameError(GAME_ERROR_CODES.NOT_IN_DABB_PHASE);
   }
   if (state.bidWinner !== playerIndex) {
-    throw new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_TAKE_DABB);
+    throw new GameError(GAME_ERROR_CODES.ONLY_BID_WINNER_CAN_TAKE_DABB);
   }
   return [createDabbTakenEvent(ctx(sessionCode, seq), playerIndex, state.dabb)];
 }
@@ -182,22 +182,22 @@ export function createDiscardCardsEvents(
   cardIds: CardId[]
 ): GameEvent[] {
   if (state.phase !== 'dabb') {
-    throw new GameError(SERVER_ERROR_CODES.NOT_IN_DABB_PHASE);
+    throw new GameError(GAME_ERROR_CODES.NOT_IN_DABB_PHASE);
   }
   if (state.bidWinner !== playerIndex) {
-    throw new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_DISCARD);
+    throw new GameError(GAME_ERROR_CODES.ONLY_BID_WINNER_CAN_DISCARD);
   }
 
   const dabbSize = DABB_SIZE[state.playerCount];
   if (cardIds.length !== dabbSize) {
-    throw new GameError(SERVER_ERROR_CODES.MUST_DISCARD_EXACT_COUNT, { count: dabbSize });
+    throw new GameError(GAME_ERROR_CODES.MUST_DISCARD_EXACT_COUNT, { count: dabbSize });
   }
 
   const hand = state.hands.get(playerIndex) ?? [];
   const handIds = new Set(hand.map((c) => c.id));
   for (const cardId of cardIds) {
     if (!handIds.has(cardId)) {
-      throw new GameError(SERVER_ERROR_CODES.CARD_NOT_IN_HAND);
+      throw new GameError(GAME_ERROR_CODES.CARD_NOT_IN_HAND);
     }
   }
 
@@ -212,13 +212,13 @@ export function createGoOutEvents(
   suit: Suit
 ): GameEvent[] {
   if (state.phase !== 'dabb') {
-    throw new GameError(SERVER_ERROR_CODES.NOT_IN_DABB_PHASE);
+    throw new GameError(GAME_ERROR_CODES.NOT_IN_DABB_PHASE);
   }
   if (state.bidWinner !== playerIndex) {
-    throw new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_GO_OUT);
+    throw new GameError(GAME_ERROR_CODES.ONLY_BID_WINNER_CAN_GO_OUT);
   }
   if (state.dabb.length > 0) {
-    throw new GameError(SERVER_ERROR_CODES.MUST_TAKE_DABB_BEFORE_GOING_OUT);
+    throw new GameError(GAME_ERROR_CODES.MUST_TAKE_DABB_BEFORE_GOING_OUT);
   }
   return [createGoingOutEvent(ctx(sessionCode, seq), playerIndex, suit)];
 }
@@ -231,10 +231,10 @@ export function createDeclareTrumpEvents(
   suit: Suit
 ): GameEvent[] {
   if (state.phase !== 'trump') {
-    throw new GameError(SERVER_ERROR_CODES.NOT_IN_TRUMP_PHASE);
+    throw new GameError(GAME_ERROR_CODES.NOT_IN_TRUMP_PHASE);
   }
   if (state.bidWinner !== playerIndex) {
-    throw new GameError(SERVER_ERROR_CODES.ONLY_BID_WINNER_CAN_DECLARE_TRUMP);
+    throw new GameError(GAME_ERROR_CODES.ONLY_BID_WINNER_CAN_DECLARE_TRUMP);
   }
   return [createTrumpDeclaredEvent(ctx(sessionCode, seq), playerIndex, suit)];
 }
@@ -248,13 +248,13 @@ export function createDeclareMeldsEvents(
   players: PlayerInfo[]
 ): GameEvent[] {
   if (state.phase !== 'melding') {
-    throw new GameError(SERVER_ERROR_CODES.NOT_IN_MELDING_PHASE);
+    throw new GameError(GAME_ERROR_CODES.NOT_IN_MELDING_PHASE);
   }
   if (state.wentOut && playerIndex === state.bidWinner) {
-    throw new GameError(SERVER_ERROR_CODES.CANNOT_MELD_WHEN_GOING_OUT);
+    throw new GameError(GAME_ERROR_CODES.CANNOT_MELD_WHEN_GOING_OUT);
   }
   if (state.declaredMelds.has(playerIndex)) {
-    throw new GameError(SERVER_ERROR_CODES.ALREADY_DECLARED_MELDS);
+    throw new GameError(GAME_ERROR_CODES.ALREADY_DECLARED_MELDS);
   }
 
   const events: GameEvent[] = [];
@@ -295,19 +295,19 @@ export function createPlayCardEvents(
   players: PlayerInfo[]
 ): GameEvent[] {
   if (state.phase !== 'tricks') {
-    throw new GameError(SERVER_ERROR_CODES.NOT_IN_TRICKS_PHASE);
+    throw new GameError(GAME_ERROR_CODES.NOT_IN_TRICKS_PHASE);
   }
   if (state.currentPlayer !== playerIndex) {
-    throw new GameError(SERVER_ERROR_CODES.NOT_YOUR_TURN);
+    throw new GameError(GAME_ERROR_CODES.NOT_YOUR_TURN);
   }
 
   const hand = state.hands.get(playerIndex) ?? [];
   const card = hand.find((c) => c.id === cardId);
   if (!card) {
-    throw new GameError(SERVER_ERROR_CODES.CARD_NOT_IN_HAND);
+    throw new GameError(GAME_ERROR_CODES.CARD_NOT_IN_HAND);
   }
   if (!isValidPlay(card, hand, state.currentTrick, state.trump!)) {
-    throw new GameError(SERVER_ERROR_CODES.INVALID_PLAY);
+    throw new GameError(GAME_ERROR_CODES.INVALID_PLAY);
   }
 
   const events: GameEvent[] = [];
@@ -348,7 +348,7 @@ export function createTerminateGameEvents(
 ): GameEvent[] {
   const activePhases = ['dealing', 'bidding', 'dabb', 'trump', 'melding', 'tricks', 'scoring'];
   if (!activePhases.includes(state.phase)) {
-    throw new GameError(SERVER_ERROR_CODES.CANNOT_TERMINATE_IN_CURRENT_PHASE);
+    throw new GameError(GAME_ERROR_CODES.CANNOT_TERMINATE_IN_CURRENT_PHASE);
   }
   return [createGameTerminatedEvent(ctx(sessionCode, seq), playerIndex)];
 }

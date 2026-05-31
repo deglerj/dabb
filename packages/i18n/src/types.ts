@@ -194,6 +194,21 @@ export interface TranslationKeys {
   };
   rules: {
     title: string;
+    sectionGoal: string;
+    goal: string;
+    sectionBidding: string;
+    bidding: string;
+    melds: string;
+    meldsIntro: string;
+    meldPaar: string;
+    meldFamilie: string;
+    meldBinokel: string;
+    meldDoppelBinokel: string;
+    meldFour: string;
+    trumpSuffix: string;
+    sectionTricks: string;
+    tricks: string;
+    cardValues: string;
   };
   info: {
     title: string;

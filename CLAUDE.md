@@ -1,27 +1,35 @@
 # AI Assistant Context
 
-**Dabb** is a multiplayer TypeScript monorepo for the Swabian card game Binokel: client (React Native + Expo, runs on Android/iOS/web), server (Node.js + Express + Socket.IO), shared packages. Stack: pnpm workspaces + Turborepo, PostgreSQL, Vitest, strict TypeScript.
+**Dabb** is a multiplayer TypeScript monorepo for the Swabian card game Binokel: client (React Native + Expo, runs on Android/iOS/web), shared packages. Stack: pnpm workspaces + Turborepo, Firebase Realtime Database, Vitest, strict TypeScript.
 
 ## Project Structure
 
 ```
 apps/{client, server}
 packages/{shared-types, game-logic, game-ai, game-canvas, ui-shared, card-assets, i18n}
-docs/{arc42/, adr/, AI_STRATEGY.md, API.md, SOCKET_EVENTS.md, DATABASE.md, KEY_FILES.md}
-deploy/  .github/workflows/  dev.sh  docker-compose.yml  DEPLOYMENT.md
+docs/{arc42/, adr/, AI_STRATEGY.md, KEY_FILES.md}
+.github/workflows/  DEPLOYMENT.md
 ```
+
+> **Note:** `apps/server` exists solely for the AI simulation CLI (`pnpm simulate`). There is no application server — the game backend is Firebase Realtime Database.
 
 ## Key Patterns
 
-### Event Sourcing
+### Firebase P2P Architecture
 
-All state is managed through events stored in PostgreSQL and replayed via a reducer (`packages/game-logic/src/state/reducer.ts`). Enables reconnection, debugging, and anti-cheat.
+All game state is stored as an append-only event log in Firebase RTDB per session. Clients read and write events directly — no application server intermediary.
+
+Key client files: `apps/client/src/firebase/` (session, events, config, gameEventFactory, secretId)
 
 Key events: `GameStartedEvent`, `CardsDealtEvent`, `BidPlacedEvent`, `PlayerPassedEvent`, `BiddingWonEvent`, `DabbTakenEvent`, `CardsDiscardedEvent`, `GoingOutEvent`, `TrumpDeclaredEvent`, `MeldsDeclaredEvent`, `MeldingCompleteEvent`, `CardPlayedEvent`, `TrickWonEvent`, `RoundScoredEvent`, `GameFinishedEvent`, `GameTerminatedEvent`, `PlayerJoinedEvent`, `PlayerLeftEvent`, `PlayerReconnectedEvent`, `NewRoundStartedEvent`.
 
-### Anti-Cheat
+### Event Sourcing
 
-Events are filtered before sending to clients so players only see their own cards (`packages/game-logic/src/state/views.ts`):
+Game state is reconstructed by replaying all events via a reducer (`packages/game-logic/src/state/reducer.ts`). On reconnect, the client fetches all events from Firebase and replays them.
+
+### View Filtering (Client-Side)
+
+`packages/game-logic/src/state/views.ts` — `filterEventForPlayer` is called by `useGameState` to hide opponents' cards in the UI. This is a UI-level concern only; raw events in Firebase are readable by all session participants. Firebase security rules (secretHash gating) prevent forging events.
 
 - `CARDS_DEALT`: each player sees only their own hand; other hands and the dabb are replaced with hidden card placeholders.
 - `BIDDING_WON`: the `dabb` field is stripped for non-winners (only the bid winner sees the dabb contents).
@@ -40,16 +48,13 @@ Suits: Kreuz (♣), Schippe (♠), Herz (♥), Bollen (♦). Ranks: Ass, Zehn, K
 
 Languages: `de` (default), `en`. Use `useTranslation()` from `@dabb/i18n`. Swabian card terms (suits, ranks, melds, Dabb) stay untranslated in all languages. Add language: `/add-language` skill.
 
-### Server Error Internationalization
+### Game Error Codes
 
-Server throws `GameError(SERVER_ERROR_CODES.X, params)`. Socket emits `{ message: code, code, params }`. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Game start, General game, Bidding, Dabb, Going out, Trump, Melding, Tricks, Game termination, AI, Generic fallback). Add error: `/add-error` skill.
+`GameError(GAME_ERROR_CODES.X, params)` is thrown client-side in `gameEventFactory.ts` when a player makes an invalid move. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Game start, General game, Bidding, Dabb, Going out, Trump, Melding, Tricks, Game termination, AI, Generic fallback). Add error: `/add-error` skill.
 
 ## Commands
 
 ```bash
-# Dev (Docker)
-./dev.sh start|stop|logs|status|reset
-
 # Build / test / quality
 pnpm run build          # build all packages (also type-checks)
 pnpm test               # run tests
@@ -59,12 +64,8 @@ pnpm lint && pnpm lint:fix
 pnpm format && pnpm format:check
 pnpm clean
 
-# Dev servers
-pnpm --filter @dabb/server dev
+# Dev server
 pnpm --filter @dabb/client start
-
-# DB migrations (auto on server startup)
-pnpm --filter @dabb/server db:migrate
 
 # AI simulation (in-memory, no server/DB needed)
 pnpm simulate -- --players 3 --games 100 --concurrency 4
@@ -74,14 +75,14 @@ pnpm simulate -- --players 3 --games 100 --concurrency 4
 
 See `docs/KEY_FILES.md` for the full list. Most important entry points:
 
-| File                                               | Purpose                                                |
-| -------------------------------------------------- | ------------------------------------------------------ |
-| `packages/shared-types/src/`                       | All shared types (cards, game, events, errors, socket) |
-| `packages/game-logic/src/state/reducer.ts`         | Event sourcing reducer                                 |
-| `packages/game-logic/src/__tests__/testHelpers.ts` | Integration test helpers                               |
-| `apps/server/src/socket/handlers.ts`               | Socket.IO event handlers                               |
-| `apps/server/src/services/gameService.ts`          | Game logic service                                     |
-| `packages/i18n/src/locales/`                       | Translation files (de.ts, en.ts)                       |
+| File                                               | Purpose                                             |
+| -------------------------------------------------- | --------------------------------------------------- |
+| `packages/shared-types/src/`                       | All shared types (cards, game, events, errors)      |
+| `packages/game-logic/src/state/reducer.ts`         | Event sourcing reducer                              |
+| `packages/game-logic/src/__tests__/testHelpers.ts` | Integration test helpers                            |
+| `apps/client/src/firebase/gameEventFactory.ts`     | Client-side game action validation + event creation |
+| `apps/client/src/hooks/useFirebaseGame.ts`         | Main game hook (Firebase subscriptions + state)     |
+| `packages/i18n/src/locales/`                       | Translation files (de.ts, en.ts)                    |
 
 ## Testing
 
@@ -99,7 +100,7 @@ Tests in `__tests__/` directories alongside source files. Run: `pnpm test` or `p
 4. **Swabian names** — Kreuz/Schippe/Herz/Bollen, Buabe not Unter
 5. **Strict mode** — TypeScript strict is enabled
 6. **Workspace imports** — use `@dabb/*` package imports
-7. **Update documentation** — after API/endpoint/socket/schema changes update `docs/API.md`, `docs/SOCKET_EVENTS.md`, `docs/DATABASE.md`, and `CLAUDE.md` for new key files; use `/update-docs` skill for automated review
+7. **Update documentation** — after significant changes update `CLAUDE.md` for new key files; use `/update-docs` skill for automated review
 8. **Verify CI before committing** — always run `/ci-check` (build + lint + test must all pass)
 
 ## Game Rules Reference
@@ -108,7 +109,7 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 **Going Out (Abgehen)**: After taking dabb, before discarding, bid winner can choose a trump suit to go out in. Bid winner loses their bid as points; opponents each get melds + 40 bonus. Round ends immediately. `wentOut: boolean` in GameState.
 
-**AI Simulation**: `pnpm simulate` runs AI-only games in-memory (no DB/server). See `docs/AI_STRATEGY.md`. CLI flags: `--players`, `--games`, `--concurrency`, `--target-score`, `--max-actions`, `--timeout`, `--output-dir`.
+**AI Simulation**: `pnpm simulate` runs AI-only games in-memory (no Firebase). See `docs/AI_STRATEGY.md`. CLI flags: `--players`, `--games`, `--concurrency`, `--target-score`, `--max-actions`, `--timeout`, `--output-dir`.
 
 ## Available Skills / Slash Commands
 
@@ -116,7 +117,7 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 | ------------------- | -------------------------------------------------- |
 | `/ci-check`         | Run full CI suite locally (build + lint + test)    |
 | `/fix-ci`           | Diagnose and fix a failing CI run on GitHub        |
-| `/add-error`        | Add a new server error code end-to-end             |
+| `/add-error`        | Add a new game error code end-to-end               |
 | `/add-language`     | Add a new i18n language end-to-end                 |
 | `/update-docs`      | Review recent changes and sync documentation       |
 | `/merge-dependabot` | Merge all open Dependabot PRs one at a time        |
@@ -124,6 +125,6 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 ## Versioning & Changelog
 
-Version sources: root `package.json` (server) and `apps/client/app.json` `expo.version` — keep in sync.
+Version sources: root `package.json` and `apps/client/app.json` `expo.version` — keep in sync.
 
-Bump type: MAJOR (breaking protocol change), MINOR (new user feature), PATCH (bug fix/internal). Update all four version files (`package.json` root, `apps/client/package.json`, `apps/server/package.json`, `apps/client/app.json`) and add an entry to `CHANGELOG.md` in user-friendly language (no jargon). MAJOR bumps must note that users must update the app.
+Bump type: MAJOR (breaking protocol change), MINOR (new user feature), PATCH (bug fix/internal). Update all version files (`package.json` root, `apps/client/package.json`, `apps/client/app.json`) and add an entry to `CHANGELOG.md` in user-friendly language (no jargon). MAJOR bumps must note that users must update the app.

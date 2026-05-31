@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded — Socket.IO removed from client in 2026-04; server decommissioned. Game now uses Firebase Realtime Database for P2P event synchronization.
 
 ## Context
 
