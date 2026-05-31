@@ -14,7 +14,7 @@ import {
   setSessionStatus,
 } from '../../firebase/session.js';
 import { pushEvents } from '../../firebase/events.js';
-import { getOrCreateSecretId, hashSecretId } from '../../firebase/secretId.js';
+import { hashSecretId } from '../../firebase/secretId.js';
 import {
   createStartGameEvents,
   createTerminateGameEvents,
@@ -124,7 +124,7 @@ export default function WaitingRoomRoute() {
     );
   }
 
-  const { playerIndex, playerCount } = credentials;
+  const { playerIndex, playerCount, secretId: credentialsSecretId } = credentials;
   const isHost = playerIndex === 0;
 
   const handleStartGame = async () => {
@@ -132,8 +132,7 @@ export default function WaitingRoomRoute() {
       return;
     }
     try {
-      const secretId = await getOrCreateSecretId(code);
-      const secretHash = await hashSecretId(secretId);
+      const secretHash = await hashSecretId(credentialsSecretId);
       const meta = await getSessionMeta(code);
       if (!meta) {
         return;
@@ -161,8 +160,7 @@ export default function WaitingRoomRoute() {
       return;
     }
     try {
-      const secretId = await getOrCreateSecretId(code);
-      const secretHash = await hashSecretId(secretId);
+      const secretHash = await hashSecretId(credentialsSecretId);
       const meta = await getSessionMeta(code);
       if (meta && meta.status === 'active') {
         const emptyState = applyEvents([]);
