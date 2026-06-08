@@ -51,7 +51,7 @@ cd /app
 
 echo "==> Building APK with Gradle..."
 cd apps/client/android
-./gradlew assembleDebug -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86_64
+./gradlew assembleDebug -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86_64 --stacktrace --info
 
 echo "==> Copying APK to output directory..."
 cd /app/apps/client
