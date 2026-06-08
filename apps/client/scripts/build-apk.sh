@@ -23,9 +23,10 @@ echo "==> Configuring Gradle properties..."
 # Disable JDK toolchain auto-download: React Native's Gradle plugin declares a Java toolchain
 # requirement and Gradle 9's foojay resolver tries to download it from the internet, which
 # hangs in container environments. Point it at the JDK already installed in the image instead.
-echo "org.gradle.daemon=false" >> android/gradle.properties
-echo "org.gradle.java.installations.auto-download=false" >> android/gradle.properties
-echo "org.gradle.java.installations.fromEnv=JAVA_HOME" >> android/gradle.properties
+# Use printf to ensure a leading newline: Expo SDK 56 prebuild writes
+# expo.inlineModules.watchedDirectories=[] as the last line without a trailing newline, so
+# appending directly would corrupt that property value.
+printf '\norg.gradle.daemon=false\norg.gradle.java.installations.auto-download=false\norg.gradle.java.installations.fromEnv=JAVA_HOME\n' >> android/gradle.properties
 
 echo "==> Fixing Hermes path for pnpm..."
 cd /app
