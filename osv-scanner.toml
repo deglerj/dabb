@@ -1,2 +1,26 @@
 # OSV Scanner configuration
 # https://google.github.io/osv-scanner/configuration/
+
+[[IgnoredVulns]]
+id = "CVE-2026-41907"
+reason = "Only affects uuid v3/v5/v6 with buf parameter. Project uses only v4 (generators.ts, OfflineGameEngine.ts, secretId.ts)."
+
+[[IgnoredVulns]]
+id = "CVE-2025-64756"
+reason = "glob CLI command injection via -c/--cmd flag. glob is a transitive build dep; never invoked as CLI with untrusted filenames."
+
+[[IgnoredVulns]]
+id = "CVE-2026-39363"
+reason = "Vite dev server vulnerability (WebSocket arbitrary file read). Vite is transitive via vitest only; no dev server runs in CI or production."
+
+[[IgnoredVulns]]
+id = "CVE-2026-39364"
+reason = "Vite dev server vulnerability (server.fs.deny bypass). Vite is transitive via vitest only; no dev server runs in CI or production."
+
+[[IgnoredVulns]]
+id = "CVE-2026-39365"
+reason = "Vite dev server vulnerability (path traversal in .map handling). Vite is transitive via vitest only; no dev server runs in CI or production."
+
+[[IgnoredVulns]]
+id = "CVE-2026-33672"
+reason = "picomatch vulnerability found in system-level pnpm install (/usr/local/lib/node_modules/pnpm/...), not project runtime code."
