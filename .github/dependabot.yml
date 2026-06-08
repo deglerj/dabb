@@ -6,16 +6,6 @@ updates:
       interval: 'weekly'
     cooldown:
       default-days: 5
-    ignore:
-      # expo SDK 55 requires react-native 0.83.x; 0.84.0 broke the Kotlin
-      # Promise interface in a way expo-modules-core 55.x doesn't handle.
-      # Remove this ignore once expo SDK 56 (which supports RN 0.84+) is released.
-      - dependency-name: 'react-native'
-        versions: ['0.84.x']
-      # async-storage v3 is incompatible with Expo Go SDK 55: "Native module is
-      # null, cannot access legacy storage". Remove once upgrading to Expo SDK 56+.
-      - dependency-name: '@react-native-async-storage/async-storage'
-        versions: ['>=3']
     groups:
       dev-dependencies:
         patterns:
