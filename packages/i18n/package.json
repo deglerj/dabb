@@ -19,14 +19,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "i18next": "^26.0.6",
+    "i18next": "^26.3.1",
     "react-i18next": "^17.0.4"
   },
   "peerDependencies": {
     "react": ">=18.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19.2.15",
+    "@types/react": "^19.2.16",
     "typescript": "^6.0.3"
   }
 }
