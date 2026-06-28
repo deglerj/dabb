@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [2.2.0] - 2026-06-28
+
+### Verbesserungen
+
+- Abhängigkeiten aktualisiert für mehr Stabilität und Sicherheit
+
 ## [2.1.0] - 2026-04-14
 
 ### Neues
