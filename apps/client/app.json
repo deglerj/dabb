@@ -28,7 +28,11 @@
       "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-navigation-bar", "./plugins/withGradleProperties"],
+    "plugins": [
+      "expo-navigation-bar",
+      "./plugins/withGradleProperties",
+      "./plugins/withAndroidSigning"
+    ],
     "extra": {
       "serverUrl": "",
       "firebaseApiKey": "$EXPO_PUBLIC_FIREBASE_API_KEY",
