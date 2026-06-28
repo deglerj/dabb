@@ -13,33 +13,8 @@ echo "==> Generating native Android project..."
 cd apps/client
 npx expo prebuild --platform android --clean
 
-echo "==> Configuring Gradle properties..."
-printf '\norg.gradle.daemon=false\norg.gradle.java.installations.auto-download=false\norg.gradle.java.installations.fromEnv=JAVA_HOME\n' >> android/gradle.properties
-
-echo "==> Fixing Hermes path for pnpm..."
-cd /app
-RN_DIR=$(find node_modules/.pnpm -type d -name "react-native" -path "*react-native@*/node_modules/react-native" 2>/dev/null | head -1)
-if [ -n "$RN_DIR" ]; then
-    HERMES_COMPILER=$(dirname "$RN_DIR")/hermes-compiler
-    if [ -d "$HERMES_COMPILER" ]; then
-        mkdir -p "$RN_DIR/sdks"
-        ln -sf "../../hermes-compiler/hermesc" "$RN_DIR/sdks/hermesc"
-        echo "    Created Hermes symlink: $RN_DIR/sdks/hermesc"
-        chmod +x "$RN_DIR/sdks/hermesc/linux64-bin/hermesc"
-    else
-        echo "    hermes-compiler not found (may not be needed)"
-    fi
-else
-    echo "    react-native directory not found in pnpm store"
-fi
-
-echo "==> Installing Skia prebuilt binaries..."
-cd /app/apps/client
-npx install-skia
-cd /app
-
 echo "==> Building APK with Gradle..."
-cd apps/client/android
+cd android
 ./gradlew assembleDebug -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86_64
 
 echo "==> Copying APK to output directory..."
