@@ -17,6 +17,7 @@ jobs:
     name: Build & Publish
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
