@@ -19,18 +19,15 @@ set -euo pipefail
 echo "==> Installing dependencies..."
 pnpm install --frozen-lockfile
 
-echo "==> Patching foojay-resolver-convention for Gradle 9 + JDK 21 compatibility..."
-# @react-native/gradle-plugin ships foojay-resolver-convention 0.5.0 which references
-# JvmVendorSpec.IBM_SEMERU — removed in Gradle 9. Upgrade to 1.0.0 to fix the build.
-sed -i 's/foojay-resolver-convention").version("0.5.0")/foojay-resolver-convention").version("1.0.0")/' \
-    node_modules/@react-native/gradle-plugin/settings.gradle.kts
-
 echo "==> Building workspace packages..."
 pnpm run build
 
 echo "==> Generating native Android project..."
 cd apps/client
 npx expo prebuild --platform android --clean
+
+echo "==> Configuring Gradle properties..."
+printf '\norg.gradle.daemon=false\norg.gradle.java.installations.auto-download=false\norg.gradle.java.installations.fromEnv=JAVA_HOME\n' >> android/gradle.properties
 
 echo "==> Fixing Hermes path for pnpm..."
 cd /app
@@ -50,8 +47,6 @@ else
 fi
 
 echo "==> Patching build.gradle for release signing (versionCode=${VERSION_CODE})..."
-# expo prebuild --clean regenerates build.gradle with a debug signingConfig for release builds.
-# This script patches it to use the real upload keystore and the supplied versionCode.
 python3 - <<'PYTHON'
 import re, os, sys
 
@@ -65,11 +60,8 @@ gradle_file = 'apps/client/android/app/build.gradle'
 with open(gradle_file) as f:
     content = f.read()
 
-# 1. Override versionCode with the value from CI
 content = re.sub(r'versionCode \d+', f'versionCode {version_code}', content)
 
-# 2. Insert a release signingConfig block at the top of signingConfigs {}.
-#    Placement before debug is fine — Gradle doesn't care about config order.
 release_block = (
     f"\n        release {{\n"
     f"            storeFile file('{keystore_path}')\n"
@@ -80,8 +72,6 @@ release_block = (
 )
 content = content.replace('    signingConfigs {', '    signingConfigs {' + release_block, 1)
 
-# 3. Switch the release buildType from debug signing to release signing.
-#    The "Caution! In production" comment is a stable anchor in the expo prebuild template.
 content = re.sub(
     r'(// Caution! In production.*?signed-apk-android\.[^\n]*\n\s+)signingConfig signingConfigs\.debug',
     r'\1signingConfig signingConfigs.release',

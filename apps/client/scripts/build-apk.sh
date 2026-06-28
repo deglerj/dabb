@@ -6,12 +6,6 @@ set -euo pipefail
 echo "==> Installing dependencies..."
 pnpm install --frozen-lockfile
 
-echo "==> Patching foojay-resolver-convention for Gradle 9 + JDK 21 compatibility..."
-# @react-native/gradle-plugin ships foojay-resolver-convention 0.5.0 which references
-# JvmVendorSpec.IBM_SEMERU — removed in Gradle 9. Upgrade to 1.0.0 to fix the build.
-sed -i 's/foojay-resolver-convention").version("0.5.0")/foojay-resolver-convention").version("1.0.0")/' \
-    node_modules/@react-native/gradle-plugin/settings.gradle.kts
-
 echo "==> Building workspace packages..."
 pnpm run build
 
@@ -20,12 +14,6 @@ cd apps/client
 npx expo prebuild --platform android --clean
 
 echo "==> Configuring Gradle properties..."
-# Disable JDK toolchain auto-download: React Native's Gradle plugin declares a Java toolchain
-# requirement and Gradle 9's foojay resolver tries to download it from the internet, which
-# hangs in container environments. Point it at the JDK already installed in the image instead.
-# Use printf to ensure a leading newline: Expo SDK 56 prebuild writes
-# expo.inlineModules.watchedDirectories=[] as the last line without a trailing newline, so
-# appending directly would corrupt that property value.
 printf '\norg.gradle.daemon=false\norg.gradle.java.installations.auto-download=false\norg.gradle.java.installations.fromEnv=JAVA_HOME\n' >> android/gradle.properties
 
 echo "==> Fixing Hermes path for pnpm..."
