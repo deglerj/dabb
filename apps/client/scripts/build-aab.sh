@@ -103,7 +103,9 @@ PYTHON
 
 echo "==> Building AAB with Gradle..."
 cd apps/client/android
-./gradlew bundleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
+./gradlew bundleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a \
+  -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m" \
+  --no-daemon
 
 echo "==> Copying AAB to output..."
 cd /app/apps/client
