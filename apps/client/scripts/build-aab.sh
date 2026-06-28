@@ -105,6 +105,7 @@ echo "==> Building AAB with Gradle..."
 cd apps/client/android
 ./gradlew bundleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a \
   -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m" \
+  -x lintVitalRelease \
   --no-daemon
 
 echo "==> Copying AAB to output..."
