@@ -3,7 +3,7 @@
   "version": "2.2.0",
   "main": "index.ts",
   "scripts": {
-    "postinstall": "node -e \"const fs=require('fs');fs.mkdirSync('public',{recursive:true});fs.copyFileSync('../../node_modules/canvaskit-wasm/bin/full/canvaskit.wasm','public/canvaskit.wasm')\"",
+    "postinstall": "node -e \"const fs=require('fs');fs.mkdirSync('public',{recursive:true});fs.copyFileSync('../../node_modules/canvaskit-wasm/bin/full/canvaskit.wasm','public/canvaskit.wasm')\" && npx install-skia",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
