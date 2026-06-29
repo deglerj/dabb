@@ -13,7 +13,8 @@ const withAndroidSigning: ConfigPlugin = (config) =>
     const releaseSigningBlock = [
       '',
       '        release {',
-      '            storeFile file(System.getenv("SIGNING_KEYSTORE_PATH") ?: "")',
+      '            def ksPath = System.getenv("SIGNING_KEYSTORE_PATH")',
+      '            if (ksPath) storeFile file(ksPath)',
       '            storePassword System.getenv("SIGNING_STORE_PASSWORD") ?: ""',
       '            keyAlias System.getenv("SIGNING_KEY_ALIAS") ?: ""',
       '            keyPassword System.getenv("SIGNING_KEY_PASSWORD") ?: ""',
