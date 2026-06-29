@@ -176,21 +176,21 @@ The app uses `@shopify/react-native-skia` and `react-native-reanimated` v4, whic
 
 #### One-time setup: install the dev APK
 
-**Option A — Local build (recommended):** Requires JDK 21 (see [DEPLOYMENT.md](DEPLOYMENT.md) → Local Android Development).
+**Option A — Docker + ADB (zero local setup):** Requires Docker and `adb` (Android platform-tools). No JDK or Android SDK needed.
+
+```bash
+./install-android.sh              # build via Docker, install on connected device
+./install-android.sh --skip-build # reinstall without rebuilding
+```
+
+Enable USB debugging on your device and connect via USB before running.
+
+**Option B — Local build:** Requires JDK 21 (see [DEPLOYMENT.md](DEPLOYMENT.md) → Local Android Development).
 
 ```bash
 cd apps/client
 npx expo run:android   # builds and installs directly on connected device/emulator
 ```
-
-**Option B — Docker build:** No JDK needed locally; outputs `apps/client/build/dabb.apk`.
-
-```bash
-cd apps/client
-./scripts/build-apk.sh
-```
-
-Install the APK on your Android device via ADB or by copying the file.
 
 #### Daily workflow
 
