@@ -24,7 +24,7 @@
   "dependencies": {
     "@dabb/game-logic": "workspace:*",
     "@dabb/shared-types": "workspace:*",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@types/node": "^25.9.2",
