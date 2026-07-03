@@ -301,14 +301,14 @@ importers:
   packages/i18n:
     dependencies:
       i18next:
-        specifier: ^26.3.1
-        version: 26.3.1(typescript@6.0.3)
+        specifier: ^26.3.3
+        version: 26.3.3(typescript@6.0.3)
       react:
         specifier: 19.2.4
         version: 19.2.4
       react-i18next:
         specifier: ^17.0.4
-        version: 17.0.8(i18next@26.3.1(typescript@6.0.3))(react@19.2.4)(typescript@6.0.3)
+        version: 17.0.8(i18next@26.3.3(typescript@6.0.3))(react@19.2.4)(typescript@6.0.3)
     devDependencies:
       '@types/react':
         specifier: ^19.2.17
@@ -3433,8 +3433,8 @@ packages:
   hyphenate-style-name@1.1.0:
     resolution: {integrity: sha512-WDC/ui2VVRrz3jOVi+XtjqkDjiVjTtFaAGiW37k6b+ohyQ5wYDOGkvCZa8+H0nx3gyvv0+BST9xuOgIyGQ00gw==}
 
-  i18next@26.3.1:
-    resolution: {integrity: sha512-txQqd5EULsqEh9OJqRH15aCaOuy/nLJyhw5EHCSKLKJE1aBbb3Zve2+uQIxgWhPm1QqUQoWyQBm2kfmmIrzkcQ==}
+  i18next@26.3.3:
+    resolution: {integrity: sha512-aYVegyBdXSO93CMMihvr47jI7GHSOcIahMpJX+qzUXDzW4xDJf2uenIA+45vDU+YhiVdcfsql70AC9RVdMNrHg==}
     peerDependencies:
       typescript: ^5 || ^6
     peerDependenciesMeta:
@@ -4003,6 +4003,10 @@ packages:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
 
+  picomatch@4.0.5:
+    resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
+    engines: {node: '>=12'}
+
   plist@3.1.1:
     resolution: {integrity: sha512-ZIfcLJC+7E7FBFnDxm9MPmt7D+DidyQ26lewieO75AdhA2ayMtsJSES0iWzqJQbcVRSrTufQoy0DR94xHue0oA==}
     engines: {node: '>=10.4.0'}
@@ -4016,6 +4020,10 @@ packages:
 
   postcss@8.5.15:
     resolution: {integrity: sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==}
+    engines: {node: ^10 || ^12 || >=14}
+
+  postcss@8.5.16:
+    resolution: {integrity: sha512-vuwillviilfKZsg0VGj5R/YwwcHx4SLsIOI/7K6mQkWx+l5cUHTjj5g0AasTBcyXsbfTgrwsUNmVUb5xVwyPwg==}
     engines: {node: ^10 || ^12 || >=14}
 
   pretty-format@27.5.1:
@@ -6974,9 +6982,7 @@ snapshots:
       metro-runtime: 0.84.4
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/normalize-colors@0.74.89': {}
 
@@ -8149,6 +8155,10 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.4
 
+  fdir@6.5.0(picomatch@4.0.5):
+    optionalDependencies:
+      picomatch: 4.0.5
+
   fetch-nodeshim@0.4.10: {}
 
   fill-range@7.1.1:
@@ -8300,7 +8310,7 @@ snapshots:
 
   hyphenate-style-name@1.1.0: {}
 
-  i18next@26.3.1(typescript@6.0.3):
+  i18next@26.3.3(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
 
@@ -8934,6 +8944,8 @@ snapshots:
 
   picomatch@4.0.4: {}
 
+  picomatch@4.0.5: {}
+
   plist@3.1.1:
     dependencies:
       '@xmldom/xmldom': 0.9.10
@@ -8945,6 +8957,12 @@ snapshots:
   postcss-value-parser@4.2.0: {}
 
   postcss@8.5.15:
+    dependencies:
+      nanoid: 3.3.15
+      picocolors: 1.1.1
+      source-map-js: 1.2.1
+
+  postcss@8.5.16:
     dependencies:
       nanoid: 3.3.15
       picocolors: 1.1.1
@@ -9028,11 +9046,11 @@ snapshots:
     dependencies:
       react: 19.2.4
 
-  react-i18next@17.0.8(i18next@26.3.1(typescript@6.0.3))(react@19.2.4)(typescript@6.0.3):
+  react-i18next@17.0.8(i18next@26.3.3(typescript@6.0.3))(react@19.2.4)(typescript@6.0.3):
     dependencies:
       '@babel/runtime': 7.29.2
       html-parse-stringify: 3.0.1
-      i18next: 26.3.1(typescript@6.0.3)
+      i18next: 26.3.3(typescript@6.0.3)
       react: 19.2.4
       use-sync-external-store: 1.6.0(react@19.2.4)
     optionalDependencies:
@@ -9679,9 +9697,9 @@ snapshots:
   vite@7.3.1(@types/node@25.9.3)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0):
     dependencies:
       esbuild: 0.27.7
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
-      postcss: 8.5.15
+      fdir: 6.5.0(picomatch@4.0.5)
+      picomatch: 4.0.5
+      postcss: 8.5.16
       rollup: 4.62.2
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -9695,9 +9713,9 @@ snapshots:
   vite@7.3.1(@types/node@26.0.1)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0):
     dependencies:
       esbuild: 0.27.7
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
-      postcss: 8.5.15
+      fdir: 6.5.0(picomatch@4.0.5)
+      picomatch: 4.0.5
+      postcss: 8.5.16
       rollup: 4.62.2
       tinyglobby: 0.2.17
     optionalDependencies:
