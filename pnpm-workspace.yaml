@@ -7,6 +7,7 @@ onlyBuiltDependencies:
   - esbuild
 
 overrides:
+  '@expo/dom-webview': '~56.0.5'
   react: 19.2.4
   socket.io-parser: ^4.2.6
   undici: ^7.24.5

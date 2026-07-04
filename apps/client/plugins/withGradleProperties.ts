@@ -4,6 +4,8 @@ const withAndroidGradleProperties: ConfigPlugin = (config) =>
   withGradleProperties(config, (config) => {
     const props = config.modResults;
     const settings = [
+      // RN 0.86.0: TurboModuleRegistry→BatchedBridge→MessageQueue crashes in bridgeless mode
+      { key: 'newArchEnabled', value: 'false' },
       { key: 'org.gradle.daemon', value: 'false' },
       { key: 'org.gradle.java.installations.auto-download', value: 'false' },
       { key: 'org.gradle.java.installations.fromEnv', value: 'JAVA_HOME' },

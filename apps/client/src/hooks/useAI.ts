@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { applyEvents } from '@dabb/game-logic';
-import { defaultAIPlayerFactory } from '@dabb/game-ai';
+import { createAIPlayer } from '@dabb/game-ai';
 import type { GameEvent, PlayerIndex } from '@dabb/shared-types';
 import { pushEvents, claimCascade } from '../firebase/events.js';
 import { hashSecretId } from '../firebase/secretId.js';
@@ -61,7 +61,7 @@ export function useAI({
           return;
         }
 
-        const aiPlayer = defaultAIPlayerFactory.create();
+        const aiPlayer = createAIPlayer();
         const action = await aiPlayer.decide({
           gameState: fullState,
           playerIndex: currentPlayer,

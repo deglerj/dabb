@@ -1,5 +1,5 @@
-export type { AIPlayer, AIPlayerFactory, AIDifficulty } from './AIPlayer.js';
-export { DefaultAIPlayerFactory, defaultAIPlayerFactory } from './AIPlayer.js';
+export type { AIPlayer, AIDifficulty } from './AIPlayer.js';
+export { createAIPlayer } from './AIPlayer.js';
 export { BinokelAIPlayer } from './BinokelAIPlayer.js';
 export { OfflineGameEngine } from './OfflineGameEngine.js';
 export type {

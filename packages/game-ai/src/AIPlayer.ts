@@ -1,5 +1,5 @@
 /**
- * AI Player interface and default factory
+ * AI Player interface and factory
  */
 
 import type { AIAction, AIDecisionContext } from '@dabb/shared-types';
@@ -24,24 +24,6 @@ const MISTAKE_PROBABILITIES: Record<AIDifficulty, number> = {
   easy: 0.35,
 };
 
-/**
- * Factory interface for creating AI players
- */
-export interface AIPlayerFactory {
-  /**
-   * Create a new AI player instance
-   */
-  create(difficulty?: AIDifficulty): AIPlayer;
+export function createAIPlayer(difficulty: AIDifficulty = 'medium'): AIPlayer {
+  return new BinokelAIPlayer(MISTAKE_PROBABILITIES[difficulty]);
 }
-
-/**
- * Factory that creates BinokelAIPlayer instances with the given difficulty
- */
-export class DefaultAIPlayerFactory implements AIPlayerFactory {
-  create(difficulty: AIDifficulty = 'medium'): AIPlayer {
-    return new BinokelAIPlayer(MISTAKE_PROBABILITIES[difficulty]);
-  }
-}
-
-// Default factory instance
-export const defaultAIPlayerFactory: AIPlayerFactory = new DefaultAIPlayerFactory();
