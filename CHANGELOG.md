@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [2.2.1] - 2026-07-05
+
+### Fehlerbehebungen
+
+- Build-Fehler behoben, der Updates verzögert hätte
+
 ## [2.2.0] - 2026-06-28
 
 ### Verbesserungen
