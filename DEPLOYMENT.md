@@ -56,6 +56,39 @@ Runs when triggered manually or on release tags.
 
 ---
 
+## Local Android Development
+
+**Prerequisites (one-time setup per machine):**
+
+1. Install JDK 21:
+
+   ```bash
+   sudo pacman -S jdk21-openjdk
+   ```
+
+2. Tell Gradle to use it (system Java can stay at 26):
+
+   ```properties
+   # ~/.gradle/gradle.properties
+   org.gradle.java.home=/usr/lib/jvm/java-21-openjdk
+   ```
+
+3. Install dependencies (also runs Hermes and Skia setup):
+
+   ```bash
+   pnpm install
+   ```
+
+4. Run on a connected device or emulator:
+   ```bash
+   cd apps/client
+   npx expo run:android
+   ```
+
+**Why JDK 21?** Expo SDK 56 ships Gradle 9.0.0, which requires Java ≤ 21. The build environment (Docker) uses Java 21 via `eclipse-temurin:21-jdk-jammy`; local dev needs the same.
+
+---
+
 ## Firebase Setup
 
 The Firebase project (`dabb`) must be configured once manually. Steps: create a Firebase project, enable Realtime Database (`europe-west1`), register the web/Android app, copy the config values as environment variables, and apply the security rules below.

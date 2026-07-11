@@ -41,7 +41,7 @@ export function FlippableCard({ card, flipped, instant, width, height }: Flippab
   // Swap content at the midpoint of the flip (card edge-on at 90°)
   useAnimatedReaction(
     () => rotateY.value,
-    (current, previous) => {
+    (current: number, previous: number | null) => {
       if (previous !== null && previous < 90 && current >= 90) {
         runOnJS(setShowFace)(true);
       }

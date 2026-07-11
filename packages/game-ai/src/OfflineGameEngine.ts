@@ -47,7 +47,7 @@ import type {
   PlayerIndex,
   Team,
 } from '@dabb/shared-types';
-import { defaultAIPlayerFactory, type AIPlayer, type AIDifficulty } from './AIPlayer.js';
+import { createAIPlayer, type AIPlayer, type AIDifficulty } from './AIPlayer.js';
 
 export interface OfflineGameEngineOptions {
   playerCount: PlayerCount;
@@ -161,10 +161,7 @@ export class OfflineGameEngine {
     this.aiPlayers.clear();
     for (let i = 0; i < this.options.playerCount; i++) {
       if (i !== this.options.humanPlayerIndex) {
-        this.aiPlayers.set(
-          i as PlayerIndex,
-          defaultAIPlayerFactory.create(this.options.difficulty)
-        );
+        this.aiPlayers.set(i as PlayerIndex, createAIPlayer(this.options.difficulty));
       }
     }
   }

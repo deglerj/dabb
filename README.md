@@ -174,14 +174,23 @@ pnpm --filter @dabb/client start
 
 The app uses `@shopify/react-native-skia` and `react-native-reanimated` v4, which are not reliably supported in Expo Go. A **custom development build** is required.
 
-#### One-time setup: build and install the dev APK
+#### One-time setup: install the dev APK
+
+**Option A — Docker + ADB (zero local setup):** Requires Docker and `adb` (Android platform-tools). No JDK or Android SDK needed.
+
+```bash
+./install-android.sh              # build via Docker, install on connected device
+./install-android.sh --skip-build # reinstall without rebuilding
+```
+
+Enable USB debugging on your device and connect via USB before running.
+
+**Option B — Local build:** Requires JDK 21 (see [DEPLOYMENT.md](DEPLOYMENT.md) → Local Android Development).
 
 ```bash
 cd apps/client
-./scripts/build-apk.sh
+npx expo run:android   # builds and installs directly on connected device/emulator
 ```
-
-This builds a debug APK inside Docker and outputs it to `apps/client/build/dabb.apk`. Install it on your Android device via ADB or by copying the file.
 
 #### Daily workflow
 

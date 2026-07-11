@@ -1,6 +1,6 @@
 {
   "name": "dabb",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "private": true,
   "type": "module",
   "description": "Binokel card game - multiplayer web and mobile app",
@@ -16,15 +16,12 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "typecheck": "turbo run typecheck",
     "simulate": "pnpm --filter @dabb/simulate simulate",
-    "generate-licenses": "node scripts/generate-licenses.mjs",
-    "postinstall": "node scripts/generate-licenses.mjs",
-    "prepare": "husky"
+    "postinstall": "bash scripts/setup-hooks.sh && bash scripts/fix-hermes.sh"
   },
   "devDependencies": {
-    "husky": "^9.1.7",
-    "lint-staged": "^17.0.7",
-    "oxfmt": "^0.54.0",
-    "oxlint": "^1.69.0",
+    "lint-staged": "^17.0.8",
+    "oxfmt": "^0.56.0",
+    "oxlint": "^1.71.0",
     "turbo": "^2.9.18",
     "typescript": "^6.0.3"
   },
@@ -33,7 +30,7 @@
       "oxlint --fix",
       "oxfmt"
     ],
-    "*.{json,md,yml,yaml}": [
+    "!(pnpm-lock).{json,md,yml,yaml}": [
       "oxfmt"
     ]
   },

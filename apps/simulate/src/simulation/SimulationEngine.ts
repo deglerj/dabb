@@ -44,7 +44,7 @@ import type {
   Team,
 } from '@dabb/shared-types';
 
-import { defaultAIPlayerFactory, type AIPlayer, type AIDifficulty } from '@dabb/game-ai';
+import { createAIPlayer, type AIPlayer, type AIDifficulty } from '@dabb/game-ai';
 
 // Team scoring helpers for 4-player games
 function simGetPlayerTeam(state: GameState, playerIndex: PlayerIndex): Team {
@@ -135,7 +135,7 @@ export class SimulationEngine {
     // Create AI instances with configured difficulty
     const difficulty = this.options.difficulty ?? 'medium';
     for (let i = 0; i < playerCount; i++) {
-      this.aiPlayers.set(i as PlayerIndex, defaultAIPlayerFactory.create(difficulty));
+      this.aiPlayers.set(i as PlayerIndex, createAIPlayer(difficulty));
     }
 
     // Assign random teams for 4-player games
@@ -510,7 +510,7 @@ export class SimulationEngine {
       // Reset AI instances for new round (clear any per-round state)
       const difficulty = this.options.difficulty ?? 'medium';
       for (let i = 0; i < this.state.playerCount; i++) {
-        this.aiPlayers.set(i as PlayerIndex, defaultAIPlayerFactory.create(difficulty));
+        this.aiPlayers.set(i as PlayerIndex, createAIPlayer(difficulty));
       }
     }
   }
