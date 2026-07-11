@@ -95,7 +95,9 @@ function WaitingRoomScreen({
         {/* Game code */}
         <PaperPanel style={styles.codePanel}>
           <Text style={styles.codeLabel}>{t('waitingRoom.gameCode')}</Text>
-          <Text style={styles.code}>{sessionCode}</Text>
+          <Text style={styles.code} testID="waiting-room-session-code">
+            {sessionCode}
+          </Text>
           <Pressable
             style={({ pressed }) => [styles.shareButton, pressed && styles.shareButtonPressed]}
             onPress={handleShare}
@@ -109,7 +111,7 @@ function WaitingRoomScreen({
 
         {/* Player list */}
         <PaperPanel style={styles.playersPanel}>
-          <Text style={styles.playersTitle}>
+          <Text style={styles.playersTitle} testID="waiting-room-players-count">
             {t('common.players')} ({connectedPlayers}/{playerCount > 0 ? playerCount : '?'})
           </Text>
 
