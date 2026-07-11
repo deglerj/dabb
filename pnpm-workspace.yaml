@@ -8,8 +8,8 @@ onlyBuiltDependencies:
 
 overrides:
   '@expo/dom-webview': '~56.0.5'
-  react: 19.2.4
-  react-dom: 19.2.4
+  react: 19.2.7
+  react-dom: 19.2.7
   socket.io-parser: ^4.2.6
   undici: ^7.24.5
   flatted: ^3.4.2
