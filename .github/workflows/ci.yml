@@ -267,6 +267,8 @@ jobs:
             -v /tmp/gradle-cache-smoketest:/gradle-cache \
             -e GRADLE_USER_HOME=/gradle-cache \
             -e EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true \
+            -e EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://demo-dabb-default-rtdb.firebaseio.com \
+            -e EXPO_PUBLIC_FIREBASE_PROJECT_ID=demo-dabb \
             dabb-android-builder:ci-smoketest
 
       - name: Upload smoke-test APK artifact
