@@ -29,6 +29,8 @@
 | `apps/client/src/firebase/secretId.ts`                       | secretId generation and SHA-256 hashing                                         |
 | `apps/client/src/hooks/useFirebaseGame.ts`                   | Main game hook (Firebase subscriptions, state, reconnection)                    |
 | `apps/client/src/hooks/useStorage.ts`                        | Session credential persistence (AsyncStorage / localStorage)                    |
+| `apps/client/e2e/startup-create-join.yaml`                   | Maestro E2E smoke test (app startup, create/join session)                       |
+| `firebase.json`                                              | Firebase Local Emulator Suite config (RTDB emulator, port 9000)                 |
 | `packages/game-canvas/src/cards/cardPositions.ts`            | Single source of truth for all card positions (trick, hand, won-pile, opponent) |
 | `packages/game-canvas/src/cards/CardView.tsx`                | Animated card with arc flight (initialX/Y)                                      |
 | `apps/client/src/components/game/TrickAnimationLayer.tsx`    | Full-screen trick card animation overlay                                        |

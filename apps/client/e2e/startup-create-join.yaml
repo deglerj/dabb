@@ -1,0 +1,34 @@
+appId: com.dabb.binokel
+---
+- launchApp
+- assertVisible:
+    id: 'home-title'
+- tapOn:
+    id: 'home-create-online-button'
+- tapOn:
+    id: 'home-nickname-input'
+- inputText: 'Alice'
+- tapOn:
+    id: 'home-submit-button'
+- assertVisible:
+    id: 'waiting-room-session-code'
+- copyTextFrom:
+    id: 'waiting-room-session-code'
+- stopApp
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: 'home-title'
+- tapOn:
+    id: 'home-join-online-button'
+- tapOn:
+    id: 'home-nickname-input'
+- inputText: 'Bob'
+- tapOn:
+    id: 'home-join-code-input'
+- pasteText
+- tapOn:
+    id: 'home-submit-button'
+- assertVisible:
+    id: 'waiting-room-players-count'
+    text: '.*2/2.*'

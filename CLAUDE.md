@@ -92,6 +92,8 @@ Tests in `__tests__/` directories alongside source files. Run: `pnpm test` or `p
 
 **Regression tests**: Always add when fixing bugs. Document the scenario, use realistic values, name like `'does X correctly (regression)'`.
 
+**Android smoke test**: `apps/client/e2e/startup-create-join.yaml` (Maestro) runs in CI against a real Android emulator + Firebase RTDB Local Emulator — catches native startup crashes that `vitest`/`tsc` can't (e.g. native module version mismatches). Run locally: see Task 4 validation steps in `docs/superpowers/plans/2026-07-11-android-startup-smoke-test.md`, or re-run `maestro test apps/client/e2e/startup-create-join.yaml` against a running emulator with the app already installed.
+
 ## Conventions
 
 1. **No `any` types** — use proper TypeScript types

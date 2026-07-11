@@ -167,7 +167,9 @@ export default function HomeScreen() {
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.card}>
-            <Text style={styles.title}>{t('home.title')}</Text>
+            <Text style={styles.title} testID="home-title">
+              {t('home.title')}
+            </Text>
             <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
             {resumableGame && (
@@ -184,11 +186,19 @@ export default function HomeScreen() {
                 <Text style={styles.buttonPrimaryText}>{t('home.playOffline')}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.buttonSecondary} onPress={() => setMode('create')}>
+              <TouchableOpacity
+                style={styles.buttonSecondary}
+                onPress={() => setMode('create')}
+                testID="home-create-online-button"
+              >
                 <Text style={styles.buttonSecondaryText}>{t('home.createOnline')}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.buttonSecondary} onPress={() => setMode('join')}>
+              <TouchableOpacity
+                style={styles.buttonSecondary}
+                onPress={() => setMode('join')}
+                testID="home-join-online-button"
+              >
                 <Text style={styles.buttonSecondaryText}>{t('home.joinOnline')}</Text>
               </TouchableOpacity>
             </View>
@@ -230,6 +240,7 @@ export default function HomeScreen() {
               maxLength={10}
               autoCapitalize="none"
               autoCorrect={false}
+              testID="home-nickname-input"
             />
           </View>
 
@@ -315,6 +326,7 @@ export default function HomeScreen() {
               placeholderTextColor={Colors.inkFaint}
               autoCapitalize="none"
               autoCorrect={false}
+              testID="home-join-code-input"
             />
           </View>
 
@@ -339,6 +351,7 @@ export default function HomeScreen() {
                 mode === 'create' ? handleCreate : mode === 'join' ? handleJoin : handleStartOffline
               }
               disabled={loading}
+              testID="home-submit-button"
             >
               {loading ? (
                 <ActivityIndicator color={Colors.paperFace} />
