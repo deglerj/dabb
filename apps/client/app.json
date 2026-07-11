@@ -32,7 +32,8 @@
       "expo-navigation-bar",
       "./plugins/withGradleProperties",
       "./plugins/withAndroidSigning",
-      "./plugins/withDebugBundling"
+      "./plugins/withDebugBundling",
+      "./plugins/withStandaloneBuildType"
     ],
     "extra": {
       "serverUrl": "",
