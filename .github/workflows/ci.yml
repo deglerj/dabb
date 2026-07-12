@@ -19,7 +19,7 @@ jobs:
       - name: Check for client-related changes
         id: filter
         run: |
-          if git diff --name-only HEAD~1 HEAD | grep -qE '^(apps/client|packages)/|^(pnpm-lock\.yaml|package\.json|turbo\.json|pnpm-workspace\.yaml)$|^\.github/workflows/ci\.yml$'; then
+          if git diff --name-only HEAD~1 HEAD | grep -qE '^(apps/client|packages)/|^(pnpm-lock\.yaml|package\.json|turbo\.json|pnpm-workspace\.yaml|firebase\.json|database\.rules\.json)$|^\.github/workflows/ci\.yml$'; then
             echo "client=true" >> $GITHUB_OUTPUT
           else
             echo "client=false" >> $GITHUB_OUTPUT
