@@ -1,7 +1,7 @@
 # Android CI Native Build Cache — Handoff
 
 **Date:** 2026-07-12
-**Status:** Investigation handoff — not implemented, not blocking
+**Status:** ccache implemented (this file's "Real fix" section) alongside the x86_64-only mitigation — not waiting on the mitigation's CI verdict first, see commit that added `apps/client/plugins/withNativeBuildCache.ts`
 
 ---
 

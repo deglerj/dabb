@@ -33,7 +33,8 @@
       "./plugins/withGradleProperties",
       "./plugins/withAndroidSigning",
       "./plugins/withDebugBundling",
-      "./plugins/withStandaloneBuildType"
+      "./plugins/withStandaloneBuildType",
+      "./plugins/withNativeBuildCache"
     ],
     "extra": {
       "serverUrl": "",

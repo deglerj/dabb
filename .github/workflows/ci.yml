@@ -211,13 +211,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Cache ccache (native C++ build cache)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+        with:
+          path: /tmp/ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('apps/client/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
       - name: Build APK in Docker
         run: |
-          mkdir -p /tmp/gradle-cache
+          mkdir -p /tmp/gradle-cache /tmp/ccache
           docker run --rm \
             -v "${{ github.workspace }}:/app" \
             -v /tmp/gradle-cache:/gradle-cache \
+            -v /tmp/ccache:/ccache-cache \
             -e GRADLE_USER_HOME=/gradle-cache \
+            -e CCACHE_DIR=/ccache-cache \
+            -e CCACHE_MAXSIZE=2G \
             dabb-android-builder:ci
 
       - name: Upload APK artifact
@@ -260,13 +271,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-smoketest-
 
+      - name: Cache ccache (native C++ build cache)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+        with:
+          path: /tmp/ccache-smoketest
+          key: ${{ runner.os }}-ccache-smoketest-${{ hashFiles('apps/client/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-smoketest-
+
       - name: Build smoke-test APK in Docker
         run: |
-          mkdir -p /tmp/gradle-cache-smoketest
+          mkdir -p /tmp/gradle-cache-smoketest /tmp/ccache-smoketest
           docker run --rm \
             -v "${{ github.workspace }}:/app" \
             -v /tmp/gradle-cache-smoketest:/gradle-cache \
+            -v /tmp/ccache-smoketest:/ccache-cache \
             -e GRADLE_USER_HOME=/gradle-cache \
+            -e CCACHE_DIR=/ccache-cache \
+            -e CCACHE_MAXSIZE=2G \
             -e EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true \
             -e EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://demo-dabb-default-rtdb.firebaseio.com \
             -e EXPO_PUBLIC_FIREBASE_PROJECT_ID=demo-dabb \
