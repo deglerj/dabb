@@ -381,7 +381,7 @@ jobs:
             # app code, tests the exact network path 10.0.2.2 depends on.
             echo "--- connectivity probe from emulator guest ---"
             adb shell ping -c 2 10.0.2.2 || echo "ping failed (exit $?)"
-            adb shell timeout 3 nc -zv 10.0.2.2 9000 || echo "nc failed (exit $?)"
+            adb shell timeout 3 sh -c "echo > /dev/tcp/10.0.2.2/9000 && echo TCP_9000_OK || echo TCP_9000_FAIL"
             echo "--- end connectivity probe ---"
             adb install apps/client/build/dabb.apk
             maestro test apps/client/e2e/startup-create-join.yaml
