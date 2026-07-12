@@ -14,6 +14,13 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getDatabase(app);
 
+// TEMP DIAGNOSTIC — remove once smoke-test create/join hang is root-caused
+console.warn(
+  '[diag] EXPO_PUBLIC_USE_FIREBASE_EMULATOR =',
+  process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR
+);
 if (process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
+  console.warn('[diag] calling connectDatabaseEmulator(db, 10.0.2.2, 9000)');
   connectDatabaseEmulator(db, '10.0.2.2', 9000);
+  console.warn('[diag] connectDatabaseEmulator call returned');
 }
