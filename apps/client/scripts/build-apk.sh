@@ -28,7 +28,15 @@ npx expo prebuild --platform android --clean
 
 echo "==> Building APK with Gradle (variant: ${VARIANT}, architectures: ${ARCHITECTURES})..."
 cd android
-./gradlew "assemble${VARIANT_CAP}" -PreactNativeArchitectures="${ARCHITECTURES}"
+# lintVital<Variant> runs Android Lint's fatal-issue check for non-debuggable
+# variants. On this runner it OOMs in the lint worker's JVM Metaspace (not a
+# real lint failure) — the existing build-aab.sh works around the same
+# problem for the real release build with `-x lintVitalRelease`.
+LINT_VITAL_EXCLUDE=()
+if [ "${VARIANT}" != "debug" ]; then
+  LINT_VITAL_EXCLUDE=(-x "lintVital${VARIANT_CAP}")
+fi
+./gradlew "assemble${VARIANT_CAP}" -PreactNativeArchitectures="${ARCHITECTURES}" "${LINT_VITAL_EXCLUDE[@]}"
 
 echo "==> Copying APK to output directory..."
 cd /app/apps/client
