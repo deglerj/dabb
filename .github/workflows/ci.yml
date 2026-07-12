@@ -376,6 +376,13 @@ jobs:
             adb shell settings put secure immersive_mode_confirmations confirmed
             adb logcat -c
             adb logcat > /tmp/logcat.txt &
+            # TEMP DIAGNOSTIC — does the emulator guest actually reach the
+            # host's Firebase emulator port at the TCP level? Independent of
+            # app code, tests the exact network path 10.0.2.2 depends on.
+            echo "--- connectivity probe from emulator guest ---"
+            adb shell ping -c 2 10.0.2.2 || echo "ping failed (exit $?)"
+            adb shell timeout 3 nc -zv 10.0.2.2 9000 || echo "nc failed (exit $?)"
+            echo "--- end connectivity probe ---"
             adb install apps/client/build/dabb.apk
             maestro test apps/client/e2e/startup-create-join.yaml
 
