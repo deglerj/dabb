@@ -232,6 +232,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-and-typecheck, test, changes]
     if: needs.changes.outputs.client == 'true'
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -270,7 +271,7 @@ jobs:
             -e EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://demo-dabb-default-rtdb.firebaseio.com \
             -e EXPO_PUBLIC_FIREBASE_PROJECT_ID=demo-dabb \
             dabb-android-builder:ci-smoketest \
-            apps/client/scripts/build-apk.sh standalone
+            apps/client/scripts/build-apk.sh standalone x86_64
 
       - name: Upload smoke-test APK artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
