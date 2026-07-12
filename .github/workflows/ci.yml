@@ -351,7 +351,17 @@ jobs:
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       - name: Start Firebase RTDB emulator
-        run: pnpm exec firebase emulators:start --only database --project demo-dabb &
+        run: |
+          pnpm exec firebase emulators:start --only database --project demo-dabb &
+          for i in $(seq 1 60); do
+            if nc -z localhost 9000; then
+              echo "Firebase RTDB emulator ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Firebase RTDB emulator did not become ready within 60s"
+          exit 1
 
       - name: Run Android emulator and Maestro flow
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
