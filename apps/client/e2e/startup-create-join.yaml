@@ -8,6 +8,7 @@ appId: com.dabb.binokel
 - tapOn:
     id: 'home-nickname-input'
 - inputText: 'Alice'
+- hideKeyboard
 - tapOn:
     id: 'home-submit-button'
 - assertVisible:
@@ -27,6 +28,7 @@ appId: com.dabb.binokel
 - tapOn:
     id: 'home-join-code-input'
 - pasteText
+- hideKeyboard
 - tapOn:
     id: 'home-submit-button'
 - assertVisible:
