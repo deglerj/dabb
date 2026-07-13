@@ -14,13 +14,12 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getDatabase(app);
 
-// TEMP DIAGNOSTIC — remove once smoke-test create/join hang is root-caused
-console.warn(
-  '[diag] EXPO_PUBLIC_USE_FIREBASE_EMULATOR =',
-  process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR
-);
 if (process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
-  console.warn('[diag] calling connectDatabaseEmulator(db, 10.0.2.2, 9000)');
-  connectDatabaseEmulator(db, '10.0.2.2', 9000);
-  console.warn('[diag] connectDatabaseEmulator call returned');
+  // localhost, not 10.0.2.2 — paired with `adb reverse tcp:9000 tcp:9000` in
+  // CI, which tunnels the emulator's own localhost:9000 to the host via ADB
+  // directly. The emulator's virtual NAT gateway (10.0.2.2) turned out to be
+  // unreliable in GitHub Actions specifically: host-side checks always
+  // confirmed the emulator was alive, listening, and firewall-reachable, yet
+  // the guest could never complete a TCP connection through it.
+  connectDatabaseEmulator(db, 'localhost', 9000);
 }

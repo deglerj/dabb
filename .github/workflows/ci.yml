@@ -352,18 +352,9 @@ jobs:
 
       - name: Start Firebase RTDB emulator
         run: |
-          # FORWARD chain default DROP (Docker's doing, present on this
-          # runner even though this job doesn't use Docker itself) can
-          # swallow the Android emulator's guest->host NAT traffic. Explicit
-          # accept in DOCKER-USER, Docker's documented safe customization
-          # chain, evaluated before Docker's own restrictive rules.
-          sudo iptables -I DOCKER-USER -j ACCEPT
           # setsid (new session, not just nohup) so this process survives
-          # into later steps — nohup + disown alone were NOT enough (verified:
-          # still TCP_9000_FAIL from a later step even with that combination).
-          # nohup only ignores SIGHUP; it doesn't move the process out of this
-          # step's process group, and something between steps was still
-          # reaping it. setsid actually detaches into a new session/group.
+          # into later steps — GitHub Actions runs each step as its own
+          # shell, and a plain background job doesn't reliably outlive it.
           setsid nohup pnpm exec firebase emulators:start --only database --project demo-dabb \
             > /tmp/firebase-emulator.log 2>&1 < /dev/null &
           disown
@@ -378,23 +369,6 @@ jobs:
           cat /tmp/firebase-emulator.log
           exit 1
 
-      - name: TEMP DIAGNOSTIC - verify emulator still alive from a later step
-        run: |
-          echo "--- process check ---"
-          pgrep -af firebase || echo "no firebase process found"
-          echo "--- port check (host side) ---"
-          nc -z localhost 9000 && echo "host:9000 reachable" || echo "host:9000 NOT reachable"
-          echo "--- log tail ---"
-          tail -30 /tmp/firebase-emulator.log || true
-          echo "--- firewall rules ---"
-          sudo iptables -L -n -v 2>&1 || echo "iptables check failed"
-          echo "--- what is actually listening on 9000 ---"
-          sudo ss -tlnp 2>&1 | grep -E ":9000|State" || echo "ss check failed"
-          echo "--- can we reach it via the docker/eth interface IP instead of localhost? ---"
-          HOST_IP=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '^127\.' | head -1)
-          echo "host non-loopback IP: ${HOST_IP}"
-          nc -z "${HOST_IP}" 9000 && echo "host:${HOST_IP}:9000 reachable" || echo "host:${HOST_IP}:9000 NOT reachable"
-
       - name: Run Android emulator and Maestro flow
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
@@ -408,11 +382,16 @@ jobs:
             adb shell settings put secure immersive_mode_confirmations confirmed
             adb logcat -c
             adb logcat > /tmp/logcat.txt &
-            # TEMP DIAGNOSTIC — confirms the emulator guest can still reach
-            # the Firebase emulator port at the TCP level after the nohup fix.
-            echo "--- connectivity probe from emulator guest ---"
-            adb shell timeout 3 sh -c "echo > /dev/tcp/10.0.2.2/9000 && echo TCP_9000_OK || echo TCP_9000_FAIL"
-            echo "--- end connectivity probe ---"
+            # adb reverse tunnels the emulator's own localhost:9000 to the
+            # host's port 9000 via ADB directly, bypassing the emulator's
+            # virtual NAT gateway (10.0.2.2) entirely. That path turned out
+            # to be unreliable in GitHub Actions: extensive host-side checks
+            # always confirmed the Firebase emulator was alive, listening on
+            # 0.0.0.0, and firewall-reachable, yet the guest could never
+            # complete a TCP connection to it via 10.0.2.2 — adb reverse is
+            # the standard, ADB-native way to expose a host service to a
+            # device/emulator and sidesteps that path completely.
+            adb reverse tcp:9000 tcp:9000
             adb install apps/client/build/dabb.apk
             maestro test apps/client/e2e/startup-create-join.yaml
 
