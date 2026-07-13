@@ -41,7 +41,7 @@ describe('firebase config emulator connection', () => {
     await import('../config.js');
     expect(connectDatabaseEmulatorMock).toHaveBeenCalledWith(
       getDatabaseMock.mock.results[0]?.value,
-      '10.0.2.2',
+      'localhost',
       9000
     );
   });
