@@ -352,6 +352,12 @@ jobs:
 
       - name: Start Firebase RTDB emulator
         run: |
+          # FORWARD chain default DROP (Docker's doing, present on this
+          # runner even though this job doesn't use Docker itself) can
+          # swallow the Android emulator's guest->host NAT traffic. Explicit
+          # accept in DOCKER-USER, Docker's documented safe customization
+          # chain, evaluated before Docker's own restrictive rules.
+          sudo iptables -I DOCKER-USER -j ACCEPT
           # setsid (new session, not just nohup) so this process survives
           # into later steps — nohup + disown alone were NOT enough (verified:
           # still TCP_9000_FAIL from a later step even with that combination).
