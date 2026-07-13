@@ -352,13 +352,13 @@ jobs:
 
       - name: Start Firebase RTDB emulator
         run: |
-          # nohup + fully detached fds (not a bare `&`) so this process
-          # survives into the later android-emulator-runner step — GitHub
-          # Actions runs each step as its own shell, and a plain background
-          # job doesn't reliably outlive the step that started it (confirmed:
-          # a bare `&` here left the emulator dead by the time the Maestro
-          # step tried to connect, despite readiness passing in this step).
-          nohup pnpm exec firebase emulators:start --only database --project demo-dabb \
+          # setsid (new session, not just nohup) so this process survives
+          # into later steps — nohup + disown alone were NOT enough (verified:
+          # still TCP_9000_FAIL from a later step even with that combination).
+          # nohup only ignores SIGHUP; it doesn't move the process out of this
+          # step's process group, and something between steps was still
+          # reaping it. setsid actually detaches into a new session/group.
+          setsid nohup pnpm exec firebase emulators:start --only database --project demo-dabb \
             > /tmp/firebase-emulator.log 2>&1 < /dev/null &
           disown
           for i in $(seq 1 60); do
@@ -371,6 +371,15 @@ jobs:
           echo "::error::Firebase RTDB emulator did not become ready within 60s"
           cat /tmp/firebase-emulator.log
           exit 1
+
+      - name: TEMP DIAGNOSTIC - verify emulator still alive from a later step
+        run: |
+          echo "--- process check ---"
+          pgrep -af firebase || echo "no firebase process found"
+          echo "--- port check (host side) ---"
+          nc -z localhost 9000 && echo "host:9000 reachable" || echo "host:9000 NOT reachable"
+          echo "--- log tail ---"
+          tail -30 /tmp/firebase-emulator.log || true
 
       - name: Run Android emulator and Maestro flow
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
