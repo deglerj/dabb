@@ -365,17 +365,7 @@ jobs:
             # ran, TCP to port 9000 was refused even though ICMP ping to the
             # same host succeeded — the emulator process was gone).
             pnpm exec firebase emulators:start --only database --project demo-dabb &
-            for i in $(seq 1 60); do
-              if timeout 1 sh -c "echo > /dev/tcp/localhost/9000" 2>/dev/null; then
-                echo "Firebase RTDB emulator ready after ${i}s"
-                break
-              fi
-              if [ "$i" -eq 60 ]; then
-                echo "::error::Firebase RTDB emulator did not become ready within 60s"
-                exit 1
-              fi
-              sleep 1
-            done
+            for i in $(seq 1 60); do if timeout 1 sh -c "echo > /dev/tcp/localhost/9000" 2>/dev/null; then echo "Firebase RTDB emulator ready after ${i}s"; break; fi; if [ "$i" -eq 60 ]; then echo "::error::Firebase RTDB emulator did not become ready within 60s"; exit 1; fi; sleep 1; done
 
             # Suppress the one-time "Viewing full screen" immersive-mode toast
             # that Android shows on first launch of an edge-to-edge app — it
