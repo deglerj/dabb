@@ -22,4 +22,14 @@ if (process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
   // confirmed the emulator was alive, listening, and firewall-reachable, yet
   // the guest could never complete a TCP connection through it.
   connectDatabaseEmulator(db, 'localhost', 9000);
+
+  // TEMP DIAGNOSTIC — remove once smoke-test create/join hang is root-caused
+  // Isolates whether this is a general app-networking problem or specific
+  // to Firebase SDK's WebSocket transport: a plain REST GET against the
+  // same emulator, bypassing the Firebase SDK entirely.
+  console.warn('[diag] plain fetch to http://localhost:9000/.json — starting');
+  fetch('http://localhost:9000/.json')
+    .then((res) => res.text())
+    .then((text) => console.warn('[diag] plain fetch succeeded:', text))
+    .catch((err) => console.warn('[diag] plain fetch failed:', String(err)));
 }
