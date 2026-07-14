@@ -34,7 +34,8 @@
       "./plugins/withAndroidSigning",
       "./plugins/withDebugBundling",
       "./plugins/withStandaloneBuildType",
-      "./plugins/withNativeBuildCache"
+      "./plugins/withNativeBuildCache",
+      "./plugins/withStandaloneCleartextTraffic"
     ],
     "extra": {
       "serverUrl": "",

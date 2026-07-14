@@ -34,14 +34,9 @@ export async function createSession(
   playerCount: PlayerCount,
   targetScore = 1000
 ): Promise<CreateSessionResult> {
-  // TEMP DIAGNOSTIC — remove once smoke-test create/join hang is root-caused
-  console.warn('[diag] createSession: start');
   const sessionCode = generateSessionCode();
-  console.warn('[diag] createSession: sessionCode =', sessionCode);
   const secretId = await getOrCreateSecretId(sessionCode);
-  console.warn('[diag] createSession: secretId obtained');
   const secretHash = await hashSecretId(secretId);
-  console.warn('[diag] createSession: secretHash obtained');
 
   const meta: SessionMeta = {
     playerCount,
@@ -53,9 +48,7 @@ export async function createSession(
     },
   };
 
-  console.warn('[diag] createSession: calling set() on', `sessions/${sessionCode}/meta`);
   await set(ref(db, `sessions/${sessionCode}/meta`), meta);
-  console.warn('[diag] createSession: set() resolved');
 
   return { sessionCode, secretId, playerIndex: 0 as PlayerIndex };
 }

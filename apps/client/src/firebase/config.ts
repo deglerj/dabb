@@ -17,19 +17,9 @@ export const db = getDatabase(app);
 if (process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
   // localhost, not 10.0.2.2 — paired with `adb reverse tcp:9000 tcp:9000` in
   // CI, which tunnels the emulator's own localhost:9000 to the host via ADB
-  // directly. The emulator's virtual NAT gateway (10.0.2.2) turned out to be
-  // unreliable in GitHub Actions specifically: host-side checks always
-  // confirmed the emulator was alive, listening, and firewall-reachable, yet
-  // the guest could never complete a TCP connection through it.
+  // directly, and with the withStandaloneCleartextTraffic config plugin,
+  // which allows plain ws://+http:// for the standalone build type (Android
+  // blocks cleartext traffic by default since API 28 — without that plugin
+  // this connection is silently dropped with no catchable JS error).
   connectDatabaseEmulator(db, 'localhost', 9000);
-
-  // TEMP DIAGNOSTIC — remove once smoke-test create/join hang is root-caused
-  // Isolates whether this is a general app-networking problem or specific
-  // to Firebase SDK's WebSocket transport: a plain REST GET against the
-  // same emulator, bypassing the Firebase SDK entirely.
-  console.warn('[diag] plain fetch to http://localhost:9000/.json — starting');
-  fetch('http://localhost:9000/.json')
-    .then((res) => res.text())
-    .then((text) => console.warn('[diag] plain fetch succeeded:', text))
-    .catch((err) => console.warn('[diag] plain fetch failed:', String(err)));
 }
