@@ -308,7 +308,6 @@ jobs:
     needs: [build-client-apk-smoketest, changes]
     if: needs.changes.outputs.client == 'true'
     timeout-minutes: 20
-    continue-on-error: true # TODO: remove once the flow is stable across a few PRs
 
     steps:
       - name: Checkout
