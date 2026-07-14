@@ -219,16 +219,34 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ccache-
 
+      - name: Cache pnpm store (Docker build)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+        with:
+          path: /tmp/pnpm-store
+          key: ${{ runner.os }}-pnpm-docker-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-docker-
+
+      - name: Cache Turbo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Build APK in Docker
         run: |
-          mkdir -p /tmp/gradle-cache /tmp/ccache
+          mkdir -p /tmp/gradle-cache /tmp/ccache /tmp/pnpm-store
           docker run --rm \
             -v "${{ github.workspace }}:/app" \
             -v /tmp/gradle-cache:/gradle-cache \
             -v /tmp/ccache:/ccache-cache \
+            -v /tmp/pnpm-store:/pnpm-store \
             -e GRADLE_USER_HOME=/gradle-cache \
             -e CCACHE_DIR=/ccache-cache \
             -e CCACHE_MAXSIZE=2G \
+            -e npm_config_store_dir=/pnpm-store \
             dabb-android-builder:ci
 
       - name: Upload APK artifact
@@ -279,16 +297,34 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ccache-smoketest-
 
+      - name: Cache pnpm store (Docker build)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+        with:
+          path: /tmp/pnpm-store
+          key: ${{ runner.os }}-pnpm-docker-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-docker-
+
+      - name: Cache Turbo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Build smoke-test APK in Docker
         run: |
-          mkdir -p /tmp/gradle-cache-smoketest /tmp/ccache-smoketest
+          mkdir -p /tmp/gradle-cache-smoketest /tmp/ccache-smoketest /tmp/pnpm-store
           docker run --rm \
             -v "${{ github.workspace }}:/app" \
             -v /tmp/gradle-cache-smoketest:/gradle-cache \
             -v /tmp/ccache-smoketest:/ccache-cache \
+            -v /tmp/pnpm-store:/pnpm-store \
             -e GRADLE_USER_HOME=/gradle-cache \
             -e CCACHE_DIR=/ccache-cache \
             -e CCACHE_MAXSIZE=2G \
+            -e npm_config_store_dir=/pnpm-store \
             -e EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true \
             -e EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://demo-dabb-default-rtdb.firebaseio.com \
             -e EXPO_PUBLIC_FIREBASE_PROJECT_ID=demo-dabb \
