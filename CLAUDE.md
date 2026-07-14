@@ -92,7 +92,11 @@ Tests in `__tests__/` directories alongside source files. Run: `pnpm test` or `p
 
 **Regression tests**: Always add when fixing bugs. Document the scenario, use realistic values, name like `'does X correctly (regression)'`.
 
-**Android smoke test**: `apps/client/e2e/startup-create-join.yaml` (Maestro) runs in CI against a real Android emulator + Firebase RTDB Local Emulator — catches native startup crashes that `vitest`/`tsc` can't (e.g. native module version mismatches). Run locally: see Task 4 validation steps in `docs/superpowers/plans/2026-07-11-android-startup-smoke-test.md`, or re-run `maestro test apps/client/e2e/startup-create-join.yaml` against a running emulator with the app already installed.
+**Android smoke test**: `apps/client/e2e/startup-create-join.yaml` (Maestro) runs in CI against a real Android emulator + Firebase RTDB Local Emulator — catches native startup crashes that `vitest`/`tsc` can't (e.g. native module version mismatches, the `crypto.subtle` vs `expo-crypto` gap that shipped once). Merge-blocking as of 2026-07-14.
+
+The APK under test is the `standalone` Android build type (see `apps/client/plugins/withStandaloneBuildType.ts`), not `debug` — `debug` shows the Expo dev-launcher instead of the app when there's no Metro server, which a CI emulator never has. `standalone` is non-debuggable (bundles JS like `release`, signed with the debug keystore, no production secrets needed) but that also means Android blocks cleartext traffic by default, so `apps/client/plugins/withStandaloneCleartextTraffic.ts` allows it scoped to that build type only — production `release` is untouched, cleartext stays blocked there. The emulator connection itself goes over `adb reverse tcp:9000 tcp:9000` (see the CI job), not the `10.0.2.2` NAT alias, which proved unreliable on GitHub Actions runners.
+
+Run locally: boot an Android emulator, `cd apps/client && EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true npx expo run:android` (uses the `debug` variant, which already allows cleartext — fine for manual local runs), start `pnpm exec firebase emulators:start --only database --project demo-dabb` from repo root, run `adb reverse tcp:9000 tcp:9000` (the app connects to `localhost:9000`, which is the _emulator's_ localhost — this tunnels it to your machine's), then `maestro test apps/client/e2e/startup-create-join.yaml`.
 
 ## Conventions
 
