@@ -44,7 +44,7 @@
     "expo-secure-store": "~57.0.0",
     "expo-splash-screen": "^57.0.2",
     "expo-status-bar": "~57.0.0",
-    "firebase": "^12.15.0",
+    "firebase": "^12.16.0",
     "react": "19.2.7",
     "react-native": "0.86.0",
     "react-native-gesture-handler": "^3.0.1",
