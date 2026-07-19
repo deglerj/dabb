@@ -2,6 +2,10 @@ packages:
   - 'apps/*'
   - 'packages/*'
 
+# Refuse to resolve dependency versions published less than a day ago —
+# gives the community time to catch and pull malicious releases first.
+minimumReleaseAge: 1440
+
 onlyBuiltDependencies:
   - '@shopify/react-native-skia'
   - esbuild
