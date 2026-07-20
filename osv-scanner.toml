@@ -5,15 +5,3 @@
 id = "CVE-2026-41907"
 reason = "Only affects uuid v3/v5/v6 with buf parameter. Project uses only v4 (generators.ts, OfflineGameEngine.ts, secretId.ts)."
 
-[[IgnoredVulns]]
-id = "CVE-2026-39363"
-reason = "Vite dev server vulnerability (WebSocket arbitrary file read). Vite is transitive via vitest only; no dev server runs in CI or production."
-
-[[IgnoredVulns]]
-id = "CVE-2026-39364"
-reason = "Vite dev server vulnerability (server.fs.deny bypass). Vite is transitive via vitest only; no dev server runs in CI or production."
-
-[[IgnoredVulns]]
-id = "CVE-2026-39365"
-reason = "Vite dev server vulnerability (path traversal in .map handling). Vite is transitive via vitest only; no dev server runs in CI or production."
-
