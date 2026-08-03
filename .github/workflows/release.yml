@@ -75,7 +75,6 @@ jobs:
           echo "---" >> /tmp/release-notes.md
           echo "" >> /tmp/release-notes.md
           echo "**Play now (web):** https://dabb.degler.info" >> /tmp/release-notes.md
-          echo "**Android:** [Google Play internal track](https://play.google.com/store/apps/details?id=com.dabb.binokel)" >> /tmp/release-notes.md
 
       - name: Create GitHub Release (draft)
         run: |
@@ -86,62 +85,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_PAT }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
-
-      - name: Build Android builder image
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
-        with:
-          context: .
-          file: apps/client/Dockerfile.android
-          push: false
-          load: true
-          tags: dabb-android-builder:release
-          cache-from: type=gha,scope=android-builder
-          cache-to: type=gha,mode=max,scope=android-builder
-
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v6.1.0
-        with:
-          path: /tmp/gradle-cache
-          key: ${{ runner.os }}-gradle-aab-${{ hashFiles('apps/client/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-aab-
-            ${{ runner.os }}-gradle-
-
-      - name: Decode keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > /tmp/dabb-keystore.jks
-
-      - name: Build AAB in Docker
-        run: |
-          mkdir -p /tmp/gradle-cache
-          docker run --rm \
-            -v "${{ github.workspace }}:/app" \
-            -v /tmp/gradle-cache:/gradle-cache \
-            -v /tmp/dabb-keystore.jks:/tmp/dabb-keystore.jks:ro \
-            -e GRADLE_USER_HOME=/gradle-cache \
-            -e SIGNING_KEYSTORE_PATH=/tmp/dabb-keystore.jks \
-            -e SIGNING_STORE_PASSWORD="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
-            -e SIGNING_KEY_ALIAS="${{ secrets.ANDROID_KEY_ALIAS }}" \
-            -e SIGNING_KEY_PASSWORD="${{ secrets.ANDROID_KEY_PASSWORD }}" \
-            -e VERSION_CODE="$(echo '${{ inputs.version }}' | awk -F. '{printf "%d%03d%03d", $1, $2, $3}')" \
-            dabb-android-builder:release \
-            apps/client/scripts/build-aab.sh
-
-      - name: Upload to Play Store (internal)
-        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
-          packageName: com.dabb.binokel
-          releaseFiles: apps/client/build/dabb.aab
-          track: internal
-          status: completed
-
       - name: Publish GitHub Release
         run: gh release edit "v${{ inputs.version }}" --draft=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_PAT }}
-
-      - name: Clean up keystore
-        if: always()
-        run: rm -f /tmp/dabb-keystore.jks
