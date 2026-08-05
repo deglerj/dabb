@@ -1,11 +1,21 @@
 /**
- * Skia RuntimeEffect shader source strings.
- * Compiled at runtime via Skia.RuntimeEffect.Make(source).
+ * WebGL1 (GLSL ES 1.00) fragment shader source strings, rendered once per
+ * resize onto their own <canvas> (see GameTable.tsx). Direct mechanical port
+ * of the original Skia SkSL runtime effects — same math, same uniform name,
+ * fragCoord is `gl_FragCoord.xy` instead of a function parameter.
  * Verify visually in the running app — no unit tests for shader output.
  */
 
+export const SHADER_VERTEX_SOURCE = `
+attribute vec2 aPosition;
+void main() {
+  gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+`;
+
 /** Felt fabric noise shader. Uniforms: vec2 iResolution */
 export const FELT_SHADER_SOURCE = `
+precision highp float;
 uniform vec2 iResolution;
 
 float hash(vec2 p) {
@@ -35,7 +45,8 @@ float fbm(vec2 p) {
   return v / 0.9375;
 }
 
-half4 main(vec2 fragCoord) {
+void main() {
+  vec2 fragCoord = gl_FragCoord.xy;
   vec2 uv = fragCoord / iResolution;
   vec3 feltGreen = vec3(0.176, 0.353, 0.149);
   float base = fbm(fragCoord * 0.04);
@@ -45,12 +56,13 @@ half4 main(vec2 fragCoord) {
   vec2 c = uv - 0.5;
   float vignette = clamp(1.0 - dot(c, c) * 1.2, 0.0, 1.0);
   vec3 color = feltGreen * (0.85 + n * 0.18) * vignette;
-  return half4(color, 1.0);
+  gl_FragColor = vec4(color, 1.0);
 }
 `;
 
 /** Wood grain shader. Uniforms: vec2 iResolution */
 export const WOOD_SHADER_SOURCE = `
+precision highp float;
 uniform vec2 iResolution;
 
 float hash(float n) { return fract(sin(n) * 43758.5453); }
@@ -62,7 +74,8 @@ float noise1d(float x) {
   return mix(hash(i), hash(i + 1.0), f);
 }
 
-half4 main(vec2 fragCoord) {
+void main() {
+  vec2 fragCoord = gl_FragCoord.xy;
   float warp = noise1d(fragCoord.y * 0.02) * 20.0;
   float grain = noise1d((fragCoord.y + warp) * 0.15) + noise1d((fragCoord.y + warp) * 0.4) * 0.4;
   grain /= 1.4;
@@ -72,6 +85,6 @@ half4 main(vec2 fragCoord) {
   vec2 uv = fragCoord / iResolution;
   float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
   color *= (0.75 + smoothstep(0.0, 0.12, edge) * 0.25);
-  return half4(color, 1.0);
+  gl_FragColor = vec4(color, 1.0);
 }
 `;

@@ -20,7 +20,6 @@
     "@dabb/shared-types": "workspace:*"
   },
   "peerDependencies": {
-    "@shopify/react-native-skia": "*",
     "expo-haptics": "*",
     "react": "*",
     "react-native": "*",
