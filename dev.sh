@@ -5,9 +5,19 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-pnpm exec firebase emulators:start --only database --project demo-dabb &
+# setsid puts the emulator in its own process group — firebase-tools spawns the actual
+# Java emulator as a semi-detached child, and a plain `kill $PID` on the pnpm/node wrapper
+# doesn't reach it, leaving it bound to :9000 after Ctrl+C. Killing the whole group does.
+setsid pnpm exec firebase emulators:start --only database --project demo-dabb &
 EMULATOR_PID=$!
-trap 'kill "$EMULATOR_PID" 2>/dev/null' EXIT
+cleanup() {
+  kill -- "-$EMULATOR_PID" 2>/dev/null
+  # Fallback in case the group kill above missed the Java process anyway.
+  if command -v lsof > /dev/null 2>&1; then
+    lsof -ti:9000 2>/dev/null | xargs -r kill -9 2>/dev/null
+  fi
+}
+trap cleanup EXIT
 
 echo "Waiting for Firebase RTDB emulator on :9000..."
 for i in $(seq 1 30); do
