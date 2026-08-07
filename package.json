@@ -19,7 +19,7 @@
     "postinstall": "bash scripts/setup-hooks.sh && bash scripts/fix-hermes.sh"
   },
   "devDependencies": {
-    "firebase-tools": "^15.24.0",
+    "firebase-tools": "^15.25.1",
     "lint-staged": "^17.3.0",
     "oxfmt": "^0.60.0",
     "oxlint": "^1.74.0",
