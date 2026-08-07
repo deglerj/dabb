@@ -22,7 +22,7 @@
     "firebase-tools": "^15.25.1",
     "lint-staged": "^17.3.0",
     "oxfmt": "^0.60.0",
-    "oxlint": "^1.74.0",
+    "oxlint": "^1.76.0",
     "turbo": "^2.10.8",
     "typescript": "^7.0.2"
   },
