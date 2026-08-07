@@ -1,9 +1,8 @@
 import './global.css';
 import React, { useEffect, useState } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, IMFellEnglishSC_400Regular } from '@expo-google-fonts/im-fell-english-sc';
 import { Caveat_400Regular, Caveat_700Bold } from '@expo-google-fonts/caveat';
@@ -58,14 +57,14 @@ function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={styles.root}>
+    <View style={styles.root}>
       <StatusBar hidden />
       <SafeAreaProvider>
         <I18nProvider initialLanguage={language}>
           <Stack screenOptions={{ headerShown: false }} />
         </I18nProvider>
       </SafeAreaProvider>
-    </GestureHandlerRootView>
+    </View>
   );
 }
 

@@ -9,7 +9,7 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   GameTable,
-  useSkiaEffects,
+  useTableEffects,
   PhaseOverlay,
   BiddingOverlay,
   CardView,
@@ -162,7 +162,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const router = useRouter();
   const { width, height } = useGameDimensions();
   const insets = useSafeAreaInsets();
-  const effects = useSkiaEffects();
+  const effects = useTableEffects();
 
   const {
     state,
@@ -468,7 +468,9 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
         </View>
       ) : (
         <View style={styles.outerContainer}>
-          <View style={styles.gameWrapper}>
+          {/* id (not nativeID) avoids RN Web's deprecation warning; dragGesture.ts looks this up
+              by id to convert pointer coordinates into this wrapper's local space. */}
+          <View id="game-wrapper" style={styles.gameWrapper}>
             {/* Skia game table background */}
             <GameTable width={width} height={height} effects={effects} />
 

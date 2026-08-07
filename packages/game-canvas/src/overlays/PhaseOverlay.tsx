@@ -4,17 +4,8 @@
  * visible=true  → fade in + slide up from -40px + scale from 0.92
  * visible=false → fade out + slide to -20px + scale to 0.95
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, ScrollView, useWindowDimensions } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
-
-const AnimatedView = Animated.createAnimatedComponent(View);
 
 export interface PhaseOverlayProps {
   visible: boolean;
@@ -22,37 +13,49 @@ export interface PhaseOverlayProps {
   children: React.ReactNode;
 }
 
+const EASE_OUT_CUBIC = 'cubic-bezier(0.215,0.61,0.355,1)';
+const EASE_IN_CUBIC = 'cubic-bezier(0.55,0.055,0.675,0.19)';
+// Approximates the old withSpring(damping:18, stiffness:200) with a slight overshoot.
+const SPRING_EASE = 'cubic-bezier(0.34,1.56,0.64,1)';
+
 export function PhaseOverlay({ visible, rotation = -2, children }: PhaseOverlayProps) {
   const { height: screenHeight } = useWindowDimensions();
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(-40);
-  const scale = useSharedValue(0.92);
+  const containerRef = useRef<View>(null);
+  const [opacity, setOpacity] = useState(0);
+  const [translateY, setTranslateY] = useState(-40);
+  const [scale, setScale] = useState(0.92);
 
   useEffect(() => {
+    // transition isn't a recognized RN style prop, so RN Web would silently drop it if set
+    // via the `style` prop — set it directly on the DOM node instead.
+    const el = containerRef.current as unknown as HTMLElement | null;
+    if (el?.style) {
+      el.style.transition = visible
+        ? `opacity 220ms ${EASE_OUT_CUBIC}, transform 220ms ${SPRING_EASE}`
+        : `opacity 180ms ${EASE_IN_CUBIC}, transform 180ms ${EASE_IN_CUBIC}`;
+    }
     if (visible) {
-      opacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.cubic) });
-      translateY.value = withSpring(0, { damping: 18, stiffness: 200 });
-      scale.value = withSpring(1, { damping: 18, stiffness: 200 });
+      setOpacity(1);
+      setTranslateY(0);
+      setScale(1);
     } else {
-      opacity.value = withTiming(0, { duration: 180, easing: Easing.in(Easing.cubic) });
-      translateY.value = withTiming(-20, { duration: 180 });
-      scale.value = withTiming(0.95, { duration: 180 });
+      setOpacity(0);
+      setTranslateY(-20);
+      setScale(0.95);
     }
   }, [visible]);
-
-  const outerStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-      { rotate: `${rotation}deg` },
-    ],
-  }));
 
   const maxPaperHeight = screenHeight * 0.7;
 
   return (
-    <AnimatedView style={[styles.container, outerStyle]} pointerEvents={visible ? 'auto' : 'none'}>
+    <View
+      ref={containerRef}
+      style={[
+        styles.container,
+        { opacity, transform: [{ translateY }, { scale }, { rotate: `${rotation}deg` }] },
+      ]}
+      pointerEvents={visible ? 'auto' : 'none'}
+    >
       <View style={[styles.paper, { maxHeight: maxPaperHeight }]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -61,7 +64,7 @@ export function PhaseOverlay({ visible, rotation = -2, children }: PhaseOverlayP
           {children}
         </ScrollView>
       </View>
-    </AnimatedView>
+    </View>
   );
 }
 

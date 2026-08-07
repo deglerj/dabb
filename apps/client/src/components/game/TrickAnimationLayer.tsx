@@ -8,7 +8,7 @@
  */
 import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { CardView, deriveCardPositions, type SkiaEffects } from '@dabb/game-canvas';
+import { CardView, deriveCardPositions, type TableEffects } from '@dabb/game-canvas';
 import type { Player, PlayerIndex } from '@dabb/shared-types';
 import type { TrickAnimationResult } from '@dabb/ui-shared';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
@@ -21,7 +21,7 @@ export interface TrickAnimationLayerProps {
   myPlayerIndex: PlayerIndex;
   players: Player[];
   playerCount: 3 | 4;
-  effects?: SkiaEffects;
+  effects?: TableEffects;
   /** Drop position from the local player's last drag-to-play; used as card flight origin. */
   localPlayerDropOrigin?: { x: number; y: number };
 }

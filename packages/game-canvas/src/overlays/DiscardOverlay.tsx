@@ -8,15 +8,8 @@
  *
  * Rendered as a direct child of gameWrapper in GameScreen (not inside PhaseOverlay).
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 import type { Suit } from '@dabb/shared-types';
@@ -31,7 +24,9 @@ export interface DiscardOverlayProps {
   onGoOut: (suit: Suit) => void;
 }
 
-const AnimatedView = Animated.createAnimatedComponent(View);
+const EASE_OUT_CUBIC = 'cubic-bezier(0.215,0.61,0.355,1)';
+const EASE_IN_CUBIC = 'cubic-bezier(0.55,0.055,0.675,0.19)';
+const SPRING_EASE = 'cubic-bezier(0.34,1.56,0.64,1)';
 
 export function DiscardOverlay({
   visible,
@@ -43,25 +38,27 @@ export function DiscardOverlay({
   const { t } = useTranslation();
   const [showGoOut, setShowGoOut] = useState(false);
   const [pendingSuit, setPendingSuit] = useState<Suit | null>(null);
+  const panelRef = useRef<View>(null);
 
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(-20);
-  const scale = useSharedValue(0.95);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: translateY.value }, { scale: scale.value }],
-  }));
+  const [opacity, setOpacity] = useState(0);
+  const [translateY, setTranslateY] = useState(-20);
+  const [scale, setScale] = useState(0.95);
 
   useEffect(() => {
+    const el = panelRef.current as unknown as HTMLElement | null;
+    if (el?.style) {
+      el.style.transition = visible
+        ? `opacity 220ms ${EASE_OUT_CUBIC}, transform 220ms ${SPRING_EASE}`
+        : `opacity 180ms ${EASE_IN_CUBIC}, transform 180ms ${EASE_IN_CUBIC}`;
+    }
     if (visible) {
-      opacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.cubic) });
-      translateY.value = withSpring(0, { damping: 18, stiffness: 200 });
-      scale.value = withSpring(1, { damping: 18, stiffness: 200 });
+      setOpacity(1);
+      setTranslateY(0);
+      setScale(1);
     } else {
-      opacity.value = withTiming(0, { duration: 180, easing: Easing.in(Easing.cubic) });
-      translateY.value = withTiming(-10, { duration: 180 });
-      scale.value = withTiming(0.97, { duration: 180 });
+      setOpacity(0);
+      setTranslateY(-10);
+      setScale(0.97);
       setPendingSuit(null);
       setShowGoOut(false);
     }
@@ -75,7 +72,11 @@ export function DiscardOverlay({
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <AnimatedView style={[styles.panel, animatedStyle]} pointerEvents="auto">
+      <View
+        ref={panelRef}
+        style={[styles.panel, { opacity, transform: [{ translateY }, { scale }] }]}
+        pointerEvents="auto"
+      >
         <Text style={styles.title}>{t('game.discardCards')}</Text>
 
         {/* Counter + confirm row */}
@@ -140,7 +141,7 @@ export function DiscardOverlay({
             </View>
           </>
         )}
-      </AnimatedView>
+      </View>
     </View>
   );
 }

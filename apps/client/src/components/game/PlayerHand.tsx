@@ -5,7 +5,7 @@ import {
   deriveCardPositions,
   getFeltBounds,
   type LayoutDimensions,
-  type SkiaEffects,
+  type TableEffects,
 } from '@dabb/game-canvas';
 import { getValidPlays, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
@@ -22,7 +22,7 @@ export interface PlayerHandProps {
   playerIndex: PlayerIndex;
   cards: Card[];
   onPlayCard: (cardId: string, dropPos?: { x: number; y: number }) => void;
-  effects?: SkiaEffects;
+  effects?: TableEffects;
   slottedCardIds?: string[];
   onSlotCard?: (cardId: string) => void;
 }

@@ -10,7 +10,7 @@
  *   drawn on a 2D canvas via a requestAnimationFrame loop.
  *
  * Usage:
- *   const effects = useSkiaEffects();
+ *   const effects = useTableEffects();
  *   <GameTable width={w} height={h} effects={effects} />
  */
 
@@ -19,12 +19,12 @@ import { View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { DEFAULT_SURROUND_FRACTION } from './feltBounds.js';
 import { FELT_SHADER_SOURCE, WOOD_SHADER_SOURCE, SHADER_VERTEX_SOURCE } from './shaders.js';
-import type { SkiaEffects } from './useSkiaEffects.js';
+import type { TableEffects } from './useTableEffects.js';
 
 export interface GameTableProps {
   width: number;
   height: number;
-  effects: SkiaEffects;
+  effects: TableEffects;
   surroundFraction?: number;
 }
 
@@ -143,7 +143,7 @@ function EffectsLayer({
 }: {
   width: number;
   height: number;
-  effects: SkiaEffects;
+  effects: TableEffects;
 }) {
   const containerRef = useRef<View>(null);
 
