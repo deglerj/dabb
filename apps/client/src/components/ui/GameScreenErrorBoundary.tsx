@@ -8,7 +8,6 @@
  * causing a second render that fills in the game context. This is intentional.
  */
 import React from 'react';
-import * as Clipboard from 'expo-clipboard';
 import type { GameState, GameEvent } from '@dabb/shared-types';
 import ErrorBoundaryScreen from './ErrorBoundaryScreen.js';
 
@@ -88,7 +87,7 @@ class GameScreenErrorBoundary extends React.Component<Props, State> {
         ? ['', '=== GAME CONTEXT ===', JSON.stringify(contextSnapshot, null, 2)]
         : []),
     ].join('\n');
-    void Clipboard.setStringAsync(text);
+    void navigator.clipboard.writeText(text);
   };
 
   render() {

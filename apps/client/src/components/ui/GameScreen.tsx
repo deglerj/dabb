@@ -6,7 +6,7 @@
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import type { GameInterface } from '@dabb/ui-shared';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigate, useBlocker } from 'react-router-dom';
 import {
   GameTable,
   useTableEffects,
@@ -44,6 +44,7 @@ import { useTurnNotification } from '../../hooks/useTurnNotification.js';
 import { useTurnHaptic } from '../../hooks/useTurnHaptic.js';
 import { playSound } from '../../utils/sounds.js';
 import { triggerHaptic } from '../../utils/haptics.js';
+import { gameActivity } from '../../gameActivity.js';
 import { OpponentZone } from '../game/OpponentZone.js';
 import { PlayerHand } from '../game/PlayerHand.js';
 import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
@@ -159,7 +160,7 @@ function formatLogEntryText(
 
 export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const { t } = useTranslation();
-  const router = useRouter();
+  const navigate = useNavigate();
   const { width, height } = useGameDimensions();
   const insets = useSafeAreaInsets();
   const effects = useTableEffects();
@@ -422,18 +423,54 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     nicknames,
   ]);
 
+  // Block accidental navigation (browser back button, closing the tab) while a game is in
+  // progress — the explicit exit/done/reload paths below set skipBlockRef first, since they
+  // already have their own confirmation UX and shouldn't be asked twice.
+  const skipBlockRef = useRef(false);
+  const gameInProgress =
+    state.phase !== 'waiting' && state.phase !== 'finished' && state.phase !== 'terminated';
+  const blocker = useBlocker(() => {
+    if (skipBlockRef.current) {
+      skipBlockRef.current = false;
+      return false;
+    }
+    return gameInProgress;
+  });
+  useEffect(() => {
+    gameActivity.inProgress = gameInProgress;
+    return () => {
+      gameActivity.inProgress = false;
+    };
+  }, [gameInProgress]);
+  useEffect(() => {
+    if (blocker.state !== 'blocked') {
+      return;
+    }
+    const confirmed = window.confirm(
+      `${t('options.exitGameConfirmTitle')}\n${t('options.exitGameConfirmMessage')}`
+    );
+    if (confirmed) {
+      blocker.proceed();
+    } else {
+      blocker.reset();
+    }
+  }, [blocker, t]);
+
   const handleDone = useCallback(() => {
-    router.replace('/');
-  }, [router]);
+    skipBlockRef.current = true;
+    navigate('/', { replace: true });
+  }, [navigate]);
 
   const handleExitGame = useCallback(() => {
     onExit();
-    router.replace('/');
-  }, [onExit, router]);
+    skipBlockRef.current = true;
+    navigate('/', { replace: true });
+  }, [onExit, navigate]);
 
   const handleReload = useCallback(() => {
-    router.replace('/');
-  }, [router]);
+    skipBlockRef.current = true;
+    navigate('/', { replace: true });
+  }, [navigate]);
 
   // Phase overlay
   const showBidding = state.phase === 'bidding';

@@ -2,18 +2,9 @@
  * Options dialog — sound toggle, vibration toggle (native only), language selector.
  */
 import React, { useState, useCallback, useEffect } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  Switch,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-  Linking,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Modal, View, Text, Switch, TouchableOpacity, StyleSheet } from 'react-native';
+import { useNavigate } from 'react-router-dom';
+import { Icon } from './Icon.js';
 import { useTranslation, i18n, persistLanguage, type SupportedLanguage } from '@dabb/i18n';
 import { isMuted, setMuted } from '../../utils/sounds.js';
 import { isHapticsEnabled, setHapticsEnabled } from '../../utils/haptics.js';
@@ -27,7 +18,7 @@ interface OptionsDialogProps {
 
 export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogProps) {
   const { t } = useTranslation();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   // Read current values when dialog renders
   const [soundEnabled, setSoundEnabled] = useState(() => !isMuted());
@@ -71,7 +62,7 @@ export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogPro
           <View style={styles.header}>
             <Text style={styles.title}>{t('options.title')}</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose} hitSlop={8}>
-              <Feather name="x" size={18} color={Colors.inkMid} />
+              <Icon name="x" size={18} color={Colors.inkMid} />
             </TouchableOpacity>
           </View>
 
@@ -86,9 +77,10 @@ export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogPro
             />
           </View>
 
-          {/* Vibration row — native only. Platform.OS is a compile-time constant so this
-              conditional mount does not cause layout shifts at runtime. */}
-          {Platform.OS !== 'web' && (
+          {/* Vibration row — hidden where the Vibration API doesn't exist (Safari, always;
+              this is a fixed per-browser capability, so the conditional mount can't cause a
+              layout shift at runtime the way a loading-state one would). */}
+          {typeof navigator !== 'undefined' && 'vibrate' in navigator && (
             <View style={styles.row}>
               <Text style={styles.rowLabel}>📳 {t('options.vibration')}</Text>
               <Switch
@@ -121,14 +113,16 @@ export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogPro
             <TouchableOpacity
               onPress={() => {
                 onClose();
-                router.push('/rules');
+                navigate('/rules');
               }}
             >
               <Text style={styles.githubLink}>{t('rules.title')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="link"
-              onPress={() => void Linking.openURL('https://github.com/deglerj/dabb')}
+              onPress={() =>
+                window.open('https://github.com/deglerj/dabb', '_blank', 'noopener,noreferrer')
+              }
             >
               <Text style={styles.githubLink}>{t('info.sourceCode')}</Text>
             </TouchableOpacity>

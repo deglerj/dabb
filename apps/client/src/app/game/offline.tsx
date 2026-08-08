@@ -1,19 +1,16 @@
 import React from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useSearchParams } from 'react-router-dom';
 import { useOfflineGame } from '../../hooks/useOfflineGame.js';
 import GameScreen from '../../components/ui/GameScreen.js';
 import type { PlayerIndex, PlayerCount } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 
 export default function OfflineGameRoute() {
-  const { playerCount, difficulty, nickname, resume } = useLocalSearchParams<{
-    playerCount?: string;
-    difficulty?: string;
-    nickname?: string;
-    resume?: string;
-  }>();
-
-  const isResume = resume === 'true';
+  const [searchParams] = useSearchParams();
+  const playerCount = searchParams.get('playerCount');
+  const difficulty = searchParams.get('difficulty');
+  const nickname = searchParams.get('nickname');
+  const isResume = searchParams.get('resume') === 'true';
 
   const game = useOfflineGame({
     playerCount: (Number(playerCount) || 2) as PlayerCount,

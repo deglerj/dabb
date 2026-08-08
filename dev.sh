@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run the web client against a local Firebase RTDB emulator.
 # Starts the emulator in the background, waits for it to be ready, then
-# runs the Expo web dev server in the foreground. Ctrl+C stops both.
+# runs the Vite dev server in the foreground. Ctrl+C stops both.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
@@ -32,4 +32,4 @@ cd apps/client
 EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true \
 EXPO_PUBLIC_FIREBASE_DATABASE_URL=https://demo-dabb-default-rtdb.firebaseio.com \
 EXPO_PUBLIC_FIREBASE_PROJECT_ID=demo-dabb \
-npx expo start --web
+npx vite

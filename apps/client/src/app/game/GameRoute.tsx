@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useNavigate, useParams } from 'react-router-dom';
 import { storageGet } from '../../hooks/useStorage.js';
 import { useFirebaseGame } from '../../hooks/useFirebaseGame.js';
 import { useAI } from '../../hooks/useAI.js';
@@ -14,32 +14,36 @@ type StoredSession = {
 };
 
 export default function GameRoute() {
-  const { code } = useLocalSearchParams<{ code: string }>();
-  const router = useRouter();
+  const { code } = useParams<{ code: string }>();
+  const navigate = useNavigate();
   const [credentials, setCredentials] = useState<StoredSession | null>(null);
 
   useEffect(() => {
     if (!code) {
-      router.replace('/');
+      navigate('/', { replace: true });
       return;
     }
     void (async () => {
       try {
         const raw = await storageGet(`dabb-${code}`);
         if (!raw) {
-          router.replace('/');
+          navigate('/', { replace: true });
           return;
         }
         setCredentials(JSON.parse(raw) as StoredSession);
       } catch {
-        router.replace('/');
+        navigate('/', { replace: true });
       }
     })();
-  }, [code, router]);
+  }, [code, navigate]);
 
   const game = useFirebaseGame(
     credentials
-      ? { sessionCode: code, secretId: credentials.secretId, playerIndex: credentials.playerIndex }
+      ? {
+          sessionCode: code ?? '',
+          secretId: credentials.secretId,
+          playerIndex: credentials.playerIndex,
+        }
       : { sessionCode: '', secretId: '', playerIndex: 0 as PlayerIndex }
   );
 

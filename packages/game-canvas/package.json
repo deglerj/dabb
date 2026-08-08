@@ -20,7 +20,6 @@
     "@dabb/shared-types": "workspace:*"
   },
   "peerDependencies": {
-    "expo-haptics": "*",
     "react": "*",
     "react-native": "*"
   },

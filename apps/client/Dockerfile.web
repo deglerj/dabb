@@ -29,9 +29,6 @@ COPY apps/client/package.json ./apps/client/
 # Install dependencies (--ignore-scripts skips root postinstall which requires the full workspace)
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# Run client postinstall manually: copy canvaskit.wasm to public/
-RUN cd apps/client && node -e "const fs=require('fs');fs.mkdirSync('public',{recursive:true});fs.copyFileSync('../../node_modules/canvaskit-wasm/bin/full/canvaskit.wasm','public/canvaskit.wasm')"
-
 # Copy source files
 COPY packages/shared-types ./packages/shared-types
 COPY packages/game-logic ./packages/game-logic
@@ -49,10 +46,6 @@ RUN cd packages/shared-types && pnpm run build && \
     cd ../game-ai && pnpm run build && \
     cd ../i18n && pnpm run build && \
     cd ../ui-shared && pnpm run build
-
-# Inject SERVER_URL into app.json extra so Expo bakes it into the bundle
-ARG SERVER_URL
-RUN node -e "const fs=require('fs'); const a=JSON.parse(fs.readFileSync('apps/client/app.json','utf8')); a.expo.extra.serverUrl=process.env.SERVER_URL; fs.writeFileSync('apps/client/app.json', JSON.stringify(a, null, 2));"
 
 ARG EXPO_PUBLIC_UMAMI_URL
 ARG EXPO_PUBLIC_UMAMI_WEBSITE_ID

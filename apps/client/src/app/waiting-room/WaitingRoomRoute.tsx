@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useNavigate, useParams } from 'react-router-dom';
 import WaitingRoomScreen from '../../components/ui/WaitingRoomScreen.js';
 import { storageDelete, storageGet } from '../../hooks/useStorage.js';
 import type { PlayerIndex } from '@dabb/shared-types';
@@ -39,8 +39,8 @@ const AI_NAMES = ['Bot Fritz', 'Bot Hilde', 'Bot Klaus', 'Bot Liesel'];
 let aiNameIndex = 0;
 
 export default function WaitingRoomRoute() {
-  const { code } = useLocalSearchParams<{ code: string }>();
-  const router = useRouter();
+  const { code } = useParams<{ code: string }>();
+  const navigate = useNavigate();
 
   const [credentials, setCredentials] = useState<StoredSession | null>(null);
   const [players, setPlayers] = useState<Map<PlayerIndex, PlayerEntry>>(new Map());
@@ -51,7 +51,7 @@ export default function WaitingRoomRoute() {
 
   useEffect(() => {
     if (!code) {
-      router.replace('/');
+      navigate('/', { replace: true });
       return;
     }
     void (async () => {
@@ -62,7 +62,7 @@ export default function WaitingRoomRoute() {
           getSessionMeta(code),
         ]);
         if (!sessionRaw || !meta) {
-          router.replace('/');
+          navigate('/', { replace: true });
           return;
         }
         const session = JSON.parse(sessionRaw) as StoredSession;
@@ -75,10 +75,10 @@ export default function WaitingRoomRoute() {
           ])
         );
       } catch {
-        router.replace('/');
+        navigate('/', { replace: true });
       }
     })();
-  }, [code, router]);
+  }, [code, navigate]);
 
   useEffect(() => {
     if (!code || !credentials) {
@@ -104,9 +104,9 @@ export default function WaitingRoomRoute() {
 
     const unsubStatus = subscribeToSessionStatus(code, (status) => {
       if (status === 'active') {
-        router.replace({ pathname: '/game/[code]', params: { code } });
+        navigate(`/game/${code}`, { replace: true });
       } else if (status === 'terminated') {
-        router.replace('/');
+        navigate('/', { replace: true });
       }
     });
 
@@ -115,7 +115,7 @@ export default function WaitingRoomRoute() {
       unsubPlayers();
       unsubStatus();
     };
-  }, [code, credentials, router]);
+  }, [code, credentials, navigate]);
 
   if (!credentials) {
     return (
@@ -184,7 +184,7 @@ export default function WaitingRoomRoute() {
     } catch {
       // Ignore — leaving regardless
     }
-    router.replace('/');
+    navigate('/', { replace: true });
   };
 
   const handleAddAI = async () => {
@@ -220,7 +220,7 @@ export default function WaitingRoomRoute() {
 
   return (
     <WaitingRoomScreen
-      sessionCode={code}
+      sessionCode={code ?? ''}
       players={players}
       playerCount={sessionPlayerCount || (playerCount ?? 0)}
       isHost={isHost}

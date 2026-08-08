@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigate } from 'react-router-dom';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '@dabb/i18n';
 import type { PlayerCount } from '@dabb/shared-types';
@@ -27,7 +27,7 @@ type GamePhaseString = string;
 
 export default function HomeScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>('menu');
   const [nickname, setNickname] = useState('');
@@ -92,7 +92,7 @@ export default function HomeScreen() {
         })
       );
       await storageSet('dabb-nickname', nickname.trim());
-      router.push({ pathname: '/waiting-room/[code]', params: { code: result.sessionCode } });
+      navigate(`/waiting-room/${result.sessionCode}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
@@ -126,7 +126,7 @@ export default function HomeScreen() {
         })
       );
       await storageSet('dabb-nickname', nickname.trim());
-      router.push({ pathname: '/waiting-room/[code]', params: { code } });
+      navigate(`/waiting-room/${code}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
@@ -144,22 +144,17 @@ export default function HomeScreen() {
       return;
     }
     await storageSet('dabb-nickname', nickname.trim());
-    router.push({
-      pathname: '/game/offline',
-      params: {
-        playerCount: String(playerCount),
-        difficulty,
-        nickname: nickname.trim(),
-        resume: 'false',
-      },
+    const params = new URLSearchParams({
+      playerCount: String(playerCount),
+      difficulty,
+      nickname: nickname.trim(),
+      resume: 'false',
     });
+    navigate(`/game/offline?${params.toString()}`);
   };
 
   const handleResume = () => {
-    router.push({
-      pathname: '/game/offline',
-      params: { resume: 'true' },
-    });
+    navigate('/game/offline?resume=true');
   };
 
   if (mode === 'menu') {

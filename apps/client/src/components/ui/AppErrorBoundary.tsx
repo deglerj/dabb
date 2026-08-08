@@ -4,9 +4,6 @@
  * Cannot use hooks (class component) or context providers (placed above them).
  */
 import React from 'react';
-import { Platform } from 'react-native';
-import { router } from 'expo-router';
-import * as Clipboard from 'expo-clipboard';
 import ErrorBoundaryScreen from './ErrorBoundaryScreen.js';
 
 interface State {
@@ -22,11 +19,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, St
   }
 
   handleReload = () => {
-    if (Platform.OS === 'web') {
-      window.location.reload();
-    } else {
-      router.replace('/');
-    }
+    window.location.reload();
   };
 
   handleCopy = () => {
@@ -41,7 +34,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, St
       '=== STACK TRACE ===',
       error.stack ?? '(no stack)',
     ].join('\n');
-    void Clipboard.setStringAsync(text);
+    void navigator.clipboard.writeText(text);
   };
 
   render() {

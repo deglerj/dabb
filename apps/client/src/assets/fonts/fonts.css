@@ -1,0 +1,38 @@
+/* Self-hosted woff2 fonts, converted from @expo-google-fonts TTFs (woff2_compress).
+   block on the two "display" faces (headline + handwriting) avoids a flash of
+   unstyled text on the most visually prominent elements; body text can swap. */
+@font-face {
+  font-family: 'IMFellEnglishSC_400Regular';
+  src: url('./IMFellEnglishSC_400Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Caveat_400Regular';
+  src: url('./Caveat_400Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Caveat_700Bold';
+  src: url('./Caveat_700Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Lato_400Regular';
+  src: url('./Lato_400Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Lato_700Bold';
+  src: url('./Lato_700Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
