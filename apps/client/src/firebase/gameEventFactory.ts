@@ -27,6 +27,7 @@ import {
   determineTrickWinner,
   getBiddingWinner,
   isBiddingComplete,
+  isPartnerWinning,
   isValidBid,
   isValidPlay,
   shuffleDeck,
@@ -66,19 +67,9 @@ export function createStartGameEvents(
 ): GameEvent[] {
   const events: GameEvent[] = [];
 
-  let teamMap: Map<PlayerIndex, Team> | null = null;
-  if (playerCount === 4) {
-    const shuffled = [...players];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    teamMap = new Map();
-    shuffled.forEach((p, i) => teamMap!.set(p.playerIndex, (i < 2 ? 0 : 1) as Team));
-  }
-
   for (const player of players) {
-    const team = teamMap ? (teamMap.get(player.playerIndex) ?? null) : player.team;
+    // 4-player: partners sit opposite each other, so seat parity decides the team
+    const team = playerCount === 4 ? ((player.playerIndex % 2) as Team) : player.team;
     events.push(
       createPlayerJoinedEvent(
         ctx(sessionCode, seq),
@@ -244,8 +235,7 @@ export function createDeclareMeldsEvents(
   seq: SeqGen,
   state: GameState,
   playerIndex: PlayerIndex,
-  melds: Meld[],
-  players: PlayerInfo[]
+  melds: Meld[]
 ): GameEvent[] {
   if (state.phase !== 'melding') {
     throw new GameError(GAME_ERROR_CODES.NOT_IN_MELDING_PHASE);
@@ -276,7 +266,7 @@ export function createDeclareMeldsEvents(
       meldScores[bidWinner] = 0;
       events.push(createMeldingCompleteEvent(ctx(sessionCode, seq), meldScores));
 
-      const cascadeEvents = createGoingOutScoreEvents(sessionCode, seq, state, meldScores, players);
+      const cascadeEvents = createGoingOutScoreEvents(sessionCode, seq, state, meldScores);
       events.push(...cascadeEvents);
     } else {
       events.push(createMeldingCompleteEvent(ctx(sessionCode, seq), meldScores));
@@ -291,8 +281,7 @@ export function createPlayCardEvents(
   seq: SeqGen,
   state: GameState,
   playerIndex: PlayerIndex,
-  cardId: CardId,
-  players: PlayerInfo[]
+  cardId: CardId
 ): GameEvent[] {
   if (state.phase !== 'tricks') {
     throw new GameError(GAME_ERROR_CODES.NOT_IN_TRICKS_PHASE);
@@ -306,7 +295,13 @@ export function createPlayCardEvents(
   if (!card) {
     throw new GameError(GAME_ERROR_CODES.CARD_NOT_IN_HAND);
   }
-  if (!isValidPlay(card, hand, state.currentTrick, state.trump!)) {
+  const partnerWinning = isPartnerWinning(
+    state.currentTrick,
+    state.trump!,
+    playerIndex,
+    state.players
+  );
+  if (!isValidPlay(card, hand, state.currentTrick, state.trump!, partnerWinning)) {
     throw new GameError(GAME_ERROR_CODES.INVALID_PLAY);
   }
 
@@ -332,7 +327,7 @@ export function createPlayCardEvents(
       for (const event of events) {
         scoringState = applyEvent(scoringState, event);
       }
-      const roundEvents = createRoundEndEvents(sessionCode, seq, scoringState, players);
+      const roundEvents = createRoundEndEvents(sessionCode, seq, scoringState);
       events.push(...roundEvents);
     }
   }
@@ -353,20 +348,23 @@ export function createTerminateGameEvents(
   return [createGameTerminatedEvent(ctx(sessionCode, seq), playerIndex)];
 }
 
-function getPlayerTeam(players: PlayerInfo[], playerIndex: PlayerIndex): Team {
-  return players.find((p) => p.playerIndex === playerIndex)!.team!;
+/**
+ * Team lookups read `state.players` (populated from PLAYER_JOINED), not the caller's
+ * PlayerInfo[] — the latter comes from Firebase session meta, which has no team field.
+ */
+function getPlayerTeam(state: GameState, playerIndex: PlayerIndex): Team {
+  const team = state.players.find((p) => p.playerIndex === playerIndex)?.team;
+  if (team === undefined) {
+    throw new GameError(GAME_ERROR_CODES.UNKNOWN_ERROR);
+  }
+  return team;
 }
 
-function getTeamPlayerIndices(players: PlayerInfo[], team: Team): PlayerIndex[] {
-  return players.filter((p) => p.team === team).map((p) => p.playerIndex);
+function getTeamPlayerIndices(state: GameState, team: Team): PlayerIndex[] {
+  return state.players.filter((p) => p.team === team).map((p) => p.playerIndex);
 }
 
-function createRoundEndEvents(
-  sessionCode: string,
-  seq: SeqGen,
-  state: GameState,
-  players: PlayerInfo[]
-): GameEvent[] {
+function createRoundEndEvents(sessionCode: string, seq: SeqGen, state: GameState): GameEvent[] {
   const events: GameEvent[] = [];
   const bidWinner = state.bidWinner!;
   const winningBid = state.currentBid || 150;
@@ -379,24 +377,28 @@ function createRoundEndEvents(
 
   if (state.playerCount === 4) {
     const playerMelds = new Map<PlayerIndex, number>();
-    const playerTricks = new Map<PlayerIndex, number>();
+    const playerTricksRaw = new Map<PlayerIndex, number>();
     for (let i = 0; i < 4; i++) {
       const idx = i as PlayerIndex;
-      const melds = calculateMeldPoints(state.declaredMelds.get(idx) ?? []);
-      const tricksRaw = calculatePlayerTrickRawPoints(
+      playerMelds.set(idx, calculateMeldPoints(state.declaredMelds.get(idx) ?? []));
+      playerTricksRaw.set(
         idx,
-        state.tricksTaken,
-        state.lastCompletedTrick?.winnerIndex ?? null
+        calculatePlayerTrickRawPoints(
+          idx,
+          state.tricksTaken,
+          state.lastCompletedTrick?.winnerIndex ?? null
+        )
       );
-      playerMelds.set(idx, melds);
-      playerTricks.set(idx, Math.round(tricksRaw / 10) * 10);
     }
 
-    const bidWinnerTeam = getPlayerTeam(players, bidWinner);
+    const bidWinnerTeam = getPlayerTeam(state, bidWinner);
     for (const team of [0, 1] as Team[]) {
-      const indices = getTeamPlayerIndices(players, team);
+      const indices = getTeamPlayerIndices(state, team);
       const teamMelds = indices.reduce<number>((s, idx) => s + playerMelds.get(idx)!, 0);
-      const teamTricks = indices.reduce<number>((s, idx) => s + playerTricks.get(idx)!, 0);
+      // Round the team's trick total once — rounding each player first would inflate
+      // the team score and break the 250-points-per-round invariant.
+      const teamTricksRaw = indices.reduce<number>((s, idx) => s + playerTricksRaw.get(idx)!, 0);
+      const teamTricks = Math.round(teamTricksRaw / 10) * 10;
       const rawTotal = teamMelds + teamTricks;
       const isBidWinnerTeam = team === bidWinnerTeam;
       const bidMet = !isBidWinnerTeam || rawTotal >= winningBid;
@@ -475,8 +477,7 @@ function createGoingOutScoreEvents(
   sessionCode: string,
   seq: SeqGen,
   state: GameState,
-  meldScores: Record<PlayerIndex, number>,
-  players: PlayerInfo[]
+  meldScores: Record<PlayerIndex, number>
 ): GameEvent[] {
   const events: GameEvent[] = [];
   const bidWinner = state.bidWinner!;
@@ -490,11 +491,11 @@ function createGoingOutScoreEvents(
   const totalScores = {} as Record<PlayerIndex | Team, number>;
 
   if (state.playerCount === 4) {
-    const bidWinnerTeam = getPlayerTeam(players, bidWinner);
+    const bidWinnerTeam = getPlayerTeam(state, bidWinner);
     const opponentTeam = (1 - bidWinnerTeam) as Team;
     scores[bidWinnerTeam] = { melds: 0, tricks: 0, total: -winningBid, bidMet: false };
 
-    const opponentIndices = getTeamPlayerIndices(players, opponentTeam);
+    const opponentIndices = getTeamPlayerIndices(state, opponentTeam);
     const opponentMelds = opponentIndices.reduce<number>((s, idx) => s + (meldScores[idx] ?? 0), 0);
     scores[opponentTeam] = {
       melds: opponentMelds,

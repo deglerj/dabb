@@ -7,7 +7,7 @@ import {
   type LayoutDimensions,
   type TableEffects,
 } from '@dabb/game-canvas';
-import { getValidPlays, sortHand } from '@dabb/game-logic';
+import { getValidPlays, isPartnerWinning, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
 import { playSound } from '../../utils/sounds.js';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
@@ -29,7 +29,7 @@ export interface PlayerHandProps {
 
 export function PlayerHand({
   gameState,
-  playerIndex: _playerIndex,
+  playerIndex,
   cards,
   onPlayCard,
   effects,
@@ -79,7 +79,12 @@ export function PlayerHand({
     (gameState.phase === 'tricks' || gameState.phase === 'melding') && gameState.trump !== null;
   const validPlays =
     isTricksPhase && gameState.trump
-      ? getValidPlays(cards, gameState.currentTrick, gameState.trump)
+      ? getValidPlays(
+          cards,
+          gameState.currentTrick,
+          gameState.trump,
+          isPartnerWinning(gameState.currentTrick, gameState.trump, playerIndex, gameState.players)
+        )
       : [];
   const validIds = new Set(validPlays.map((c) => c.id));
   const highlightedIds = computeHighlightedDabbIds(gameState.phase, gameState.dabbCardIds);

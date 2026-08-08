@@ -124,6 +124,10 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 **Going Out (Abgehen)**: After taking dabb, before discarding, bid winner can choose a trump suit to go out in. Bid winner loses their bid as points; opponents each get melds + 40 bonus. Round ends immediately. `wentOut: boolean` in GameState.
 
+**4-player teams**: Partners sit opposite each other — team is always `playerIndex % 2`. Scoring is per team; team lookups must read `state.players` (populated from `PLAYER_JOINED`), never a `PlayerInfo[]` from Firebase session meta, which has no team field.
+
+**Partner exemption**: In 4-player games, when your partner is currently winning the trick, "must beat" and "must trump" are lifted (following suit still applies). Pass `isPartnerWinning(...)` as the 4th argument to `getValidPlays`/`isValidPlay` — it defaults to `false`, so any new call site silently enforces the strict rules.
+
 **AI Simulation**: `pnpm simulate` runs AI-only games in-memory (no Firebase). See `docs/AI_STRATEGY.md`. CLI flags: `--players`, `--games`, `--concurrency`, `--target-score`, `--max-actions`, `--timeout`, `--output-dir`.
 
 ## Available Skills / Slash Commands

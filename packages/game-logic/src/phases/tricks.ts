@@ -2,7 +2,16 @@
  * Trick-taking logic for Binokel
  */
 
-import { Card, CardId, type PlayerIndex, RANK_POINTS, Rank, Suit, Trick } from '@dabb/shared-types';
+import {
+  Card,
+  CardId,
+  type Player,
+  type PlayerIndex,
+  RANK_POINTS,
+  Rank,
+  Suit,
+  Trick,
+} from '@dabb/shared-types';
 
 /**
  * Card strength ordering (higher index = stronger)
@@ -80,6 +89,48 @@ function cardBeats(cardA: Card, cardB: Card, leadSuit: Suit, trump: Suit): boole
 }
 
 /**
+ * The player currently winning an in-progress trick, or null if no card has been played.
+ *
+ * Note this is *not* `trick.winnerIndex` — the reducer only fills that in on a completed
+ * trick, so mid-trick it is always null.
+ */
+export function getCurrentTrickWinner(trick: Trick, trump: Suit): PlayerIndex | null {
+  if (trick.cards.length === 0) {
+    return null;
+  }
+  return trick.cards[determineTrickWinner(trick, trump)].playerIndex;
+}
+
+/**
+ * The partner of a player in a 4-player (team) game, or null in 2/3-player games.
+ */
+export function getPartnerIndex(players: Player[], playerIndex: PlayerIndex): PlayerIndex | null {
+  const me = players.find((p) => p.playerIndex === playerIndex);
+  if (me?.team === undefined) {
+    return null;
+  }
+  const partner = players.find((p) => p.team === me.team && p.playerIndex !== playerIndex);
+  return partner?.playerIndex ?? null;
+}
+
+/**
+ * Whether the player's own partner is currently winning the trick (4-player games only).
+ * Pass the result to `getValidPlays`/`isValidPlay` to apply the partner exemption.
+ */
+export function isPartnerWinning(
+  trick: Trick,
+  trump: Suit,
+  playerIndex: PlayerIndex,
+  players: Player[]
+): boolean {
+  const partner = getPartnerIndex(players, playerIndex);
+  if (partner === null) {
+    return false;
+  }
+  return getCurrentTrickWinner(trick, trump) === partner;
+}
+
+/**
  * Get valid cards that can be played
  *
  * Binokel rules:
@@ -88,8 +139,17 @@ function cardBeats(cardA: Card, cardB: Card, leadSuit: Suit, trump: Suit): boole
  * 3. If cannot follow suit, must play trump if possible
  * 4. If playing trump, must beat highest trump if possible
  * 5. If cannot follow or trump, any card is valid
+ *
+ * Partner exemption (4-player games): when `partnerWinning` is true, rules 2–4 are lifted
+ * — the trick already belongs to your team, so you need not overtake your own partner nor
+ * spend a trump on them. Rule 1 (follow suit) still applies.
  */
-export function getValidPlays(hand: Card[], trick: Trick, trump: Suit): Card[] {
+export function getValidPlays(
+  hand: Card[],
+  trick: Trick,
+  trump: Suit,
+  partnerWinning = false
+): Card[] {
   // First card of trick: any card is valid
   if (trick.cards.length === 0 || !trick.leadSuit) {
     return hand;
@@ -102,6 +162,10 @@ export function getValidPlays(hand: Card[], trick: Trick, trump: Suit): Card[] {
 
   if (leadSuitCards.length > 0) {
     // Must follow suit
+    if (partnerWinning) {
+      return leadSuitCards;
+    }
+
     const highestLeadInTrick = getHighestCardOfSuit(trick, leadSuit);
 
     // Must beat if possible
@@ -112,7 +176,12 @@ export function getValidPlays(hand: Card[], trick: Trick, trump: Suit): Card[] {
     return beatingCards.length > 0 ? beatingCards : leadSuitCards;
   }
 
-  // Cannot follow suit - must trump if possible
+  // Cannot follow suit — free to discard anything if the partner already has the trick
+  if (partnerWinning) {
+    return hand;
+  }
+
+  // Must trump if possible
   const trumpCards = hand.filter((c) => c.suit === trump);
 
   if (trumpCards.length > 0) {
@@ -133,8 +202,14 @@ export function getValidPlays(hand: Card[], trick: Trick, trump: Suit): Card[] {
 /**
  * Check if a specific card can be played
  */
-export function isValidPlay(card: Card, hand: Card[], trick: Trick, trump: Suit): boolean {
-  const validPlays = getValidPlays(hand, trick, trump);
+export function isValidPlay(
+  card: Card,
+  hand: Card[],
+  trick: Trick,
+  trump: Suit,
+  partnerWinning = false
+): boolean {
+  const validPlays = getValidPlays(hand, trick, trump, partnerWinning);
   return validPlays.some((c) => c.id === card.id);
 }
 

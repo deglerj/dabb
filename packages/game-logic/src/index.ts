@@ -35,11 +35,14 @@ export {
   canPass,
   determineTrickWinner,
   getBiddingWinner,
+  getCurrentTrickWinner,
   getFirstBidder,
   getMinBid,
   getNextBidder,
+  getPartnerIndex,
   getValidPlays,
   isBiddingComplete,
+  isPartnerWinning,
   isValidBid,
   isValidPlay,
   LAST_TRICK_BONUS,
@@ -54,6 +57,7 @@ export {
   filterEventsForPlayer,
   isHiddenCard,
   resetForNewRound,
+  whoActsNext,
 } from './state/index.js';
 
 // Export

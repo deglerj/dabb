@@ -58,8 +58,12 @@ export function useActionRequired(
         break;
 
       case 'melding':
-        // Player needs to confirm melds (if not already declared)
-        if (!state.declaredMelds.has(currentPlayerIndex)) {
+        // Player needs to confirm melds (if not already declared). A bid winner who went
+        // out never melds, so they must not be prompted for the rest of the phase.
+        if (
+          !state.declaredMelds.has(currentPlayerIndex) &&
+          !(state.wentOut && state.bidWinner === currentPlayerIndex)
+        ) {
           return { actionRequired: true, actionType: 'declare_melds' };
         }
         break;

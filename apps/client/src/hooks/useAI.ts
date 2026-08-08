@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { applyEvents } from '@dabb/game-logic';
+import { applyEvents, whoActsNext } from '@dabb/game-logic';
 import { createAIPlayer } from '@dabb/game-ai';
 import type { GameEvent, PlayerIndex } from '@dabb/shared-types';
 import { pushEvents, claimCascade } from '../firebase/events.js';
@@ -14,23 +14,16 @@ import {
   createDeclareMeldsEvents,
   createPlayCardEvents,
 } from '../firebase/gameEventFactory.js';
-import type { PlayerInfo, SeqGen } from '../firebase/gameEventFactory.js';
+import type { SeqGen } from '../firebase/gameEventFactory.js';
 
 interface UseAIOptions {
   sessionCode: string;
   secretId: string;
   rawEvents: GameEvent[];
-  players: PlayerInfo[];
   aiPlayerIndices: PlayerIndex[];
 }
 
-export function useAI({
-  sessionCode,
-  secretId,
-  rawEvents,
-  players,
-  aiPlayerIndices,
-}: UseAIOptions): void {
+export function useAI({ sessionCode, secretId, rawEvents, aiPlayerIndices }: UseAIOptions): void {
   const processingRef = useRef(false);
 
   useEffect(() => {
@@ -42,8 +35,8 @@ export function useAI({
     }
 
     const fullState = applyEvents(rawEvents);
-    const currentPlayer = fullState.currentPlayer;
-    if (currentPlayer === null || currentPlayer === undefined) {
+    const currentPlayer = whoActsNext(fullState);
+    if (currentPlayer === null) {
       return;
     }
     if (!aiPlayerIndices.includes(currentPlayer)) {
@@ -94,23 +87,9 @@ export function useAI({
         } else if (action.type === 'declareTrump') {
           evts = createDeclareTrumpEvents(sessionCode, seq, fullState, currentPlayer, action.suit);
         } else if (action.type === 'declareMelds') {
-          evts = createDeclareMeldsEvents(
-            sessionCode,
-            seq,
-            fullState,
-            currentPlayer,
-            action.melds,
-            players
-          );
+          evts = createDeclareMeldsEvents(sessionCode, seq, fullState, currentPlayer, action.melds);
         } else if (action.type === 'playCard') {
-          evts = createPlayCardEvents(
-            sessionCode,
-            seq,
-            fullState,
-            currentPlayer,
-            action.cardId,
-            players
-          );
+          evts = createPlayCardEvents(sessionCode, seq, fullState, currentPlayer, action.cardId);
         }
 
         if (evts.length > 0) {
@@ -120,5 +99,5 @@ export function useAI({
         processingRef.current = false;
       }
     })();
-  }, [rawEvents.length, aiPlayerIndices, sessionCode, secretId, players]);
+  }, [rawEvents.length, aiPlayerIndices, sessionCode, secretId]);
 }

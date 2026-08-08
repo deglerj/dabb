@@ -51,7 +51,6 @@ export default function GameRoute() {
     sessionCode: code ?? '',
     secretId: credentials?.secretId ?? '',
     rawEvents: game.rawEvents ?? [],
-    players: game.players ?? [],
     aiPlayerIndices: game.aiPlayerIndices ?? [],
   });
 

@@ -11,7 +11,10 @@ export {
   calculatePlayerTrickRawPoints,
   calculateTrickPoints,
   determineTrickWinner,
+  getCurrentTrickWinner,
+  getPartnerIndex,
   getValidPlays,
+  isPartnerWinning,
   isValidPlay,
   LAST_TRICK_BONUS,
 } from './tricks.js';

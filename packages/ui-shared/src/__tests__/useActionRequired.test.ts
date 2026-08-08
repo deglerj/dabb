@@ -101,6 +101,28 @@ describe('useActionRequired', () => {
       const { result } = renderHook(() => useActionRequired(state, 0 as PlayerIndex));
       expect(result.current).toEqual({ actionRequired: false, actionType: null });
     });
+
+    it('never prompts a bid winner who went out (regression)', () => {
+      const state = makeState({
+        phase: 'melding',
+        declaredMelds: new Map(),
+        wentOut: true,
+        bidWinner: 0 as PlayerIndex,
+      });
+      const { result } = renderHook(() => useActionRequired(state, 0 as PlayerIndex));
+      expect(result.current).toEqual({ actionRequired: false, actionType: null });
+    });
+
+    it('still prompts the other players when the bid winner went out', () => {
+      const state = makeState({
+        phase: 'melding',
+        declaredMelds: new Map(),
+        wentOut: true,
+        bidWinner: 0 as PlayerIndex,
+      });
+      const { result } = renderHook(() => useActionRequired(state, 1 as PlayerIndex));
+      expect(result.current).toEqual({ actionRequired: true, actionType: 'declare_melds' });
+    });
   });
 
   describe('tricks phase', () => {

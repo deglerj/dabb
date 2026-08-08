@@ -36,6 +36,7 @@ import {
   isBiddingComplete,
   shuffleDeck,
   filterEventsForPlayer,
+  whoActsNext,
 } from '@dabb/game-logic';
 import type {
   AIAction,
@@ -173,8 +174,10 @@ export class OfflineGameEngine {
     this.state = createInitialState(this.options.playerCount);
 
     for (let i = 0; i < this.options.playerCount; i++) {
+      // 4-player: partners sit opposite each other, so seat parity decides the team
+      const team = this.options.playerCount === 4 ? ((i % 2) as Team) : undefined;
       this.emit(
-        createPlayerJoinedEvent(this.ctx(), uuidv4(), i as PlayerIndex, `Spieler ${i + 1}`)
+        createPlayerJoinedEvent(this.ctx(), uuidv4(), i as PlayerIndex, `Spieler ${i + 1}`, team)
       );
     }
     this.emit(createGameStartedEvent(this.ctx(), this.options.playerCount, 1000, 0 as PlayerIndex));
@@ -194,36 +197,9 @@ export class OfflineGameEngine {
     this.sequence = existingEvents.length;
   }
 
-  private whoActsNext(): PlayerIndex | null {
-    switch (this.state.phase) {
-      case 'bidding':
-        return this.state.currentBidder ?? null;
-      case 'dabb':
-        return this.state.bidWinner ?? null;
-      case 'trump':
-        return this.state.bidWinner ?? null;
-      case 'melding': {
-        for (let i = 0; i < this.state.playerCount; i++) {
-          const idx = i as PlayerIndex;
-          if (!this.state.declaredMelds.has(idx)) {
-            if (this.state.wentOut && idx === this.state.bidWinner) {
-              continue;
-            }
-            return idx;
-          }
-        }
-        return null;
-      }
-      case 'tricks':
-        return this.state.currentPlayer ?? null;
-      default:
-        return null;
-    }
-  }
-
   private async runUntilHumanTurn(): Promise<void> {
     while (this.state.phase !== 'finished' && this.state.phase !== 'terminated') {
-      const actor = this.whoActsNext();
+      const actor = whoActsNext(this.state);
       if (actor === null || actor === this.options.humanPlayerIndex) {
         return;
       }
@@ -355,6 +331,20 @@ export class OfflineGameEngine {
     }
   }
 
+  private getPlayerTeam(playerIndex: PlayerIndex): Team {
+    const team = this.state.players.find((p) => p.playerIndex === playerIndex)?.team;
+    if (team === undefined) {
+      throw new Error(
+        `Player ${playerIndex} has no team in a ${this.state.playerCount}-player game`
+      );
+    }
+    return team;
+  }
+
+  private getTeamPlayerIndices(team: Team): PlayerIndex[] {
+    return this.state.players.filter((p) => p.team === team).map((p) => p.playerIndex);
+  }
+
   private scoreGoingOut(meldScores: Record<PlayerIndex, number>): void {
     const bidWinner = this.state.bidWinner!;
     const winningBid = this.state.currentBid || 150;
@@ -366,12 +356,10 @@ export class OfflineGameEngine {
     >;
 
     if (this.state.playerCount === 4) {
-      const bidWinnerTeam = this.state.players.find((p) => p.playerIndex === bidWinner)!.team!;
+      const bidWinnerTeam = this.getPlayerTeam(bidWinner);
       const opponentTeam = (1 - bidWinnerTeam) as Team;
       scores[bidWinnerTeam] = { melds: 0, tricks: 0, total: -winningBid, bidMet: false };
-      const opponentIndices = this.state.players
-        .filter((p) => p.team === opponentTeam)
-        .map((p) => p.playerIndex);
+      const opponentIndices = this.getTeamPlayerIndices(opponentTeam);
       const opponentMelds = opponentIndices.reduce(
         (s: number, idx) => s + (meldScores[idx] || 0),
         0
@@ -407,23 +395,27 @@ export class OfflineGameEngine {
 
     if (this.state.playerCount === 4) {
       const playerMelds = new Map<PlayerIndex, number>();
-      const playerTricks = new Map<PlayerIndex, number>();
+      const playerTricksRaw = new Map<PlayerIndex, number>();
       for (let i = 0; i < 4; i++) {
         const idx = i as PlayerIndex;
-        const melds = calculateMeldPoints(this.state.declaredMelds.get(idx) || []);
-        const tricksRaw = calculatePlayerTrickRawPoints(
+        playerMelds.set(idx, calculateMeldPoints(this.state.declaredMelds.get(idx) || []));
+        playerTricksRaw.set(
           idx,
-          this.state.tricksTaken,
-          this.state.lastCompletedTrick?.winnerIndex ?? null
+          calculatePlayerTrickRawPoints(
+            idx,
+            this.state.tricksTaken,
+            this.state.lastCompletedTrick?.winnerIndex ?? null
+          )
         );
-        playerMelds.set(idx, melds);
-        playerTricks.set(idx, Math.round(tricksRaw / 10) * 10);
       }
-      const bidWinnerTeam = this.state.players.find((p) => p.playerIndex === bidWinner)!.team!;
+      const bidWinnerTeam = this.getPlayerTeam(bidWinner);
       for (const team of [0, 1] as Team[]) {
-        const indices = this.state.players.filter((p) => p.team === team).map((p) => p.playerIndex);
+        const indices = this.getTeamPlayerIndices(team);
         const teamMelds = indices.reduce((s: number, idx) => s + playerMelds.get(idx)!, 0);
-        const teamTricks = indices.reduce((s: number, idx) => s + playerTricks.get(idx)!, 0);
+        // Round the team's trick total once — rounding each player first would inflate
+        // the team score and break the 250-points-per-round invariant.
+        const teamTricksRaw = indices.reduce((s: number, idx) => s + playerTricksRaw.get(idx)!, 0);
+        const teamTricks = Math.round(teamTricksRaw / 10) * 10;
         const rawTotal = teamMelds + teamTricks;
         const isBidWinnerTeam = team === bidWinnerTeam;
         const bidMet = !isBidWinnerTeam || rawTotal >= winningBid;

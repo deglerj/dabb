@@ -138,23 +138,12 @@ export class SimulationEngine {
       this.aiPlayers.set(i as PlayerIndex, createAIPlayer(difficulty));
     }
 
-    // Assign random teams for 4-player games
-    let teamMap: Map<number, Team> | null = null;
-    if (playerCount === 4) {
-      const indices = [0, 1, 2, 3];
-      for (let i = indices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [indices[i], indices[j]] = [indices[j], indices[i]];
-      }
-      teamMap = new Map();
-      indices.forEach((idx, pos) => teamMap!.set(idx, (pos < 2 ? 0 : 1) as Team));
-    }
-
     // Build initialization events
     const initEvents: GameEvent[] = [];
     for (let i = 0; i < playerCount; i++) {
       const idx = i as PlayerIndex;
-      const team = teamMap ? teamMap.get(i) : undefined;
+      // 4-player: partners sit opposite each other, so seat parity decides the team
+      const team = playerCount === 4 ? ((i % 2) as Team) : undefined;
       initEvents.push(createPlayerJoinedEvent(this.ctx(), `ai-${i}`, idx, AI_NAMES[i], team));
     }
 
@@ -400,24 +389,28 @@ export class SimulationEngine {
     if (this.state.playerCount === 4) {
       // Per-player intermediates
       const playerMelds = new Map<PlayerIndex, number>();
-      const playerTricks = new Map<PlayerIndex, number>();
+      const playerTricksRaw = new Map<PlayerIndex, number>();
       for (let i = 0; i < 4; i++) {
         const idx = i as PlayerIndex;
-        const melds = calculateMeldPoints(this.state.declaredMelds.get(idx) || []);
-        const tricksRaw = calculatePlayerTrickRawPoints(
+        playerMelds.set(idx, calculateMeldPoints(this.state.declaredMelds.get(idx) || []));
+        playerTricksRaw.set(
           idx,
-          this.state.tricksTaken,
-          this.state.lastCompletedTrick?.winnerIndex ?? null
+          calculatePlayerTrickRawPoints(
+            idx,
+            this.state.tricksTaken,
+            this.state.lastCompletedTrick?.winnerIndex ?? null
+          )
         );
-        playerMelds.set(idx, melds);
-        playerTricks.set(idx, Math.round(tricksRaw / 10) * 10);
       }
 
       const bidWinnerTeam = simGetPlayerTeam(this.state, bidWinner);
       for (const team of [0, 1] as Team[]) {
         const indices = simGetTeamPlayerIndices(this.state, team);
         const teamMelds = indices.reduce((s: number, idx) => s + playerMelds.get(idx)!, 0);
-        const teamTricks = indices.reduce((s: number, idx) => s + playerTricks.get(idx)!, 0);
+        // Round the team's trick total once — rounding each player first would inflate
+        // the team score and break the 250-points-per-round invariant.
+        const teamTricksRaw = indices.reduce((s: number, idx) => s + playerTricksRaw.get(idx)!, 0);
+        const teamTricks = Math.round(teamTricksRaw / 10) * 10;
         const rawTotal = teamMelds + teamTricks;
         const isBidWinnerTeam = team === bidWinnerTeam;
         const bidMet = !isBidWinnerTeam || rawTotal >= winningBid;
