@@ -17,7 +17,7 @@ export { CardView } from './src/cards/CardView.js';
 export type { CardViewProps } from './src/cards/CardView.js';
 export { CardBackView } from './src/cards/CardBackView.js';
 export type { CardBackViewProps } from './src/cards/CardBackView.js';
-export { deriveCardPositions, edgeFraction } from './src/cards/cardPositions.js';
+export { deriveCardPositions, edgeFraction, getTableScale } from './src/cards/cardPositions.js';
 export type {
   CardPositionsInput,
   CardPositionsOutput,

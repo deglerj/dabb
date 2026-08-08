@@ -48,6 +48,7 @@ const TRICK_CENTER_Y_FRACTION = 0.45;
 const TRICK_CARD_SPREAD = 80;
 const TRICK_ROTATIONS = [-4, 3, -2, 5];
 const MOBILE_BREAKPOINT_WIDTH = 480;
+const MAX_CARD_SCALE = 1.5;
 const MAX_CARDS_PER_ROW = 10;
 const ROW_OVERLAP = 0.4;
 
@@ -58,6 +59,16 @@ const WON_PILE_CORNERS: [number, number][] = [
   [0.06, 0.06], // top-left     (opponent 2)
   [0.94, 0.9], // bottom-right (opponent 3)
 ];
+
+const TABLE_SCALE_REFERENCE_WIDTH = 800;
+
+/**
+ * Width-only scale factor for card renderers that don't need shrink-to-fit
+ * (opponent card fans, trick cards) — grows on spacious tables, never shrinks.
+ */
+export function getTableScale(width: number): number {
+  return Math.min(MAX_CARD_SCALE, Math.max(1, width / TABLE_SCALE_REFERENCE_WIDTH));
+}
 
 /**
  * Maps opponent index i (0-based, out of n total opponents) to an x-fraction
@@ -126,7 +137,7 @@ export function deriveCardPositions(
     // Scale driven by the larger row
     const largerNaturalWidth =
       largerCount * CARD_WIDTH - Math.max(0, largerCount - 1) * CARD_OVERLAP;
-    cardScale = n === 0 ? 1 : Math.min(1, availableWidth / largerNaturalWidth);
+    cardScale = n === 0 ? 1 : Math.min(MAX_CARD_SCALE, availableWidth / largerNaturalWidth);
 
     const scaledW = CARD_WIDTH * cardScale;
     const scaledH = CARD_HEIGHT * cardScale;
@@ -162,7 +173,7 @@ export function deriveCardPositions(
   } else {
     // Single-row — original logic
     const naturalWidth = n * CARD_WIDTH - Math.max(0, n - 1) * CARD_OVERLAP;
-    cardScale = n === 0 ? 1 : Math.min(1, availableWidth / naturalWidth);
+    cardScale = n === 0 ? 1 : Math.min(MAX_CARD_SCALE, availableWidth / naturalWidth);
 
     const scaledW = CARD_WIDTH * cardScale;
     const scaledH = CARD_HEIGHT * cardScale;
@@ -182,14 +193,16 @@ export function deriveCardPositions(
     });
   }
 
-  // Trick cards
+  // Trick cards — spread scales with the table so bigger cards (large screens) don't overlap
+  const tableScale = getTableScale(width);
+  const scaledSpread = TRICK_CARD_SPREAD * tableScale;
   const tc = input.trickCardIds.length;
   const trickStartX =
-    width * TRICK_CENTER_X_FRACTION - ((tc - 1) * TRICK_CARD_SPREAD + CARD_WIDTH) / 2;
+    width * TRICK_CENTER_X_FRACTION - ((tc - 1) * scaledSpread + CARD_WIDTH * tableScale) / 2;
   const trickCards: Record<string, CardPosition> = {};
   input.trickCardIds.forEach(({ cardId }, i) => {
     trickCards[cardId] = {
-      x: trickStartX + i * TRICK_CARD_SPREAD,
+      x: trickStartX + i * scaledSpread,
       y: height * TRICK_CENTER_Y_FRACTION,
       rotation: TRICK_ROTATIONS[i % TRICK_ROTATIONS.length] ?? 0,
       zIndex: i,

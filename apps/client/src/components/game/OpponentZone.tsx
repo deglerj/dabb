@@ -4,7 +4,7 @@
  * Portrait phone: nameplate only.
  */
 import { View, Text, StyleSheet } from '@dabb/rn-compat';
-import { CardBackView } from '@dabb/game-canvas';
+import { CardBackView, getTableScale } from '@dabb/game-canvas';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 import type { PlayerIndex } from '@dabb/shared-types';
 
@@ -31,6 +31,9 @@ export function OpponentZone({
   const isLandscape = width > height;
   const isTablet = Math.min(width, height) > 600;
   const showCards = isLandscape || isTablet;
+  const scale = getTableScale(width);
+  const scaledW = CARD_W * scale;
+  const scaledH = CARD_H * scale;
 
   return (
     <View style={[styles.container, { left: position.x - 40, top: position.y - 20 }]}>
@@ -44,8 +47,8 @@ export function OpponentZone({
       {showCards && cardCount > 0 && (
         <View style={styles.cardFan}>
           {Array.from({ length: Math.min(cardCount, 6) }).map((_, i) => (
-            <View key={i} style={{ marginLeft: i === 0 ? 0 : -28 }}>
-              <CardBackView width={CARD_W} height={CARD_H} />
+            <View key={i} style={{ marginLeft: i === 0 ? 0 : -28 * scale }}>
+              <CardBackView width={scaledW} height={scaledH} />
             </View>
           ))}
         </View>
