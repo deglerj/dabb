@@ -18,27 +18,9 @@ updates:
           - 'react'
           - 'react-dom'
           - '@types/react*'
-      expo:
-        patterns:
-          - 'expo*'
-          - 'react-native*'
 
   - package-ecosystem: 'github-actions'
     directory: '/'
-    schedule:
-      interval: 'weekly'
-    cooldown:
-      default-days: 5
-
-  - package-ecosystem: 'docker'
-    directory: '/apps/simulate'
-    schedule:
-      interval: 'weekly'
-    cooldown:
-      default-days: 5
-
-  - package-ecosystem: 'docker'
-    directory: '/apps/client'
     schedule:
       interval: 'weekly'
     cooldown:

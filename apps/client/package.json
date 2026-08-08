@@ -5,6 +5,7 @@
   "scripts": {
     "start": "vite",
     "web": "vite",
+    "dev": "vite",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
@@ -24,8 +25,8 @@
     "@dabb/shared-types": "workspace:*",
     "@dabb/ui-shared": "workspace:*",
     "firebase": "^12.16.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "react-router-dom": "^7.9.5"
   },
   "devDependencies": {

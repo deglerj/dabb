@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "private": true,
   "type": "module",
-  "description": "Binokel card game - multiplayer web and mobile app",
+  "description": "Binokel card game - multiplayer installable PWA",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",

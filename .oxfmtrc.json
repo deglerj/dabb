@@ -8,13 +8,5 @@
   "arrowParens": "always",
   "endOfLine": "lf",
   "sortPackageJson": false,
-  "ignorePatterns": [
-    "node_modules",
-    "dist",
-    "build",
-    ".expo",
-    "coverage",
-    "*.lock",
-    "pnpm-lock.yaml"
-  ]
+  "ignorePatterns": ["node_modules", "dist", "build", "coverage", "*.lock", "pnpm-lock.yaml"]
 }
