@@ -96,6 +96,8 @@ Der Spieler nach dem Geber spielt die erste Karte aus (nicht der Reizgewinner). 
 4. **Trumpf überbieten** — Beim Trumpfen muss der höchste bereits gespielte Trumpf überboten werden, wenn möglich
 5. **Freie Wahl** — Nur wer weder bedienen noch trumpfen kann, darf eine beliebige Karte spielen
 
+**Partnerausnahme (nur zu viert):** Sticht der eigene Partner gerade, entfallen die Regeln 2 bis 4 — der Stich gehört ohnehin dem eigenen Team. Man muss den Partner also weder überbieten noch für ihn trumpfen. Bedient werden muss trotzdem (Regel 1). So kann man dem Partner hohe Karten **schmieren**, statt ihm den Stich wegzunehmen.
+
 Die höchste Karte gewinnt den Stich. Trumpf sticht immer Nicht-Trumpf. Innerhalb derselben Farbe gewinnt die Karte mit der höheren Stärke. Der Stichgewinner spielt zum nächsten Stich aus.
 
 ## Wertung
@@ -198,6 +200,8 @@ The player after the dealer leads the first trick (not the bid winner). Players 
 3. **Must trump** — If you cannot follow suit, you must play a trump card if you have one
 4. **Must beat trump** — If trumping, you must beat the highest trump already played, if you can
 5. **Any card** — Only if you can neither follow suit nor trump, you may play any card
+
+**Partner exemption (4-player games only):** if your own partner is currently winning the trick, rules 2 to 4 are lifted — the trick already belongs to your team. You need neither overtake your partner nor spend a trump on them. You must still follow suit (rule 1). This lets you **smear** high-value cards onto your partner's trick instead of taking it from them.
 
 The highest card wins the trick. Trump always beats non-trump. Within the same suit, the card with the higher strength wins. The trick winner leads the next trick.
 

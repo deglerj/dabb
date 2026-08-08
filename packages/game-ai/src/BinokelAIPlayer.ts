@@ -15,6 +15,7 @@ import type {
   Card,
   CardId,
   GameState,
+  PlayedCard,
   PlayerIndex,
   Rank,
   Suit,
@@ -26,7 +27,9 @@ import {
   canPass,
   detectMelds,
   getMinBid,
+  getPartnerIndex,
   getValidPlays,
+  isPartnerWinning,
 } from '@dabb/game-logic';
 
 import type { AIPlayer } from './AIPlayer.js';
@@ -69,15 +72,15 @@ function cardWouldWin(cardA: Card, cardB: Card, leadSuit: Suit, trump: Suit): bo
   return false;
 }
 
-function getCurrentWinningCard(trick: Trick, trump: Suit): Card | null {
+function getCurrentWinningPlay(trick: Trick, trump: Suit): PlayedCard | null {
   if (trick.cards.length === 0) {
     return null;
   }
-  let winning = trick.cards[0].card;
+  let winning = trick.cards[0];
   for (let i = 1; i < trick.cards.length; i++) {
-    const card = trick.cards[i].card;
-    if (cardWouldWin(card, winning, trick.leadSuit!, trump)) {
-      winning = card;
+    const played = trick.cards[i];
+    if (cardWouldWin(played.card, winning.card, trick.leadSuit!, trump)) {
+      winning = played;
     }
   }
   return winning;
@@ -124,14 +127,7 @@ function getPartner(playerIndex: PlayerIndex, state: GameState): PlayerIndex | n
   if (state.playerCount !== 4) {
     return null;
   }
-  const myPlayer = state.players.find((p) => p.playerIndex === playerIndex);
-  if (myPlayer?.team === undefined) {
-    return null;
-  }
-  const partner = state.players.find(
-    (p) => p.team === myPlayer.team && p.playerIndex !== playerIndex
-  );
-  return partner?.playerIndex ?? null;
+  return getPartnerIndex(state.players, playerIndex);
 }
 
 // ---- Trump / Meld helpers ----
@@ -490,7 +486,12 @@ export class BinokelAIPlayer implements AIPlayer {
       const hand = gameState.hands.get(playerIndex) ?? [];
       const trump = gameState.trump!;
       const trick = gameState.currentTrick;
-      const validPlays = getValidPlays(hand, trick, trump);
+      const validPlays = getValidPlays(
+        hand,
+        trick,
+        trump,
+        isPartnerWinning(trick, trump, playerIndex, gameState.players)
+      );
 
       if (validPlays.length === 1) {
         return { type: 'playCard', cardId: validPlays[0].id };
@@ -525,7 +526,12 @@ export class BinokelAIPlayer implements AIPlayer {
       const hand = gameState.hands.get(playerIndex) ?? [];
       const trump = gameState.trump ?? 'herz';
       const trick = gameState.currentTrick;
-      const validPlays = getValidPlays(hand, trick, trump);
+      const validPlays = getValidPlays(
+        hand,
+        trick,
+        trump,
+        isPartnerWinning(trick, trump, playerIndex, gameState.players)
+      );
       return { type: 'playCard', cardId: validPlays[0].id };
     }
   }
@@ -645,7 +651,7 @@ export class BinokelAIPlayer implements AIPlayer {
    * Choose a card when following (not leading).
    *
    * Priority:
-   * 1. Smearing — 4-player only: partner winning, we can't win, AND we are last to play
+   * 1. Smearing — 4-player only: partner winning AND we are last to play
    * 2. Win with minimum card
    * 3. Void creation — prefer discarding last card of a suit to create a void
    * 4. Dump lowest card (from suit with most cards, non-trump preferred)
@@ -658,26 +664,35 @@ export class BinokelAIPlayer implements AIPlayer {
     playerIndex: PlayerIndex,
     state: GameState
   ): AIAction {
-    const winningCard = getCurrentWinningCard(trick, trump);
-    if (!winningCard) {
+    const winningPlay = getCurrentWinningPlay(trick, trump);
+    if (!winningPlay) {
       return { type: 'playCard', cardId: validPlays[0].id };
     }
+    const winningCard = winningPlay.card;
 
     const leadSuit = trick.leadSuit!;
     const partner = getPartner(playerIndex, state);
-    const partnerIsWinning = partner !== null && trick.winnerIndex === partner;
+    // Derived from the cards on the table — `trick.winnerIndex` is only ever set on a
+    // completed trick, so the in-progress trick always carries null there.
+    const partnerIsWinning = partner !== null && winningPlay.playerIndex === partner;
 
     // Find cards that would win the trick
     const winningPlays = validPlays.filter((c) => cardWouldWin(c, winningCard, leadSuit, trump));
 
-    // 1. Smearing (4-player only): partner winning, we can't win, AND we are last to play
-    //    Safety: only smear when no opponent can steal the trick after us
+    // 1. Smearing (4-player only): partner is winning AND we are last to play, so the trick
+    //    is already safe. Safety: only smear when no opponent can steal the trick after us.
+    //    The partner exemption lets us duck even when we could overtake, so pick the most
+    //    valuable card that does *not* beat the partner — banking its points while keeping
+    //    our high cards. If every legal card would overtake, fall through and win cheaply.
     const isLastToPlay = trick.cards.length === state.playerCount - 1;
-    if (partnerIsWinning && winningPlays.length === 0 && isLastToPlay) {
-      const nonTrump = validPlays.filter((c) => c.suit !== trump);
-      const smearCandidates = nonTrump.length > 0 ? nonTrump : validPlays;
-      smearCandidates.sort((a, b) => RANK_POINTS[b.rank] - RANK_POINTS[a.rank]);
-      return { type: 'playCard', cardId: smearCandidates[0].id };
+    if (partnerIsWinning && isLastToPlay) {
+      const ducking = validPlays.filter((c) => !cardWouldWin(c, winningCard, leadSuit, trump));
+      if (ducking.length > 0) {
+        const nonTrump = ducking.filter((c) => c.suit !== trump);
+        const smearCandidates = nonTrump.length > 0 ? nonTrump : ducking;
+        smearCandidates.sort((a, b) => RANK_POINTS[b.rank] - RANK_POINTS[a.rank]);
+        return { type: 'playCard', cardId: smearCandidates[0].id };
+      }
     }
 
     // 2. Win with minimum card

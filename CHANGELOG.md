@@ -2,6 +2,23 @@
 
 All notable changes to Dabb are documented here.
 
+## [3.1.0] - 2026-08-08
+
+### Neues
+
+- **Partnerausnahme zu viert**: Sticht euer Partner gerade, müsst ihr ihn nicht mehr überbieten und auch nicht für ihn trumpfen. Bedient werden muss weiterhin. So könnt ihr dem Partner hohe Karten **schmieren**, statt ihm den eigenen Stich wegzunehmen. Die Kartenauswahl am Tisch zeigt die zusätzlich erlaubten Karten automatisch an, und die KI spielt entsprechend mit. Nachzulesen unter "Regeln".
+
+### Behoben
+
+- **Spiele zu viert funktionieren wieder.** Bisher blieb die Punktzahl beider Teams dauerhaft bei 0 stehen, das Reizen hatte keine Folgen und kein Spiel konnte je gewonnen werden.
+- **Teams stehen sich jetzt gegenüber.** Wie es die Regeln vorsehen, bilden die gegenübersitzenden Spieler ein Team — vorher wurden die Teams zufällig ausgelost. Am Tisch zeigt ein 🤝 neben dem Namen, wer mit euch zusammenspielt, und die Anzeige oben nennt beide Teams mit Namen und Punktestand.
+- **Abgehen zu viert beendet die Runde wieder.** Vorher lief das Spiel danach in die Stichphase weiter und blieb dort hängen.
+- **KI-Mitspieler in Online-Runden spielen wieder mit.** Sie haben bisher weder gereizt, den Dabb genommen, Trumpf angesagt noch gemeldet — eine Runde mit KI-Spielern kam gar nicht erst über das Reizen hinaus.
+- **Abgedrückte Karten zählen wieder.** Die vier Karten, die der Reizgewinner nach dem Dabb ablegt, gingen beim Start der Stichphase verloren, statt zu seinen Stichpunkten zu zählen.
+- **Genauere Punkte zu viert.** Die Stichpunkte eines Teams werden jetzt einmal am Ende gerundet statt für jeden Spieler einzeln — das konnte pro Runde bis zu 20 Punkte zu viel ergeben.
+- Die KI spielt ihrem Partner wieder Punkte zu, wenn er den Stich ohnehin gewinnt.
+- Die Meldungs-Anzeige verschwindet jetzt, sobald ihr eure Meldungen bestätigt habt, statt bis zum Ende der Meldephase stehen zu bleiben. Wer abgeht, wird nicht mehr zum Melden aufgefordert.
+
 ## [3.0.0] - 2026-08-08
 
 ### Breaking Changes

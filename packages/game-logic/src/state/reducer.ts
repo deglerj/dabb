@@ -326,10 +326,14 @@ function handleMeldingComplete(
   state: GameState,
   _event: Extract<GameEvent, { type: 'MELDING_COMPLETE' }>
 ): GameState {
-  // Initialize tricks taken for each player
-  const tricksTaken = new Map<PlayerIndex, Card[][]>();
+  // Ensure every player has a tricks entry, but keep what's already there — the bid
+  // winner's discarded dabb cards were added by CARDS_DISCARDED and count as trick points.
+  const tricksTaken = new Map<PlayerIndex, Card[][]>(state.tricksTaken);
   for (let i = 0; i < state.playerCount; i++) {
-    tricksTaken.set(i as PlayerIndex, []);
+    const idx = i as PlayerIndex;
+    if (!tricksTaken.has(idx)) {
+      tricksTaken.set(idx, []);
+    }
   }
 
   return {

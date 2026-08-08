@@ -141,6 +141,10 @@ export function useFirebaseGame({
       } catch (err) {
         if (err instanceof GameError) {
           console.warn('Game action rejected:', err.message);
+        } else {
+          // Anything else is a bug, not a rejected move — swallowing it silently strands
+          // the game (no events written, no phase advance) with nothing in the console.
+          console.error('Game action failed unexpectedly:', err);
         }
       }
     },
@@ -183,18 +187,14 @@ export function useFirebaseGame({
 
   const onDeclareMelds = useCallback(
     (melds: Meld[]) =>
-      pushAction((s, seq) =>
-        createDeclareMeldsEvents(sessionCode, seq, s, playerIndex, melds, players)
-      ),
-    [pushAction, sessionCode, playerIndex, players]
+      pushAction((s, seq) => createDeclareMeldsEvents(sessionCode, seq, s, playerIndex, melds)),
+    [pushAction, sessionCode, playerIndex]
   );
 
   const onPlayCard = useCallback(
     (cardId: CardId) =>
-      pushAction((s, seq) =>
-        createPlayCardEvents(sessionCode, seq, s, playerIndex, cardId, players)
-      ),
-    [pushAction, sessionCode, playerIndex, players]
+      pushAction((s, seq) => createPlayCardEvents(sessionCode, seq, s, playerIndex, cardId)),
+    [pushAction, sessionCode, playerIndex]
   );
 
   const onExit = useCallback(

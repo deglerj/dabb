@@ -219,10 +219,12 @@ describe('Two-Player Round Integration', () => {
     expect(game.state.tricksTaken.get(0 as PlayerIndex)).toBeDefined();
     expect(game.state.tricksTaken.get(1 as PlayerIndex)).toBeDefined();
 
-    // Total tricks should equal 18
+    // 18 tricks, plus Alice's discard group which survives MELDING_COMPLETE and counts
+    // as trick points for her (regression: it used to be wiped when tricks began)
     const aliceTricks = game.state.tricksTaken.get(0 as PlayerIndex)!;
     const bobTricks = game.state.tricksTaken.get(1 as PlayerIndex)!;
-    expect(aliceTricks.length + bobTricks.length).toBe(18);
+    expect(aliceTricks.length + bobTricks.length).toBe(19);
+    expect(aliceTricks).toContainEqual(expect.arrayContaining(discardCards));
 
     // ===== SCORING =====
     const aliceMeldPoints = calculateMeldPoints(aliceMelds);

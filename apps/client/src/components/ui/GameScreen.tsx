@@ -483,7 +483,11 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
       setSlottedCardIds([]);
     }
   }, [showDiscard]);
-  const showMelding = state.phase === 'melding' && !(isBidWinner && state.wentOut);
+  // Hidden once you've declared (waiting on the others) and for a bid winner who went out.
+  const showMelding =
+    state.phase === 'melding' &&
+    !(isBidWinner && state.wentOut) &&
+    !state.declaredMelds.has(playerIndex);
 
   return (
     <GameScreenErrorBoundary

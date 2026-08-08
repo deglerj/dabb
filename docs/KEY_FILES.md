@@ -12,6 +12,7 @@
 | `packages/rn-compat/src/styles.ts`                           | `flattenStyle` — normalizes RN-only style shorthands to plain CSS               |
 | `packages/game-logic/src/state/reducer.ts`                   | Event sourcing reducer                                                          |
 | `packages/game-logic/src/state/views.ts`                     | Client-side event filtering (hides opponents' cards in UI)                      |
+| `packages/game-logic/src/state/turn.ts`                      | `whoActsNext` — whose turn it is per phase (drives AI seats online and offline) |
 | `packages/game-logic/src/melds/detector.ts`                  | Meld detection                                                                  |
 | `packages/game-logic/src/phases/bidding.ts`                  | Bidding phase logic                                                             |
 | `packages/game-logic/src/phases/tricks.ts`                   | Trick-taking rules                                                              |
