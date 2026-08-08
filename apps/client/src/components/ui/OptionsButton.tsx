@@ -2,8 +2,8 @@
  * Gear icon button that opens the OptionsDialog.
  * Render inside a View with position: 'absolute' applied externally.
  */
-import React, { useState } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { TouchableOpacity, StyleSheet } from '@dabb/rn-compat';
 import { Icon } from './Icon.js';
 import { Colors } from '../../theme.js';
 import { OptionsDialog } from './OptionsDialog.js';

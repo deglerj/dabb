@@ -8,8 +8,8 @@
  *
  * Rendered as a direct child of gameWrapper in GameScreen (not inside PhaseOverlay).
  */
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from '@dabb/rn-compat';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 import type { Suit } from '@dabb/shared-types';
@@ -38,7 +38,7 @@ export function DiscardOverlay({
   const { t } = useTranslation();
   const [showGoOut, setShowGoOut] = useState(false);
   const [pendingSuit, setPendingSuit] = useState<Suit | null>(null);
-  const panelRef = useRef<View>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const [opacity, setOpacity] = useState(0);
   const [translateY, setTranslateY] = useState(-20);
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   counter: {
     fontSize: 14,
     color: '#7a6040',
-    fontVariant: ['tabular-nums'],
+    fontVariantNumeric: 'tabular-nums',
   },
   primaryButton: {
     backgroundColor: '#8b6914',

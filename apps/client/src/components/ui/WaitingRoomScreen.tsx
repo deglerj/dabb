@@ -14,9 +14,9 @@ import {
   Pressable,
   ScrollView,
   ViewStyle,
-} from 'react-native';
+  useSafeAreaInsets,
+} from '@dabb/rn-compat';
 import { Icon } from './Icon.js';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { PlayerIndex } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import { useTranslation } from '@dabb/i18n';
@@ -83,7 +83,6 @@ function WaitingRoomScreen({
         style={[
           StyleSheet.absoluteFill,
           {
-            // @ts-expect-error backgroundImage is a react-native-web web-only style extension
             backgroundImage: `linear-gradient(180deg, ${Colors.woodLight} 0%, ${Colors.woodMid} 30%, ${Colors.woodDark} 70%, ${Colors.woodMid} 100%)`,
           },
         ]}
@@ -249,12 +248,11 @@ function WaitingRoomScreen({
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <SafeAreaView
-        edges={['right']}
-        style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+      <View
+        style={[styles.optionsButtonContainer, { top: insets.top + 8, paddingRight: insets.right }]}
       >
         <OptionsButton />
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

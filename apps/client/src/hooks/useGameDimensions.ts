@@ -1,13 +1,12 @@
-import { Platform, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from '@dabb/rn-compat';
 
 export const MAX_GAME_WIDTH = 1500;
 
 /**
- * Returns the effective game dimensions, capping width at MAX_GAME_WIDTH on web
+ * Returns the effective game dimensions, capping width at MAX_GAME_WIDTH
  * so the game table doesn't stretch excessively on large monitors.
  */
 export function useGameDimensions() {
   const { width, height } = useWindowDimensions();
-  const effectiveWidth = Platform.OS === 'web' ? Math.min(width, MAX_GAME_WIDTH) : width;
-  return { width: effectiveWidth, height };
+  return { width: Math.min(width, MAX_GAME_WIDTH), height };
 }

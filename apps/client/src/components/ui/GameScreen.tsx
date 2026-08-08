@@ -3,9 +3,9 @@
  * Connects useGame hook to all sub-components: table, opponents, hand,
  * trick area, scoreboard, overlays, log, celebration, and termination modal.
  */
-import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import type { GameInterface } from '@dabb/ui-shared';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, useSafeAreaInsets } from '@dabb/rn-compat';
 import { useNavigate, useBlocker } from 'react-router-dom';
 import {
   GameTable,
@@ -55,7 +55,6 @@ import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OptionsButton } from './OptionsButton.js';
 import GameScreenErrorBoundary from './GameScreenErrorBoundary.js';
 
@@ -496,12 +495,14 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
       {state.phase === 'waiting' ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#c97f00" />
-          <SafeAreaView
-            edges={['right']}
-            style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+          <View
+            style={[
+              styles.optionsButtonContainer,
+              { top: insets.top + 8, paddingRight: insets.right },
+            ]}
           >
             <OptionsButton onExitGame={handleExitGame} />
-          </SafeAreaView>
+          </View>
         </View>
       ) : (
         <View style={styles.outerContainer}>
@@ -701,12 +702,14 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               terminatedByNickname={terminatedByNickname}
               onDone={handleDone}
             />
-            <SafeAreaView
-              edges={['right']}
-              style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+            <View
+              style={[
+                styles.optionsButtonContainer,
+                { top: insets.top + 8, paddingRight: insets.right },
+              ]}
             >
               <OptionsButton onExitGame={handleExitGame} />
-            </SafeAreaView>
+            </View>
           </View>
         </View>
       )}

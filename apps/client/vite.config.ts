@@ -48,30 +48,4 @@ export default defineConfig({
       },
     }),
   ],
-  resolve: {
-    alias: [{ find: /^react-native$/, replacement: 'react-native-web' }],
-    // Third-party RN packages (react-native-safe-area-context, etc.) ship .web.tsx/.web.js
-    // platform variants that Metro resolves automatically for extensionless imports — Vite
-    // needs the same extension order. mainFields excludes "react-native" so package.json's
-    // react-native field (pointing at native-only source) never wins over "module"/"browser".
-    extensions: [
-      '.web.tsx',
-      '.web.ts',
-      '.web.jsx',
-      '.web.js',
-      '.tsx',
-      '.ts',
-      '.jsx',
-      '.js',
-      '.mjs',
-      '.json',
-    ],
-    mainFields: ['browser', 'module', 'main'],
-  },
-  optimizeDeps: {
-    // The dep-prebundling esbuild pass doesn't reliably honor the extensions/mainFields
-    // above for this package's platform-variant files — excluding it forces normal
-    // per-module dev resolution instead, which does.
-    exclude: ['react-native-safe-area-context'],
-  },
 });

@@ -1,5 +1,4 @@
-import React from 'react';
-import { TouchableOpacity, type TouchableOpacityProps } from 'react-native';
+import { TouchableOpacity, type TouchableOpacityProps } from '@dabb/rn-compat';
 
 interface HapticTouchableOpacityProps extends TouchableOpacityProps {
   hapticsEnabled?: boolean;

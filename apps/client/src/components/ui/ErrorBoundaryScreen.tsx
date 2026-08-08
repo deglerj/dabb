@@ -2,8 +2,7 @@
  * ErrorBoundaryScreen — full-screen error display shown when a React error boundary catches a crash.
  * Pure display component; all logic (reload, copy) is handled by the parent boundary.
  */
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from '@dabb/rn-compat';
 import { Colors, Fonts } from '../../theme.js';
 
 export interface ErrorBoundaryScreenProps {

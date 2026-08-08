@@ -17,11 +17,11 @@
   "dependencies": {
     "@dabb/card-assets": "workspace:*",
     "@dabb/i18n": "workspace:*",
+    "@dabb/rn-compat": "workspace:*",
     "@dabb/shared-types": "workspace:*"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": "*"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.10",

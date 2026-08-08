@@ -3,8 +3,7 @@
  * Landscape/tablet: nameplate + fanned card backs.
  * Portrait phone: nameplate only.
  */
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from '@dabb/rn-compat';
 import { CardBackView } from '@dabb/game-canvas';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 import type { PlayerIndex } from '@dabb/shared-types';

@@ -2,8 +2,7 @@
  * ReconnectingBanner — thin banner shown at the top when the Firebase connection is lost.
  * Always mounted; visibility is controlled via opacity. Non-interactive (pointerEvents none).
  */
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from '@dabb/rn-compat';
 
 export interface ReconnectingBannerProps {
   visible: boolean;

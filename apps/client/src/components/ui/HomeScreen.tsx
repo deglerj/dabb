@@ -1,7 +1,7 @@
 /**
  * Home screen — three entry points: offline vs AI, create online, join online.
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
-} from 'react-native';
+  useSafeAreaInsets,
+} from '@dabb/rn-compat';
 import { useNavigate } from 'react-router-dom';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '@dabb/i18n';
 import type { PlayerCount } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
@@ -201,12 +201,14 @@ export default function HomeScreen() {
             <Text style={styles.version}>v{APP_VERSION}</Text>
           </View>
         </ScrollView>
-        <SafeAreaView
-          edges={['right']}
-          style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+        <View
+          style={[
+            styles.optionsButtonContainer,
+            { top: insets.top + 8, paddingRight: insets.right },
+          ]}
         >
           <OptionsButton />
-        </SafeAreaView>
+        </View>
       </View>
     );
   }
@@ -363,12 +365,11 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-      <SafeAreaView
-        edges={['right']}
-        style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+      <View
+        style={[styles.optionsButtonContainer, { top: insets.top + 8, paddingRight: insets.right }]}
       >
         <OptionsButton />
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

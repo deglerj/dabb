@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from '@dabb/rn-compat';
 import { useNavigate, useParams } from 'react-router-dom';
 import { storageGet } from '../../hooks/useStorage.js';
 import { useFirebaseGame } from '../../hooks/useFirebaseGame.js';

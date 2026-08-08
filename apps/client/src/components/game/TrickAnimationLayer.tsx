@@ -7,7 +7,7 @@
  * - Staggered sweep to winner's corner (sweepingCardCount from hook)
  */
 import React, { useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from '@dabb/rn-compat';
 import { CardView, deriveCardPositions, type TableEffects } from '@dabb/game-canvas';
 import type { Player, PlayerIndex } from '@dabb/shared-types';
 import type { TrickAnimationResult } from '@dabb/ui-shared';

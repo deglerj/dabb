@@ -2,8 +2,7 @@
  * GameTerminatedModal — shown when the game ends (someone reached the target score
  * or the session was terminated). Uses a centered card over a transparent backdrop.
  */
-import React from 'react';
-import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
+import { Modal, View, Text, Pressable, StyleSheet } from '@dabb/rn-compat';
 import { Colors, Fonts, Shadows } from '../../theme.js';
 import { useTranslation } from '@dabb/i18n';
 

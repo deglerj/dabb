@@ -5,8 +5,8 @@
  * - showConfetti: local player won the round bid (confetti + "You won the round!")
  * - showFireworks: local player won the game (fireworks + "You won the game!")
  */
-import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet } from '@dabb/rn-compat';
 import { useTranslation } from '@dabb/i18n';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 
@@ -105,7 +105,7 @@ export function CelebrationLayer({
 }: CelebrationLayerProps) {
   const { width, height } = useGameDimensions();
   const { t } = useTranslation();
-  const containerRef = useRef<View>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const particles = useRef<Particle[]>([]);
   const rafRef = useRef<number | null>(null);

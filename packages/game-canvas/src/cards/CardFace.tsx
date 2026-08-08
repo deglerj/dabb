@@ -8,8 +8,8 @@
  *
  * CardId format: "suit-rank-copy" (e.g. "kreuz-ass-0")
  */
-import React, { useEffect, useRef } from 'react';
-import { View, Text as RNText, StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, Text as RNText, StyleSheet } from '@dabb/rn-compat';
 import { SUIT_SYMBOLS, getSuitColor, RANK_DISPLAY } from '@dabb/card-assets';
 import type { CardId, Suit, Rank } from '@dabb/shared-types';
 
@@ -49,7 +49,7 @@ export function CardFace({
   // Firefox rasterises the child's rounded corners then composites the rotation — producing
   // aliased edges. rotateX(0.001deg) promotes the child to its own GPU layer so Firefox
   // composites a pre-rendered AA'd texture instead of re-rasterising on rotation.
-  const cardRef = useRef<View>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = cardRef.current as unknown as HTMLElement | null;
     if (el?.style) {

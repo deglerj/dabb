@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { View } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { View } from '@dabb/rn-compat';
 import type { CardId } from '@dabb/shared-types';
 import { CardFace } from './CardFace.js';
 import { CardBack } from './CardBack.js';
@@ -71,7 +71,7 @@ export function CardView({
   highlighted = false,
   isTrump = false,
 }: CardViewProps) {
-  const viewRef = useRef<View>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
   const xRef = useRef(initialX ?? targetX);
   const yRef = useRef(initialY ?? targetY);
   const rotationRef = useRef(targetRotation);

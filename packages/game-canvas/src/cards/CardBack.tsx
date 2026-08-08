@@ -2,8 +2,8 @@
  * CardBack — dark brown card back with a diagonal crosshatch pattern,
  * drawn with layered CSS repeating-linear-gradients instead of a canvas.
  */
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, StyleSheet } from '@dabb/rn-compat';
 
 export interface CardBackProps {
   width: number;
@@ -13,9 +13,9 @@ export interface CardBackProps {
 }
 
 export function CardBack({ width, height, x = 0, y = 0 }: CardBackProps) {
-  const cardRef = useRef<View>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const el = cardRef.current as unknown as HTMLElement | null;
+    const el = cardRef.current;
     if (el?.style) {
       el.style.transform = 'rotateX(0.001deg)';
     }
@@ -32,7 +32,6 @@ export function CardBack({ width, height, x = 0, y = 0 }: CardBackProps) {
           borderRadius: width * 0.06,
           left: x,
           top: y,
-          // @ts-expect-error backgroundImage is a react-native-web web-only style extension
           backgroundImage:
             'repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 6px), ' +
             'repeating-linear-gradient(-45deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 6px)',

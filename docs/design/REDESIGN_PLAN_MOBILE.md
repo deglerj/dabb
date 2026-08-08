@@ -404,13 +404,7 @@ import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type SoundName =
-  | 'card-deal'
-  | 'card-play'
-  | 'card-select'
-  | 'bid-place'
-  | 'pass'
-  | 'trick-win'
-  | 'game-win';
+  'card-deal' | 'card-play' | 'card-select' | 'bid-place' | 'pass' | 'trick-win' | 'game-win';
 
 const SOUND_FILES: Record<SoundName, ReturnType<typeof require>> = {
   'card-deal': require('../../assets/sounds/card-deal.mp3'),

@@ -5,8 +5,8 @@
  * When instant=true, snaps immediately to face-up (cancels any in-progress animation).
  * When flipped is already true on mount, renders face immediately (no animation).
  */
-import React, { useRef, useState, useEffect } from 'react';
-import { View } from 'react-native';
+import { useRef, useState, useEffect } from 'react';
+import { View } from '@dabb/rn-compat';
 import type { Card } from '@dabb/shared-types';
 import { CardBack } from './CardBack.js';
 import { CardFace } from './CardFace.js';
@@ -25,7 +25,7 @@ const EASE_OUT_CUBIC = 'cubic-bezier(0.215,0.61,0.355,1)';
 export function FlippableCard({ card, flipped, instant, width, height }: FlippableCardProps) {
   // showFace drives which side is rendered; starts true if already flipped on mount
   const [showFace, setShowFace] = useState(flipped);
-  const containerRef = useRef<View>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   // Prevent re-triggering animation if already fired
   const hasFlipped = useRef(flipped);
 

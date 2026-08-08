@@ -5,7 +5,7 @@
  * visible=false → fade out + slide to -20px + scale to 0.95
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, ScrollView, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, ScrollView, useWindowDimensions } from '@dabb/rn-compat';
 
 export interface PhaseOverlayProps {
   visible: boolean;
@@ -20,7 +20,7 @@ const SPRING_EASE = 'cubic-bezier(0.34,1.56,0.64,1)';
 
 export function PhaseOverlay({ visible, rotation = -2, children }: PhaseOverlayProps) {
   const { height: screenHeight } = useWindowDimensions();
-  const containerRef = useRef<View>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [opacity, setOpacity] = useState(0);
   const [translateY, setTranslateY] = useState(-40);
   const [scale, setScale] = useState(0.92);

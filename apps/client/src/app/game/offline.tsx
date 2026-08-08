@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useOfflineGame } from '../../hooks/useOfflineGame.js';
 import GameScreen from '../../components/ui/GameScreen.js';

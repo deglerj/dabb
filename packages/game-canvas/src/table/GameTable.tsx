@@ -14,9 +14,9 @@
  *   <GameTable width={w} height={h} effects={effects} />
  */
 
-import React, { useEffect, useRef } from 'react';
-import { View } from 'react-native';
-import type { ViewStyle } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View } from '@dabb/rn-compat';
+import type { ViewStyle } from '@dabb/rn-compat';
 import { DEFAULT_SURROUND_FRACTION } from './feltBounds.js';
 import { FELT_SHADER_SOURCE, WOOD_SHADER_SOURCE, SHADER_VERTEX_SOURCE } from './shaders.js';
 import type { TableEffects } from './useTableEffects.js';
@@ -73,7 +73,7 @@ function ShaderLayer({
   source: string;
   style: ViewStyle;
 }) {
-  const containerRef = useRef<View>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current as unknown as HTMLElement | null;
@@ -145,7 +145,7 @@ function EffectsLayer({
   height: number;
   effects: TableEffects;
 }) {
-  const containerRef = useRef<View>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current as unknown as HTMLElement | null;

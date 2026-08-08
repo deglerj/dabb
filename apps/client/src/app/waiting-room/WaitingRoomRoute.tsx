@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, View } from '@dabb/rn-compat';
 import { useNavigate, useParams } from 'react-router-dom';
 import WaitingRoomScreen from '../../components/ui/WaitingRoomScreen.js';
 import { storageDelete, storageGet } from '../../hooks/useStorage.js';
@@ -152,7 +152,7 @@ export default function WaitingRoomRoute() {
       await pushEvents(code, events, secretHash);
       await setSessionStatus(code, 'active');
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to start game');
+      window.alert(err instanceof Error ? err.message : 'Failed to start game');
     }
   };
 
@@ -201,7 +201,7 @@ export default function WaitingRoomRoute() {
       aiNameIndex++;
       await addAIPlayer(code, meta.players, meta.playerCount, aiName);
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to add AI player');
+      window.alert(err instanceof Error ? err.message : 'Failed to add AI player');
     } finally {
       setIsAddingAI(false);
     }
@@ -214,7 +214,7 @@ export default function WaitingRoomRoute() {
     try {
       await removeAIPlayer(code, playerIdx);
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to remove AI player');
+      window.alert(err instanceof Error ? err.message : 'Failed to remove AI player');
     }
   };
 

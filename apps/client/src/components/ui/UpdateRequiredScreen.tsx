@@ -3,8 +3,7 @@
  * Ported from apps/mobile/src/screens/UpdateRequiredScreen.tsx.
  */
 
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from '@dabb/rn-compat';
 import { useTranslation } from '@dabb/i18n';
 import { Colors, Fonts } from '../../theme.js';
 

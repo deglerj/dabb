@@ -1,7 +1,6 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet, useRouteError } from 'react-router-dom';
-import { ActivityIndicator, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ActivityIndicator, View } from '@dabb/rn-compat';
 import {
   I18nProvider,
   DEFAULT_LANGUAGE,
@@ -91,19 +90,17 @@ function RootLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <I18nProvider initialLanguage={language}>
-          <Suspense
-            fallback={
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="large" />
-              </View>
-            }
-          >
-            <Outlet />
-          </Suspense>
-        </I18nProvider>
-      </SafeAreaProvider>
+      <I18nProvider initialLanguage={language}>
+        <Suspense
+          fallback={
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator size="large" />
+            </View>
+          }
+        >
+          <Outlet />
+        </Suspense>
+      </I18nProvider>
     </View>
   );
 }

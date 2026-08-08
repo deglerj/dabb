@@ -1,8 +1,8 @@
 /**
  * Options dialog — sound toggle, vibration toggle (native only), language selector.
  */
-import React, { useState, useCallback, useEffect } from 'react';
-import { Modal, View, Text, Switch, TouchableOpacity, StyleSheet } from 'react-native';
+import { useState, useCallback, useEffect } from 'react';
+import { Modal, View, Text, Switch, TouchableOpacity, StyleSheet } from '@dabb/rn-compat';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from './Icon.js';
 import { useTranslation, i18n, persistLanguage, type SupportedLanguage } from '@dabb/i18n';

@@ -4,9 +4,7 @@
  * Shows highest bid/bidder and current trump on the right.
  * Tappable to open the scoreboard history modal.
  */
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, useSafeAreaInsets } from '@dabb/rn-compat';
 import type { PlayerIndex, Suit, TeamScoreEntry } from '@dabb/shared-types';
 import { formatSuit } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
