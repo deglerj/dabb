@@ -4,3 +4,15 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^ index.html [QSA,L]
 
 ErrorDocument 404 /index.html
+
+<IfModule mod_headers.c>
+  # index.html/sw.js control update detection — must always be revalidated, never cached,
+  # or the browser silently serves a stale shell and the update prompt in main.tsx never fires.
+  <FilesMatch "^(index\.html|sw\.js|workbox-.*\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  # Hashed filenames in /assets/ are content-addressed — safe to cache forever.
+  <FilesMatch "\.[0-9a-f]{8,}\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
