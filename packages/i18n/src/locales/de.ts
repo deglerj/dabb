@@ -40,6 +40,7 @@ const de: TranslationKeys = {
     createOnline: 'Online-Spiel erstellen',
     joinOnline: 'Online-Spiel beitreten',
     resumeGame: 'Weiterspielen',
+    installApp: 'App installieren',
   },
   offline: {
     difficulty: 'Schwierigkeit',
@@ -221,6 +222,12 @@ const de: TranslationKeys = {
     message: 'Eine neuere Version von Dabb ist verfügbar. Bitte aktualisiere, um fortzufahren.',
     reload: 'Neu laden',
     update: 'Bitte aktualisiere die App',
+  },
+  installInstructions: {
+    title: 'App installieren',
+    iosSafari: 'Tippe unten auf „Teilen“ (⬆️) und dann auf „Zum Home-Bildschirm“.',
+    macosSafari: 'Öffne im Menü „Ablage“ und wähle „Zum Dock hinzufügen“.',
+    androidFirefox: 'Öffne das Menü (⋮) und tippe auf „Installieren“.',
   },
   options: {
     title: 'Optionen',

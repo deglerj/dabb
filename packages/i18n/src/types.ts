@@ -51,6 +51,7 @@ export interface TranslationKeys {
     createOnline: string;
     joinOnline: string;
     resumeGame: string;
+    installApp: string;
   };
   offline: {
     difficulty: string;
@@ -229,6 +230,12 @@ export interface TranslationKeys {
     message: string;
     reload: string;
     update: string;
+  };
+  installInstructions: {
+    title: string;
+    iosSafari: string;
+    macosSafari: string;
+    androidFirefox: string;
   };
   options: {
     title: string;

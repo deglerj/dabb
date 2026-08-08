@@ -21,6 +21,9 @@ import { storageGet, storageSet } from '../../hooks/useStorage.js';
 import { createSession, joinSession } from '../../firebase/session.js';
 import { APP_VERSION } from '../../constants.js';
 import { OptionsButton } from './OptionsButton.js';
+import { Icon } from './Icon.js';
+import { useInstallPrompt } from '../../hooks/useInstallPrompt.js';
+import { InstallInstructionsDialog } from './InstallInstructionsDialog.js';
 
 type Mode = 'menu' | 'create' | 'join' | 'offline';
 type GamePhaseString = string;
@@ -38,6 +41,8 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [resumableGame, setResumableGame] = useState(false);
   const insets = useSafeAreaInsets();
+  const { canInstall, promptInstall, instructionsPlatform } = useInstallPrompt();
+  const [showInstallInstructions, setShowInstallInstructions] = useState(false);
 
   // Restore nickname from storage on mount
   useEffect(() => {
@@ -198,9 +203,25 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.version}>v{APP_VERSION}</Text>
+            <View style={styles.footerRow}>
+              <Text style={styles.version}>v{APP_VERSION}</Text>
+              {(canInstall || instructionsPlatform) && (
+                <TouchableOpacity
+                  style={styles.installButton}
+                  onPress={canInstall ? promptInstall : () => setShowInstallInstructions(true)}
+                >
+                  <Icon name="download" size={12} color={Colors.inkFaint} />
+                  <Text style={styles.installButtonText}>{t('home.installApp')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </ScrollView>
+        <InstallInstructionsDialog
+          visible={showInstallInstructions}
+          platform={instructionsPlatform}
+          onClose={() => setShowInstallInstructions(false)}
+        />
         <View
           style={[
             styles.optionsButtonContainer,
@@ -482,11 +503,31 @@ const styles = StyleSheet.create({
   },
   actionRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   flex1: { flex: 1 },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 24,
+  },
   version: {
     fontFamily: Fonts.body,
     fontSize: 12,
     color: Colors.inkFaint,
-    textAlign: 'center',
-    marginTop: 24,
+  },
+  installButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+  },
+  installButtonText: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
+    color: Colors.inkFaint,
   },
 });

@@ -40,6 +40,7 @@ const en: TranslationKeys = {
     createOnline: 'Create Online Game',
     joinOnline: 'Join Online Game',
     resumeGame: 'Resume Game',
+    installApp: 'Install app',
   },
   offline: {
     difficulty: 'Difficulty',
@@ -220,6 +221,12 @@ const en: TranslationKeys = {
     message: 'A newer version of Dabb is available. Please update to continue.',
     reload: 'Reload',
     update: 'Please update the app',
+  },
+  installInstructions: {
+    title: 'Install app',
+    iosSafari: 'Tap the Share icon (⬆️) below, then "Add to Home Screen".',
+    macosSafari: 'Open the "File" menu and choose "Add to Dock".',
+    androidFirefox: 'Open the menu (⋮) and tap "Install".',
   },
   options: {
     title: 'Options',
