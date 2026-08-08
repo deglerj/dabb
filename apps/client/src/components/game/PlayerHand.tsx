@@ -3,6 +3,7 @@ import {
   CardView,
   deriveCardPositions,
   getFeltBounds,
+  isWithinFeltBounds,
   type LayoutDimensions,
   type TableEffects,
 } from '@dabb/game-canvas';
@@ -84,12 +85,7 @@ export function PlayerHand({
   const highlightedIds = computeHighlightedDabbIds(gameState.phase, gameState.dabbCardIds);
 
   const handleDrop = (cardId: string) => (x: number, y: number) => {
-    const onFelt =
-      x >= feltBounds.x &&
-      x <= feltBounds.x + feltBounds.width &&
-      y >= feltBounds.y &&
-      y <= feltBounds.y + feltBounds.height;
-    if (onFelt && validIds.has(cardId)) {
+    if (isWithinFeltBounds(x, y, feltBounds) && validIds.has(cardId)) {
       onPlayCard(cardId, { x, y });
     }
   };
@@ -121,12 +117,7 @@ export function PlayerHand({
                 onSlotCard!(card.id);
               }}
               onDrop={(x, y) => {
-                const onFelt =
-                  x >= feltBounds.x &&
-                  x <= feltBounds.x + feltBounds.width &&
-                  y >= feltBounds.y &&
-                  y <= feltBounds.y + feltBounds.height;
-                if (onFelt) {
+                if (isWithinFeltBounds(x, y, feltBounds)) {
                   playSound('card-select');
                   triggerHaptic('card-select');
                   onSlotCard!(card.id);

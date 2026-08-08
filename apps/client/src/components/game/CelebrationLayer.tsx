@@ -7,6 +7,7 @@
  */
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet } from '@dabb/rn-compat';
+import { computeCanvasBackingSize } from '@dabb/game-canvas';
 import { useTranslation } from '@dabb/i18n';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 
@@ -124,8 +125,9 @@ export function CelebrationLayer({
     canvas.style.display = 'block';
     container.appendChild(canvas);
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
+    const backing = computeCanvasBackingSize(width, height, dpr);
+    canvas.width = backing.width;
+    canvas.height = backing.height;
     const ctx = canvas.getContext('2d');
     ctx?.scale(dpr, dpr);
     ctxRef.current = ctx;

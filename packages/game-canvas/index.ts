@@ -2,8 +2,14 @@
 export { GameTable } from './src/table/GameTable.js';
 export type { GameTableProps } from './src/table/GameTable.js';
 export { useTableEffects } from './src/table/useTableEffects.js';
-export { getFeltBounds, DEFAULT_SURROUND_FRACTION } from './src/table/feltBounds.js';
+export {
+  getFeltBounds,
+  isWithinFeltBounds,
+  DEFAULT_SURROUND_FRACTION,
+} from './src/table/feltBounds.js';
 export type { FeltBounds } from './src/table/feltBounds.js';
+export { computeCanvasBackingSize } from './src/table/canvasSizing.js';
+export type { CanvasBackingSize } from './src/table/canvasSizing.js';
 export type { TableEffects } from './src/table/useTableEffects.js';
 
 // Cards

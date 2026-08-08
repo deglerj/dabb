@@ -17,6 +17,7 @@
 import { useEffect, useRef } from 'react';
 import { View } from '@dabb/rn-compat';
 import type { ViewStyle } from '@dabb/rn-compat';
+import { computeCanvasBackingSize } from './canvasSizing.js';
 import { DEFAULT_SURROUND_FRACTION } from './feltBounds.js';
 import { FELT_SHADER_SOURCE, WOOD_SHADER_SOURCE, SHADER_VERTEX_SOURCE } from './shaders.js';
 import type { TableEffects } from './useTableEffects.js';
@@ -86,8 +87,9 @@ function ShaderLayer({
     canvas.style.height = '100%';
     canvas.style.display = 'block';
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
+    const backing = computeCanvasBackingSize(width, height, dpr);
+    canvas.width = backing.width;
+    canvas.height = backing.height;
     container.appendChild(canvas);
 
     const gl = canvas.getContext('webgl');
@@ -158,8 +160,9 @@ function EffectsLayer({
     canvas.style.height = '100%';
     canvas.style.display = 'block';
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
+    const backing = computeCanvasBackingSize(width, height, dpr);
+    canvas.width = backing.width;
+    canvas.height = backing.height;
     container.appendChild(canvas);
 
     const ctx = canvas.getContext('2d');

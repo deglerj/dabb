@@ -20,3 +20,11 @@ export function getFeltBounds(
     height: screenHeight - surround * 2,
   };
 }
+
+/** x/y must be in the same local coordinate space FeltBounds was derived in — the caller is
+ * responsible for that conversion (see dragGesture.ts's #game-wrapper offset). */
+export function isWithinFeltBounds(x: number, y: number, bounds: FeltBounds): boolean {
+  return (
+    x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height
+  );
+}
