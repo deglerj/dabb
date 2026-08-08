@@ -19,6 +19,8 @@ export interface OpponentZoneProps {
 
 const CARD_W = 40;
 const CARD_H = 60;
+const MAX_FAN_CARDS = 6;
+const OVERLAP = 28;
 
 export function OpponentZone({
   nickname,
@@ -34,6 +36,11 @@ export function OpponentZone({
   const scale = getTableScale(width);
   const scaledW = CARD_W * scale;
   const scaledH = CARD_H * scale;
+  const maxFanWidth = scaledW + (MAX_FAN_CARDS - 1) * (scaledW - OVERLAP * scale);
+  const fanStep =
+    cardCount > MAX_FAN_CARDS
+      ? (maxFanWidth - scaledW) / (cardCount - 1)
+      : scaledW - OVERLAP * scale;
 
   return (
     <View style={[styles.container, { left: position.x - 40, top: position.y - 20 }]}>
@@ -46,8 +53,8 @@ export function OpponentZone({
       </View>
       {showCards && cardCount > 0 && (
         <View style={styles.cardFan}>
-          {Array.from({ length: Math.min(cardCount, 6) }).map((_, i) => (
-            <View key={i} style={{ marginLeft: i === 0 ? 0 : -28 * scale }}>
+          {Array.from({ length: cardCount }).map((_, i) => (
+            <View key={i} style={{ marginLeft: i === 0 ? 0 : fanStep - scaledW }}>
               <CardBackView width={scaledW} height={scaledH} />
             </View>
           ))}
