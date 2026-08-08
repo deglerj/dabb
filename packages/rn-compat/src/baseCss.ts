@@ -78,7 +78,6 @@ const CSS = `
 }
 .rn-switch-track[data-checked='true'] .rn-switch-thumb { transform: translateX(18px); }
 .rn-modal-backdrop {
-  display: flex;
   border: 0;
   padding: 0;
   margin: auto;
@@ -89,14 +88,24 @@ const CSS = `
   background: transparent;
 }
 .rn-modal-backdrop::backdrop { background: transparent; }
+/* Closed dialogs must stay display:none — opacity:0 alone still lays the element out and
+ * still receives pointer events, so a closed-but-only-transparent modal would sit as an
+ * invisible full-viewport layer on top of the whole app, eating every click. display:flex
+ * (needed so the RN flex:1-centered backdrop child actually centers) only kicks in once
+ * the dialog is actually [open]; the "display" entry in the transition still lets the
+ * allow-discrete fade animate across the none <-> flex switch in both directions. */
 dialog.rn-modal-backdrop {
+  display: none;
   opacity: 0;
   transition:
     opacity 0.15s ease-out,
     overlay 0.15s ease-out allow-discrete,
     display 0.15s ease-out allow-discrete;
 }
-dialog.rn-modal-backdrop[open] { opacity: 1; }
+dialog.rn-modal-backdrop[open] {
+  display: flex;
+  opacity: 1;
+}
 @starting-style {
   dialog.rn-modal-backdrop[open] { opacity: 0; }
 }
