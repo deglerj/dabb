@@ -20,6 +20,8 @@ export interface TrickAnimationLayerProps {
   animState: TrickAnimationResult;
   myPlayerIndex: PlayerIndex;
   players: Player[];
+  /** Display names keyed by playerIndex; falls back to player.nickname when absent. */
+  nicknames: Map<PlayerIndex, string>;
   playerCount: 3 | 4;
   effects?: TableEffects;
   /** Drop position from the local player's last drag-to-play; used as card flight origin. */
@@ -30,6 +32,7 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
   animState,
   myPlayerIndex,
   players,
+  nicknames,
   playerCount,
   effects,
   localPlayerDropOrigin,
@@ -164,7 +167,7 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
                   style={[styles.labelText, isWinner && styles.labelTextWinner]}
                   numberOfLines={1}
                 >
-                  {player.nickname}
+                  {nicknames.get(pc.playerIndex) ?? player.nickname}
                 </Text>
               </View>
             )}
