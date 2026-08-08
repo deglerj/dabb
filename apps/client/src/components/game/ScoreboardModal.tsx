@@ -1,8 +1,7 @@
 /**
  * ScoreboardModal — full round history shown when user taps the scoreboard strip.
  */
-import React from 'react';
-import { Modal, View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { Modal, View, Text, ScrollView, Pressable, StyleSheet } from '@dabb/rn-compat';
 import type { PlayerIndex, RoundHistoryEntry, Team, TeamScoreEntry } from '@dabb/shared-types';
 import type { RoundHistoryResult } from '@dabb/ui-shared';
 import { useTranslation } from '@dabb/i18n';

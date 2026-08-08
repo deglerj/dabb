@@ -7,35 +7,30 @@ flowchart TB
     player((Player))
 
     subgraph dabb [Dabb System]
-        web[Web App]
-        mobile[Mobile App]
+        web[Web App / PWA]
     end
 
     subgraph google [Google Cloud]
         firebase[(Firebase\nRealtime Database)]
     end
 
-    player -->|Play via browser| web
-    player -->|Play via Android| mobile
+    player -->|Play via browser or installed PWA| web
     web -->|HTTPS / Firebase SDK| firebase
-    mobile -->|HTTPS / Firebase SDK| firebase
 ```
 
 ### Communication Partners
 
-| Partner        | Interface            | Description                             |
-| -------------- | -------------------- | --------------------------------------- |
-| Web Browser    | HTTPS                | Expo/React web bundle (static hosting)  |
-| Android Device | HTTPS                | Expo Android app                        |
-| Firebase RTDB  | HTTPS / Firebase SDK | Append-only event log, session metadata |
+| Partner       | Interface            | Description                                                                 |
+| ------------- | -------------------- | --------------------------------------------------------------------------- |
+| Browser / PWA | HTTPS                | React/Vite web bundle (static hosting); installable to a device home screen |
+| Firebase RTDB | HTTPS / Firebase SDK | Append-only event log, session metadata                                     |
 
 ## 3.2 Technical Context
 
 ```mermaid
 flowchart TB
     subgraph client [Client Layer]
-        web[Web Browser]
-        android[Android App]
+        web[Browser / Installed PWA]
     end
 
     subgraph data [Firebase / Google Cloud]
@@ -43,7 +38,6 @@ flowchart TB
     end
 
     web -->|"HTTPS (Firebase SDK)"| rtdb
-    android -->|"HTTPS (Firebase SDK)"| rtdb
 ```
 
 ### Technical Interfaces

@@ -1,6 +1,3 @@
-import * as Haptics from 'expo-haptics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 const HAPTICS_ENABLED_KEY = 'dabb-haptics-enabled';
 
 type HapticName =
@@ -16,51 +13,40 @@ type HapticName =
 let enabled = true;
 
 export async function loadHapticsPreferences(): Promise<void> {
-  try {
-    const stored = await AsyncStorage.getItem(HAPTICS_ENABLED_KEY);
-    enabled = stored !== 'false';
-  } catch {
-    // Fail silently
-  }
+  enabled = localStorage.getItem(HAPTICS_ENABLED_KEY) !== 'false';
 }
 
 export async function setHapticsEnabled(value: boolean): Promise<void> {
   enabled = value;
-  try {
-    await AsyncStorage.setItem(HAPTICS_ENABLED_KEY, String(value));
-  } catch {
-    // Fail silently
-  }
+  localStorage.setItem(HAPTICS_ENABLED_KEY, String(value));
 }
 
 export function isHapticsEnabled() {
   return enabled;
 }
 
+// The Vibration API doesn't exist on Safari (desktop or iOS) — 'vibrate' in
+// navigator is false there, so this is always a no-op on iPhone/iPad.
 export function triggerHaptic(name: HapticName) {
-  if (!enabled) {
+  if (!enabled || !('vibrate' in navigator)) {
     return;
   }
-  try {
-    switch (name) {
-      case 'card-select':
-      case 'card-deal':
-      case 'pass':
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        break;
-      case 'card-play':
-      case 'bid-place':
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        break;
-      case 'trick-win':
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-        break;
-      case 'turn-notification':
-      case 'game-win':
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        break;
-    }
-  } catch {
-    // Fail silently
+  switch (name) {
+    case 'card-select':
+    case 'card-deal':
+    case 'pass':
+      navigator.vibrate(10);
+      break;
+    case 'card-play':
+    case 'bid-place':
+      navigator.vibrate(20);
+      break;
+    case 'trick-win':
+      navigator.vibrate(30);
+      break;
+    case 'turn-notification':
+    case 'game-win':
+      navigator.vibrate([10, 50, 10]);
+      break;
   }
 }

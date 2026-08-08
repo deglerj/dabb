@@ -2,8 +2,7 @@
  * CardBackView — wraps CardBack in a sized View so it participates in
  * flex/flow layouts (CardBack uses position:absolute internally).
  */
-import React from 'react';
-import { View } from 'react-native';
+import { View } from '@dabb/rn-compat';
 import { CardBack } from './CardBack.js';
 
 export interface CardBackViewProps {

@@ -9,16 +9,7 @@
     "browser": true,
     "node": true
   },
-  "ignorePatterns": [
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/build/**",
-    "**/.expo/**",
-    "**/coverage/**",
-    "apps/client/.expo/**",
-    "**/metro.config.js",
-    "web-dist/**"
-  ],
+  "ignorePatterns": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**"],
   "rules": {
     "constructor-super": "error",
     "for-direction": "error",

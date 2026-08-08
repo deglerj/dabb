@@ -8,6 +8,8 @@
 | `packages/shared-types/src/errors.ts`                        | Error codes and GameError                                                       |
 | `packages/shared-types/src/gameLog.ts`                       | Game log entry types                                                            |
 | `packages/shared-types/src/ai.ts`                            | AI player types                                                                 |
+| `packages/rn-compat/src/index.tsx`                           | RN-shaped component shim (View/Text/Modal/etc.) — see ADR 011                   |
+| `packages/rn-compat/src/styles.ts`                           | `flattenStyle` — normalizes RN-only style shorthands to plain CSS               |
 | `packages/game-logic/src/state/reducer.ts`                   | Event sourcing reducer                                                          |
 | `packages/game-logic/src/state/views.ts`                     | Client-side event filtering (hides opponents' cards in UI)                      |
 | `packages/game-logic/src/melds/detector.ts`                  | Meld detection                                                                  |
@@ -28,8 +30,8 @@
 | `apps/client/src/firebase/gameEventFactory.ts`               | Client-side game action validation + event creation                             |
 | `apps/client/src/firebase/secretId.ts`                       | secretId generation and SHA-256 hashing                                         |
 | `apps/client/src/hooks/useFirebaseGame.ts`                   | Main game hook (Firebase subscriptions, state, reconnection)                    |
-| `apps/client/src/hooks/useStorage.ts`                        | Session credential persistence (AsyncStorage / localStorage)                    |
-| `apps/client/e2e/startup-create-join.yaml`                   | Maestro E2E smoke test (app startup, create/join session)                       |
+| `apps/client/src/hooks/useStorage.ts`                        | Session credential persistence (localStorage)                                   |
+| `apps/client/e2e/startup-create-join.spec.ts`                | Playwright E2E smoke test (app startup, create/join session)                    |
 | `firebase.json`                                              | Firebase Local Emulator Suite config (RTDB emulator, port 9000)                 |
 | `packages/game-canvas/src/cards/cardPositions.ts`            | Single source of truth for all card positions (trick, hand, won-pile, opponent) |
 | `packages/game-canvas/src/cards/CardView.tsx`                | Animated card with arc flight (initialX/Y)                                      |

@@ -2,8 +2,7 @@
  * Privacy policy — accessible at /privacy on web.
  * Required as a public URL by the Google Play Store listing.
  */
-import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet } from '@dabb/rn-compat';
 import { Colors, Fonts } from '../theme.js';
 
 const PRIVACY_DE = `Diese App speichert keine personenbezogenen Daten dauerhaft. Beim Erstellen oder Beitreten einer Spielrunde wird ein frei gewählter Spitzname an den Spielserver übertragen und dort für die Dauer der Spielsitzung gespeichert. Nach Beendigung der Sitzung werden diese Daten gelöscht. Es werden keine Konten erstellt, keine E-Mail-Adressen erhoben und keine Daten an Dritte weitergegeben.`;

@@ -1,12 +1,12 @@
 # AI Assistant Context
 
-**Dabb** is a multiplayer TypeScript monorepo for the Swabian card game Binokel: client (React Native + Expo, runs on Android/iOS/web), shared packages. Stack: pnpm workspaces + Turborepo, Firebase Realtime Database, Vitest, strict TypeScript.
+**Dabb** is a multiplayer TypeScript monorepo for the Swabian card game Binokel: client (React + Vite, installable PWA, runs in any browser), shared packages. Stack: pnpm workspaces + Turborepo, Firebase Realtime Database, Vitest, strict TypeScript.
 
 ## Project Structure
 
 ```
 apps/{client, simulate}
-packages/{shared-types, game-logic, game-ai, game-canvas, ui-shared, card-assets, i18n}
+packages/{shared-types, game-logic, game-ai, game-canvas, ui-shared, card-assets, i18n, rn-compat}
 docs/{arc42/, adr/, design/, AI_STRATEGY.md, KEY_FILES.md}
 .github/workflows/  DEPLOYMENT.md  CHANGELOG.md
 ```
@@ -39,6 +39,17 @@ Game state is reconstructed by replaying all events via a reducer (`packages/gam
 
 - **Scoreboard**: `useRoundHistory` hook; compact `ScoreboardStrip` + expandable modal in client.
 - **Game Log**: `useGameLog` hook; shows latest entries; tab-based overlay in client; pulsing your-turn banner.
+
+### RN-Shaped Component Shim (`@dabb/rn-compat`)
+
+The client and `game-canvas` UI is written against RN-shaped components (`View`, `Text`,
+`Pressable`, `StyleSheet.create`, etc. — a leftover convention from a prior React Native
+version of this app) implemented by `packages/rn-compat`, not `react-native`/`react-native-web`
+(both fully removed). Style objects accept RN-only shorthands (`paddingHorizontal`,
+`shadowColor`/`shadowOffset`/`shadowOpacity`/`shadowRadius`, `transform` as an array) —
+`flattenStyle()` in `packages/rn-compat/src/styles.ts` normalizes them to plain CSS. See ADR
+011 for why, and `packages/rn-compat/src/index.tsx`'s top-of-file comment for the shim's
+documented ceiling before reaching for a new component or style property it doesn't cover.
 
 ### Swabian Terminology
 
@@ -92,11 +103,9 @@ Tests in `__tests__/` directories alongside source files. Run: `pnpm test` or `p
 
 **Regression tests**: Always add when fixing bugs. Document the scenario, use realistic values, name like `'does X correctly (regression)'`.
 
-**Android smoke test**: `apps/client/e2e/startup-create-join.yaml` (Maestro) runs in CI against a real Android emulator + Firebase RTDB Local Emulator — catches native startup crashes that `vitest`/`tsc` can't (e.g. native module version mismatches, the `crypto.subtle` vs `expo-crypto` gap that shipped once). Merge-blocking as of 2026-07-14.
+**E2E smoke test**: `apps/client/e2e/startup-create-join.spec.ts` (Playwright) runs in CI against a real browser + Firebase RTDB Local Emulator — boots the app, creates a session in one browser context, joins by code from a second, catches startup/bundling breakage that `vitest`/`tsc` can't.
 
-The APK under test is the `standalone` Android build type (see `apps/client/plugins/withStandaloneBuildType.ts`), not `debug` — `debug` shows the Expo dev-launcher instead of the app when there's no Metro server, which a CI emulator never has. `standalone` is non-debuggable (bundles JS like `release`, signed with the debug keystore, no production secrets needed) but that also means Android blocks cleartext traffic by default, so `apps/client/plugins/withStandaloneCleartextTraffic.ts` allows it scoped to that build type only — production `release` is untouched, cleartext stays blocked there. The emulator connection itself goes over `adb reverse tcp:9000 tcp:9000` (see the CI job), not the `10.0.2.2` NAT alias, which proved unreliable on GitHub Actions runners.
-
-Run locally: boot an Android emulator, `cd apps/client && EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true npx expo run:android` (uses the `debug` variant, which already allows cleartext — fine for manual local runs), start `pnpm exec firebase emulators:start --only database --project demo-dabb` from repo root, run `adb reverse tcp:9000 tcp:9000` (the app connects to `localhost:9000`, which is the _emulator's_ localhost — this tunnels it to your machine's), then `maestro test apps/client/e2e/startup-create-join.yaml`.
+Run locally from repo root: `pnpm exec firebase emulators:start --only database --project demo-dabb` (terminal 1), `./dev.sh` or `cd apps/client && EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true pnpm exec vite` (terminal 2), then `cd apps/client && pnpm exec playwright test`. Playwright's own `webServer` config can also boot both automatically — see `apps/client/playwright.config.ts`.
 
 ## Conventions
 
@@ -131,6 +140,6 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 ## Versioning & Changelog
 
-Version sources: root `package.json` and `apps/client/app.json` `expo.version` — keep in sync.
+Version sources: root `package.json` and `apps/client/package.json` — keep in sync.
 
-Bump type: MAJOR (breaking protocol change), MINOR (new user feature), PATCH (bug fix/internal). Update all version files (`package.json` root, `apps/client/package.json`, `apps/client/app.json`) and add an entry to `CHANGELOG.md` in user-friendly language (no jargon). MAJOR bumps must note that users must update the app.
+Bump type: MAJOR (breaking protocol change), MINOR (new user feature), PATCH (bug fix/internal). Update both version files and add an entry to `CHANGELOG.md` in user-friendly language (no jargon). MAJOR bumps must note that users on an outdated cached version should reload (the PWA's service worker prompts for this automatically — see `apps/client/src/main.tsx`).

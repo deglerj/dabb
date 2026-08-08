@@ -14,8 +14,6 @@ vi.mock('firebase/database', () => ({
 }));
 
 describe('firebase config emulator connection', () => {
-  const originalEnv = process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR;
-
   beforeEach(() => {
     vi.resetModules();
     connectDatabaseEmulatorMock.mockClear();
@@ -23,21 +21,17 @@ describe('firebase config emulator connection', () => {
   });
 
   afterEach(() => {
-    if (originalEnv === undefined) {
-      delete process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR;
-    } else {
-      process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR = originalEnv;
-    }
+    vi.unstubAllEnvs();
   });
 
   it('does not connect to the emulator by default', async () => {
-    delete process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR;
+    vi.stubEnv('EXPO_PUBLIC_USE_FIREBASE_EMULATOR', undefined);
     await import('../config.js');
     expect(connectDatabaseEmulatorMock).not.toHaveBeenCalled();
   });
 
   it('connects to the emulator when EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true', async () => {
-    process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR = 'true';
+    vi.stubEnv('EXPO_PUBLIC_USE_FIREBASE_EMULATOR', 'true');
     await import('../config.js');
     expect(connectDatabaseEmulatorMock).toHaveBeenCalledWith(
       getDatabaseMock.mock.results[0]?.value,

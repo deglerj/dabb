@@ -1,7 +1,7 @@
 /**
  * Home screen — three entry points: offline vs AI, create online, join online.
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+  useSafeAreaInsets,
+} from '@dabb/rn-compat';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@dabb/i18n';
 import type { PlayerCount } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
@@ -21,13 +21,16 @@ import { storageGet, storageSet } from '../../hooks/useStorage.js';
 import { createSession, joinSession } from '../../firebase/session.js';
 import { APP_VERSION } from '../../constants.js';
 import { OptionsButton } from './OptionsButton.js';
+import { Icon } from './Icon.js';
+import { useInstallPrompt } from '../../hooks/useInstallPrompt.js';
+import { InstallInstructionsDialog } from './InstallInstructionsDialog.js';
 
 type Mode = 'menu' | 'create' | 'join' | 'offline';
 type GamePhaseString = string;
 
 export default function HomeScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>('menu');
   const [nickname, setNickname] = useState('');
@@ -38,6 +41,8 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [resumableGame, setResumableGame] = useState(false);
   const insets = useSafeAreaInsets();
+  const { canInstall, promptInstall, instructionsPlatform } = useInstallPrompt();
+  const [showInstallInstructions, setShowInstallInstructions] = useState(false);
 
   // Restore nickname from storage on mount
   useEffect(() => {
@@ -92,7 +97,7 @@ export default function HomeScreen() {
         })
       );
       await storageSet('dabb-nickname', nickname.trim());
-      router.push({ pathname: '/waiting-room/[code]', params: { code: result.sessionCode } });
+      navigate(`/waiting-room/${result.sessionCode}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
@@ -126,7 +131,7 @@ export default function HomeScreen() {
         })
       );
       await storageSet('dabb-nickname', nickname.trim());
-      router.push({ pathname: '/waiting-room/[code]', params: { code } });
+      navigate(`/waiting-room/${code}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknownError'));
     } finally {
@@ -144,22 +149,17 @@ export default function HomeScreen() {
       return;
     }
     await storageSet('dabb-nickname', nickname.trim());
-    router.push({
-      pathname: '/game/offline',
-      params: {
-        playerCount: String(playerCount),
-        difficulty,
-        nickname: nickname.trim(),
-        resume: 'false',
-      },
+    const params = new URLSearchParams({
+      playerCount: String(playerCount),
+      difficulty,
+      nickname: nickname.trim(),
+      resume: 'false',
     });
+    navigate(`/game/offline?${params.toString()}`);
   };
 
   const handleResume = () => {
-    router.push({
-      pathname: '/game/offline',
-      params: { resume: 'true' },
-    });
+    navigate('/game/offline?resume=true');
   };
 
   if (mode === 'menu') {
@@ -203,15 +203,33 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.version}>v{APP_VERSION}</Text>
+            <View style={styles.footerRow}>
+              <Text style={styles.version}>v{APP_VERSION}</Text>
+              {(canInstall || instructionsPlatform) && (
+                <TouchableOpacity
+                  style={styles.installButton}
+                  onPress={canInstall ? promptInstall : () => setShowInstallInstructions(true)}
+                >
+                  <Icon name="download" size={12} color={Colors.inkFaint} />
+                  <Text style={styles.installButtonText}>{t('home.installApp')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </ScrollView>
-        <SafeAreaView
-          edges={['right']}
-          style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+        <InstallInstructionsDialog
+          visible={showInstallInstructions}
+          platform={instructionsPlatform}
+          onClose={() => setShowInstallInstructions(false)}
+        />
+        <View
+          style={[
+            styles.optionsButtonContainer,
+            { top: insets.top + 8, paddingRight: insets.right },
+          ]}
         >
           <OptionsButton />
-        </SafeAreaView>
+        </View>
       </View>
     );
   }
@@ -368,12 +386,11 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-      <SafeAreaView
-        edges={['right']}
-        style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+      <View
+        style={[styles.optionsButtonContainer, { top: insets.top + 8, paddingRight: insets.right }]}
       >
         <OptionsButton />
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -486,11 +503,31 @@ const styles = StyleSheet.create({
   },
   actionRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   flex1: { flex: 1 },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 24,
+  },
   version: {
     fontFamily: Fonts.body,
     fontSize: 12,
     color: Colors.inkFaint,
-    textAlign: 'center',
-    marginTop: 24,
+  },
+  installButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
+  },
+  installButtonText: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
+    color: Colors.inkFaint,
   },
 });

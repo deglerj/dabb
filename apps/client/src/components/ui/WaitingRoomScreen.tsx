@@ -11,14 +11,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Share,
   Pressable,
   ScrollView,
   ViewStyle,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+  useSafeAreaInsets,
+} from '@dabb/rn-compat';
+import { Icon } from './Icon.js';
 import type { PlayerIndex } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import { useTranslation } from '@dabb/i18n';
@@ -67,10 +65,13 @@ function WaitingRoomScreen({
   const canStart = playerCount > 0 && connectedPlayers === playerCount;
 
   const handleShare = async () => {
+    const message = `${t('waitingRoom.shareMessage')} Code: ${sessionCode}`;
     try {
-      await Share.share({
-        message: `${t('waitingRoom.shareMessage')} Code: ${sessionCode}`,
-      });
+      if (navigator.share) {
+        await navigator.share({ text: message });
+        return;
+      }
+      await navigator.clipboard.writeText(message);
     } catch (error) {
       console.error('Share failed:', error);
     }
@@ -78,10 +79,13 @@ function WaitingRoomScreen({
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={[Colors.woodLight, Colors.woodMid, Colors.woodDark, Colors.woodMid]}
-        locations={[0, 0.3, 0.7, 1]}
-        style={StyleSheet.absoluteFill}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundImage: `linear-gradient(180deg, ${Colors.woodLight} 0%, ${Colors.woodMid} 30%, ${Colors.woodDark} 70%, ${Colors.woodMid} 100%)`,
+          },
+        ]}
       />
       <ScrollView
         contentContainerStyle={[
@@ -103,7 +107,7 @@ function WaitingRoomScreen({
             onPress={handleShare}
           >
             <View style={styles.buttonContent}>
-              <Feather name="share-2" size={14} color={Colors.inkDark} />
+              <Icon name="share-2" size={14} color={Colors.inkDark} />
               <Text style={styles.shareButtonText}>{t('common.share')}</Text>
             </View>
           </Pressable>
@@ -122,7 +126,7 @@ function WaitingRoomScreen({
                 return (
                   <View key={index} style={styles.playerRow}>
                     {player?.isAI ? (
-                      <Feather name="cpu" size={14} color={Colors.inkFaint} style={styles.aiIcon} />
+                      <Icon name="cpu" size={14} color={Colors.inkFaint} style={styles.aiIcon} />
                     ) : (
                       <View
                         style={[
@@ -145,7 +149,7 @@ function WaitingRoomScreen({
                         style={styles.removeAIButton}
                         onPress={() => onRemoveAI(index as PlayerIndex)}
                       >
-                        <Feather name="x" size={14} color={Colors.error} />
+                        <Icon name="x" size={14} color={Colors.error} />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -190,7 +194,7 @@ function WaitingRoomScreen({
                   {isAddingAI ? (
                     <ActivityIndicator size="small" color={Colors.inkFaint} />
                   ) : (
-                    <Feather name="cpu" size={16} color={Colors.inkMid} />
+                    <Icon name="cpu" size={16} color={Colors.inkMid} />
                   )}
                   <Text style={styles.addAIButtonText}>{t('waitingRoom.addAIPlayer')}</Text>
                 </View>
@@ -227,7 +231,7 @@ function WaitingRoomScreen({
             >
               <View style={styles.buttonContent}>
                 {canStart ? (
-                  <Feather name="play" size={18} color={Colors.inkDark} />
+                  <Icon name="play" size={18} color={Colors.inkDark} />
                 ) : (
                   <ActivityIndicator size="small" color={Colors.inkFaint} />
                 )}
@@ -238,18 +242,17 @@ function WaitingRoomScreen({
 
           <TouchableOpacity style={styles.leaveButton} onPress={onLeave}>
             <View style={styles.buttonContent}>
-              <Feather name="log-out" size={16} color={Colors.error} />
+              <Icon name="log-out" size={16} color={Colors.error} />
               <Text style={styles.leaveButtonText}>{t('common.leave')}</Text>
             </View>
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <SafeAreaView
-        edges={['right']}
-        style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+      <View
+        style={[styles.optionsButtonContainer, { top: insets.top + 8, paddingRight: insets.right }]}
       >
         <OptionsButton />
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

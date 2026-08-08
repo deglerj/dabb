@@ -2,9 +2,9 @@
  * Gear icon button that opens the OptionsDialog.
  * Render inside a View with position: 'absolute' applied externally.
  */
-import React, { useState } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { useState } from 'react';
+import { TouchableOpacity, StyleSheet } from '@dabb/rn-compat';
+import { Icon } from './Icon.js';
 import { Colors } from '../../theme.js';
 import { OptionsDialog } from './OptionsDialog.js';
 
@@ -18,7 +18,7 @@ export function OptionsButton({ onExitGame }: OptionsButtonProps) {
   return (
     <>
       <TouchableOpacity style={styles.button} onPress={() => setDialogVisible(true)} hitSlop={8}>
-        <Feather name="settings" size={20} color={Colors.paperFace} />
+        <Icon name="settings" size={20} color={Colors.paperFace} />
       </TouchableOpacity>
       <OptionsDialog
         visible={dialogVisible}

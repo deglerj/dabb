@@ -1,9 +1,9 @@
 {
   "name": "dabb",
-  "version": "2.2.1",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
-  "description": "Binokel card game - multiplayer web and mobile app",
+  "description": "Binokel card game - multiplayer installable PWA",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -16,7 +16,7 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "typecheck": "turbo run typecheck",
     "simulate": "pnpm --filter @dabb/simulate simulate",
-    "postinstall": "bash scripts/setup-hooks.sh && bash scripts/fix-hermes.sh"
+    "postinstall": "bash scripts/setup-hooks.sh"
   },
   "devDependencies": {
     "firebase-tools": "^15.25.1",

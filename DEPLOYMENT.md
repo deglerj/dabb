@@ -4,11 +4,10 @@
 
 Dabb is a serverless P2P application with no self-hosted backend.
 
-| Component   | Provider           | Details                                  |
-| ----------- | ------------------ | ---------------------------------------- |
-| Web app     | Alfahosting (SFTP) | Static files, Apache, `dabb.degler.info` |
-| Android app | Google Play Store  | Published via CI                         |
-| Backend     | Firebase RTDB      | Google-managed, `europe-west1`           |
+| Component | Provider           | Details                                                         |
+| --------- | ------------------ | --------------------------------------------------------------- |
+| Web app   | Alfahosting (SFTP) | Static files, Apache, `dabb.degler.info` — installable as a PWA |
+| Backend   | Firebase RTDB      | Google-managed, `europe-west1`                                  |
 
 ---
 
@@ -46,52 +45,9 @@ Web client is deployed automatically by GitHub Actions on every push to `main` t
 
 ---
 
-## Android Deployment (Automated)
-
-Android AAB is published to Google Play via GitHub Actions.
-
-**Workflow:** `.github/workflows/publish-android.yml`
-
-Runs when triggered manually or on release tags.
-
----
-
-## Local Android Development
-
-**Prerequisites (one-time setup per machine):**
-
-1. Install JDK 21:
-
-   ```bash
-   sudo pacman -S jdk21-openjdk
-   ```
-
-2. Tell Gradle to use it (system Java can stay at 26):
-
-   ```properties
-   # ~/.gradle/gradle.properties
-   org.gradle.java.home=/usr/lib/jvm/java-21-openjdk
-   ```
-
-3. Install dependencies (also runs Hermes and Skia setup):
-
-   ```bash
-   pnpm install
-   ```
-
-4. Run on a connected device or emulator:
-   ```bash
-   cd apps/client
-   npx expo run:android
-   ```
-
-**Why JDK 21?** Expo SDK 56 ships Gradle 9.0.0, which requires Java ≤ 21. The build environment (Docker) uses Java 21 via `eclipse-temurin:21-jdk-jammy`; local dev needs the same.
-
----
-
 ## Firebase Setup
 
-The Firebase project (`dabb`) must be configured once manually. Steps: create a Firebase project, enable Realtime Database (`europe-west1`), register the web/Android app, copy the config values as environment variables, and apply the security rules below.
+The Firebase project (`dabb`) must be configured once manually. Steps: create a Firebase project, enable Realtime Database (`europe-west1`), register the web app, copy the config values as environment variables, and apply the security rules below.
 
 **Firebase security rules** (set in Firebase Console → Realtime Database → Rules):
 

@@ -1,8 +1,7 @@
 /**
  * TrumpOverlay — four suit coins; tapping one selects trump.
  */
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from '@dabb/rn-compat';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 import type { Suit } from '@dabb/shared-types';

@@ -5,8 +5,8 @@
 ```mermaid
 flowchart TB
     subgraph apps
-        client["client (web + Android/iOS)"]
-        server
+        client["client (installable PWA)"]
+        simulate["simulate (simulation CLI)"]
     end
 
     subgraph packages
@@ -17,6 +17,7 @@ flowchart TB
         ui[ui-shared]
         assets[card-assets]
         i18n[i18n]
+        rncompat[rn-compat]
     end
 
     client --> types
@@ -26,13 +27,15 @@ flowchart TB
     client --> ui
     client --> assets
     client --> i18n
+    client --> rncompat
 
-    server["server (simulation CLI)"] --> types
-    server --> logic
-    server --> gameai
+    simulate --> types
+    simulate --> logic
+    simulate --> gameai
 
     canvas --> types
     canvas --> assets
+    canvas --> rncompat
 
     ui --> types
     ui --> logic
@@ -51,10 +54,11 @@ flowchart TB
 | `@dabb/game-logic`   | Core game rules, state reducer, meld detection           |
 | `@dabb/game-ai`      | AI player logic, offline game engine (OfflineGameEngine) |
 | `@dabb/ui-shared`    | React hooks for game state, round history, and log       |
-| `@dabb/card-assets`  | SVG card graphics and utilities                          |
+| `@dabb/card-assets`  | Card display data (suit colors, symbols, rank strings)   |
 | `@dabb/i18n`         | Internationalization (German, English)                   |
-| `@dabb/client`       | React Native + Expo client (Android/iOS/web)             |
-| `@dabb/game-canvas`  | Skia-based game canvas rendering                         |
+| `@dabb/rn-compat`    | Minimal React Native-shaped component shim (ADR 011)     |
+| `@dabb/client`       | React + Vite installable PWA client                      |
+| `@dabb/game-canvas`  | WebGL/Canvas2D game canvas rendering                     |
 | `@dabb/simulate`     | AI simulation CLI (`pnpm simulate`)                      |
 
 ## 5.2 Level 2: Packages
@@ -126,7 +130,7 @@ src/
     └── runner.ts                 # CLI entry point (`pnpm simulate`)
 ```
 
-The server package exists solely to provide the AI simulation CLI. It has no database, HTTP server, or Socket.IO dependencies.
+The `simulate` app exists solely to provide the AI simulation CLI. It has no database, HTTP server, or network dependencies — games run entirely in-memory.
 
 | Component          | Responsibility                                                          |
 | ------------------ | ----------------------------------------------------------------------- |

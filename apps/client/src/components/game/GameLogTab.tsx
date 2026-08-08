@@ -3,9 +3,9 @@
  * Always mounted; uses height/overflow to show/hide content (no conditional mount).
  * When collapsed, shows the last important event inline in the header.
  */
-import React, { useRef, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
-import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { useRef, useEffect } from 'react';
+import { View, Text, ScrollView, Pressable, StyleSheet } from '@dabb/rn-compat';
+import type { NativeScrollEvent, NativeSyntheticEvent, ScrollViewHandle } from '@dabb/rn-compat';
 import { useTranslation } from '@dabb/i18n';
 
 export interface MeldDetail {
@@ -29,7 +29,7 @@ export interface GameLogTabProps {
 
 export function GameLogTab({ entries, isExpanded, onToggle, collapsedSummary }: GameLogTabProps) {
   const { t } = useTranslation();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewHandle>(null);
   const isAtBottom = useRef(true);
 
   // Scroll to bottom when panel opens

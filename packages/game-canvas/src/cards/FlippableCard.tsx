@@ -5,23 +5,11 @@
  * When instant=true, snaps immediately to face-up (cancels any in-progress animation).
  * When flipped is already true on mount, renders face immediately (no animation).
  */
-import React, { useRef, useState, useEffect } from 'react';
-import { View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  useAnimatedReaction,
-  withSequence,
-  withTiming,
-  cancelAnimation,
-  Easing,
-} from 'react-native-reanimated';
-import { runOnJS } from 'react-native-worklets';
+import { useRef, useState, useEffect } from 'react';
+import { View } from '@dabb/rn-compat';
 import type { Card } from '@dabb/shared-types';
 import { CardBack } from './CardBack.js';
 import { CardFace } from './CardFace.js';
-
-const AnimatedView = Animated.createAnimatedComponent(View);
 
 export interface FlippableCardProps {
   card: Card; // card.id is passed to CardFace internally
@@ -31,59 +19,67 @@ export interface FlippableCardProps {
   height: number;
 }
 
+const EASE_IN_CUBIC = 'cubic-bezier(0.55,0.055,0.675,0.19)';
+const EASE_OUT_CUBIC = 'cubic-bezier(0.215,0.61,0.355,1)';
+
 export function FlippableCard({ card, flipped, instant, width, height }: FlippableCardProps) {
-  // showFace drives which canvas is rendered; starts true if already flipped on mount
+  // showFace drives which side is rendered; starts true if already flipped on mount
   const [showFace, setShowFace] = useState(flipped);
-  const rotateY = useSharedValue(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   // Prevent re-triggering animation if already fired
   const hasFlipped = useRef(flipped);
 
-  // Swap content at the midpoint of the flip (card edge-on at 90°)
-  useAnimatedReaction(
-    () => rotateY.value,
-    (current: number, previous: number | null) => {
-      if (previous !== null && previous < 90 && current >= 90) {
-        runOnJS(setShowFace)(true);
-      }
-    }
-  );
-
   useEffect(() => {
+    const el = containerRef.current as unknown as HTMLElement | null;
+
     if (!flipped) {
       return;
     }
 
     if (instant) {
-      // Cancel any in-progress flip and reveal face immediately
-      cancelAnimation(rotateY);
-      rotateY.value = 0;
+      if (el?.style) {
+        el.style.transition = 'none';
+        el.style.transform = 'perspective(800px) rotateY(0deg)';
+      }
       setShowFace(true);
       hasFlipped.current = true;
       return;
     }
 
     if (hasFlipped.current) {
-      return;
-    } // already animated or already face-up on mount
+      return; // already animated or already face-up on mount
+    }
     hasFlipped.current = true;
 
-    // Phase 1: back rotates to edge (0° → 90°, 100ms)
-    // Instant jump to -90° (zero-duration timing)
-    // Phase 2: face rotates in from the other side (-90° → 0°, 100ms)
-    // Content swap happens via useAnimatedReaction when rotateY passes through 90°.
-    rotateY.value = withSequence(
-      withTiming(90, { duration: 100, easing: Easing.in(Easing.cubic) }),
-      withTiming(-90, { duration: 0 }), // instant jump to start of face-reveal phase
-      withTiming(0, { duration: 100, easing: Easing.out(Easing.cubic) })
-    );
-  }, [flipped, instant, rotateY]);
+    if (!el?.style) {
+      setShowFace(true);
+      return;
+    }
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ perspective: 800 }, { rotateY: `${rotateY.value}deg` }],
-  }));
+    // Phase 1: back rotates to edge-on (0deg -> 90deg)
+    el.style.transition = `transform 100ms ${EASE_IN_CUBIC}`;
+    el.style.transform = 'perspective(800px) rotateY(90deg)';
+
+    const timeoutId = setTimeout(() => {
+      const el2 = containerRef.current as unknown as HTMLElement | null;
+      if (!el2?.style) {
+        return;
+      }
+      // Instant jump to the start of the face-reveal phase, content swap happens while
+      // edge-on (effectively invisible), then phase 2 rotates the face in from the other side.
+      el2.style.transition = 'none';
+      el2.style.transform = 'perspective(800px) rotateY(-90deg)';
+      setShowFace(true);
+      void el2.offsetHeight;
+      el2.style.transition = `transform 100ms ${EASE_OUT_CUBIC}`;
+      el2.style.transform = 'perspective(800px) rotateY(0deg)';
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [flipped, instant]);
 
   return (
-    <AnimatedView style={[{ width, height }, animatedStyle]}>
+    <View ref={containerRef} style={{ width, height }}>
       {/* Both children are position:absolute — wrapper provides the bounding box */}
       <View style={{ width, height }}>
         {/* Show CardBack if face isn't revealed yet, or if the card data is still hidden (placeholder) */}
@@ -92,6 +88,6 @@ export function FlippableCard({ card, flipped, instant, width, height }: Flippab
           <CardFace card={card.id} width={width} height={height} />
         )}
       </View>
-    </AnimatedView>
+    </View>
   );
 }

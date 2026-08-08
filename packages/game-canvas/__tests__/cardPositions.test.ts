@@ -106,10 +106,10 @@ describe('deriveCardPositions', () => {
 });
 
 describe('deriveCardPositions — hand scaling', () => {
-  it('does not scale down when hand fits comfortably (few cards, wide screen)', () => {
+  it('scales up to the cap when hand fits comfortably (few cards, wide screen)', () => {
     const layout = { width: 800, height: 1200, playerCount: 3 as const };
     const result = deriveCardPositions(makeInput(5), layout);
-    expect(result.cardScale).toBe(1);
+    expect(result.cardScale).toBe(1.5);
   });
 
   it('scales down when a large row overflows a 375px portrait phone', () => {

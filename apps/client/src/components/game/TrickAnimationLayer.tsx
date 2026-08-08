@@ -7,21 +7,24 @@
  * - Staggered sweep to winner's corner (sweepingCardCount from hook)
  */
 import React, { useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { CardView, deriveCardPositions, type SkiaEffects } from '@dabb/game-canvas';
+import { View, Text, StyleSheet } from '@dabb/rn-compat';
+import { CardView, deriveCardPositions, getTableScale, type TableEffects } from '@dabb/game-canvas';
 import type { Player, PlayerIndex } from '@dabb/shared-types';
 import type { TrickAnimationResult } from '@dabb/ui-shared';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 
 const HAND_Y_FRACTION = 0.82;
 const CARD_W = 70;
+const CARD_H = 105;
 
 export interface TrickAnimationLayerProps {
   animState: TrickAnimationResult;
   myPlayerIndex: PlayerIndex;
   players: Player[];
+  /** Display names keyed by playerIndex; falls back to player.nickname when absent. */
+  nicknames: Map<PlayerIndex, string>;
   playerCount: 3 | 4;
-  effects?: SkiaEffects;
+  effects?: TableEffects;
   /** Drop position from the local player's last drag-to-play; used as card flight origin. */
   localPlayerDropOrigin?: { x: number; y: number };
 }
@@ -30,12 +33,15 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
   animState,
   myPlayerIndex,
   players,
+  nicknames,
   playerCount,
   effects,
   localPlayerDropOrigin,
 }: TrickAnimationLayerProps) {
   const { width, height } = useGameDimensions();
   const { animPhase, displayCards, winnerIndex, winnerPlayerId, sweepingCardCount } = animState;
+  const scale = getTableScale(width);
+  const scaledCardW = CARD_W * scale;
 
   // Local player at index 0 (bottom-left), then opponents descending so that
   // the rightmost opponent gets WON_PILE_CORNERS[1]=topRight and the leftmost gets [2]=topLeft.
@@ -150,6 +156,8 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
               targetY={targetY}
               targetRotation={targetRotation}
               zIndex={isSweeping ? 10 + i : settled.zIndex}
+              width={scaledCardW}
+              height={CARD_H * scale}
               // initialX/Y used only on first mount — CardView arcs from here to target
               initialX={origin.x}
               initialY={origin.y}
@@ -157,14 +165,17 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
             />
             {showLabel && player && (
               <View
-                style={[styles.labelContainer, { left: targetX, top: targetY - 20, width: CARD_W }]}
+                style={[
+                  styles.labelContainer,
+                  { left: targetX, top: targetY - 20, width: scaledCardW },
+                ]}
                 pointerEvents="none"
               >
                 <Text
                   style={[styles.labelText, isWinner && styles.labelTextWinner]}
                   numberOfLines={1}
                 >
-                  {player.nickname}
+                  {nicknames.get(pc.playerIndex) ?? player.nickname}
                 </Text>
               </View>
             )}

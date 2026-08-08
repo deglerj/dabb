@@ -1,5 +1,4 @@
-import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet } from '@dabb/rn-compat';
 import { useTranslation } from '@dabb/i18n';
 import { Colors, Fonts } from '../theme.js';
 

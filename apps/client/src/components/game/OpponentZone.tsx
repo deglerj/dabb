@@ -3,9 +3,8 @@
  * Landscape/tablet: nameplate + fanned card backs.
  * Portrait phone: nameplate only.
  */
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { CardBackView } from '@dabb/game-canvas';
+import { View, Text, StyleSheet } from '@dabb/rn-compat';
+import { CardBackView, getTableScale } from '@dabb/game-canvas';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 import type { PlayerIndex } from '@dabb/shared-types';
 
@@ -20,6 +19,8 @@ export interface OpponentZoneProps {
 
 const CARD_W = 40;
 const CARD_H = 60;
+const MAX_FAN_CARDS = 6;
+const OVERLAP = 28;
 
 export function OpponentZone({
   nickname,
@@ -32,6 +33,14 @@ export function OpponentZone({
   const isLandscape = width > height;
   const isTablet = Math.min(width, height) > 600;
   const showCards = isLandscape || isTablet;
+  const scale = getTableScale(width);
+  const scaledW = CARD_W * scale;
+  const scaledH = CARD_H * scale;
+  const maxFanWidth = scaledW + (MAX_FAN_CARDS - 1) * (scaledW - OVERLAP * scale);
+  const fanStep =
+    cardCount > MAX_FAN_CARDS
+      ? (maxFanWidth - scaledW) / (cardCount - 1)
+      : scaledW - OVERLAP * scale;
 
   return (
     <View style={[styles.container, { left: position.x - 40, top: position.y - 20 }]}>
@@ -44,9 +53,9 @@ export function OpponentZone({
       </View>
       {showCards && cardCount > 0 && (
         <View style={styles.cardFan}>
-          {Array.from({ length: Math.min(cardCount, 6) }).map((_, i) => (
-            <View key={i} style={{ marginLeft: i === 0 ? 0 : -28 }}>
-              <CardBackView width={CARD_W} height={CARD_H} />
+          {Array.from({ length: cardCount }).map((_, i) => (
+            <View key={i} style={{ marginLeft: i === 0 ? 0 : fanStep - scaledW }}>
+              <CardBackView width={scaledW} height={scaledH} />
             </View>
           ))}
         </View>

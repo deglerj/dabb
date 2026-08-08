@@ -1,6 +1,4 @@
-import React from 'react';
-import { TouchableOpacity, type TouchableOpacityProps } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { TouchableOpacity, type TouchableOpacityProps } from '@dabb/rn-compat';
 
 interface HapticTouchableOpacityProps extends TouchableOpacityProps {
   hapticsEnabled?: boolean;
@@ -12,12 +10,8 @@ export function HapticTouchableOpacity({
   ...props
 }: HapticTouchableOpacityProps) {
   const handlePress: TouchableOpacityProps['onPress'] = (event) => {
-    if (hapticsEnabled) {
-      try {
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch {
-        // Fail silently
-      }
+    if (hapticsEnabled && 'vibrate' in navigator) {
+      navigator.vibrate(10);
     }
     onPress?.(event);
   };

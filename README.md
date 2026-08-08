@@ -6,7 +6,8 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
-[![Expo](https://img.shields.io/badge/Expo-55-000020.svg?logo=expo&logoColor=white)](https://expo.dev/)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF.svg?logo=vite&logoColor=white)](https://vite.dev/)
+[![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8.svg?logo=pwa&logoColor=white)](https://web.dev/explore/progressive-web-apps)
 [![Firebase](https://img.shields.io/badge/Firebase-RTDB-FFCA28.svg?logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Turborepo](https://img.shields.io/badge/Turborepo-2-EF4444.svg?logo=turborepo&logoColor=white)](https://turbo.build/)
 [![pnpm](https://img.shields.io/badge/pnpm-10-F69220.svg?logo=pnpm&logoColor=white)](https://pnpm.io/)
@@ -30,7 +31,7 @@ _Play the traditional Swabian card game Binokel with friends online!_
 
 - **Real-time multiplayer** - Play with friends anywhere
 - **AI opponents** - Add AI players to fill empty seats or practice solo
-- **Cross-platform** - Web and Android support
+- **Installable PWA** - Runs in any browser; install to your home screen on Android or iOS for an app-like experience, offline-capable
 - **Multi-language** - German and English UI (Swabian card terms preserved)
 - **Event-sourced** - Reliable state management with reconnection support
 - **Swabian dialect** - Authentic card names and terminology
@@ -113,32 +114,33 @@ Want to practice without a server connection? The app also supports a fully offl
 
 ### Tech Stack
 
-| Component | Technology                 |
-| --------- | -------------------------- |
-| Monorepo  | pnpm + Turborepo           |
-| Backend   | Firebase Realtime Database |
-| Client    | React Native + Expo        |
-| Types     | TypeScript                 |
+| Component | Technology                     |
+| --------- | ------------------------------ |
+| Monorepo  | pnpm + Turborepo               |
+| Backend   | Firebase Realtime Database     |
+| Client    | React + Vite (installable PWA) |
+| Types     | TypeScript                     |
 
 ### Project Structure
 
 ```
 dabb/
 ├── apps/
-│   ├── client/     # React Native + Expo app (Android/iOS/web)
-│   └── server/     # AI simulation CLI only (pnpm simulate)
+│   ├── client/     # React + Vite PWA client
+│   └── simulate/   # AI simulation CLI only (pnpm simulate)
 ├── packages/
 │   ├── game-logic/     # Core game engine
 │   ├── game-ai/        # AI player logic and offline game engine
 │   ├── shared-types/   # TypeScript types
-│   ├── game-canvas/    # Skia card table rendering
+│   ├── game-canvas/    # WebGL/Canvas2D card table rendering
 │   ├── ui-shared/      # Shared React hooks
-│   ├── card-assets/    # Card graphics and constants
-│   └── i18n/           # Internationalization
+│   ├── card-assets/    # Card display data (suit colors, symbols)
+│   ├── i18n/           # Internationalization
+│   └── rn-compat/      # Minimal React Native-shaped component shim
 └── turbo.json
 ```
 
-> **No application server.** The game backend is Firebase Realtime Database — clients connect directly. `apps/server` exists only for the `pnpm simulate` AI testing CLI.
+> **No application server.** The game backend is Firebase Realtime Database — clients connect directly. `apps/simulate` exists only for the `pnpm simulate` AI testing CLI.
 
 ### Prerequisites
 
@@ -170,37 +172,14 @@ pnpm test
 pnpm --filter @dabb/client start
 ```
 
-### Mobile Development on Android
+### Installing on Your Phone
 
-The app uses `@shopify/react-native-skia` and `react-native-reanimated` v4, which are not reliably supported in Expo Go. A **custom development build** is required.
+Dabb is a Progressive Web App — there's no app store download. Open [dabb.degler.info](https://dabb.degler.info) in your phone's browser, then:
 
-#### One-time setup: install the dev APK
+- **Android (Chrome):** tap the menu (⋮) → **Add to Home screen**, or use the install prompt Chrome shows automatically.
+- **iOS (Safari):** tap the Share icon → **Add to Home Screen**. (iOS only supports this through Safari, not Chrome or other browsers.)
 
-**Option A — Docker + ADB (zero local setup):** Requires Docker and `adb` (Android platform-tools). No JDK or Android SDK needed.
-
-```bash
-./install-android.sh              # build via Docker, install on connected device
-./install-android.sh --skip-build # reinstall without rebuilding
-```
-
-Enable USB debugging on your device and connect via USB before running.
-
-**Option B — Local build:** Requires JDK 21 (see [DEPLOYMENT.md](DEPLOYMENT.md) → Local Android Development).
-
-```bash
-cd apps/client
-npx expo run:android   # builds and installs directly on connected device/emulator
-```
-
-#### Daily workflow
-
-```bash
-pnpm --filter @dabb/client start
-```
-
-Open the installed dev build on your device — it will connect to Metro and load the JS bundle over your LAN. Subsequent JS changes hot-reload automatically without rebuilding the APK.
-
-**Note:** Your phone and computer must be on the same WiFi network.
+Once installed it launches full-screen from your home screen like a native app, and the app shell keeps working offline.
 
 ### Environment Variables
 

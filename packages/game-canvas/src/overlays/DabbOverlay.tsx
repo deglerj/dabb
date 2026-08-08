@@ -5,8 +5,8 @@
  * then lets the bid winner take them. The discard step has been
  * moved to DiscardOverlay.
  */
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from '@dabb/rn-compat';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 import type { Card } from '@dabb/shared-types';

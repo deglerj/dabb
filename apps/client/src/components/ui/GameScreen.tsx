@@ -3,13 +3,13 @@
  * Connects useGame hook to all sub-components: table, opponents, hand,
  * trick area, scoreboard, overlays, log, celebration, and termination modal.
  */
-import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import type { GameInterface } from '@dabb/ui-shared';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, ActivityIndicator, StyleSheet, useSafeAreaInsets } from '@dabb/rn-compat';
+import { useNavigate, useBlocker } from 'react-router-dom';
 import {
   GameTable,
-  useSkiaEffects,
+  useTableEffects,
   PhaseOverlay,
   BiddingOverlay,
   CardView,
@@ -44,6 +44,7 @@ import { useTurnNotification } from '../../hooks/useTurnNotification.js';
 import { useTurnHaptic } from '../../hooks/useTurnHaptic.js';
 import { playSound } from '../../utils/sounds.js';
 import { triggerHaptic } from '../../utils/haptics.js';
+import { gameActivity } from '../../gameActivity.js';
 import { OpponentZone } from '../game/OpponentZone.js';
 import { PlayerHand } from '../game/PlayerHand.js';
 import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
@@ -54,7 +55,6 @@ import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OptionsButton } from './OptionsButton.js';
 import GameScreenErrorBoundary from './GameScreenErrorBoundary.js';
 
@@ -159,10 +159,10 @@ function formatLogEntryText(
 
 export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const { t } = useTranslation();
-  const router = useRouter();
+  const navigate = useNavigate();
   const { width, height } = useGameDimensions();
   const insets = useSafeAreaInsets();
-  const effects = useSkiaEffects();
+  const effects = useTableEffects();
 
   const {
     state,
@@ -422,18 +422,54 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     nicknames,
   ]);
 
+  // Block accidental navigation (browser back button, closing the tab) while a game is in
+  // progress — the explicit exit/done/reload paths below set skipBlockRef first, since they
+  // already have their own confirmation UX and shouldn't be asked twice.
+  const skipBlockRef = useRef(false);
+  const gameInProgress =
+    state.phase !== 'waiting' && state.phase !== 'finished' && state.phase !== 'terminated';
+  const blocker = useBlocker(() => {
+    if (skipBlockRef.current) {
+      skipBlockRef.current = false;
+      return false;
+    }
+    return gameInProgress;
+  });
+  useEffect(() => {
+    gameActivity.inProgress = gameInProgress;
+    return () => {
+      gameActivity.inProgress = false;
+    };
+  }, [gameInProgress]);
+  useEffect(() => {
+    if (blocker.state !== 'blocked') {
+      return;
+    }
+    const confirmed = window.confirm(
+      `${t('options.exitGameConfirmTitle')}\n${t('options.exitGameConfirmMessage')}`
+    );
+    if (confirmed) {
+      blocker.proceed();
+    } else {
+      blocker.reset();
+    }
+  }, [blocker, t]);
+
   const handleDone = useCallback(() => {
-    router.replace('/');
-  }, [router]);
+    skipBlockRef.current = true;
+    navigate('/', { replace: true });
+  }, [navigate]);
 
   const handleExitGame = useCallback(() => {
     onExit();
-    router.replace('/');
-  }, [onExit, router]);
+    skipBlockRef.current = true;
+    navigate('/', { replace: true });
+  }, [onExit, navigate]);
 
   const handleReload = useCallback(() => {
-    router.replace('/');
-  }, [router]);
+    skipBlockRef.current = true;
+    navigate('/', { replace: true });
+  }, [navigate]);
 
   // Phase overlay
   const showBidding = state.phase === 'bidding';
@@ -459,16 +495,20 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
       {state.phase === 'waiting' ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#c97f00" />
-          <SafeAreaView
-            edges={['right']}
-            style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+          <View
+            style={[
+              styles.optionsButtonContainer,
+              { top: insets.top + 8, paddingRight: insets.right },
+            ]}
           >
             <OptionsButton onExitGame={handleExitGame} />
-          </SafeAreaView>
+          </View>
         </View>
       ) : (
         <View style={styles.outerContainer}>
-          <View style={styles.gameWrapper}>
+          {/* id (not nativeID) avoids RN Web's deprecation warning; dragGesture.ts looks this up
+              by id to convert pointer coordinates into this wrapper's local space. */}
+          <View id="game-wrapper" style={styles.gameWrapper}>
             {/* Skia game table background */}
             <GameTable width={width} height={height} effects={effects} />
 
@@ -514,6 +554,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               animState={trickAnimState}
               myPlayerIndex={playerIndex}
               players={state.players}
+              nicknames={nicknames}
               playerCount={state.playerCount as 3 | 4}
               effects={effects}
               localPlayerDropOrigin={lastDropPos}
@@ -662,12 +703,14 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               terminatedByNickname={terminatedByNickname}
               onDone={handleDone}
             />
-            <SafeAreaView
-              edges={['right']}
-              style={[styles.optionsButtonContainer, { top: insets.top + 8 }]}
+            <View
+              style={[
+                styles.optionsButtonContainer,
+                { top: insets.top + 8, paddingRight: insets.right },
+              ]}
             >
               <OptionsButton onExitGame={handleExitGame} />
-            </SafeAreaView>
+            </View>
           </View>
         </View>
       )}

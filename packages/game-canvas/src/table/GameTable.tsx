@@ -1,36 +1,31 @@
 /**
  * GameTable
  *
- * Full-bleed Skia <Canvas> rendering:
- * - Static: wood surround, felt surface
- * - Dynamic (via effects prop): card shadow, felt ripple, sweep particles
+ * Full-bleed table background and drag/trick effects, rendered onto plain
+ * <canvas> elements (created imperatively via a View ref, matching the
+ * CardFace/CardBack DOM-escape-hatch pattern used elsewhere in this package):
+ * - Static: wood surround + felt surface, each a WebGL1 fragment shader
+ *   (ported from the original Skia SkSL), redrawn only on resize.
+ * - Dynamic (via effects prop): card shadow, felt ripple, sweep particles,
+ *   drawn on a 2D canvas via a requestAnimationFrame loop.
  *
  * Usage:
- *   const effects = useSkiaEffects();
+ *   const effects = useTableEffects();
  *   <GameTable width={w} height={h} effects={effects} />
  */
 
-import React, { useMemo } from 'react';
-import {
-  Canvas,
-  Fill,
-  Skia,
-  Circle,
-  RoundedRect,
-  BlurMask,
-  rect,
-  rrect,
-  Shader,
-} from '@shopify/react-native-skia';
-import { useDerivedValue } from 'react-native-reanimated';
+import { useEffect, useRef } from 'react';
+import { View } from '@dabb/rn-compat';
+import type { ViewStyle } from '@dabb/rn-compat';
+import { computeCanvasBackingSize } from './canvasSizing.js';
 import { DEFAULT_SURROUND_FRACTION } from './feltBounds.js';
-import { FELT_SHADER_SOURCE, WOOD_SHADER_SOURCE } from './shaders.js';
-import type { SkiaEffects } from './useSkiaEffects.js';
+import { FELT_SHADER_SOURCE, WOOD_SHADER_SOURCE, SHADER_VERTEX_SOURCE } from './shaders.js';
+import type { TableEffects } from './useTableEffects.js';
 
 export interface GameTableProps {
   width: number;
   height: number;
-  effects: SkiaEffects;
+  effects: TableEffects;
   surroundFraction?: number;
 }
 
@@ -43,12 +38,201 @@ const SHADOW_OFFSET_Y = 8;
 
 // 6 particles evenly spaced around a circle
 const PARTICLE_SCATTER = 45;
-const A0 = 0;
-const A1 = Math.PI / 3;
-const A2 = (2 * Math.PI) / 3;
-const A3 = Math.PI;
-const A4 = (4 * Math.PI) / 3;
-const A5 = (5 * Math.PI) / 3;
+const PARTICLE_ANGLES = [
+  0,
+  Math.PI / 3,
+  (2 * Math.PI) / 3,
+  Math.PI,
+  (4 * Math.PI) / 3,
+  (5 * Math.PI) / 3,
+];
+
+function compileShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
+  const shader = gl.createShader(type);
+  if (!shader) {
+    throw new Error('Failed to create shader');
+  }
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const info = gl.getShaderInfoLog(shader);
+    gl.deleteShader(shader);
+    throw new Error(`Shader compile error: ${info}`);
+  }
+  return shader;
+}
+
+/** Renders a static (no time uniform) full-bleed fragment shader, redrawn only when its size changes. */
+function ShaderLayer({
+  width,
+  height,
+  source,
+  style,
+}: {
+  width: number;
+  height: number;
+  source: string;
+  style: ViewStyle;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current as unknown as HTMLElement | null;
+    if (!container || width <= 0 || height <= 0) {
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    const dpr = window.devicePixelRatio || 1;
+    const backing = computeCanvasBackingSize(width, height, dpr);
+    canvas.width = backing.width;
+    canvas.height = backing.height;
+    container.appendChild(canvas);
+
+    const gl = canvas.getContext('webgl');
+    if (!gl) {
+      return () => container.removeChild(canvas);
+    }
+
+    const vertexShader = compileShader(gl, gl.VERTEX_SHADER, SHADER_VERTEX_SOURCE);
+    const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, source);
+    const program = gl.createProgram();
+    if (!program) {
+      throw new Error('Failed to create WebGL program');
+    }
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      throw new Error(`Program link error: ${gl.getProgramInfoLog(program)}`);
+    }
+    gl.useProgram(program);
+
+    // Full-screen triangle (covers clip space in one draw call, no center seam)
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const positionLoc = gl.getAttribLocation(program, 'aPosition');
+    gl.enableVertexAttribArray(positionLoc);
+    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+    const resolutionLoc = gl.getUniformLocation(program, 'iResolution');
+    gl.uniform2f(resolutionLoc, canvas.width, canvas.height);
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    return () => {
+      gl.deleteProgram(program);
+      gl.deleteShader(vertexShader);
+      gl.deleteShader(fragmentShader);
+      gl.deleteBuffer(positionBuffer);
+      container.removeChild(canvas);
+    };
+  }, [width, height, source]);
+
+  return <View ref={containerRef} style={style} pointerEvents="none" />;
+}
+
+/** Drag shadow, felt landing ripple, and trick-win sweep particles — drawn on a 2D canvas each frame. */
+function EffectsLayer({
+  width,
+  height,
+  effects,
+}: {
+  width: number;
+  height: number;
+  effects: TableEffects;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current as unknown as HTMLElement | null;
+    if (!container || width <= 0 || height <= 0) {
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    const dpr = window.devicePixelRatio || 1;
+    const backing = computeCanvasBackingSize(width, height, dpr);
+    canvas.width = backing.width;
+    canvas.height = backing.height;
+    container.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return () => container.removeChild(canvas);
+    }
+    ctx.scale(dpr, dpr);
+
+    let rafId: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      const shadowElevation = effects.shadowElevation.value;
+      if (shadowElevation > 0) {
+        const x = effects.shadowX.value - CARD_W / 2;
+        const y = effects.shadowY.value - CARD_H / 2 + SHADOW_OFFSET_Y * shadowElevation;
+        ctx.save();
+        ctx.filter = `blur(${6 + shadowElevation * 8}px)`;
+        ctx.fillStyle = `rgba(0,0,0,${shadowElevation * 0.45})`;
+        ctx.beginPath();
+        ctx.roundRect(x, y, CARD_W, CARD_H, CARD_CORNER_R);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      const rippleProgress = effects.rippleProgress.value;
+      if (rippleProgress < 1) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(255,255,255,${(1 - rippleProgress) * 0.25})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(effects.rippleX.value, effects.rippleY.value, rippleProgress * 60, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      const particleProgress = effects.particleProgress.value;
+      if (particleProgress < 1) {
+        ctx.save();
+        ctx.fillStyle = `rgba(255,220,80,${(1 - particleProgress) * 0.85})`;
+        for (const angle of PARTICLE_ANGLES) {
+          const cx =
+            effects.particleX.value + Math.cos(angle) * particleProgress * PARTICLE_SCATTER;
+          const cy =
+            effects.particleY.value + Math.sin(angle) * particleProgress * PARTICLE_SCATTER;
+          ctx.beginPath();
+          ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      rafId = requestAnimationFrame(draw);
+    };
+    rafId = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      container.removeChild(canvas);
+    };
+  }, [width, height, effects]);
+
+  return (
+    <View
+      ref={containerRef}
+      style={{ position: 'absolute', top: 0, left: 0, width, height }}
+      pointerEvents="none"
+    />
+  );
+}
 
 export function GameTable({
   width,
@@ -60,154 +244,36 @@ export function GameTable({
   const feltW = width - surround * 2;
   const feltH = height - surround * 2;
 
-  // Compile shaders once
-  const feltEffect = useMemo(() => Skia.RuntimeEffect.Make(FELT_SHADER_SOURCE)!, []);
-  const woodEffect = useMemo(() => Skia.RuntimeEffect.Make(WOOD_SHADER_SOURCE)!, []);
-
-  const feltUniforms = useMemo(() => ({ iResolution: [feltW, feltH] }), [feltW, feltH]);
-  const woodUniforms = useMemo(() => ({ iResolution: [width, height] }), [width, height]);
-
-  // Card-shaped shadow driven by shared values
-  const shadowOpacity = useDerivedValue(() => effects.shadowElevation.value * 0.45);
-  const shadowBlur = useDerivedValue(() => 6 + effects.shadowElevation.value * 8);
-  const shadowX = useDerivedValue(() => effects.shadowX.value - CARD_W / 2);
-  const shadowY = useDerivedValue(
-    () => effects.shadowY.value - CARD_H / 2 + SHADOW_OFFSET_Y * effects.shadowElevation.value
-  );
-
-  // Ripple circle driven by shared values
-  const rippleOpacity = useDerivedValue(() => (1 - effects.rippleProgress.value) * 0.25);
-  const rippleRadius = useDerivedValue(() => effects.rippleProgress.value * 60);
-
-  // Particle derived values — 6 circles scatter outward and fade
-  const particleOpacity = useDerivedValue(() => (1 - effects.particleProgress.value) * 0.85);
-  const p0cx = useDerivedValue(
-    () => effects.particleX.value + Math.cos(A0) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p0cy = useDerivedValue(
-    () => effects.particleY.value + Math.sin(A0) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p1cx = useDerivedValue(
-    () => effects.particleX.value + Math.cos(A1) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p1cy = useDerivedValue(
-    () => effects.particleY.value + Math.sin(A1) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p2cx = useDerivedValue(
-    () => effects.particleX.value + Math.cos(A2) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p2cy = useDerivedValue(
-    () => effects.particleY.value + Math.sin(A2) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p3cx = useDerivedValue(
-    () => effects.particleX.value + Math.cos(A3) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p3cy = useDerivedValue(
-    () => effects.particleY.value + Math.sin(A3) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p4cx = useDerivedValue(
-    () => effects.particleX.value + Math.cos(A4) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p4cy = useDerivedValue(
-    () => effects.particleY.value + Math.sin(A4) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p5cx = useDerivedValue(
-    () => effects.particleX.value + Math.cos(A5) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-  const p5cy = useDerivedValue(
-    () => effects.particleY.value + Math.sin(A5) * effects.particleProgress.value * PARTICLE_SCATTER
-  );
-
   return (
-    <Canvas
+    <View
       style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width, height }}
       pointerEvents="none"
     >
-      {/* Wood surround */}
-      <Fill>
-        <Shader source={woodEffect} uniforms={woodUniforms} />
-      </Fill>
-
-      {/* Felt surface */}
-      <Fill clip={rrect(rect(surround, surround, feltW, feltH), 8, 8)}>
-        <Shader source={feltEffect} uniforms={feltUniforms} />
-      </Fill>
-
-      {/* Flying card shadow */}
-      <RoundedRect
-        x={shadowX}
-        y={shadowY}
-        width={CARD_W}
-        height={CARD_H}
-        r={CARD_CORNER_R}
-        color="rgba(0,0,0,1)"
-        opacity={shadowOpacity}
-        antiAlias
+      <ShaderLayer
+        width={width}
+        height={height}
+        source={WOOD_SHADER_SOURCE}
+        style={{ position: 'absolute', top: 0, left: 0, width, height }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          top: surround,
+          left: surround,
+          width: feltW,
+          height: feltH,
+          borderRadius: 8,
+          overflow: 'hidden',
+        }}
       >
-        <BlurMask blur={shadowBlur} style="normal" />
-      </RoundedRect>
-
-      {/* Felt ripple on card land */}
-      <Circle
-        cx={effects.rippleX}
-        cy={effects.rippleY}
-        r={rippleRadius}
-        color="rgba(255,255,255,1)"
-        style="stroke"
-        strokeWidth={1.5}
-        opacity={rippleOpacity}
-        antiAlias
-      />
-
-      {/* Trick sweep particles — 6 circles scatter from pile and fade out */}
-      <Circle
-        cx={p0cx}
-        cy={p0cy}
-        r={3}
-        color="rgba(255,220,80,1)"
-        opacity={particleOpacity}
-        antiAlias
-      />
-      <Circle
-        cx={p1cx}
-        cy={p1cy}
-        r={3}
-        color="rgba(255,220,80,1)"
-        opacity={particleOpacity}
-        antiAlias
-      />
-      <Circle
-        cx={p2cx}
-        cy={p2cy}
-        r={3}
-        color="rgba(255,220,80,1)"
-        opacity={particleOpacity}
-        antiAlias
-      />
-      <Circle
-        cx={p3cx}
-        cy={p3cy}
-        r={3}
-        color="rgba(255,220,80,1)"
-        opacity={particleOpacity}
-        antiAlias
-      />
-      <Circle
-        cx={p4cx}
-        cy={p4cy}
-        r={3}
-        color="rgba(255,220,80,1)"
-        opacity={particleOpacity}
-        antiAlias
-      />
-      <Circle
-        cx={p5cx}
-        cy={p5cy}
-        r={3}
-        color="rgba(255,220,80,1)"
-        opacity={particleOpacity}
-        antiAlias
-      />
-    </Canvas>
+        <ShaderLayer
+          width={feltW}
+          height={feltH}
+          source={FELT_SHADER_SOURCE}
+          style={{ width: feltW, height: feltH }}
+        />
+      </View>
+      <EffectsLayer width={width} height={height} effects={effects} />
+    </View>
   );
 }

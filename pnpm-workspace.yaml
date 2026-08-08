@@ -7,11 +7,9 @@ packages:
 minimumReleaseAge: 1440
 
 onlyBuiltDependencies:
-  - '@shopify/react-native-skia'
   - esbuild
 
 overrides:
-  '@expo/dom-webview': '~56.0.5'
   react: 19.2.7
   react-dom: 19.2.7
   socket.io-parser: ^4.2.6

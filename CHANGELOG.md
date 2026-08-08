@@ -2,6 +2,22 @@
 
 All notable changes to Dabb are documented here.
 
+## [3.0.0] - 2026-08-08
+
+### Breaking Changes
+
+- **Die Android-App wird eingestellt.** Dabb läuft ab sofort ausschließlich im Browser — als installierbare Web-App (PWA). Die bestehende Android-App aus dem Play Store funktioniert vorerst weiter, wird aber nicht mehr aktualisiert. Bitte wechselt auf die Web-Version unter [dabb.degler.info](https://dabb.degler.info).
+
+### Neues
+
+- **Installierbar wie eine App**: Dabb lässt sich jetzt auf dem Homescreen installieren — auf Android über das Chrome-Menü (⋮) → "Zum Startbildschirm hinzufügen", auf dem iPhone über das Teilen-Symbol in Safari → "Zum Home-Bildschirm". Danach startet Dabb im Vollbild wie eine echte App.
+- **Schnellerer Start**: Die Seite lädt jetzt deutlich schneller, besonders beim ersten Besuch.
+- Beim Erscheinen einer neuen Version fragt Dabb künftig nach, bevor sie geladen wird — laufende Spiele werden dadurch nicht mehr unterbrochen.
+
+### Sonstiges
+
+- Zahlreiche interne Umbauten unter der Haube (Technologie-Wechsel des gesamten Clients), ohne Auswirkung auf das Spielerlebnis.
+
 ## [2.2.1] - 2026-07-05
 
 ### Fehlerbehebungen

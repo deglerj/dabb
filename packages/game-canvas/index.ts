@@ -1,17 +1,23 @@
 // Table
 export { GameTable } from './src/table/GameTable.js';
 export type { GameTableProps } from './src/table/GameTable.js';
-export { useSkiaEffects } from './src/table/useSkiaEffects.js';
-export { getFeltBounds, DEFAULT_SURROUND_FRACTION } from './src/table/feltBounds.js';
+export { useTableEffects } from './src/table/useTableEffects.js';
+export {
+  getFeltBounds,
+  isWithinFeltBounds,
+  DEFAULT_SURROUND_FRACTION,
+} from './src/table/feltBounds.js';
 export type { FeltBounds } from './src/table/feltBounds.js';
-export type { SkiaEffects } from './src/table/useSkiaEffects.js';
+export { computeCanvasBackingSize } from './src/table/canvasSizing.js';
+export type { CanvasBackingSize } from './src/table/canvasSizing.js';
+export type { TableEffects } from './src/table/useTableEffects.js';
 
 // Cards
 export { CardView } from './src/cards/CardView.js';
 export type { CardViewProps } from './src/cards/CardView.js';
 export { CardBackView } from './src/cards/CardBackView.js';
 export type { CardBackViewProps } from './src/cards/CardBackView.js';
-export { deriveCardPositions, edgeFraction } from './src/cards/cardPositions.js';
+export { deriveCardPositions, edgeFraction, getTableScale } from './src/cards/cardPositions.js';
 export type {
   CardPositionsInput,
   CardPositionsOutput,

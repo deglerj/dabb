@@ -1,15 +1,15 @@
 /**
- * CelebrationLayer — full-screen Skia particle overlay for round/game wins.
+ * CelebrationLayer — full-screen particle overlay for round/game wins.
  * Always mounted; visibility controlled via opacity per CLAUDE.md rule 2.
  *
  * - showConfetti: local player won the round bid (confetti + "You won the round!")
  * - showFireworks: local player won the game (fireworks + "You won the game!")
  */
-import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet } from '@dabb/rn-compat';
+import { computeCanvasBackingSize } from '@dabb/game-canvas';
 import { useTranslation } from '@dabb/i18n';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
-import { Canvas, Rect, Group } from '@shopify/react-native-skia';
 
 export interface CelebrationLayerProps {
   confettiRound: number; // 0 = no confetti, >0 = round that triggered it
@@ -87,6 +87,18 @@ function stepParticles(particles: Particle[], gravity: number): void {
   }
 }
 
+function drawParticles(ctx: CanvasRenderingContext2D, particles: Particle[]): void {
+  for (const p of particles) {
+    ctx.save();
+    ctx.globalAlpha = p.opacity;
+    ctx.fillStyle = p.color;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    ctx.restore();
+  }
+}
+
 export function CelebrationLayer({
   confettiRound,
   showFireworks,
@@ -94,11 +106,37 @@ export function CelebrationLayer({
 }: CelebrationLayerProps) {
   const { width, height } = useGameDimensions();
   const { t } = useTranslation();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const particles = useRef<Particle[]>([]);
   const rafRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [_tick, setTick] = useState(0);
   const [message, setMessage] = useState('');
+
+  // Create the backing canvas once and keep it sized to the game dimensions.
+  useEffect(() => {
+    const container = containerRef.current as unknown as HTMLElement | null;
+    if (!container) {
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    container.appendChild(canvas);
+    const dpr = window.devicePixelRatio || 1;
+    const backing = computeCanvasBackingSize(width, height, dpr);
+    canvas.width = backing.width;
+    canvas.height = backing.height;
+    const ctx = canvas.getContext('2d');
+    ctx?.scale(dpr, dpr);
+    ctxRef.current = ctx;
+
+    return () => {
+      ctxRef.current = null;
+      container.removeChild(canvas);
+    };
+  }, [width, height]);
 
   const stopAnimation = useCallback(() => {
     if (rafRef.current !== null) {
@@ -110,9 +148,9 @@ export function CelebrationLayer({
       timerRef.current = null;
     }
     particles.current = [];
+    ctxRef.current?.clearRect(0, 0, width, height);
     setMessage('');
-    setTick((t) => t + 1);
-  }, []);
+  }, [width, height]);
 
   const startAnimation = useCallback(
     (isConfetti: boolean) => {
@@ -132,7 +170,11 @@ export function CelebrationLayer({
 
       const animate = () => {
         stepParticles(particles.current, gravity);
-        setTick((t) => t + 1);
+        const ctx = ctxRef.current;
+        if (ctx) {
+          ctx.clearRect(0, 0, width, height);
+          drawParticles(ctx, particles.current);
+        }
         rafRef.current = requestAnimationFrame(animate);
       };
       rafRef.current = requestAnimationFrame(animate);
@@ -153,34 +195,11 @@ export function CelebrationLayer({
     return stopAnimation;
   }, [confettiRound, showFireworks, startAnimation, stopAnimation]);
 
-  const visible = message !== '' || particles.current.length > 0;
+  const visible = message !== '';
 
   return (
     <View style={[styles.overlay, { opacity: visible ? 1 : 0 }]} pointerEvents="none">
-      <Canvas style={StyleSheet.absoluteFill}>
-        {particles.current.map((p, i) => (
-          // Use translate-based pivot for rotation (origin prop not reliable across Skia v2 versions)
-          <Group
-            key={i}
-            transform={[
-              { translateX: p.x },
-              { translateY: p.y },
-              { rotate: p.rotation },
-              { translateX: -p.x },
-              { translateY: -p.y },
-            ]}
-          >
-            <Rect
-              x={p.x - p.w / 2}
-              y={p.y - p.h / 2}
-              width={p.w}
-              height={p.h}
-              color={p.color}
-              opacity={p.opacity}
-            />
-          </Group>
-        ))}
-      </Canvas>
+      <View ref={containerRef} style={StyleSheet.absoluteFill} />
       {message ? <Text style={styles.message}>{message}</Text> : null}
     </View>
   );
@@ -201,7 +220,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 24,
     textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 1, height: 1 },
+    textShadowOffset: { width: 1, height: 2 },
     textShadowRadius: 4,
   },
 });

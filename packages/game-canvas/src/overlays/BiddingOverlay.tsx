@@ -4,8 +4,7 @@
  * If isMyTurn: scrollable chips for valid bid amounts + Pass button.
  * If not isMyTurn: waiting text.
  */
-import React from 'react';
-import { StyleSheet, Text, ScrollView, View } from 'react-native';
+import { StyleSheet, Text, ScrollView, View } from '@dabb/rn-compat';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 
