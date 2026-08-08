@@ -8,7 +8,6 @@
  *
  * CardId format: "suit-rank-copy" (e.g. "kreuz-ass-0")
  */
-import { useEffect, useRef } from 'react';
 import { View, Text as RNText, StyleSheet } from '@dabb/rn-compat';
 import { SUIT_SYMBOLS, getSuitColor, RANK_DISPLAY } from '@dabb/card-assets';
 import type { CardId, Suit, Rank } from '@dabb/shared-types';
@@ -45,24 +44,11 @@ export function CardFace({
   const abbr = RANK_DISPLAY[rank];
   const isFace = FACE_RANKS.has(rank);
 
-  // The card View (border-radius + overflow:hidden) is a child of a rotated parent.
-  // Firefox rasterises the child's rounded corners then composites the rotation — producing
-  // aliased edges. rotateX(0.001deg) promotes the child to its own GPU layer so Firefox
-  // composites a pre-rendered AA'd texture instead of re-rasterising on rotation.
-  const cardRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = cardRef.current as unknown as HTMLElement | null;
-    if (el?.style) {
-      el.style.transform = 'rotateX(0.001deg)';
-    }
-  }, []);
-
   const cornerSz = Math.round(width * 0.17);
   const centerSz = isFace || rank === '10' ? Math.round(width * 0.52) : Math.round(width * 0.42);
 
   return (
     <View
-      ref={cardRef}
       style={[
         rnStyles.card,
         {
@@ -73,6 +59,12 @@ export function CardFace({
           borderColor: dimmed ? 'transparent' : '#c8b89a',
           left: x,
           top: y,
+          // The card View (border-radius + overflow:hidden) is a child of a rotated parent.
+          // Firefox rasterises the child's rounded corners then composites the rotation —
+          // producing aliased edges. rotateX(0.001deg) promotes the child to its own GPU
+          // layer so Firefox composites a pre-rendered AA'd texture instead of
+          // re-rasterising on rotation.
+          transform: 'rotateX(0.001deg)',
         },
       ]}
     >

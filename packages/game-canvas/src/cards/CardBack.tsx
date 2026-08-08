@@ -2,7 +2,6 @@
  * CardBack — dark brown card back with a diagonal crosshatch pattern,
  * drawn with layered CSS repeating-linear-gradients instead of a canvas.
  */
-import { useEffect, useRef } from 'react';
 import { View, StyleSheet } from '@dabb/rn-compat';
 
 export interface CardBackProps {
@@ -13,17 +12,8 @@ export interface CardBackProps {
 }
 
 export function CardBack({ width, height, x = 0, y = 0 }: CardBackProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = cardRef.current;
-    if (el?.style) {
-      el.style.transform = 'rotateX(0.001deg)';
-    }
-  }, []);
-
   return (
     <View
-      ref={cardRef}
       style={[
         styles.card,
         {
@@ -36,6 +26,10 @@ export function CardBack({ width, height, x = 0, y = 0 }: CardBackProps) {
             'repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 6px), ' +
             'repeating-linear-gradient(-45deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 6px)',
           boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.12)',
+          // Firefox rasterises this View's rounded corners then composites the parent's
+          // rotation — producing aliased edges. rotateX(0.001deg) promotes it to its own
+          // GPU layer so Firefox composites a pre-rendered AA'd texture instead.
+          transform: 'rotateX(0.001deg)',
         },
       ]}
     />

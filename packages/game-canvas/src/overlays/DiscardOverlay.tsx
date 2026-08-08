@@ -8,7 +8,7 @@
  *
  * Rendered as a direct child of gameWrapper in GameScreen (not inside PhaseOverlay).
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from '@dabb/rn-compat';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
@@ -38,19 +38,12 @@ export function DiscardOverlay({
   const { t } = useTranslation();
   const [showGoOut, setShowGoOut] = useState(false);
   const [pendingSuit, setPendingSuit] = useState<Suit | null>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
 
   const [opacity, setOpacity] = useState(0);
   const [translateY, setTranslateY] = useState(-20);
   const [scale, setScale] = useState(0.95);
 
   useEffect(() => {
-    const el = panelRef.current as unknown as HTMLElement | null;
-    if (el?.style) {
-      el.style.transition = visible
-        ? `opacity 220ms ${EASE_OUT_CUBIC}, transform 220ms ${SPRING_EASE}`
-        : `opacity 180ms ${EASE_IN_CUBIC}, transform 180ms ${EASE_IN_CUBIC}`;
-    }
     if (visible) {
       setOpacity(1);
       setTranslateY(0);
@@ -69,12 +62,14 @@ export function DiscardOverlay({
   }
 
   const canDiscard = slottedCount === discardCount;
+  const transition = visible
+    ? `opacity 220ms ${EASE_OUT_CUBIC}, transform 220ms ${SPRING_EASE}`
+    : `opacity 180ms ${EASE_IN_CUBIC}, transform 180ms ${EASE_IN_CUBIC}`;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <View
-        ref={panelRef}
-        style={[styles.panel, { opacity, transform: [{ translateY }, { scale }] }]}
+        style={[styles.panel, { opacity, transform: [{ translateY }, { scale }], transition }]}
         pointerEvents="auto"
       >
         <Text style={styles.title}>{t('game.discardCards')}</Text>

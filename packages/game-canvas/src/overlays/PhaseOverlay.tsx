@@ -4,7 +4,7 @@
  * visible=true  → fade in + slide up from -40px + scale from 0.92
  * visible=false → fade out + slide to -20px + scale to 0.95
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ScrollView, useWindowDimensions } from '@dabb/rn-compat';
 
 export interface PhaseOverlayProps {
@@ -20,20 +20,11 @@ const SPRING_EASE = 'cubic-bezier(0.34,1.56,0.64,1)';
 
 export function PhaseOverlay({ visible, rotation = -2, children }: PhaseOverlayProps) {
   const { height: screenHeight } = useWindowDimensions();
-  const containerRef = useRef<HTMLDivElement>(null);
   const [opacity, setOpacity] = useState(0);
   const [translateY, setTranslateY] = useState(-40);
   const [scale, setScale] = useState(0.92);
 
   useEffect(() => {
-    // transition isn't a recognized RN style prop, so RN Web would silently drop it if set
-    // via the `style` prop — set it directly on the DOM node instead.
-    const el = containerRef.current as unknown as HTMLElement | null;
-    if (el?.style) {
-      el.style.transition = visible
-        ? `opacity 220ms ${EASE_OUT_CUBIC}, transform 220ms ${SPRING_EASE}`
-        : `opacity 180ms ${EASE_IN_CUBIC}, transform 180ms ${EASE_IN_CUBIC}`;
-    }
     if (visible) {
       setOpacity(1);
       setTranslateY(0);
@@ -46,13 +37,19 @@ export function PhaseOverlay({ visible, rotation = -2, children }: PhaseOverlayP
   }, [visible]);
 
   const maxPaperHeight = screenHeight * 0.7;
+  const transition = visible
+    ? `opacity 220ms ${EASE_OUT_CUBIC}, transform 220ms ${SPRING_EASE}`
+    : `opacity 180ms ${EASE_IN_CUBIC}, transform 180ms ${EASE_IN_CUBIC}`;
 
   return (
     <View
-      ref={containerRef}
       style={[
         styles.container,
-        { opacity, transform: [{ translateY }, { scale }, { rotate: `${rotation}deg` }] },
+        {
+          opacity,
+          transform: [{ translateY }, { scale }, { rotate: `${rotation}deg` }],
+          transition,
+        },
       ]}
       pointerEvents={visible ? 'auto' : 'none'}
     >

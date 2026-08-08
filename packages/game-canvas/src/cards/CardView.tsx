@@ -84,10 +84,10 @@ export function CardView({
   const isHovered = useRef(false);
   const isFirstRender = useRef(true);
 
-  // left/top/transform are driven entirely imperatively (never part of the RN `style` prop) —
-  // matches the outline/will-change escape hatch below: RN Web's style system silently drops
-  // CSS properties it doesn't know about (e.g. `transition`), so anything that needs to
-  // transition has to be set directly on the DOM node.
+  // left/top/transform are driven entirely imperatively (never part of the `style` prop) —
+  // they're rewritten every animation frame during drag/deal/spring, so routing them through
+  // React state would mean a re-render per pointermove. transition is set alongside them for
+  // the same reason: it has to change per-call (instant snap vs. eased animation vs. spring).
   const applyStyle = useCallback((el: HTMLElement, opts: StyleOptions = {}) => {
     const lMs = opts.leftMs ?? 0;
     const lEase = opts.leftEasing ?? 'linear';
@@ -101,17 +101,14 @@ export function CardView({
     el.style.transform = `perspective(1000px) rotate(${rotationRef.current - hoverRotDeltaRef.current}deg) scale(${scaleRef.current * hoverScaleMultRef.current})`;
   }, []);
 
-  // Mount: paint instantly at the starting position, no transition, plus the outline/will-change
-  // hack (outline:transparent + will-change:transform forces Firefox into its AA compositing path).
+  // Mount: paint instantly at the starting position, no transition (left/top/transform stay
+  // imperative — they're rewritten every animation frame during drag/deal/spring, which would
+  // be far too much churn to route through React state).
   useLayoutEffect(() => {
     const el = viewRef.current as unknown as HTMLElement | null;
     if (!el?.style) {
       return;
     }
-    el.style.position = 'absolute';
-    el.style.outline = '1px solid transparent';
-    el.style.willChange = 'transform';
-    el.style.backfaceVisibility = 'hidden';
     applyStyle(el);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -274,7 +271,18 @@ export function CardView({
   }, [draggable, onTap, onDrop, effects, applyStyle]);
 
   return (
-    <View ref={viewRef} style={{ position: 'absolute', zIndex }}>
+    <View
+      ref={viewRef}
+      style={{
+        position: 'absolute',
+        zIndex,
+        // outline:transparent + will-change:transform forces Firefox into its AA
+        // compositing path instead of re-rasterising the rotated/scaled card every frame.
+        outline: '1px solid transparent',
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+      }}
+    >
       {card !== null ? (
         <CardFace card={card} width={width} height={height} dimmed={dimmed} isTrump={isTrump} />
       ) : (
