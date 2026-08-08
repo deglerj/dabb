@@ -5,8 +5,7 @@
 ```mermaid
 flowchart TB
     subgraph client [Client Device]
-        browser[Web Browser]
-        android[Android App]
+        browser[Browser / Installed PWA]
     end
 
     subgraph google [Google Cloud]
@@ -18,7 +17,6 @@ flowchart TB
     end
 
     browser -->|"HTTPS"| web
-    android -->|"HTTPS"| firebase
     browser -->|"HTTPS"| firebase
 ```
 
@@ -26,11 +24,10 @@ flowchart TB
 
 ## 7.2 Hosting
 
-| Component   | Provider           | Details                               |
-| ----------- | ------------------ | ------------------------------------- |
-| Web app     | Alfahosting (SFTP) | Static files, shared hosting, Apache  |
-| Android app | Google Play Store  | Published via CI                      |
-| Backend     | Firebase RTDB      | Google-managed, `europe-west1` region |
+| Component | Provider           | Details                                                     |
+| --------- | ------------------ | ----------------------------------------------------------- |
+| Web app   | Alfahosting (SFTP) | Static files, shared hosting, Apache — installable as a PWA |
+| Backend   | Firebase RTDB      | Google-managed, `europe-west1` region                       |
 
 No self-hosted server infrastructure. The game backend is Firebase Realtime Database only.
 
@@ -38,13 +35,13 @@ No self-hosted server infrastructure. The game backend is Firebase Realtime Data
 
 The app is **serverless P2P**. All game state lives in Firebase RTDB as an append-only event log. Clients read and write events directly; no application server intermediary.
 
-| Concern         | How handled                                                    |
-| --------------- | -------------------------------------------------------------- |
-| Game state      | Firebase RTDB — append-only event log per session              |
-| Auth / identity | `secretId` stored in AsyncStorage; SHA-256 hash stored in RTDB |
-| Write access    | Firebase security rules — only registered players can push     |
-| Reconnection    | Replay all events from RTDB on reconnect                       |
-| Session cleanup | Firebase TTL rules / manual cleanup                            |
+| Concern         | How handled                                                      |
+| --------------- | ---------------------------------------------------------------- |
+| Game state      | Firebase RTDB — append-only event log per session                |
+| Auth / identity | `secretId` stored in `localStorage`; SHA-256 hash stored in RTDB |
+| Write access    | Firebase security rules — only registered players can push       |
+| Reconnection    | Replay all events from RTDB on reconnect                         |
+| Session cleanup | Firebase TTL rules / manual cleanup                              |
 
 ## 7.4 Firebase Security Rules
 
@@ -82,11 +79,10 @@ The full rules are also documented in `DEPLOYMENT.md` → Firebase Setup section
 └─────────────┘   └──────────┘   └────────────────┘   └──────────────────┘
 ```
 
-- **CI** (`.github/workflows/ci.yml`): build all packages, lint, typecheck, test, bundle web client (catches Metro resolution errors), build Android APK artifact
+- **CI** (`.github/workflows/ci.yml`): build all packages, lint, typecheck, test, bundle web client (Vite production build), run the Playwright E2E smoke test against the Firebase RTDB emulator
 - **Deploy Web** (`.github/workflows/deploy-web.yml`): triggers after CI succeeds on `main`; builds web bundle with Firebase env vars baked in, deploys via FTPS to Alfahosting
-- **Publish Android** (`.github/workflows/publish-android.yml`): builds signed AAB and uploads to Google Play
 
-Firebase env vars are stored as GitHub Actions repository variables (`EXPO_PUBLIC_FIREBASE_*`) and baked into the web bundle at build time.
+Firebase env vars are stored as GitHub Actions repository variables (`EXPO_PUBLIC_FIREBASE_*` — kept from the pre-PWA naming so Vite's `envPrefix` config and the deploy pipeline didn't need renaming) and baked into the web bundle at build time.
 
 ## 7.6 Environment Variables (CI)
 

@@ -25,22 +25,20 @@ This documentation follows the [Arc42](https://arc42.org/) template for software
 
 - Real-time multiplayer via Firebase Realtime Database (serverless P2P)
 - Event-sourced game state for reliability and reconnection support
-- Cross-platform clients (Web + Android)
+- Single installable PWA client — works in any browser, installable to a device home screen
 - TypeScript monorepo architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         Clients                              │
-│  ┌──────────────┐  ┌──────────────┐                          │
-│  │   Web App    │  │  Mobile App  │                          │
-│  │   (React)    │  │   (Expo)     │                          │
-│  └──────┬───────┘  └──────┬───────┘                          │
-│         │                 │                                  │
-│         └────────┬────────┘                                  │
-│                  │ HTTPS (Firebase SDK)                      │
-│         ┌────────▼────────┐                                  │
-│         │  Firebase RTDB  │                                  │
-│         │  (Google Cloud) │                                  │
-│         └─────────────────┘                                  │
+│                          Client                              │
+│              ┌──────────────────────────┐                    │
+│              │   Browser / Installed PWA │                    │
+│              │        (React + Vite)     │                    │
+│              └─────────────┬─────────────┘                    │
+│                            │ HTTPS (Firebase SDK)              │
+│                   ┌────────▼────────┐                         │
+│                   │  Firebase RTDB  │                         │
+│                   │  (Google Cloud) │                         │
+│                   └─────────────────┘                         │
 └─────────────────────────────────────────────────────────────┘
 ```

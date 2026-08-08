@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-The project consists of multiple applications (web, mobile, server) that share code (types, game logic). We need to decide how to organize the codebase.
+The project consists of multiple applications that share code (types, game logic). We need to decide how to organize the codebase.
 
 ## Decision
 
@@ -18,19 +18,22 @@ We will use a **monorepo** structure with:
 ```
 dabb/
 ├── apps/
-│   ├── client/     # React Native + Expo app (Android/iOS/web)
-│   └── server/     # Node.js backend
+│   ├── client/     # React (Vite) PWA client
+│   └── simulate/   # AI simulation CLI
 ├── packages/
 │   ├── shared-types/   # TypeScript types
 │   ├── game-logic/     # Game rules
 │   ├── game-ai/        # AI player logic and offline game engine
-│   ├── game-canvas/    # Skia card table rendering
+│   ├── game-canvas/    # WebGL/Canvas2D card table rendering
 │   ├── ui-shared/      # React hooks
-│   ├── card-assets/    # SVG graphics
-│   └── i18n/           # Internationalization (de/en)
+│   ├── card-assets/    # Card display data (suit/rank symbols, colors)
+│   ├── i18n/           # Internationalization (de/en)
+│   └── rn-compat/      # Minimal React Native-shaped component shim
 ├── pnpm-workspace.yaml
 └── turbo.json
 ```
+
+There is no application server — the game backend is Firebase Realtime Database, and clients read/write events directly (see ADR 001).
 
 ## Consequences
 

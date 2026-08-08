@@ -8,14 +8,14 @@
 | **Event Sourcing**      | Reliable state reconstruction, audit trail, easy debugging  |
 | **Firebase RTDB**       | Serverless P2P — no application server to maintain or scale |
 | **React**               | Component-based UI, large ecosystem                         |
-| **Expo**                | Simplified React Native development for Android/iOS/web     |
+| **Vite**                | Fast client build/dev tooling; ships an installable PWA     |
 
 ## 4.2 Top-level Decomposition
 
 The system is decomposed into:
 
 1. **Shared Packages** - Types and logic used by all apps
-2. **Client** - React Native + Expo app (Android/iOS/web)
+2. **Client** - React + Vite PWA (installable on Android/iOS, works in any browser)
 3. **Firebase RTDB** - Google-managed backend; clients connect directly
 
 ## 4.3 Quality Approaches

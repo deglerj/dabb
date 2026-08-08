@@ -37,7 +37,8 @@
 | **Firebase RTDB**  | Firebase Realtime Database — the P2P backend for game events   |
 | **Monorepo**       | Single repository containing multiple packages/apps            |
 | **Turborepo**      | Build system for JavaScript/TypeScript monorepos               |
-| **Expo**           | Framework for building React Native apps                       |
+| **PWA**            | Progressive Web App — installable, offline-capable web app     |
+| **Vite**           | Client build tool and dev server                               |
 
 ## Abbreviations
 

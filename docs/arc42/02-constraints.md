@@ -8,7 +8,7 @@
 | pnpm + Turborepo | Monorepo tooling for shared code                          |
 | Firebase RTDB    | Serverless P2P backend; append-only event log per session |
 | React 19         | Modern React with compiler optimizations                  |
-| Expo             | React Native framework for mobile development             |
+| Vite             | Client build tool; ships as an installable PWA            |
 
 ## 2.2 Organizational Constraints
 

@@ -77,16 +77,16 @@ export interface Card { ... }
 export interface GameState { ... }
 export type GameEvent = ... ;
 
-// Used in server
+// Used in the AI simulation CLI
 import type { Card } from '@dabb/shared-types';
 
-// Used in web
+// Used in the web client
 import type { Card } from '@dabb/shared-types';
 ```
 
 ## 8.6 In-Memory Simulation
 
-The simulation engine demonstrates a key architectural benefit of separating game logic into pure packages: the same `@dabb/game-logic` functions and `@dabb/game-ai`'s `BinokelAIPlayer` class used in the live server can run entirely without infrastructure.
+The simulation engine demonstrates a key architectural benefit of separating game logic into pure packages: the same `@dabb/game-logic` functions and `@dabb/game-ai`'s `BinokelAIPlayer` class used in the live client can run entirely without infrastructure.
 
 ```
 Live P2P Path:
