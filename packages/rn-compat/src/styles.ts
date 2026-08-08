@@ -144,6 +144,11 @@ export function flattenStyle(style: StyleProp): CSSProperties | undefined {
   if (isSet(transform)) {
     out.transform = transformToCss(transform);
   }
+  // RN lineHeight is always in dp (== px). CSS treats a unitless number as a
+  // font-size multiplier instead, so it must be given an explicit unit here.
+  if (typeof out.lineHeight === 'number') {
+    out.lineHeight = `${out.lineHeight}px`;
+  }
 
   return out;
 }
