@@ -1,17 +1,9 @@
-import { beforeAll, describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Dialog } from '../Dialog.js';
 
-// jsdom does not implement the <dialog> element's modal methods, which rn-compat's Modal
-// calls to show and hide itself.
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function showModal() {
-    this.open = true;
-  };
-  HTMLDialogElement.prototype.close = function close() {
-    this.open = false;
-  };
-});
+// jsdom's <dialog> has no showModal/close, which rn-compat's Modal calls in an effect —
+// src/vitest.setup.ts polyfills both for every test file.
 
 function renderDialog(onClose = vi.fn()) {
   render(
