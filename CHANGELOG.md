@@ -2,6 +2,22 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.0.1] - 2026-08-09
+
+### Behoben
+
+- **Beim Drücken seht ihr wieder, dass ihr dran seid.** Seit Trumpf vor dem Ablegen kommt, blieb die Rückmeldung beim Drücken aus — kein Vibrieren, kein Hinweis, dass das Spiel auf euch wartet.
+- **Am Ende wird der richtige Sieger genannt.** Erreichen mehrere in derselben Runde die 1000, gewinnt die höchste Punktzahl. Die Schlussmeldung richtete sich stattdessen nach der Sitzreihenfolge und gratulierte dadurch mitunter dem Falschen — im Punktestand stand die ganze Zeit das Richtige.
+- **Die Spielstärke der KI wirkt sich in Online-Runden wieder aus.** Ihr konntet zwischen leicht, mittel und schwer wählen, gespielt hat die KI aber immer auf mittel. Ihr könnt jetzt auch verschiedene Stärken an einem Tisch mischen; neben jedem KI-Mitspieler steht, wie stark er eingestellt ist. Offline-Spiele waren nie betroffen.
+- **Ihr seht wieder, wenn ein Mitspieler die Verbindung verliert.** Der Hinweis "(offline)" neben dem Namen konnte nie erscheinen. Wer das Spiel noch gar nicht geöffnet hat, wird ebenfalls als offline angezeigt.
+- **Fehlermeldungen beim Beitreten sind wieder lesbar.** Bei einem falsch eingetippten Spielcode stand dort "SESSION_NOT_FOUND" statt "Sitzung nicht gefunden".
+- **Beendet jemand die Runde, sagt Dabb das auch dann, wenn der Name unbekannt ist.** Vorher blieb in diesem Fall die Meldung "Verbindung wird wiederhergestellt" stehen, obwohl das Spiel schon vorbei war.
+- **KI-Mitspieler bekommen keine doppelten Namen mehr.** Über mehrere Runden hinweg konnte derselbe Name zweimal am Tisch landen.
+
+### Sonstiges
+
+- Große Aufräumaktion unter der Haube: Die Spielregeln — Punkte zählen, Runden abschließen, Züge prüfen — lagen in drei getrennten Kopien für Online-, Offline- und Testspiele vor und waren mit der Zeit auseinandergelaufen. Sie stehen jetzt an einer Stelle, die alle drei benutzen. Am Spiel selbst ändert sich dadurch nichts, aber Regelfehler wie die oben behobenen können nicht mehr nur eine der drei Varianten betreffen. Insgesamt rund 1000 Zeilen weniger Code.
+
 ## [4.0.0] - 2026-08-09
 
 ### Breaking Changes
