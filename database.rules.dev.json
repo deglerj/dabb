@@ -1,5 +1,4 @@
 {
-  "_comment": "Emulator-only rules. Wide open so local dev and the Playwright smoke test never trip over auth. Selected via firebase.dev.json — NEVER deployed. Production rules live in database.rules.json.",
   "rules": {
     ".read": true,
     ".write": true

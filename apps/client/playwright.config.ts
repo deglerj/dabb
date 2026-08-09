@@ -22,7 +22,12 @@ export default defineConfig({
   ],
   webServer: [
     {
-      // firebase.dev.json = wide-open emulator rules; firebase.json holds the deployed ones.
+      // firebase.dev.json points at database.rules.dev.json: wide open, so local dev and this
+      // smoke test never trip over auth. NEVER deployed — firebase.json holds the real rules.
+      //
+      // Keep database.rules.dev.json to the single "rules" key. The emulator jar is fetched at
+      // run time rather than pinned by the lockfile, and the current one rejects any other
+      // top-level key outright ("Expected 'rules' property"), which takes CI down with it.
       command:
         'pnpm exec firebase emulators:start --only database --project demo-dabb --config firebase.dev.json',
       cwd: '../..',
