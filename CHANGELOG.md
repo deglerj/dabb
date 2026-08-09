@@ -2,6 +2,15 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.1.2] - 2026-08-09
+
+### Behoben
+
+- Der letzte Stich einer Runde verschwand sofort vom Tisch, statt kurz liegen zu bleiben. Man sah nie, welche Karten die Mitspieler gelegt hatten. Jetzt bleibt auch der letzte Stich liegen und wird ganz normal eingesammelt.
+- Im Online-Spiel legten die Computergegner ihre Karten ohne jede Pause – bei schneller Verbindung praktisch im selben Moment, in dem man selbst gespielt hatte. Sie lassen sich jetzt genauso viel Zeit wie im Offline-Spiel.
+- Nach dem Neuladen einer laufenden Partie wurde ein längst gespielter Stich noch einmal eingesammelt.
+- Ein Computergegner konnte in seltenen Fällen aufhören zu spielen und die Partie damit anhalten.
+
 ## [4.1.1] - 2026-08-09
 
 ### Sonstiges

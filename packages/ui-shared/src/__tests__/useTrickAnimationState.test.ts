@@ -50,7 +50,7 @@ describe('useTrickAnimationState', () => {
 
   it('starts in idle with no cards', () => {
     const { result } = renderHook(() =>
-      useTrickAnimationState(emptyTrick, null, 'tricks', players)
+      useTrickAnimationState(emptyTrick, null, 'tricks', players, false)
     );
     expect(result.current.animPhase).toBe('idle');
     expect(result.current.displayCards).toHaveLength(0);
@@ -58,7 +58,7 @@ describe('useTrickAnimationState', () => {
 
   it('transitions to showing when currentTrick has cards', () => {
     const { result, rerender } = renderHook(
-      ({ trick }) => useTrickAnimationState(trick, null, 'tricks', players),
+      ({ trick }) => useTrickAnimationState(trick, null, 'tricks', players, false),
       { initialProps: { trick: emptyTrick } }
     );
 
@@ -72,7 +72,7 @@ describe('useTrickAnimationState', () => {
 
   it('transitions to paused when a trick is completed, shows completed cards', () => {
     const { result, rerender } = renderHook(
-      ({ trick, completed }) => useTrickAnimationState(trick, completed, 'tricks', players),
+      ({ trick, completed }) => useTrickAnimationState(trick, completed, 'tricks', players, false),
       { initialProps: { trick: trickWith3, completed: null as CompletedTrick | null } }
     );
 
@@ -88,7 +88,7 @@ describe('useTrickAnimationState', () => {
 
   it('transitions to sweeping after 3s pause, then idle after sweep completes', () => {
     const { result, rerender } = renderHook(
-      ({ trick, completed }) => useTrickAnimationState(trick, completed, 'tricks', players),
+      ({ trick, completed }) => useTrickAnimationState(trick, completed, 'tricks', players, false),
       { initialProps: { trick: trickWith3, completed: null as CompletedTrick | null } }
     );
 
@@ -114,7 +114,7 @@ describe('useTrickAnimationState', () => {
 
   it('staggers sweepingCardCount during sweeping phase', () => {
     const { result, rerender } = renderHook(
-      ({ trick, completed }) => useTrickAnimationState(trick, completed, 'tricks', players),
+      ({ trick, completed }) => useTrickAnimationState(trick, completed, 'tricks', players, false),
       { initialProps: { trick: trickWith3, completed: null as CompletedTrick | null } }
     );
 
@@ -144,7 +144,7 @@ describe('useTrickAnimationState', () => {
 
   it('cancels pause early when a new card is played during pause', () => {
     const { result, rerender } = renderHook(
-      ({ trick, completed }) => useTrickAnimationState(trick, completed, 'tricks', players),
+      ({ trick, completed }) => useTrickAnimationState(trick, completed, 'tricks', players, false),
       { initialProps: { trick: trickWith3, completed: null as CompletedTrick | null } }
     );
 
@@ -169,16 +169,76 @@ describe('useTrickAnimationState', () => {
   });
 
   it('does not trigger pause on initial load with stale lastCompletedTrick', () => {
-    // Simulate reconnection: lastCompletedTrick is already set at mount
-    const { result } = renderHook(() =>
-      useTrickAnimationState(emptyTrick, completedTrick3, 'tricks', players)
+    // Reconnection: the replayed log carries a trick that finished before we got here. The
+    // real client never has it on the very first render — state starts empty and the log
+    // lands a tick later — so the guard has to be isInitialLoad, not "is this render one".
+    const { result, rerender } = renderHook(
+      ({ initial }) =>
+        useTrickAnimationState(emptyTrick, completedTrick3, 'tricks', players, initial),
+      { initialProps: { initial: true } }
     );
+    expect(result.current.animPhase).toBe('idle');
+
+    // Log has settled; the same stale trick must still not animate (regression)
+    act(() => {
+      rerender({ initial: false });
+    });
+    expect(result.current.animPhase).toBe('idle');
+
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(result.current.animPhase).toBe('idle');
+  });
+
+  it('keeps the completed trick on screen when the round ends in the same update (regression)', () => {
+    // The last trick of a round is one cascade — CARD_PLAYED, TRICK_WON, ROUND_SCORED — so a
+    // single render carries the completed trick *and* a phase that has already left 'tricks'.
+    // The showing effect used to win that race and wipe the table before it was ever painted.
+    const { result, rerender } = renderHook(
+      ({
+        trick,
+        completed,
+        phase,
+      }: {
+        trick: Trick;
+        completed: CompletedTrick | null;
+        phase: GamePhase;
+      }) => useTrickAnimationState(trick, completed, phase, players, false),
+      {
+        initialProps: {
+          trick: trickWith3,
+          completed: null as CompletedTrick | null,
+          phase: 'tricks' as GamePhase,
+        },
+      }
+    );
+    expect(result.current.animPhase).toBe('showing');
+
+    act(() => {
+      rerender({ trick: emptyTrick, completed: completedTrick3, phase: 'scoring' as GamePhase });
+    });
+
+    expect(result.current.animPhase).toBe('paused');
+    expect(result.current.displayCards).toHaveLength(3);
+    expect(result.current.winnerIndex).toBe(1);
+
+    // and it still runs the full pause -> sweep -> idle sequence
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(result.current.animPhase).toBe('sweeping');
+
+    act(() => {
+      vi.advanceTimersByTime(800);
+    });
     expect(result.current.animPhase).toBe('idle');
   });
 
   it('returns idle when phase is not tricks', () => {
     const { result, rerender } = renderHook(
-      ({ phase }: { phase: GamePhase }) => useTrickAnimationState(trickWith3, null, phase, players),
+      ({ phase }: { phase: GamePhase }) =>
+        useTrickAnimationState(trickWith3, null, phase, players, false),
       { initialProps: { phase: 'tricks' as GamePhase } }
     );
 

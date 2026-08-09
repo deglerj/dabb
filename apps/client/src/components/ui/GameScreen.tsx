@@ -142,7 +142,8 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     state.currentTrick,
     state.lastCompletedTrick,
     state.phase,
-    state.players
+    state.players,
+    isInitialLoad
   );
 
   useTurnHaptic(state, playerIndex, isInitialLoad);
