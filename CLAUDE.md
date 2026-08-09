@@ -122,7 +122,15 @@ Run locally from repo root: `pnpm exec firebase emulators:start --only database 
 
 See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding starts at 150, melds score points (Paar: 20, Familie: 100, Binokel: 40), must follow suit/beat/trump, first to 1000 wins.
 
-**Going Out (Abgehen)**: After taking dabb, before discarding, bid winner can choose a trump suit to go out in. Bid winner loses their bid as points; opponents each get melds + 40 bonus. Round ends immediately. `wentOut: boolean` in GameState.
+**Bid winner phase order**: `dabb` (take it) → `trump` (declare it) → `discard` (lay four away) → `melding`. Trump is declared **before** the layaway so that burying a trump is a real decision. Buried trump must be announced: `filterCardsDiscarded` (views.ts) leaves trump-suited card IDs readable to everyone and replaces the rest with `'hidden'`, and `useGameLog` turns that into a `trump_discarded` entry. The reveal is derived per client from the card IDs, not reported by the discarder — so `filterEventsForPlayer` must be given the whole log (it folds the round's trump forward), never an isolated batch.
+
+**Scoring a round**: melds + trick points, with the bid winner's discarded cards counting towards their tricks and 10 for the last trick. Miss the bid and the whole round is discarded and replaced by **`-2 × winningBid`** (`bidMet: false`). Going out costs only `-1 × winningBid` — the 2:1 ratio is what makes Abgehen worth choosing, so don't "fix" one without the other.
+
+**Ending the game**: `determineGameWinner` (`game-logic/state/winner.ts`) is the single source of this rule — several players can cross the target in one round, so highest total wins, and an exact tie goes to the bid winner. Ties are common because every score component is a multiple of ten. If the tied players don't include the bid winner, the lowest seat index wins — arbitrary, and the known limitation. All four scoring call sites (client factory ×2, offline engine, simulation) must go through the helper; they each used to inline the loop and could drift.
+
+**Melds**: a card may pay in melds of different kinds (König in both a Paar and Vier Könige) — deliberate, and the common case in 2-player hands. The one exception is that a Familie absorbs the Paar of its own suit, and that rule exists _only_ because `detectPaar` is called last in `detectMelds` and receives the melds found so far. Do not reorder those pushes; `melds.test.ts` fails if you do.
+
+**Going Out (Abgehen)**: After taking the dabb and declaring trump, instead of laying away, the bid winner can go out. Bid winner loses their bid once; opponents each get melds + 40 bonus. Round ends immediately. `wentOut: boolean` in GameState.
 
 **4-player teams**: Partners sit opposite each other — team is always `playerIndex % 2`. Scoring is per team; team lookups must read `state.players` (populated from `PLAYER_JOINED`), never a `PlayerInfo[]` from Firebase session meta, which has no team field.
 

@@ -187,12 +187,19 @@ const de: TranslationKeys = {
   rules: {
     title: 'Spielregeln',
     sectionGoal: 'Ziel',
-    goal: 'Wer zuerst 1000 Punkte erreicht, gewinnt. Bei 4 Spielern spielen je zwei zusammen.',
+    goal: 'Wer zuerst 1000 Punkte erreicht, gewinnt. Erreichen mehrere die 1000 in derselben Runde, gewinnt die höhere Punktzahl – bei Gleichstand der Höchstbietende. Bei 4 Spielern spielen je zwei zusammen.',
     sectionBidding: 'Reizen',
     bidding:
-      'Geboten wird ab 150. Der Höchstbietende nimmt den Dabb (verdeckte Karten), legt Karten ab und wählt Trumpf. Optional: Abgehen – Runde endet sofort, Gegner kassieren Meldepunkte + 40 Bonus.',
+      'Geboten wird ab 150. Der Höchstbietende nimmt den Dabb (verdeckte Karten), wählt Trumpf und legt dann vier Karten ab. Abgelegte Trümpfe müssen angesagt werden – alle sehen sie im Spielverlauf.',
+    sectionScoring: 'Punkte',
+    scoring:
+      'Meldepunkte plus Stichpunkte zählen für dich. Die abgelegten Karten des Höchstbietenden zählen zu seinen Stichen, der letzte Stich bringt 10 Punkte extra. Wer sein Gebot erreicht, schreibt alles gut. Wer es verfehlt, bekommt nichts und verliert das Doppelte seines Gebots.',
+    sectionGoOut: 'Abgehen',
+    goOut:
+      'Statt abzulegen kann der Höchstbietende abgehen: Die Runde endet sofort, er verliert sein Gebot einfach (nicht doppelt), und jeder Gegner kassiert seine Meldepunkte plus 40 Bonus.',
     melds: 'Melden',
-    meldsIntro: 'Vor den Stichen Meldungen ablegen:',
+    meldsIntro:
+      'Vor den Stichen Meldungen ablegen. Eine Karte darf in mehreren verschiedenen Meldungen zählen – eine Familie nimmt aber das Paar ihrer Farbe mit:',
     meldPaar: 'Paar (König + Ober, gleiche Farbe)',
     meldFamilie: 'Familie (Ass–Zehn–König–Ober–Buabe, gleiche Farbe)',
     meldBinokel: 'Binokel (Ober Schippe + Buabe Bollen)',

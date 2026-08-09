@@ -186,12 +186,19 @@ const en: TranslationKeys = {
   rules: {
     title: 'Game Rules',
     sectionGoal: 'Goal',
-    goal: 'First to 1,000 points wins. With 4 players, two players form a team.',
+    goal: 'First to 1000 points wins. If several reach 1000 in the same round, the highest total takes it — and on an exact tie, the highest bidder. With 4 players, partners sit opposite each other.',
     sectionBidding: 'Bidding',
     bidding:
-      'Bidding starts at 150. The highest bidder takes the Dabb (hidden cards), discards some, and picks the trump suit. Optionally, go out — the round ends immediately and opponents score their melds plus a 40-point bonus.',
+      'Bidding starts at 150. The highest bidder takes the Dabb (hidden cards), picks the trump suit, and then lays away four cards. Any trump laid away must be announced — everyone sees it in the game log.',
+    sectionScoring: 'Scoring',
+    scoring:
+      'Meld points plus trick points count for you. The highest bidder\u2019s laid-away cards count towards their tricks, and the last trick is worth 10 extra. Make your bid and you keep everything. Miss it and you score nothing and lose twice your bid.',
+    sectionGoOut: 'Going Out',
+    goOut:
+      'Instead of laying away, the highest bidder can go out: the round ends immediately, they lose their bid once (not twice), and every opponent scores their melds plus a 40-point bonus.',
     melds: 'Melds',
-    meldsIntro: 'Declare melds before tricks:',
+    meldsIntro:
+      'Declare your melds before the tricks. A card can count in several melds of different kinds — but a Familie takes the Paar of its own suit with it:',
     meldPaar: 'Paar – König + Ober of same suit',
     meldFamilie: 'Familie – Ass–Zehn–König–Ober–Buabe of same suit',
     meldBinokel: 'Binokel – Ober Schippe + Buabe Bollen',

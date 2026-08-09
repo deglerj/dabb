@@ -26,6 +26,12 @@ export default function RulesScreen() {
         <Text style={styles.sectionHeader}>{t('rules.sectionBidding')}</Text>
         <Text style={styles.body}>{t('rules.bidding')}</Text>
 
+        <Text style={styles.sectionHeader}>{t('rules.sectionScoring')}</Text>
+        <Text style={styles.body}>{t('rules.scoring')}</Text>
+
+        <Text style={styles.sectionHeader}>{t('rules.sectionGoOut')}</Text>
+        <Text style={styles.body}>{t('rules.goOut')}</Text>
+
         <Text style={styles.sectionHeader}>{t('rules.melds')}</Text>
         <Text style={styles.body}>{t('rules.meldsIntro')}</Text>
 

@@ -55,18 +55,65 @@ Here's the thing: the rules implemented in this app are based on the one true tr
 
 **Common "variations" (read: mistakes) we've heard:**
 
-| What you might think                   | The truth                                                                |
-| -------------------------------------- | ------------------------------------------------------------------------ |
-| "Winning score should be 1500!"        | 1000 is the correct threshold. Your games just lasted too long.          |
-| "We play with 48 cards including 9s!"  | The 9 (Neun) was banished for being too weak. It knows what it did.      |
-| "All four 10s should be a valid meld!" | No. The 10 already gets 10 points per trick. It doesn't need more glory. |
-| "We call the Ober 'Unter'!"            | The Ober is above the Buabe. It's in the name. Geography matters.        |
-| "Going out gives others 30 points!"    | It's 40. Your opponents deserve proper compensation for your cowardice.  |
-| "The bid winner plays the first card!" | The player after the dealer leads — same one who started the bidding.    |
+| What you might think                   | The truth                                                                              |
+| -------------------------------------- | -------------------------------------------------------------------------------------- |
+| "Winning score should be 1500!"        | 1000 is the correct threshold. Your games just lasted too long.                        |
+| "We play with 48 cards including 9s!"  | The 9 (Neun) was banished for being too weak. It knows what it did.                    |
+| "All four 10s should be a valid meld!" | No. The 10 already gets 10 points per trick. It doesn't need more glory.               |
+| "We call the Ober 'Unter'!"            | The Ober is above the Buabe. It's in the name. Geography matters.                      |
+| "Going out gives others 30 points!"    | It's 40. Your opponents deserve proper compensation for your cowardice.                |
+| "The bid winner plays the first card!" | The player after the dealer leads — same one who started the bidding.                  |
+| "Missing your bid only costs the bid!" | It costs double. Bid what you can make, not what you can dream.                        |
+| "You discard first, then pick trump!"  | Trump first. Otherwise nobody ever has to bury a trump, and where's the drama in that? |
 
 If your local rules differ, we respectfully suggest that your ancestors may have misheard the rules at some point, and the error has been propagated through generations. It happens to the best of us.
 
 That said, feel free to open an issue if you want to argue. We enjoy reading passionate defenses of objectively wrong rule variants.
+
+---
+
+## How a Round Works
+
+**Deal.** 40 cards, two of each. 2 players get 18 each, 3 players 12 each, 4 players 9 each. The
+four left over are the **Dabb**.
+
+**Bidding.** Starts at 150 and rises in steps of 10. The player after the dealer must open — they
+cannot pass on the first bid. Bidding runs as a chain of one-on-one duels: whoever survives the
+first duel faces the next player, and so on.
+
+**Dabb, trump, layaway.** The highest bidder takes the Dabb face up, **declares trump**, and only
+then lays four cards away. Those four count towards their own tricks at the end. Burying a trump
+card is allowed, but it must be announced — the game log shows every trump laid away, and nothing
+else from the layaway.
+
+**Melding.** Everyone declares the melds in their hand.
+
+| Meld                                        | Points             |
+| ------------------------------------------- | ------------------ |
+| Paar (König + Ober, same suit)              | 20 (40 in trump)   |
+| Familie (Ass–Zehn–König–Ober–Buabe, 1 suit) | 100 (150 in trump) |
+| Binokel (Ober Schippe + Buabe Bollen)       | 40                 |
+| Doppel-Binokel                              | 300                |
+| Vier Asse / Könige / Ober / Buaben          | 100 / 80 / 60 / 40 |
+
+A card can count towards several melds of different kinds — the König of Kreuz pays in a
+Kreuz-Paar _and_ in Vier Könige. The one exception: a Familie swallows the Paar of its own suit,
+so a König and Ober already in the run don't pay again.
+
+**Tricks.** The player after the dealer leads — the same one who opened the bidding, not the bid
+winner. You must follow suit; if you can follow you must beat the highest card of that suit if you
+can; if you cannot follow you must trump. In 4-player games these last two are lifted when your own
+partner is already winning the trick. Card values: Ass 11, Zehn 10, König 4, Ober 3, Buabe 2. The
+last trick is worth 10 extra.
+
+**Scoring.** Melds plus tricks. Make your bid and you keep the lot. **Miss it and you score nothing
+for the round and lose twice your bid.** First to 1000 wins — and since everyone scores their own
+melds and tricks, more than one player can get there in the same round. The highest total takes it,
+and if two are exactly level, the player who won the bidding wins.
+
+**Going out (Abgehen).** Instead of laying away, the bid winner can bail out. The round ends on the
+spot, they lose their bid **once** rather than twice, and every opponent scores their melds plus a
+40-point bonus.
 
 ---
 

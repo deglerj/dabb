@@ -200,6 +200,10 @@ export interface TranslationKeys {
     goal: string;
     sectionBidding: string;
     bidding: string;
+    sectionScoring: string;
+    scoring: string;
+    sectionGoOut: string;
+    goOut: string;
     melds: string;
     meldsIntro: string;
     meldPaar: string;
