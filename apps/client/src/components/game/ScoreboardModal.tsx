@@ -222,6 +222,7 @@ export function ScoreboardModal({
                   playerIndices.map((pi) => ({
                     team: pi as unknown as Team,
                     names: '',
+                    members: [],
                     score: 0,
                     isMyTeam: false,
                   }))

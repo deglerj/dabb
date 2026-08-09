@@ -2,6 +2,14 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.2.0] - 2026-08-09
+
+### Neu
+
+- Die Punkteleiste oben zeigt jetzt zu jeder Punktzahl den passenden Namen. Bisher standen dort nur nackte Zahlen und man musste die Punkteübersicht öffnen, um zu sehen, wem welche gehört.
+- Ein kleines Dreieck markiert, wer die Runde eröffnet, also die erste Karte im ersten Stich spielt.
+- Wer gerade am Zug ist, bekommt einen hellen Rahmen um seinen Eintrag in der Punkteleiste.
+
 ## [4.1.3] - 2026-08-09
 
 ### Behoben

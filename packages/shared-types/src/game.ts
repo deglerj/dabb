@@ -203,6 +203,8 @@ export const BID_INCREMENT = 10;
 export interface TeamScoreEntry {
   team: Team;
   names: string; // e.g. "Anna & Bob" — pre-formatted by caller
+  /** Seats on this team, ascending. Callers that mark individual players need them apart. */
+  members: PlayerIndex[];
   score: number;
   isMyTeam: boolean;
 }

@@ -1,6 +1,11 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // vite.config.ts injects this from package.json; vitest does not read that config, so any
+  // test importing src/constants.ts would blow up on the bare identifier.
+  define: {
+    __APP_VERSION__: JSON.stringify('test'),
+  },
   test: {
     globals: true,
     environment: 'jsdom',

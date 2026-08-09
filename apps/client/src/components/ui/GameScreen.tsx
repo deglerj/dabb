@@ -26,7 +26,7 @@ import {
   useRoundHistory,
   useCelebration,
 } from '@dabb/ui-shared';
-import { detectMelds } from '@dabb/game-logic';
+import { detectMelds, isWaitingOn } from '@dabb/game-logic';
 import type { PlayerIndex, Card, Team, TeamScoreEntry } from '@dabb/shared-types';
 import { DABB_SIZE } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
@@ -208,11 +208,30 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
         .sort((a, b) => a.playerIndex - b.playerIndex);
       const names = members.map((p) => nicknames.get(p.playerIndex) ?? p.nickname).join(' & ');
       const score = state.totalScores.get(team) ?? 0;
-      result.push({ team, names, score, isMyTeam: myTeam === team });
+      result.push({
+        team,
+        names,
+        members: members.map((p) => p.playerIndex),
+        score,
+        isMyTeam: myTeam === team,
+      });
     }
     // Ensure local player's team is first
     return result.sort((a) => (a.isMyTeam ? -1 : 1));
   }, [state.players, state.totalScores, state.playerCount, playerIndex, nicknames]);
+
+  // Seats the game is waiting on. `isWaitingOn` rather than `whoActsNext` because melding
+  // waits on everyone who has not declared yet, not just the lowest seat.
+  const activePlayers = useMemo(() => {
+    const active = new Set<PlayerIndex>();
+    for (let i = 0; i < state.playerCount; i++) {
+      const idx = i as PlayerIndex;
+      if (isWaitingOn(state, idx)) {
+        active.add(idx);
+      }
+    }
+    return active;
+  }, [state]);
 
   const teamsByPlayerIndex = useMemo((): Map<PlayerIndex, Team> | undefined => {
     if (state.playerCount !== 4) {
@@ -387,6 +406,8 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               trump={state.trump}
               nicknames={nicknames}
               teamScores={teamScores}
+              firstBidder={state.firstBidder}
+              activePlayers={activePlayers}
               onPress={() => setScoreboardOpen(true)}
             />
 
