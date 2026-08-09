@@ -25,6 +25,7 @@ import {
   createTrumpDeclaredEvent,
   dealCards,
   detectMelds,
+  determineGameWinner,
   determineTrickWinner,
   getBiddingWinner,
   isBiddingComplete,
@@ -440,26 +441,16 @@ function createRoundEndEvents(sessionCode: string, seq: SeqGen, state: GameState
 
   events.push(createRoundScoredEvent(ctx(sessionCode, seq), scores, totalScores));
 
-  const targetScore = state.targetScore;
-  let winner: PlayerIndex | Team | null = null;
-  let highestScore = 0;
-
-  if (state.playerCount === 4) {
-    for (const team of [0, 1] as Team[]) {
-      if (totalScores[team] >= targetScore && totalScores[team] > highestScore) {
-        winner = team;
-        highestScore = totalScores[team];
-      }
-    }
-  } else {
-    for (let i = 0; i < state.playerCount; i++) {
-      const idx = i as PlayerIndex;
-      if (totalScores[idx] >= targetScore && totalScores[idx] > highestScore) {
-        winner = idx;
-        highestScore = totalScores[idx];
-      }
-    }
-  }
+  const isTeamGame = state.playerCount === 4;
+  const candidates: (PlayerIndex | Team)[] = isTeamGame
+    ? [0, 1]
+    : Array.from({ length: state.playerCount }, (_, i) => i as PlayerIndex);
+  const winner = determineGameWinner(
+    totalScores,
+    candidates,
+    state.targetScore,
+    isTeamGame ? getPlayerTeam(state, bidWinner) : bidWinner
+  );
 
   if (winner !== null) {
     events.push(createGameFinishedEvent(ctx(sessionCode, seq), winner, totalScores));
@@ -527,26 +518,16 @@ function createGoingOutScoreEvents(
 
   events.push(createRoundScoredEvent(ctx(sessionCode, seq), scores, totalScores));
 
-  const targetScore = state.targetScore;
-  let winner: PlayerIndex | Team | null = null;
-  let highestScore = 0;
-
-  if (state.playerCount === 4) {
-    for (const team of [0, 1] as Team[]) {
-      if (totalScores[team] >= targetScore && totalScores[team] > highestScore) {
-        winner = team;
-        highestScore = totalScores[team];
-      }
-    }
-  } else {
-    for (let i = 0; i < state.playerCount; i++) {
-      const idx = i as PlayerIndex;
-      if (totalScores[idx] >= targetScore && totalScores[idx] > highestScore) {
-        winner = idx;
-        highestScore = totalScores[idx];
-      }
-    }
-  }
+  const isTeamGame = state.playerCount === 4;
+  const candidates: (PlayerIndex | Team)[] = isTeamGame
+    ? [0, 1]
+    : Array.from({ length: state.playerCount }, (_, i) => i as PlayerIndex);
+  const winner = determineGameWinner(
+    totalScores,
+    candidates,
+    state.targetScore,
+    isTeamGame ? getPlayerTeam(state, bidWinner) : bidWinner
+  );
 
   if (winner !== null) {
     events.push(createGameFinishedEvent(ctx(sessionCode, seq), winner, totalScores));

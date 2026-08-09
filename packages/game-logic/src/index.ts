@@ -58,6 +58,7 @@ export {
   isHiddenCard,
   resetForNewRound,
   whoActsNext,
+  determineGameWinner,
 } from './state/index.js';
 
 // Export

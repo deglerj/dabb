@@ -31,6 +31,7 @@ import {
   createTrumpDeclaredEvent,
   dealCards,
   detectMelds,
+  determineGameWinner,
   determineTrickWinner,
   getBiddingWinner,
   isBiddingComplete,
@@ -473,25 +474,17 @@ export class SimulationEngine {
     this.emit(createRoundScoredEvent(this.ctx(), scores, totalScores));
 
     // Check if game is finished
-    let winner: PlayerIndex | Team | null = null;
-    let highestScore = 0;
-
-    if (this.state.playerCount === 4) {
-      for (const team of [0, 1] as Team[]) {
-        if (totalScores[team] >= this.state.targetScore && totalScores[team] > highestScore) {
-          winner = team;
-          highestScore = totalScores[team];
-        }
-      }
-    } else {
-      for (let i = 0; i < this.state.playerCount; i++) {
-        const idx = i as PlayerIndex;
-        if (totalScores[idx] >= this.state.targetScore && totalScores[idx] > highestScore) {
-          winner = idx;
-          highestScore = totalScores[idx];
-        }
-      }
-    }
+    const isTeamGame = this.state.playerCount === 4;
+    const bidWinner = this.state.bidWinner!;
+    const candidates: (PlayerIndex | Team)[] = isTeamGame
+      ? [0, 1]
+      : Array.from({ length: this.state.playerCount }, (_, i) => i as PlayerIndex);
+    const winner = determineGameWinner(
+      totalScores,
+      candidates,
+      this.state.targetScore,
+      isTeamGame ? simGetPlayerTeam(this.state, bidWinner) : bidWinner
+    );
 
     if (winner !== null) {
       this.emit(createGameFinishedEvent(this.ctx(), winner, totalScores));
