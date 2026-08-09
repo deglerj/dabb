@@ -25,7 +25,8 @@ import type { TableEffects } from './useTableEffects.js';
 export interface GameTableProps {
   width: number;
   height: number;
-  effects: TableEffects;
+  /** Omit outside the game (menu, lobby): no drag/trick effects, so no rAF loop runs. */
+  effects?: TableEffects;
   surroundFraction?: number;
 }
 
@@ -273,7 +274,7 @@ export function GameTable({
           style={{ width: feltW, height: feltH }}
         />
       </View>
-      <EffectsLayer width={width} height={height} effects={effects} />
+      {effects && <EffectsLayer width={width} height={height} effects={effects} />}
     </View>
   );
 }

@@ -6,6 +6,7 @@ import {
   View,
   Text,
   TextInput,
+  Pressable,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -17,7 +18,8 @@ import { useTranslation } from '@dabb/i18n';
 import type { PlayerCount } from '@dabb/shared-types';
 import { GameError } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
-import { Colors, Fonts } from '../../theme.js';
+import { Colors, Fonts, Shadows } from '../../theme.js';
+import { TableBackdrop } from './TableBackdrop.js';
 import { createSession, joinSession } from '../../firebase/session.js';
 import { APP_VERSION } from '../../constants.js';
 import { OptionsButton } from './OptionsButton.js';
@@ -172,42 +174,50 @@ export default function HomeScreen() {
   if (mode === 'menu') {
     return (
       <View style={styles.screen}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.card}>
+        <TableBackdrop />
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+          <View style={[styles.card, styles.cardTilted]}>
             <Text style={styles.title} testID="home-title">
               {t('home.title')}
             </Text>
             <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
             {resumableGame && (
-              <TouchableOpacity
-                style={[styles.buttonPrimary, styles.resumeButton]}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.buttonPrimary,
+                  styles.resumeButton,
+                  pressed && styles.buttonPressed,
+                ]}
                 onPress={handleResume}
               >
                 <Text style={styles.buttonPrimaryText}>{t('home.resumeGame')}</Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
 
             <View style={styles.buttonGroup}>
-              <TouchableOpacity style={styles.buttonPrimary} onPress={() => setMode('offline')}>
+              <Pressable
+                style={({ pressed }) => [styles.buttonPrimary, pressed && styles.buttonPressed]}
+                onPress={() => setMode('offline')}
+              >
                 <Text style={styles.buttonPrimaryText}>{t('home.playOffline')}</Text>
-              </TouchableOpacity>
+              </Pressable>
 
-              <TouchableOpacity
-                style={styles.buttonSecondary}
+              <Pressable
+                style={({ pressed }) => [styles.buttonSecondary, pressed && styles.buttonPressed]}
                 onPress={() => setMode('create')}
                 testID="home-create-online-button"
               >
                 <Text style={styles.buttonSecondaryText}>{t('home.createOnline')}</Text>
-              </TouchableOpacity>
+              </Pressable>
 
-              <TouchableOpacity
-                style={styles.buttonSecondary}
+              <Pressable
+                style={({ pressed }) => [styles.buttonSecondary, pressed && styles.buttonPressed]}
                 onPress={() => setMode('join')}
                 testID="home-join-online-button"
               >
                 <Text style={styles.buttonSecondaryText}>{t('home.joinOnline')}</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             <View style={styles.footerRow}>
@@ -243,7 +253,8 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <TableBackdrop />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <Text style={styles.heading}>
             {mode === 'create'
@@ -360,18 +371,26 @@ export default function HomeScreen() {
 
           {/* Action row */}
           <View style={styles.actionRow}>
-            <TouchableOpacity
-              style={styles.buttonSecondarySmall}
+            <Pressable
+              style={({ pressed }) => [
+                styles.buttonSecondarySmall,
+                pressed && styles.buttonPressed,
+              ]}
               onPress={() => {
                 setMode('menu');
                 setError('');
               }}
             >
               <Text style={styles.buttonSecondaryText}>{t('common.back')}</Text>
-            </TouchableOpacity>
+            </Pressable>
 
-            <TouchableOpacity
-              style={[styles.buttonPrimary, styles.flex1, loading && styles.buttonDisabled]}
+            <Pressable
+              style={({ pressed }) => [
+                styles.buttonPrimary,
+                styles.flex1,
+                loading && styles.buttonDisabled,
+                pressed && !loading && styles.buttonPressed,
+              ]}
               onPress={
                 mode === 'create' ? handleCreate : mode === 'join' ? handleJoin : handleStartOffline
               }
@@ -379,7 +398,7 @@ export default function HomeScreen() {
               testID="home-submit-button"
             >
               {loading ? (
-                <ActivityIndicator color={Colors.paperFace} />
+                <ActivityIndicator color={Colors.inkDark} />
               ) : (
                 <Text style={styles.buttonPrimaryText}>
                   {mode === 'create'
@@ -389,7 +408,7 @@ export default function HomeScreen() {
                       : t('offline.startGame')}
                 </Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </ScrollView>
@@ -403,24 +422,30 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  // woodDark shows for the frame or two before the GameTable shaders paint.
   screen: { flex: 1, backgroundColor: Colors.woodDark },
   optionsButtonContainer: { position: 'absolute', right: 16 },
+  // flex:1 so scrollContent's flexGrow/justifyContent can centre the card on the felt.
+  scroll: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: Colors.woodDark,
   },
+  // Same sheet the in-game overlays use (PhaseOverlay): aged paper, thin edge, hard shadow.
   card: {
-    backgroundColor: Colors.paperFace,
-    borderRadius: 12,
+    backgroundColor: Colors.paperAged,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.paperEdge,
     padding: 24,
-    shadowColor: '#3c1e0a',
-    shadowOffset: { width: 2, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 4,
-    elevation: 6,
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+    ...Shadows.card,
   },
+  // Only the menu tilts — the form's inputs read better square-on.
+  cardTilted: { transform: [{ rotate: '-1deg' }] },
   title: {
     fontFamily: Fonts.display,
     fontSize: 36,
@@ -443,34 +468,56 @@ const styles = StyleSheet.create({
   },
   resumeButton: { marginBottom: 12 },
   buttonGroup: { gap: 12 },
+  // Hard offset shadow, no blur — the button sits on the paper and pushes down when held,
+  // matching the lobby's start button rather than a flat web button.
   buttonPrimary: {
     backgroundColor: Colors.amber,
-    borderRadius: 8,
+    borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 20,
     alignItems: 'center',
+    shadowColor: 'rgba(120,60,0,0.4)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
   },
-  buttonPrimaryText: { fontFamily: Fonts.bodyBold, fontSize: 16, color: Colors.paperFace },
+  buttonPrimaryText: { fontFamily: Fonts.bodyBold, fontSize: 16, color: Colors.inkDark },
   buttonSecondary: {
-    backgroundColor: Colors.paperAged,
-    borderRadius: 8,
+    backgroundColor: Colors.paperFace,
+    borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 20,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.woodMid,
+    borderColor: Colors.paperEdge,
+    shadowColor: 'rgba(120,60,0,0.25)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   buttonSecondarySmall: {
-    backgroundColor: Colors.paperAged,
-    borderRadius: 8,
+    backgroundColor: Colors.paperFace,
+    borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.woodMid,
+    borderColor: Colors.paperEdge,
+    shadowColor: 'rgba(120,60,0,0.25)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  buttonPressed: {
+    transform: [{ translateY: 2 }],
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   buttonSecondaryText: { fontFamily: Fonts.bodyBold, fontSize: 16, color: Colors.inkMid },
-  buttonDisabled: { opacity: 0.6 },
+  buttonDisabled: { backgroundColor: Colors.inkFaint, shadowOpacity: 0, elevation: 0 },
   formGroup: { marginBottom: 16 },
   label: {
     fontFamily: Fonts.bodyBold,
@@ -487,19 +534,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Fonts.body,
     color: Colors.inkDark,
-    backgroundColor: Colors.paperAged,
+    backgroundColor: Colors.paperFace,
   },
   playerCountRow: { flexDirection: 'row', gap: 8 },
   countButton: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 4,
     alignItems: 'center',
     borderWidth: 1,
   },
   countButtonActive: { backgroundColor: Colors.amber, borderColor: Colors.amber },
-  countButtonInactive: { backgroundColor: Colors.paperAged, borderColor: Colors.woodMid },
-  countButtonTextActive: { fontFamily: Fonts.bodyBold, fontSize: 16, color: Colors.paperFace },
+  countButtonInactive: { backgroundColor: Colors.paperFace, borderColor: Colors.paperEdge },
+  countButtonTextActive: { fontFamily: Fonts.bodyBold, fontSize: 16, color: Colors.inkDark },
   countButtonTextInactive: { fontFamily: Fonts.bodyBold, fontSize: 16, color: Colors.inkMid },
   errorText: {
     fontFamily: Fonts.body,
