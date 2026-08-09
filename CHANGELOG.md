@@ -2,6 +2,13 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.1.0] - 2026-08-09
+
+### Neu
+
+- **Ihr könnt euch am Tisch kurz zu Wort melden.** Neben dem Zahnrad sitzt ein neuer Knopf mit sechs Reaktionen: 😄 freut mich, 👏 gut gespielt, ⏳ ungeduldig, 😠 verärgert, 🤦 Kopf auf den Tisch und 😕 verwirrt. Wer eine auswählt, zeigt sie den anderen zehn Sekunden lang neben seinem Namen. Einen Chat gibt es weiterhin nicht — die sechs Reaktionen sind alles, was gesendet werden kann.
+- **Auch KI-Mitspieler reagieren jetzt.** Sie freuen sich über einen fetten Stich, ärgern sich über einen verlorenen und gratulieren, wenn jemand anderes die Runde klar für sich entscheidet. Ein- bis zweimal pro Runde, nicht mehr.
+
 ## [4.0.1] - 2026-08-09
 
 ### Behoben

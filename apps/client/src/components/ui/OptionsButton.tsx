@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { TouchableOpacity, StyleSheet } from '@dabb/rn-compat';
 import { Icon } from './Icon.js';
 import { Colors } from '../../theme.js';
+import { TOP_RIGHT_CONTROLS_SIZE } from '../../constants.js';
 import { OptionsDialog } from './OptionsDialog.js';
 
 interface OptionsButtonProps {
@@ -17,7 +18,7 @@ export function OptionsButton({ onExitGame }: OptionsButtonProps) {
 
   return (
     <>
-      <TouchableOpacity style={styles.button} onPress={() => setDialogVisible(true)} hitSlop={8}>
+      <TouchableOpacity style={styles.button} onPress={() => setDialogVisible(true)}>
         <Icon name="settings" size={20} color={Colors.paperFace} />
       </TouchableOpacity>
       <OptionsDialog
@@ -31,8 +32,10 @@ export function OptionsButton({ onExitGame }: OptionsButtonProps) {
 
 const styles = StyleSheet.create({
   button: {
-    width: 36,
-    height: 36,
+    // No hitSlop here any more: its negative margins pulled this button on top of the emote
+    // button that now sits next to it.
+    width: TOP_RIGHT_CONTROLS_SIZE,
+    height: TOP_RIGHT_CONTROLS_SIZE,
     borderRadius: 8,
     backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',

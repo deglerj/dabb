@@ -57,6 +57,10 @@ export type {
   TrumpDeclaredEvent,
 } from './events.js';
 
+// Emote types
+export type { EmoteKey, EmoteSignal } from './emotes.js';
+export { EMOTE_GLYPH, EMOTE_KEYS, EMOTE_TTL_MS } from './emotes.js';
+
 // AI types
 export { AI_NAMES } from './ai.js';
 export type {

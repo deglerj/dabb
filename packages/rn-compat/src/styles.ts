@@ -157,7 +157,11 @@ export type HitSlop = number | { top?: number; left?: number; right?: number; bo
 
 /** RN expands the hit target via hitSlop without changing layout; padding+equal negative
  * margin does the same on the web, as long as the element has no visible border/background
- * (true for every current hitSlop consumer — icon-only touchables). */
+ * (true for every current hitSlop consumer — icon-only touchables).
+ *
+ * Ceiling: the negative margins do affect *siblings*. Two hitSlop elements next to each other
+ * in a flex row each pull inwards by their slop, so they overlap unless the container's gap
+ * covers both. Prefer sizing the tap target itself over hitSlop for adjacent controls. */
 export function hitSlopStyle(hitSlop?: HitSlop): CSSProperties | undefined {
   if (!isSet(hitSlop)) {
     return undefined;
