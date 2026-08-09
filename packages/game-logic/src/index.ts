@@ -57,6 +57,7 @@ export {
   filterEventsForPlayer,
   resetForNewRound,
   whoActsNext,
+  isWaitingOn,
   determineGameWinner,
 } from './state/index.js';
 
