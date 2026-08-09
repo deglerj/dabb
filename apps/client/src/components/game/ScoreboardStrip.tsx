@@ -3,6 +3,11 @@
  * Shows total score per player (2/3-player) or per team (4-player), highlighting the local side.
  * Shows highest bid/bidder and current trump on the right.
  * Tappable to open the scoreboard history modal.
+ *
+ * Two per-seat markers ride along, because both were otherwise unreadable from the table:
+ * `▶` on the player who leads the first trick this round (`state.firstBidder`), and a lit
+ * border on whoever the game is waiting for. Both are always mounted and toggled by
+ * opacity/borderColor so the strip never reflows mid-round.
  */
 import { View, Text, StyleSheet, TouchableOpacity, useSafeAreaInsets } from '@dabb/rn-compat';
 import type { PlayerIndex, Suit, TeamScoreEntry } from '@dabb/shared-types';
@@ -22,8 +27,15 @@ export interface ScoreboardStripProps {
   trump: Suit | null;
   nicknames: Map<PlayerIndex, string>;
   teamScores?: TeamScoreEntry[];
+  /** Player who plays the first card of every trick round — `state.firstBidder`. */
+  firstBidder: PlayerIndex | null;
+  /** Seats the game is currently waiting on (several at once during melding). */
+  activePlayers: ReadonlySet<PlayerIndex>;
   onPress?: () => void;
 }
+
+/** Marks the player who leads the first trick. */
+const LEAD_MARKER = '▶';
 
 export function ScoreboardStrip({
   totalScores,
@@ -33,6 +45,8 @@ export function ScoreboardStrip({
   trump,
   nicknames,
   teamScores,
+  firstBidder,
+  activePlayers,
   onPress,
 }: ScoreboardStripProps) {
   const { t } = useTranslation();
@@ -71,6 +85,7 @@ export function ScoreboardStrip({
               style={[
                 styles.teamEntry,
                 entry.isMyTeam ? styles.teamEntryMine : styles.teamEntryOpponent,
+                entry.members.some((m) => activePlayers.has(m)) && styles.entryActive,
               ]}
             >
               <Text
@@ -80,7 +95,11 @@ export function ScoreboardStrip({
                 ]}
                 numberOfLines={1}
               >
-                {entry.names}
+                {entry.members
+                  .map(
+                    (m) => `${m === firstBidder ? LEAD_MARKER : ''}${nicknames.get(m) ?? `P${m}`}`
+                  )
+                  .join(' & ')}
               </Text>
               <Text style={[styles.totalScore, styles.totalScoreHighlight]}>{entry.score}</Text>
             </View>
@@ -88,11 +107,34 @@ export function ScoreboardStrip({
         : // 2/3-player: one box per player
           totalScores.map((entry) => {
             const isMe = entry.playerIndex === myPlayerIndex;
+            const name = isMe
+              ? t('common.you')
+              : (nicknames.get(entry.playerIndex) ?? `P${entry.playerIndex}`);
             return (
               <View
                 key={entry.playerIndex}
-                style={[styles.playerEntry, isMe && styles.playerEntryHighlight]}
+                style={[
+                  styles.playerEntry,
+                  isMe && styles.playerEntryHighlight,
+                  activePlayers.has(entry.playerIndex) && styles.entryActive,
+                ]}
               >
+                <View style={styles.playerNameRow}>
+                  <Text
+                    style={[
+                      styles.leadMarker,
+                      entry.playerIndex !== firstBidder && styles.leadMarkerHidden,
+                    ]}
+                  >
+                    {LEAD_MARKER}
+                  </Text>
+                  <Text
+                    style={[styles.playerName, isMe && styles.playerNameMine]}
+                    numberOfLines={1}
+                  >
+                    {name}
+                  </Text>
+                </View>
                 <Text style={[styles.totalScore, isMe && styles.totalScoreHighlight]}>
                   {entry.score}
                 </Text>
@@ -133,10 +175,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
-    minWidth: 44,
+    minWidth: 56,
+    // Constant border, transparent when idle — a border that appears on the active seat
+    // would shove every other entry sideways once per turn.
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   playerEntryHighlight: {
     backgroundColor: '#c97f00',
+  },
+  entryActive: {
+    borderColor: '#ffd97a',
+  },
+  playerNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  playerName: {
+    fontSize: 9,
+    color: '#c8b090',
+    maxWidth: 64,
+  },
+  playerNameMine: {
+    color: '#fff5e0',
+  },
+  leadMarker: {
+    fontSize: 8,
+    color: '#7ce08a',
+  },
+  leadMarkerHidden: {
+    opacity: 0,
   },
   teamEntry: {
     alignItems: 'center',
@@ -144,6 +213,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
     minWidth: 60,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   teamEntryMine: {
     backgroundColor: '#1e3a5f',
