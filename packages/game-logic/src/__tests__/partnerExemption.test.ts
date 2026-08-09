@@ -36,7 +36,6 @@ function fourPlayers(): Player[] {
     nickname: `P${i}`,
     playerIndex: i as PlayerIndex,
     team: (i % 2) as 0 | 1,
-    connected: true,
   }));
 }
 
@@ -45,7 +44,6 @@ function threePlayers(): Player[] {
     id: `p${i}`,
     nickname: `P${i}`,
     playerIndex: i as PlayerIndex,
-    connected: true,
   }));
 }
 

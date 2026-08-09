@@ -26,12 +26,6 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
     case 'PLAYER_JOINED':
       return handlePlayerJoined(state, event);
 
-    case 'PLAYER_LEFT':
-      return handlePlayerLeft(state, event);
-
-    case 'PLAYER_RECONNECTED':
-      return handlePlayerReconnected(state, event);
-
     case 'CARDS_DEALT':
       return handleCardsDealt(state, event);
 
@@ -122,36 +116,11 @@ function handlePlayerJoined(
     nickname: event.payload.nickname,
     playerIndex: event.payload.playerIndex,
     team: event.payload.team,
-    connected: true,
   };
 
   return {
     ...state,
     players: [...state.players, newPlayer],
-  };
-}
-
-function handlePlayerLeft(
-  state: GameState,
-  event: Extract<GameEvent, { type: 'PLAYER_LEFT' }>
-): GameState {
-  return {
-    ...state,
-    players: state.players.map((p) =>
-      p.playerIndex === event.payload.playerIndex ? { ...p, connected: false } : p
-    ),
-  };
-}
-
-function handlePlayerReconnected(
-  state: GameState,
-  event: Extract<GameEvent, { type: 'PLAYER_RECONNECTED' }>
-): GameState {
-  return {
-    ...state,
-    players: state.players.map((p) =>
-      p.playerIndex === event.payload.playerIndex ? { ...p, connected: true } : p
-    ),
   };
 }
 

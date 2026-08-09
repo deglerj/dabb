@@ -23,9 +23,7 @@ import {
   NewRoundStartedEvent,
   PlayerIndex,
   PlayerJoinedEvent,
-  PlayerLeftEvent,
   PlayerPassedEvent,
-  PlayerReconnectedEvent,
   RoundScoredEvent,
   Suit,
   Team,
@@ -71,28 +69,6 @@ export function createPlayerJoinedEvent(
     ...createBaseEvent(ctx),
     type: 'PLAYER_JOINED',
     payload: { playerId, playerIndex, nickname, team },
-  };
-}
-
-export function createPlayerLeftEvent(
-  ctx: EventContext,
-  playerIndex: PlayerIndex
-): PlayerLeftEvent {
-  return {
-    ...createBaseEvent(ctx),
-    type: 'PLAYER_LEFT',
-    payload: { playerIndex },
-  };
-}
-
-export function createPlayerReconnectedEvent(
-  ctx: EventContext,
-  playerIndex: PlayerIndex
-): PlayerReconnectedEvent {
-  return {
-    ...createBaseEvent(ctx),
-    type: 'PLAYER_RECONNECTED',
-    payload: { playerIndex },
   };
 }
 

@@ -1,6 +1,5 @@
 /**
  * Tests for reducer paths not covered by integration tests:
- * - PLAYER_LEFT / PLAYER_RECONNECTED events
  * - Error paths for null firstBidder
  */
 
@@ -13,8 +12,6 @@ import { createDeck, dealCards, shuffleDeck } from '../cards/deck.js';
 import {
   createPlayerJoinedEvent,
   createGameStartedEvent,
-  createPlayerLeftEvent,
-  createPlayerReconnectedEvent,
   createBidPlacedEvent,
   createPlayerPassedEvent,
   createCardsDealtEvent,
@@ -39,38 +36,6 @@ function setupTwoPlayerGame() {
   ];
   return applyEvents(events);
 }
-
-describe('reducer: PLAYER_LEFT and PLAYER_RECONNECTED', () => {
-  it('marks a player as disconnected on PLAYER_LEFT', () => {
-    const state = setupTwoPlayerGame();
-    expect(state.players.find((p) => p.playerIndex === 0)?.connected).toBe(true);
-
-    const nextState = applyEvents([createPlayerLeftEvent(ctx(), 0 as PlayerIndex)], state);
-
-    expect(nextState.players.find((p) => p.playerIndex === 0)?.connected).toBe(false);
-    // Other player unaffected
-    expect(nextState.players.find((p) => p.playerIndex === 1)?.connected).toBe(true);
-  });
-
-  it('marks a player as connected on PLAYER_RECONNECTED', () => {
-    const state = setupTwoPlayerGame();
-    const disconnected = applyEvents([createPlayerLeftEvent(ctx(), 0 as PlayerIndex)], state);
-    expect(disconnected.players.find((p) => p.playerIndex === 0)?.connected).toBe(false);
-
-    const reconnected = applyEvents(
-      [createPlayerReconnectedEvent(ctx(), 0 as PlayerIndex)],
-      disconnected
-    );
-
-    expect(reconnected.players.find((p) => p.playerIndex === 0)?.connected).toBe(true);
-  });
-
-  it('handles reconnection of a player who never disconnected (idempotent)', () => {
-    const state = setupTwoPlayerGame();
-    const nextState = applyEvents([createPlayerReconnectedEvent(ctx(), 1 as PlayerIndex)], state);
-    expect(nextState.players.find((p) => p.playerIndex === 1)?.connected).toBe(true);
-  });
-});
 
 describe('reducer: error paths', () => {
   it('throws when BID_PLACED arrives with null firstBidder', () => {

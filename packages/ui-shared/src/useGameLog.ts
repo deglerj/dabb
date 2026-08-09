@@ -252,8 +252,6 @@ export function useGameLog(
         // Secret or uninteresting — nothing to show.
         case 'CARDS_DEALT':
         case 'MELDING_COMPLETE':
-        case 'PLAYER_LEFT':
-        case 'PLAYER_RECONNECTED':
           break;
       }
     }

@@ -103,14 +103,6 @@ function formatEvent(
       );
       break;
 
-    case 'PLAYER_LEFT':
-      lines.push(`      ${formatPlayer(event.payload.playerIndex, players)} left`);
-      break;
-
-    case 'PLAYER_RECONNECTED':
-      lines.push(`      ${formatPlayer(event.payload.playerIndex, players)} reconnected`);
-      break;
-
     case 'CARDS_DEALT': {
       const hands = event.payload.hands;
       for (const [idx, cards] of Object.entries(hands)) {
@@ -277,8 +269,6 @@ function getEventSection(type: GameEvent['type']): string | null {
     case 'GAME_FINISHED':
       return 'GAME END';
     case 'PLAYER_JOINED':
-    case 'PLAYER_LEFT':
-    case 'PLAYER_RECONNECTED':
       return 'PLAYERS';
     default:
       return null;

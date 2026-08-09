@@ -31,7 +31,6 @@ export interface Player {
   nickname: string;
   playerIndex: PlayerIndex;
   team?: Team; // Only for 4-player games
-  connected: boolean;
 }
 
 export interface PlayedCard {

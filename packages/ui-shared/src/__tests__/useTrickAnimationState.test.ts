@@ -6,9 +6,9 @@ import type { CompletedTrick, GamePhase, Player, Trick } from '@dabb/shared-type
 // --- Test fixtures ---
 
 const players: Player[] = [
-  { id: 'p0', nickname: 'Alice', playerIndex: 0, connected: true },
-  { id: 'p1', nickname: 'Bob', playerIndex: 1, connected: true },
-  { id: 'p2', nickname: 'Carol', playerIndex: 2, connected: true },
+  { id: 'p0', nickname: 'Alice', playerIndex: 0 },
+  { id: 'p1', nickname: 'Bob', playerIndex: 1 },
+  { id: 'p2', nickname: 'Carol', playerIndex: 2 },
 ];
 
 const emptyTrick: Trick = { cards: [], leadSuit: null, winnerIndex: null };

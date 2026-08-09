@@ -10,9 +10,9 @@ type AISeat = import('../useFirebaseGame.js').AISeat;
 const p = (n: number) => n as PlayerIndex;
 
 describe('resolveConnectedPlayers', () => {
-  // PLAYER_LEFT and PLAYER_RECONNECTED were never emitted by anything, so the reducer's
-  // `connected` flag stayed true for the whole game and the "(offline)" badge in
-  // OpponentZone could not render. Presence was written to Firebase and never read back.
+  // The "(offline)" badge in OpponentZone used to read a Player.connected flag that only two
+  // never-emitted events could change, so it stayed true all game and the badge could not
+  // render. Presence was written to Firebase and never read back. It is the source now.
   it('reports a seat whose presence says disconnected (regression)', () => {
     const presence = new Map([
       [p(0), true],

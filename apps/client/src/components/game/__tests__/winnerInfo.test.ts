@@ -7,7 +7,6 @@ function player(playerIndex: number, nickname: string, team?: Team): Player {
     id: `p${playerIndex}`,
     nickname,
     playerIndex: playerIndex as PlayerIndex,
-    connected: true,
     ...(team === undefined ? {} : { team }),
   } as Player;
 }
