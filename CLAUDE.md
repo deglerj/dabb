@@ -19,7 +19,11 @@ docs/{arc42/, adr/, design/, AI_STRATEGY.md, KEY_FILES.md}
 
 All game state is stored as an append-only event log in Firebase RTDB per session. Clients read and write events directly — no application server intermediary.
 
-Key client files: `apps/client/src/firebase/` (session, events, config, gameEventFactory, secretId)
+### One Rules Engine
+
+`packages/game-logic/src/engine/` turns a player action into the events it produces, validating it first and expanding the whole cascade (a card play can finish a trick, a round and the game). All three drivers go through `createEventsForAction`: the online client (`useFirebaseGame`, `useAI`), offline play (`OfflineGameEngine`) and the simulation (`SimulationEngine`). They differ only in transport and pacing. Do not re-implement scoring, dealing or phase advancement in a driver — that is exactly what drifted before.
+
+Key client files: `apps/client/src/firebase/` (session, events, config, secretId) — transport only; the rules live in `packages/game-logic/src/engine/`
 
 Key events: `GameStartedEvent`, `CardsDealtEvent`, `BidPlacedEvent`, `PlayerPassedEvent`, `BiddingWonEvent`, `DabbTakenEvent`, `CardsDiscardedEvent`, `GoingOutEvent`, `TrumpDeclaredEvent`, `MeldsDeclaredEvent`, `MeldingCompleteEvent`, `CardPlayedEvent`, `TrickWonEvent`, `RoundScoredEvent`, `GameFinishedEvent`, `GameTerminatedEvent`, `PlayerJoinedEvent`, `PlayerLeftEvent`, `PlayerReconnectedEvent`, `NewRoundStartedEvent`.
 
@@ -38,7 +42,7 @@ Game state is reconstructed by replaying all events via a reducer (`packages/gam
 ### Scoreboard & Game Log
 
 - **Scoreboard**: `useRoundHistory` hook; compact `ScoreboardStrip` + expandable modal in client.
-- **Game Log**: `useGameLog` hook; shows latest entries; tab-based overlay in client; pulsing your-turn banner.
+- **Game Log**: `useGameLog` hook turns events straight into display lines (it takes the nicknames and a `t` function); tab-based overlay in client.
 
 ### RN-Shaped Component Shim (`@dabb/rn-compat`)
 
@@ -61,7 +65,7 @@ Languages: `de` (default), `en`. Use `useTranslation()` from `@dabb/i18n`. Swabi
 
 ### Game Error Codes
 
-`GameError(GAME_ERROR_CODES.X, params)` is thrown client-side in `gameEventFactory.ts` when a player makes an invalid move. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Game start, General game, Bidding, Dabb, Going out, Trump, Melding, Tricks, Game termination, AI, Generic fallback). Add error: `/add-error` skill.
+`GameError(GAME_ERROR_CODES.X, params)` is thrown by `game-logic/src/engine/actions.ts` when a player makes an invalid move, and by `firebase/session.ts` for session failures. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Game start, General game, Bidding, Dabb, Going out, Trump, Melding, Tricks, Game termination, Generic fallback). Add error: `/add-error` skill.
 
 ## Commands
 
@@ -86,14 +90,14 @@ pnpm simulate -- --players 3 --games 100 --concurrency 4
 
 See `docs/KEY_FILES.md` for the full list. Most important entry points:
 
-| File                                               | Purpose                                             |
-| -------------------------------------------------- | --------------------------------------------------- |
-| `packages/shared-types/src/`                       | All shared types (cards, game, events, errors)      |
-| `packages/game-logic/src/state/reducer.ts`         | Event sourcing reducer                              |
-| `packages/game-logic/src/__tests__/testHelpers.ts` | Integration test helpers                            |
-| `apps/client/src/firebase/gameEventFactory.ts`     | Client-side game action validation + event creation |
-| `apps/client/src/hooks/useFirebaseGame.ts`         | Main game hook (Firebase subscriptions + state)     |
-| `packages/i18n/src/locales/`                       | Translation files (de.ts, en.ts)                    |
+| File                                               | Purpose                                          |
+| -------------------------------------------------- | ------------------------------------------------ |
+| `packages/shared-types/src/`                       | All shared types (cards, game, events, errors)   |
+| `packages/game-logic/src/state/reducer.ts`         | Event sourcing reducer                           |
+| `packages/game-logic/src/__tests__/testHelpers.ts` | Integration test helpers                         |
+| `packages/game-logic/src/engine/`                  | Action validation, event cascades, round scoring |
+| `apps/client/src/hooks/useFirebaseGame.ts`         | Main game hook (Firebase subscriptions + state)  |
+| `packages/i18n/src/locales/`                       | Translation files (de.ts, en.ts)                 |
 
 ## Testing
 
@@ -124,9 +128,9 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 **Bid winner phase order**: `dabb` (take it) → `trump` (declare it) → `discard` (lay four away) → `melding`. Trump is declared **before** the layaway so that burying a trump is a real decision. Buried trump must be announced: `filterCardsDiscarded` (views.ts) leaves trump-suited card IDs readable to everyone and replaces the rest with `'hidden'`, and `useGameLog` turns that into a `trump_discarded` entry. The reveal is derived per client from the card IDs, not reported by the discarder — so `filterEventsForPlayer` must be given the whole log (it folds the round's trump forward), never an isolated batch.
 
-**Scoring a round**: melds + trick points, with the bid winner's discarded cards counting towards their tricks and 10 for the last trick. Miss the bid and the whole round is discarded and replaced by **`-2 × winningBid`** (`bidMet: false`). Going out costs only `-1 × winningBid` — the 2:1 ratio is what makes Abgehen worth choosing, so don't "fix" one without the other.
+**Scoring a round**: melds + trick points, with the bid winner's discarded cards counting towards their tricks and 10 for the last trick. Miss the bid and the whole round is discarded and replaced by **`-2 × winningBid`** (`bidMet: false`). Going out costs only `-1 × winningBid` — the 2:1 ratio is what makes Abgehen worth choosing, so don't "fix" one without the other. All of this lives once, in `game-logic/src/engine/scoring.ts`.
 
-**Ending the game**: `determineGameWinner` (`game-logic/state/winner.ts`) is the single source of this rule — several players can cross the target in one round, so highest total wins, and an exact tie goes to the bid winner. Ties are common because every score component is a multiple of ten. If the tied players don't include the bid winner, the lowest seat index wins — arbitrary, and the known limitation. All four scoring call sites (client factory ×2, offline engine, simulation) must go through the helper; they each used to inline the loop and could drift.
+**Ending the game**: `determineGameWinner` (`game-logic/state/winner.ts`) is the single source of this rule — several players can cross the target in one round, so highest total wins, and an exact tie goes to the bid winner. Ties are common because every score component is a multiple of ten. If the tied players don't include the bid winner, the lowest seat index wins — arbitrary, and the known limitation. Every scoring path goes through the helper via `game-logic/src/engine/scoring.ts`; the call sites each used to inline the loop and drifted.
 
 **Melds**: a card may pay in melds of different kinds (König in both a Paar and Vier Könige) — deliberate, and the common case in 2-player hands. The one exception is that a Familie absorbs the Paar of its own suit, and that rule exists _only_ because `detectPaar` is called last in `detectMelds` and receives the melds found so far. Do not reorder those pushes; `melds.test.ts` fails if you do.
 
