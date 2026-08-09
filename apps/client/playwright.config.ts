@@ -22,7 +22,9 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'pnpm exec firebase emulators:start --only database --project demo-dabb',
+      // firebase.dev.json = wide-open emulator rules; firebase.json holds the deployed ones.
+      command:
+        'pnpm exec firebase emulators:start --only database --project demo-dabb --config firebase.dev.json',
       cwd: '../..',
       port: 9000,
       reuseExistingServer: !process.env.CI,

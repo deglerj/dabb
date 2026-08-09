@@ -8,7 +8,9 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # setsid puts the emulator in its own process group — firebase-tools spawns the actual
 # Java emulator as a semi-detached child, and a plain `kill $PID` on the pnpm/node wrapper
 # doesn't reach it, leaving it bound to :9000 after Ctrl+C. Killing the whole group does.
-setsid pnpm exec firebase emulators:start --only database --project demo-dabb &
+# --config firebase.dev.json selects the wide-open emulator ruleset; the default
+# firebase.json carries the production rules and must not be loosened for local dev.
+setsid pnpm exec firebase emulators:start --only database --project demo-dabb --config firebase.dev.json &
 EMULATOR_PID=$!
 cleanup() {
   kill -- "-$EMULATOR_PID" 2>/dev/null
