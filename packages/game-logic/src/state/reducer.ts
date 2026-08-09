@@ -266,7 +266,14 @@ function handleCardsDiscarded(
   const currentHand = state.hands.get(event.payload.playerIndex) || [];
   const discardedIds = new Set(event.payload.discardedCards);
   const discardedCards = currentHand.filter((c) => discardedIds.has(c.id));
-  const newHand = currentHand.filter((c) => !discardedIds.has(c.id));
+  const keptCards = currentHand.filter((c) => !discardedIds.has(c.id));
+
+  // In another player's view most discarded IDs are 'hidden' placeholders that match nothing
+  // in the (equally placeholder) hand, so the filter above removes too few cards and the bid
+  // winner appears to hold the dabb forever. Trim the shortfall off the front — placeholders
+  // sit there, the face-up dabb cards were appended at the end by DABB_TAKEN.
+  const shortfall = event.payload.discardedCards.length - discardedCards.length;
+  const newHand = shortfall > 0 ? keptCards.slice(shortfall) : keptCards;
 
   const newHands = new Map(state.hands);
   newHands.set(event.payload.playerIndex, newHand);
