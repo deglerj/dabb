@@ -43,11 +43,7 @@ export function PlayerHand({
     return null;
   }
 
-  const layout: LayoutDimensions = {
-    width,
-    height,
-    playerCount: gameState.players.length as 3 | 4,
-  };
+  const layout: LayoutDimensions = { width, height };
 
   const sortedCards = sortHand(cards);
 

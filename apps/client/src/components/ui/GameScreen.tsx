@@ -568,7 +568,6 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               myPlayerIndex={playerIndex}
               players={state.players}
               nicknames={nicknames}
-              playerCount={state.playerCount as 3 | 4}
               effects={effects}
               localPlayerDropOrigin={lastDropPos}
             />
