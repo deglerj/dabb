@@ -20,26 +20,6 @@ id = "CVE-2025-71329"
 reason = "image-size (JXL/HEIF parser DoS) — transitive via firebase-tools, CLI-only."
 
 [[IgnoredVulns]]
-id = "CVE-2026-16729"
-reason = "undici (cookie attribute injection) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-15157"
-reason = "undici (CRLF injection via blob type) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-14643"
-reason = "undici (cross-user info disclosure via Cache-Control whitespace) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-16728"
-reason = "undici (response desync via retry interceptor) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-13697"
-reason = "undici (cross-user info disclosure via degenerate cache directives) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
 id = "CVE-2026-69152"
 reason = "brace-expansion (DoS via unbounded arrays) — transitive via firebase-tools, CLI-only."
 
@@ -76,10 +56,6 @@ id = "CVE-2026-69207"
 reason = "Hono (ReDoS in CORS middleware) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
 
 [[IgnoredVulns]]
-id = "GHSA-frvp-7c67-39w9"
-reason = "Hono Node adapter serve-static path traversal (Windows-only) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
-
-[[IgnoredVulns]]
 id = "CVE-2026-18446"
 reason = "fast-uri (host confusion via backslash authority) — transitive via firebase-tools, CLI-only."
 
@@ -94,16 +70,4 @@ reason = "js-yaml (quadratic CPU in !!omap resolution) — transitive via fireba
 [[IgnoredVulns]]
 id = "GHSA-r292-9mhp-454m"
 reason = "node-tar (recursion stack-overflow DoS) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-67213"
-reason = "nanoid (infinite loop on size=0 with custom generator) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-54285"
-reason = "OpenTelemetry core (unbounded memory in W3C Baggage propagation) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-2391"
-reason = "qs (arrayLimit bypass DoS) — transitive via firebase-tools, CLI-only."
 

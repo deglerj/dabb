@@ -2,6 +2,13 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.1.1] - 2026-08-09
+
+### Sonstiges
+
+- Bausteine, aus denen Dabb gebaut wird, auf den aktuellen Stand gebracht. Am Spiel ändert sich nichts.
+- Eine Einstellung hielt Dabb auf einer älteren Version der Oberflächen-Bibliothek fest, obwohl längst eine neuere eingetragen war. Sie ist entfernt; künftige Aktualisierungen kommen jetzt auch wirklich an.
+
 ## [4.1.0] - 2026-08-09
 
 ### Neu

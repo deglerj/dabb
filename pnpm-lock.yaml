@@ -5,15 +5,8 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  react: 19.2.7
-  react-dom: 19.2.7
-  socket.io-parser: ^4.2.6
   undici: ^7.24.5
-  flatted: ^3.4.2
-  minimatch@3>brace-expansion: ^1.1.13
   picomatch: ^4.0.4
-  qs: ^6.14.2
-  yaml: ^2.8.3
 
 importers:
 
@@ -66,16 +59,16 @@ importers:
         version: link:../../packages/ui-shared
       firebase:
         specifier: ^12.17.0
-        version: 12.17.1(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7))
+        version: 12.17.1(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8))
       react:
-        specifier: 19.2.7
-        version: 19.2.7
+        specifier: 19.2.8
+        version: 19.2.8
       react-dom:
-        specifier: 19.2.7
-        version: 19.2.7(react@19.2.7)
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
       react-router-dom:
         specifier: ^7.9.5
-        version: 7.18.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 7.18.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
       '@playwright/test':
         specifier: ^1.57.0
@@ -85,7 +78,7 @@ importers:
         version: 7.0.0(@testing-library/dom@10.4.1)
       '@testing-library/react':
         specifier: ^16.3.0
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/react':
         specifier: ~19.2.18
         version: 19.2.18
@@ -192,8 +185,8 @@ importers:
         specifier: workspace:*
         version: link:../shared-types
       react:
-        specifier: 19.2.7
-        version: 19.2.7
+        specifier: '*'
+        version: 19.2.8
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^4.1.10
@@ -230,11 +223,11 @@ importers:
         specifier: ^26.3.6
         version: 26.3.6(typescript@7.0.2)
       react:
-        specifier: 19.2.7
-        version: 19.2.7
+        specifier: '>=18.0.0'
+        version: 19.2.8
       react-i18next:
         specifier: ^17.0.10
-        version: 17.0.11(i18next@26.3.6(typescript@7.0.2))(react@19.2.7)(typescript@7.0.2)
+        version: 17.0.11(i18next@26.3.6(typescript@7.0.2))(react@19.2.8)(typescript@7.0.2)
     devDependencies:
       '@types/react':
         specifier: ^19.2.18
@@ -246,11 +239,11 @@ importers:
   packages/rn-compat:
     dependencies:
       react:
-        specifier: 19.2.7
-        version: 19.2.7
+        specifier: '*'
+        version: 19.2.8
       react-dom:
-        specifier: 19.2.7
-        version: 19.2.7(react@19.2.7)
+        specifier: '*'
+        version: 19.2.8(react@19.2.8)
     devDependencies:
       '@types/react':
         specifier: ^19.2.17
@@ -280,12 +273,12 @@ importers:
         specifier: workspace:*
         version: link:../shared-types
       react:
-        specifier: 19.2.7
-        version: 19.2.7
+        specifier: '>=18.0.0'
+        version: 19.2.8
     devDependencies:
       '@testing-library/react':
         specifier: ^16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/react':
         specifier: ^19.2.18
         version: 19.2.18
@@ -1951,7 +1944,7 @@ packages:
   '@react-native-async-storage/async-storage@3.1.1':
     resolution: {integrity: sha512-z+PnLz1n6ECKhgoHZHkfc+dijXZEyZnNFSajbtE0NEbsJhmX8x9GlOeiMQIKX2E4DUqPSgfIh4FYBv1M49KgPQ==}
     peerDependencies:
-      react: 19.2.7
+      react: '*'
       react-native: '*'
 
   '@react-native/assets-registry@0.86.0':
@@ -2024,7 +2017,7 @@ packages:
     engines: {node: ^20.19.4 || ^22.13.0 || ^24.3.0 || >= 25.0.0}
     peerDependencies:
       '@types/react': ^19.2.0
-      react: 19.2.7
+      react: '*'
       react-native: 0.86.0
     peerDependenciesMeta:
       '@types/react':
@@ -2340,8 +2333,8 @@ packages:
       '@testing-library/dom': ^10.0.0
       '@types/react': ^18.0.0 || ^19.0.0
       '@types/react-dom': ^18.0.0 || ^19.0.0
-      react: 19.2.7
-      react-dom: 19.2.7
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -5089,16 +5082,16 @@ packages:
   react-devtools-core@6.1.5:
     resolution: {integrity: sha512-ePrwPfxAnB+7hgnEr8vpKxL9cmnp7F322t8oqcPshbIQQhDKgFDW4tjhF2wjVbdXF9O/nyuy3sQWd9JGpiLPvA==}
 
-  react-dom@19.2.7:
-    resolution: {integrity: sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==}
+  react-dom@19.2.8:
+    resolution: {integrity: sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==}
     peerDependencies:
-      react: 19.2.7
+      react: ^19.2.8
 
   react-i18next@17.0.11:
     resolution: {integrity: sha512-cDtkXgxjuFTWUH6V+aQn1Ve5vDiUztCNPWW5GtSHDccsgRXO1nE6QFWCEmc1KAutrb3OUv87wFShJL5RhUwPXg==}
     peerDependencies:
       i18next: '>= 26.2.0'
-      react: 19.2.7
+      react: '>= 16.8.0'
       react-dom: '*'
       react-native: '*'
       typescript: ^5 || ^6 || ^7
@@ -5123,7 +5116,7 @@ packages:
     peerDependencies:
       '@react-native/jest-preset': 0.86.0
       '@types/react': ^19.1.1
-      react: 19.2.7
+      react: ^19.2.3
     peerDependenciesMeta:
       '@react-native/jest-preset':
         optional: true
@@ -5138,21 +5131,21 @@ packages:
     resolution: {integrity: sha512-AIKJ/jgGlFb3EbfCXk5Gzshiwt+l3mqbCrNjmEWMMjqQxNJ3svBa6bgzFyCC2Sw3RA0VWF1kg3uQf2OFhxb8hw==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
-      react: 19.2.7
-      react-dom: 19.2.7
+      react: '>=18'
+      react-dom: '>=18'
 
   react-router@7.18.2:
     resolution: {integrity: sha512-aUVMjFm3GAPTTZL7oYr5E7ETiqfQCHRLH+B+5afnICvf0r7kkK4eR6SMuwbSTJw/7t+12khT/Kahij49fqOCIg==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
-      react: 19.2.7
-      react-dom: 19.2.7
+      react: '>=18'
+      react-dom: '>=18'
     peerDependenciesMeta:
       react-dom:
         optional: true
 
-  react@19.2.7:
-    resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
+  react@19.2.8:
+    resolution: {integrity: sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==}
     engines: {node: '>=0.10.0'}
 
   readable-stream@2.3.8:
@@ -5733,10 +5726,6 @@ packages:
   undici-types@8.3.0:
     resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
-  undici@7.28.0:
-    resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
-    engines: {node: '>=20.18.1'}
-
   undici@7.29.0:
     resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
     engines: {node: '>=20.18.1'}
@@ -5800,7 +5789,7 @@ packages:
   use-sync-external-store@1.6.0:
     resolution: {integrity: sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==}
     peerDependencies:
-      react: 19.2.7
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
@@ -5853,7 +5842,7 @@ packages:
       sugarss: ^5.0.0
       terser: ^5.16.0
       tsx: ^4.8.1
-      yaml: ^2.8.3
+      yaml: ^2.4.2
     peerDependenciesMeta:
       '@types/node':
         optional: true
@@ -7190,11 +7179,11 @@ snapshots:
       idb: 7.1.1
       tslib: 2.8.1
 
-  '@firebase/auth-compat@0.6.9(@firebase/app-compat@0.5.16)(@firebase/app-types@0.9.5)(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7))':
+  '@firebase/auth-compat@0.6.9(@firebase/app-compat@0.5.16)(@firebase/app-types@0.9.5)(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8))':
     dependencies:
       '@firebase/app': 0.16.0
       '@firebase/app-compat': 0.5.16
-      '@firebase/auth': 1.13.4(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7))
+      '@firebase/auth': 1.13.4(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8))
       '@firebase/auth-types': 0.13.1(@firebase/app-types@0.9.5)(@firebase/util@1.15.2)
       '@firebase/component': 0.7.4
       '@firebase/util': 1.15.2
@@ -7210,7 +7199,7 @@ snapshots:
       '@firebase/app-types': 0.9.5
       '@firebase/util': 1.15.2
 
-  '@firebase/auth@1.13.4(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7))':
+  '@firebase/auth@1.13.4(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8))':
     dependencies:
       '@firebase/app': 0.16.0
       '@firebase/component': 0.7.4
@@ -7218,7 +7207,7 @@ snapshots:
       '@firebase/util': 1.15.2
       tslib: 2.8.1
     optionalDependencies:
-      '@react-native-async-storage/async-storage': 3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7)
+      '@react-native-async-storage/async-storage': 3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8)
 
   '@firebase/component@0.7.4':
     dependencies:
@@ -7888,11 +7877,11 @@ snapshots:
 
   '@protobufjs/utf8@1.1.1': {}
 
-  '@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7)':
+  '@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8)':
     dependencies:
       idb: 8.0.3
-      react: 19.2.7
-      react-native: 0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7)
+      react: 19.2.8
+      react-native: 0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8)
     optional: true
 
   '@react-native/assets-registry@0.86.0':
@@ -8030,20 +8019,18 @@ snapshots:
       metro-runtime: 0.84.4
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
     optional: true
 
   '@react-native/normalize-colors@0.86.0':
     optional: true
 
-  '@react-native/virtualized-lists@0.86.0(@types/react@19.2.18)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7)':
+  '@react-native/virtualized-lists@0.86.0(@types/react@19.2.18)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8)':
     dependencies:
       invariant: 2.2.4
       nullthrows: 1.1.1
-      react: 19.2.7
-      react-native: 0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7)
+      react: 19.2.8
+      react-native: 0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8)
     optionalDependencies:
       '@types/react': 19.2.18
     optional: true
@@ -8244,12 +8231,12 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
 
-  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@babel/runtime': 7.29.7
       '@testing-library/dom': 10.4.1
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
     optionalDependencies:
       '@types/react': 19.2.18
       '@types/react-dom': 19.2.4(@types/react@19.2.18)
@@ -9676,7 +9663,7 @@ snapshots:
       tcp-port-used: 1.0.3
       tmp: 0.2.7
       triple-beam: 1.4.1
-      undici: 7.28.0
+      undici: 7.29.0
       universal-analytics: 0.5.4
       update-notifier-cjs: 5.1.7
       winston: 3.19.0
@@ -9696,7 +9683,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  firebase@12.17.1(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7)):
+  firebase@12.17.1(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8)):
     dependencies:
       '@firebase/ai': 2.14.0(@firebase/app-types@0.9.5)(@firebase/app@0.16.0)
       '@firebase/analytics': 0.10.23(@firebase/app@0.16.0)
@@ -9706,8 +9693,8 @@ snapshots:
       '@firebase/app-check-compat': 0.4.6(@firebase/app-compat@0.5.16)(@firebase/app@0.16.0)
       '@firebase/app-compat': 0.5.16
       '@firebase/app-types': 0.9.5
-      '@firebase/auth': 1.13.4(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7))
-      '@firebase/auth-compat': 0.6.9(@firebase/app-compat@0.5.16)(@firebase/app-types@0.9.5)(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7))
+      '@firebase/auth': 1.13.4(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8))
+      '@firebase/auth-compat': 0.6.9(@firebase/app-compat@0.5.16)(@firebase/app-types@0.9.5)(@firebase/app@0.16.0)(@react-native-async-storage/async-storage@3.1.1(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8))
       '@firebase/data-connect': 0.7.3(@firebase/app@0.16.0)
       '@firebase/database': 1.1.4
       '@firebase/database-compat': 2.1.6(@firebase/app-compat@0.5.16)(@firebase/app@0.16.0)
@@ -11453,18 +11440,18 @@ snapshots:
       - utf-8-validate
     optional: true
 
-  react-dom@19.2.7(react@19.2.7):
+  react-dom@19.2.8(react@19.2.8):
     dependencies:
-      react: 19.2.7
+      react: 19.2.8
       scheduler: 0.27.0
 
-  react-i18next@17.0.11(i18next@26.3.6(typescript@7.0.2))(react@19.2.7)(typescript@7.0.2):
+  react-i18next@17.0.11(i18next@26.3.6(typescript@7.0.2))(react@19.2.8)(typescript@7.0.2):
     dependencies:
       '@babel/runtime': 7.29.7
       html-parse-stringify: 4.0.1
       i18next: 26.3.6(typescript@7.0.2)
-      react: 19.2.7
-      use-sync-external-store: 1.6.0(react@19.2.7)
+      react: 19.2.8
+      use-sync-external-store: 1.6.0(react@19.2.8)
     optionalDependencies:
       typescript: 7.0.2
 
@@ -11473,7 +11460,7 @@ snapshots:
   react-is@18.3.1:
     optional: true
 
-  react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7):
+  react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8):
     dependencies:
       '@react-native/assets-registry': 0.86.0
       '@react-native/codegen': 0.86.0(@babel/core@7.29.7)
@@ -11481,7 +11468,7 @@ snapshots:
       '@react-native/gradle-plugin': 0.86.0
       '@react-native/js-polyfills': 0.86.0
       '@react-native/normalize-colors': 0.86.0
-      '@react-native/virtualized-lists': 0.86.0(@types/react@19.2.18)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.7))(react@19.2.7)
+      '@react-native/virtualized-lists': 0.86.0(@types/react@19.2.18)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.8))(react@19.2.8)
       abort-controller: 3.0.0
       anser: 1.4.10
       ansi-regex: 5.0.1
@@ -11497,7 +11484,7 @@ snapshots:
       nullthrows: 1.1.1
       pretty-format: 29.7.0
       promise: 8.3.0
-      react: 19.2.7
+      react: 19.2.8
       react-devtools-core: 6.1.5
       react-refresh: 0.14.2
       regenerator-runtime: 0.13.11
@@ -11522,21 +11509,21 @@ snapshots:
   react-refresh@0.14.2:
     optional: true
 
-  react-router-dom@7.18.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  react-router-dom@7.18.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
-      react-router: 7.18.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+      react-router: 7.18.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
 
-  react-router@7.18.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  react-router@7.18.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:
       cookie: 1.1.1
-      react: 19.2.7
+      react: 19.2.8
       set-cookie-parser: 2.7.2
     optionalDependencies:
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.8)
 
-  react@19.2.7: {}
+  react@19.2.8: {}
 
   readable-stream@2.3.8:
     dependencies:
@@ -12331,8 +12318,6 @@ snapshots:
 
   undici-types@8.3.0: {}
 
-  undici@7.28.0: {}
-
   undici@7.29.0: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
@@ -12396,9 +12381,9 @@ snapshots:
 
   url-template@2.0.8: {}
 
-  use-sync-external-store@1.6.0(react@19.2.7):
+  use-sync-external-store@1.6.0(react@19.2.8):
     dependencies:
-      react: 19.2.7
+      react: 19.2.8
 
   util-deprecate@1.0.2: {}
 
