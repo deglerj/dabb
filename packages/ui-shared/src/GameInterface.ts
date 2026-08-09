@@ -21,10 +21,10 @@ export interface GameInterface {
    */
   connectedPlayers: Set<PlayerIndex>;
   /**
-   * When a remote player terminates an online game this holds their nickname.
-   * Always null offline.
+   * Set once a remote player has ended an online game. `nickname` is null when the session
+   * reported the termination without saying who did it. Always null offline.
    */
-  terminatedByNickname: string | null;
+  terminatedBy: { nickname: string | null } | null;
   onBid: (amount: number) => void;
   onPass: () => void;
   onTakeDabb: () => void;

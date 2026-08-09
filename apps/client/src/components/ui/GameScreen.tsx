@@ -98,7 +98,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     nicknames,
     connected,
     connectedPlayers,
-    terminatedByNickname,
+    terminatedBy,
     onBid,
     onPass,
     onTakeDabb,
@@ -313,21 +313,16 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     }
   }, [blocker, t]);
 
-  const handleDone = useCallback(() => {
+  /** Leaves for the home screen without the are-you-sure prompt. */
+  const leaveToHome = useCallback(() => {
     skipBlockRef.current = true;
     navigate('/', { replace: true });
   }, [navigate]);
 
   const handleExitGame = useCallback(() => {
     onExit();
-    skipBlockRef.current = true;
-    navigate('/', { replace: true });
-  }, [onExit, navigate]);
-
-  const handleReload = useCallback(() => {
-    skipBlockRef.current = true;
-    navigate('/', { replace: true });
-  }, [navigate]);
+    leaveToHome();
+  }, [onExit, leaveToHome]);
 
   // Phase overlay
   const showBidding = state.phase === 'bidding';
@@ -353,7 +348,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
       state={state}
       events={events}
       connected={connected}
-      onReload={handleReload}
+      onReload={leaveToHome}
     >
       {state.phase === 'waiting' ? (
         <View style={styles.loadingContainer}>
@@ -376,7 +371,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
             <GameTable width={width} height={height} effects={effects} />
 
             {/* Reconnecting banner */}
-            <ReconnectingBanner visible={!connected && !terminatedByNickname} />
+            <ReconnectingBanner visible={!connected && terminatedBy === null} />
 
             {/* Scoreboard strip at top */}
             <ScoreboardStrip
@@ -563,8 +558,8 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               winnerId={winnerInfo?.winnerId ?? null}
               winnerNicknames={winnerInfo?.winnerNicknames ?? []}
               isLocalWinner={winnerInfo?.isLocalWinner ?? false}
-              terminatedByNickname={terminatedByNickname}
-              onDone={handleDone}
+              terminatedBy={terminatedBy}
+              onDone={leaveToHome}
             />
             <View
               style={[

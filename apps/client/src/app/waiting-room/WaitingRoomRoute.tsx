@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from '@dabb/rn-compat';
 import { useNavigate, useParams } from 'react-router-dom';
 import WaitingRoomScreen from '../../components/ui/WaitingRoomScreen.js';
+import { AI_NAMES } from '@dabb/shared-types';
 import type { PlayerIndex } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import {
@@ -30,9 +31,6 @@ type StoredSession = {
   playerIndex: PlayerIndex;
   playerCount?: number;
 };
-
-const AI_NAMES = ['Bot Fritz', 'Bot Hilde', 'Bot Klaus', 'Bot Liesel'];
-let aiNameIndex = 0;
 
 export default function WaitingRoomRoute() {
   const { code } = useParams<{ code: string }>();
@@ -186,8 +184,10 @@ export default function WaitingRoomRoute() {
       if (!meta) {
         return;
       }
-      const aiName = AI_NAMES[aiNameIndex % AI_NAMES.length];
-      aiNameIndex++;
+      // Picked against the table rather than a running counter: the counter was module
+      // state, so it kept climbing across sessions and could hand out the same name twice.
+      const taken = new Set(Object.values(meta.players).map((p) => p.nickname));
+      const aiName = AI_NAMES.find((name) => !taken.has(name)) ?? AI_NAMES[0];
       await addAIPlayer(code, meta.players, meta.playerCount, aiName, selectedAIDifficulty);
     } catch (err) {
       window.alert(err instanceof Error ? err.message : 'Failed to add AI player');

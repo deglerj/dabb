@@ -66,7 +66,7 @@ export function useFirebaseGame({
   playerIndex,
 }: UseFirebaseGameOptions): FirebaseGameResult {
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
-  const [terminatedByNickname, setTerminatedByNickname] = useState<string | null>(null);
+  const [terminatedBy, setTerminatedBy] = useState<{ nickname: string | null } | null>(null);
   const [connected, setConnected] = useState(false);
   const [secretHash, setSecretHash] = useState<string>('');
   const [players, setPlayers] = useState<PlayerInfo[]>([]);
@@ -131,7 +131,9 @@ export function useFirebaseGame({
     }
     const unsub = subscribeToSessionStatus(sessionCode, (status) => {
       if (status === 'terminated') {
-        setTerminatedByNickname('');
+        // The status flag says the game ended but not who ended it; a GAME_TERMINATED
+        // event may still arrive with the name.
+        setTerminatedBy((prev) => prev ?? { nickname: null });
       }
     });
     return unsub;
@@ -162,9 +164,7 @@ export function useFirebaseGame({
       }
 
       if (event.type === 'GAME_TERMINATED') {
-        const terminatorIndex = event.payload.terminatedBy;
-        const terminatorNick = nicknames.get(terminatorIndex) ?? '';
-        setTerminatedByNickname(terminatorNick !== '' ? terminatorNick : null);
+        setTerminatedBy({ nickname: nicknames.get(event.payload.terminatedBy) ?? null });
       }
     });
 
@@ -244,7 +244,7 @@ export function useFirebaseGame({
     nicknames,
     connected,
     connectedPlayers,
-    terminatedByNickname,
+    terminatedBy,
     onBid,
     onPass,
     onTakeDabb,

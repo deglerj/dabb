@@ -69,7 +69,7 @@ describe('useOfflineGame', () => {
     expect(result.current).toHaveProperty('isInitialLoad');
     expect(result.current).toHaveProperty('nicknames');
     expect(result.current).toHaveProperty('connected');
-    expect(result.current).toHaveProperty('terminatedByNickname');
+    expect(result.current).toHaveProperty('terminatedBy');
     expect(result.current).toHaveProperty('onBid');
     expect(result.current).toHaveProperty('onPass');
     expect(result.current).toHaveProperty('onExit');
@@ -82,11 +82,11 @@ describe('useOfflineGame', () => {
     expect(result.current.connected).toBe(true);
   });
 
-  it('terminatedByNickname is always null', () => {
+  it('terminatedBy is always null', () => {
     const { result } = renderHook(() =>
       useOfflineGame({ playerCount: 2, difficulty: 'medium', nickname: 'Hans', resume: false })
     );
-    expect(result.current.terminatedByNickname).toBeNull();
+    expect(result.current.terminatedBy).toBeNull();
   });
 
   it('nicknames contains human player name and AI names', async () => {

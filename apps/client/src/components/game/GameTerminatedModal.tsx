@@ -11,7 +11,7 @@ export interface GameTerminatedModalProps {
   winnerId: string | null;
   winnerNicknames: string[];
   isLocalWinner: boolean;
-  terminatedByNickname?: string | null;
+  terminatedBy?: { nickname: string | null } | null;
   onDone: () => void;
 }
 
@@ -20,14 +20,17 @@ export function GameTerminatedModal({
   winnerId,
   winnerNicknames,
   isLocalWinner,
-  terminatedByNickname,
+  terminatedBy,
   onDone,
 }: GameTerminatedModalProps) {
   const { t } = useTranslation();
 
   let title: string;
-  if (terminatedByNickname) {
-    title = t('game.playerEndedGame', { name: terminatedByNickname });
+  if (terminatedBy) {
+    // Falls back to the neutral wording when the session never said who ended it.
+    title = terminatedBy.nickname
+      ? t('game.playerEndedGame', { name: terminatedBy.nickname })
+      : t('game.gameEnded');
   } else if (!winnerId) {
     title = t('game.gameEnded');
   } else if (isLocalWinner) {

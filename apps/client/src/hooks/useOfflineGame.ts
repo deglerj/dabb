@@ -198,7 +198,7 @@ export function useOfflineGame({
     nicknames,
     connected: true,
     connectedPlayers,
-    terminatedByNickname: null,
+    terminatedBy: null,
     onBid,
     onPass,
     onTakeDabb,

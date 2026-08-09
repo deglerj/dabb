@@ -57,6 +57,19 @@ export async function createSession(
   return { sessionCode, secretId, playerIndex: 0 as PlayerIndex };
 }
 
+/** The lowest seat nobody has taken, or null when the table is full. */
+function firstFreeSeat(
+  players: Record<string, unknown>,
+  playerCount: PlayerCount
+): PlayerIndex | null {
+  for (let i = 0; i < playerCount; i++) {
+    if (!(String(i) in players)) {
+      return i as PlayerIndex;
+    }
+  }
+  return null;
+}
+
 export async function joinSession(
   sessionCode: string,
   nickname: string
@@ -75,15 +88,7 @@ export async function joinSession(
     throw new GameError(GAME_ERROR_CODES.GAME_ALREADY_STARTED);
   }
 
-  const takenSlots = Object.keys(meta.players).map(Number);
-  let playerIndex: PlayerIndex | null = null;
-  for (let i = 0; i < meta.playerCount; i++) {
-    if (!takenSlots.includes(i)) {
-      playerIndex = i as PlayerIndex;
-      break;
-    }
-  }
-
+  const playerIndex = firstFreeSeat(meta.players, meta.playerCount);
   if (playerIndex === null) {
     throw new GameError(GAME_ERROR_CODES.SESSION_FULL);
   }
@@ -107,14 +112,7 @@ export async function addAIPlayer(
   aiNickname: string,
   aiDifficulty: AIDifficulty
 ): Promise<PlayerIndex> {
-  const takenSlots = Object.keys(players).map(Number);
-  let playerIndex: PlayerIndex | null = null;
-  for (let i = 0; i < playerCount; i++) {
-    if (!takenSlots.includes(i)) {
-      playerIndex = i as PlayerIndex;
-      break;
-    }
-  }
+  const playerIndex = firstFreeSeat(players, playerCount);
   if (playerIndex === null) {
     throw new GameError(GAME_ERROR_CODES.SESSION_FULL);
   }
