@@ -33,7 +33,9 @@ export function useTrickAnimationState(
   currentTrick: Trick,
   lastCompletedTrick: CompletedTrick | null,
   phase: GamePhase,
-  players: Player[]
+  players: Player[],
+  /** True while the first batch of the event log is being replayed (mount or reconnect). */
+  isInitialLoad: boolean
 ): TrickAnimationResult {
   const [animPhase, setAnimPhase] = useState<TrickAnimPhase>('idle');
   const [displayCards, setDisplayCards] = useState<PlayedCard[]>([]);
@@ -42,7 +44,6 @@ export function useTrickAnimationState(
   const [sweepingCardCount, setSweepingCardCount] = useState(0);
 
   const prevTrickKeyRef = useRef<string | null>(null);
-  const initialLoadRef = useRef(true);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const clearAllTimers = useCallback(() => {
@@ -50,8 +51,17 @@ export function useTrickAnimationState(
     timersRef.current = [];
   }, []);
 
-  // Track current trick cards during 'showing' phase
-  useEffect(() => {
+  // Track current trick cards during 'showing' phase.
+  //
+  // This has to be a layout effect, and it has to stay declared *before* the trick-detect
+  // effect below. The last trick of a round arrives as one cascade — CARD_PLAYED, TRICK_WON,
+  // ROUND_SCORED — so a single render carries both the completed trick and a phase that has
+  // already left 'tricks'. This effect's `animPhase` is then the previous render's 'showing',
+  // so the guard right below does not hold and it would reset to idle. As a passive effect it
+  // ran after the trick-detect layout effect and won, wiping the round's final trick from the
+  // table before it was ever painted. Same commit, declaration order, last write wins: the
+  // trick-detect effect now overwrites this one back to 'paused'.
+  useLayoutEffect(() => {
     if (animPhase === 'paused' || animPhase === 'sweeping') {
       return;
     }
@@ -71,17 +81,20 @@ export function useTrickAnimationState(
   // Detect new completed trick → start pause → then sweep
   useLayoutEffect(() => {
     if (!lastCompletedTrick) {
-      if (initialLoadRef.current) {
-        initialLoadRef.current = false;
-      }
       return;
     }
 
     const trickKey = lastCompletedTrick.cards.map((c) => c.cardId).join(',');
 
-    // Skip stale trick on initial load (reconnection guard)
-    if (initialLoadRef.current) {
-      initialLoadRef.current = false;
+    // Reconnection guard: a replayed log carries a trick that finished before we got here,
+    // so adopt it without animating. The previous guard was a ref spent on the first render,
+    // which always has an empty state and therefore no completed trick — by the time the log
+    // landed it was gone, and every reload replayed a stale sweep.
+    //
+    // ponytail: isInitialLoad is the only replay signal available here — CompletedTrick has no
+    // timestamp, so the wall-clock-age guard the emotes use is not an option. An onChildAdded
+    // event that beats getAllEvents can flip it early; the cost is one spurious sweep.
+    if (isInitialLoad) {
       prevTrickKeyRef.current = trickKey;
       return;
     }
@@ -129,7 +142,7 @@ export function useTrickAnimationState(
     }, PAUSE_DURATION);
 
     timersRef.current.push(pauseTimer);
-  }, [lastCompletedTrick, players, clearAllTimers]);
+  }, [lastCompletedTrick, players, clearAllTimers, isInitialLoad]);
 
   // Cancel pause early if next card is played while paused
   useEffect(() => {

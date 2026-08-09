@@ -48,10 +48,13 @@ export interface PersistPayload {
 
 export type StateChangeCallback = (state: GameState, newEvents: GameEvent[]) => void;
 
-// Delay between individual AI card plays within a trick (allows fly-in animation to show)
-const AI_CARD_PLAY_DELAY_MS = 700;
+// Delay between individual AI card plays within a trick (allows fly-in animation to show).
+// Exported because the online driver (useAI) has no engine loop of its own and has to pace
+// its bots to the same cadence — without it the only gap between two plays is the Firebase
+// round trip, which is short enough to cut the trick pause animation short.
+export const AI_CARD_PLAY_DELAY_MS = 700;
 // Delay after a trick completes — must cover PAUSE_DURATION (3000ms) + sweep animation (~1000ms) + buffer
-const AI_TRICK_COMPLETE_DELAY_MS = 4500;
+export const AI_TRICK_COMPLETE_DELAY_MS = 4500;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
