@@ -2,13 +2,13 @@
  * Options dialog — sound toggle, vibration toggle (native only), language selector.
  */
 import { useState, useCallback, useEffect } from 'react';
-import { Modal, View, Text, Switch, TouchableOpacity, StyleSheet } from '@dabb/rn-compat';
+import { View, Text, Switch, TouchableOpacity, StyleSheet } from '@dabb/rn-compat';
 import { useNavigate } from 'react-router-dom';
-import { Icon } from './Icon.js';
 import { useTranslation, i18n, persistLanguage, type SupportedLanguage } from '@dabb/i18n';
 import { isMuted, setMuted } from '../../utils/sounds.js';
 import { isHapticsEnabled, setHapticsEnabled } from '../../utils/haptics.js';
-import { Colors, Fonts, Shadows } from '../../theme.js';
+import { Colors, Fonts } from '../../theme.js';
+import { Dialog } from './Dialog.js';
 
 interface OptionsDialogProps {
   visible: boolean;
@@ -55,155 +55,106 @@ export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogPro
   }, []);
 
   return (
-    <Modal visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity style={styles.card} activeOpacity={1} onPress={() => undefined}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('options.title')}</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose} hitSlop={8}>
-              <Icon name="x" size={18} color={Colors.inkMid} />
-            </TouchableOpacity>
-          </View>
+    <Dialog visible={visible} title={t('options.title')} onClose={onClose}>
+      {/* Sound row */}
+      <View style={styles.row}>
+        <Text style={styles.rowLabel}>🔊 {t('options.sound')}</Text>
+        <Switch
+          value={soundEnabled}
+          onValueChange={handleSoundToggle}
+          trackColor={{ false: Colors.paperEdge, true: Colors.amber }}
+          thumbColor={Colors.paperFace}
+        />
+      </View>
 
-          {/* Sound row */}
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>🔊 {t('options.sound')}</Text>
-            <Switch
-              value={soundEnabled}
-              onValueChange={handleSoundToggle}
-              trackColor={{ false: Colors.paperEdge, true: Colors.amber }}
-              thumbColor={Colors.paperFace}
-            />
-          </View>
-
-          {/* Vibration row — hidden where the Vibration API doesn't exist (Safari, always;
+      {/* Vibration row — hidden where the Vibration API doesn't exist (Safari, always;
               this is a fixed per-browser capability, so the conditional mount can't cause a
               layout shift at runtime the way a loading-state one would). */}
-          {typeof navigator !== 'undefined' && 'vibrate' in navigator && (
-            <View style={styles.row}>
-              <Text style={styles.rowLabel}>📳 {t('options.vibration')}</Text>
-              <Switch
-                value={hapticsEnabled}
-                onValueChange={handleHapticsToggle}
-                trackColor={{ false: Colors.paperEdge, true: Colors.amber }}
-                thumbColor={Colors.paperFace}
-              />
-            </View>
-          )}
+      {typeof navigator !== 'undefined' && 'vibrate' in navigator && (
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>📳 {t('options.vibration')}</Text>
+          <Switch
+            value={hapticsEnabled}
+            onValueChange={handleHapticsToggle}
+            trackColor={{ false: Colors.paperEdge, true: Colors.amber }}
+            thumbColor={Colors.paperFace}
+          />
+        </View>
+      )}
 
-          {/* Language section */}
-          <View style={styles.languageSection}>
-            <Text style={styles.languageLabel}>{t('options.language')}</Text>
-            <View style={styles.flagRow}>
-              {(['de', 'en'] as SupportedLanguage[]).map((lang) => (
+      {/* Language section */}
+      <View style={styles.languageSection}>
+        <Text style={styles.languageLabel}>{t('options.language')}</Text>
+        <View style={styles.flagRow}>
+          {(['de', 'en'] as SupportedLanguage[]).map((lang) => (
+            <TouchableOpacity
+              key={lang}
+              style={[styles.flagButton, language === lang && styles.flagButtonSelected]}
+              onPress={() => handleLanguageSelect(lang)}
+            >
+              <Text style={styles.flagEmoji}>{lang === 'de' ? '🇩🇪' : '🇬🇧'}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Info links */}
+      <View style={styles.githubRow}>
+        <TouchableOpacity
+          onPress={() => {
+            onClose();
+            navigate('/rules');
+          }}
+        >
+          <Text style={styles.githubLink}>{t('rules.title')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="link"
+          onPress={() =>
+            window.open('https://github.com/deglerj/dabb', '_blank', 'noopener,noreferrer')
+          }
+        >
+          <Text style={styles.githubLink}>{t('info.sourceCode')}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {onExitGame && (
+        <>
+          <View style={styles.divider} />
+          {!confirmingExit ? (
+            <TouchableOpacity style={styles.exitButton} onPress={() => setConfirmingExit(true)}>
+              <Text style={styles.exitButtonLabel}>{t('options.exitGame')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.exitConfirm}>
+              <Text style={styles.exitConfirmTitle}>{t('options.exitGameConfirmTitle')}</Text>
+              <Text style={styles.exitConfirmMessage}>{t('options.exitGameConfirmMessage')}</Text>
+              <View style={styles.exitConfirmButtons}>
                 <TouchableOpacity
-                  key={lang}
-                  style={[styles.flagButton, language === lang && styles.flagButtonSelected]}
-                  onPress={() => handleLanguageSelect(lang)}
+                  style={styles.cancelButton}
+                  onPress={() => setConfirmingExit(false)}
                 >
-                  <Text style={styles.flagEmoji}>{lang === 'de' ? '🇩🇪' : '🇬🇧'}</Text>
+                  <Text style={styles.cancelButtonLabel}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Info links */}
-          <View style={styles.githubRow}>
-            <TouchableOpacity
-              onPress={() => {
-                onClose();
-                navigate('/rules');
-              }}
-            >
-              <Text style={styles.githubLink}>{t('rules.title')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityRole="link"
-              onPress={() =>
-                window.open('https://github.com/deglerj/dabb', '_blank', 'noopener,noreferrer')
-              }
-            >
-              <Text style={styles.githubLink}>{t('info.sourceCode')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {onExitGame && (
-            <>
-              <View style={styles.divider} />
-              {!confirmingExit ? (
-                <TouchableOpacity style={styles.exitButton} onPress={() => setConfirmingExit(true)}>
+                <TouchableOpacity
+                  style={styles.exitButtonConfirm}
+                  onPress={() => {
+                    onClose();
+                    onExitGame();
+                  }}
+                >
                   <Text style={styles.exitButtonLabel}>{t('options.exitGame')}</Text>
                 </TouchableOpacity>
-              ) : (
-                <View style={styles.exitConfirm}>
-                  <Text style={styles.exitConfirmTitle}>{t('options.exitGameConfirmTitle')}</Text>
-                  <Text style={styles.exitConfirmMessage}>
-                    {t('options.exitGameConfirmMessage')}
-                  </Text>
-                  <View style={styles.exitConfirmButtons}>
-                    <TouchableOpacity
-                      style={styles.cancelButton}
-                      onPress={() => setConfirmingExit(false)}
-                    >
-                      <Text style={styles.cancelButtonLabel}>{t('common.cancel')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.exitButtonConfirm}
-                      onPress={() => {
-                        onClose();
-                        onExitGame();
-                      }}
-                    >
-                      <Text style={styles.exitButtonLabel}>{t('options.exitGame')}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              )}
-            </>
+              </View>
+            </View>
           )}
-        </TouchableOpacity>
-      </TouchableOpacity>
-    </Modal>
+        </>
+      )}
+    </Dialog>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  card: {
-    backgroundColor: Colors.paperFace,
-    borderRadius: 12,
-    padding: 20,
-    width: 280,
-    ...Shadows.card,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.paperEdge,
-  },
-  title: {
-    fontFamily: Fonts.bodyBold,
-    fontSize: 16,
-    color: Colors.inkDark,
-  },
-  closeButton: {
-    backgroundColor: Colors.paperAged,
-    borderRadius: 6,
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
