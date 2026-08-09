@@ -237,6 +237,16 @@ const de: TranslationKeys = {
     macosSafari: 'Öffne im Menü „Ablage“ und wähle „Zum Dock hinzufügen“.',
     androidFirefox: 'Öffne das Menü (⋮) und tippe auf „Installieren“.',
   },
+  emotes: {
+    open: 'Reaktion senden',
+    close: 'Reaktionen schließen',
+    happy: 'Des passt',
+    congrats: 'Gut gespielt',
+    impatient: "Wird's bald?",
+    angry: 'Mist',
+    facepalm: 'Oh Mann',
+    confused: 'Häh?',
+  },
   options: {
     title: 'Optionen',
     sound: 'Sound',

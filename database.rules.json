@@ -20,6 +20,9 @@
         "presence": {
           "$playerIndex": { ".write": "auth == null" }
         },
+        "emotes": {
+          "$playerIndex": { ".write": "auth == null" }
+        },
         "aiClaims": {
           "$claimId": { ".write": "auth == null" }
         }

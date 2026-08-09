@@ -2,9 +2,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGameState } from '@dabb/ui-shared';
 import type { GameInterface } from '@dabb/ui-shared';
 import { applyEvents } from '@dabb/game-logic';
-import type { AIAction, CardId, GameEvent, GameState, PlayerIndex, Suit } from '@dabb/shared-types';
+import type {
+  AIAction,
+  CardId,
+  EmoteKey,
+  GameEvent,
+  GameState,
+  PlayerIndex,
+  Suit,
+} from '@dabb/shared-types';
 import { GameError } from '@dabb/shared-types';
 import { subscribeToEvents, pushEvents, getAllEvents } from '../firebase/events.js';
+import { sendEmote, subscribeToEmotes } from '../firebase/emotes.js';
+import { useEmotes } from './useEmotes.js';
+import { useAIEmotes } from './useAIEmotes.js';
 import { hashSecretId } from '../firebase/secretId.js';
 import {
   getSessionMeta,
@@ -119,6 +130,27 @@ export function useFirebaseGame({
     }
     return subscribeToPresence(sessionCode, setPresence);
   }, [sessionCode]);
+
+  const { visible: emotes, post: postEmote, merge: mergeEmotes } = useEmotes();
+
+  useEffect(() => {
+    if (!sessionCode) {
+      return;
+    }
+    return subscribeToEmotes(sessionCode, mergeEmotes);
+  }, [sessionCode, mergeEmotes]);
+
+  const aiPlayerIndices = useMemo(() => aiSeats.map((seat) => seat.playerIndex), [aiSeats]);
+  useAIEmotes(events, state, aiPlayerIndices, postEmote);
+
+  const onSendEmote = useCallback(
+    (key: EmoteKey) => {
+      // Echoed locally so the sender sees it immediately rather than after the round trip.
+      postEmote(playerIndex, key);
+      void sendEmote(sessionCode, playerIndex, key);
+    },
+    [postEmote, playerIndex, sessionCode]
+  );
 
   const connectedPlayers = useMemo(
     () => resolveConnectedPlayers(presence, aiSeats, playerIndex),
@@ -245,6 +277,8 @@ export function useFirebaseGame({
     connected,
     connectedPlayers,
     terminatedBy,
+    emotes,
+    onSendEmote,
     onBid,
     onPass,
     onTakeDabb,

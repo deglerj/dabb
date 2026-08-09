@@ -9,6 +9,7 @@ import type { GameInterface } from '@dabb/ui-shared';
 import { AI_NAMES } from '@dabb/shared-types';
 import type {
   CardId,
+  EmoteKey,
   GameEvent,
   GameState,
   PlayerIndex,
@@ -16,6 +17,8 @@ import type {
   PlayerCount,
 } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
+import { useEmotes } from './useEmotes.js';
+import { useAIEmotes } from './useAIEmotes.js';
 
 const STORAGE_KEY = 'dabb-offline-game';
 const HUMAN_PLAYER_INDEX = 0 as PlayerIndex;
@@ -191,6 +194,23 @@ export function useOfflineGame({
   // The engine has not produced a state yet on the very first render.
   const safeState = state ?? createInitialState(playerCount);
 
+  // Offline there is nothing to transport: every seat but the human is a bot, and their
+  // emotes are derived from the same event log the online client derives them from.
+  const { visible: emotes, post: postEmote } = useEmotes();
+  const aiPlayerIndices = useMemo(
+    () =>
+      Array.from({ length: safeState.playerCount }, (_, i) => i as PlayerIndex).filter(
+        (i) => i !== HUMAN_PLAYER_INDEX
+      ),
+    [safeState.playerCount]
+  );
+  useAIEmotes(events, safeState, aiPlayerIndices, postEmote);
+
+  const onSendEmote = useCallback(
+    (key: EmoteKey) => postEmote(HUMAN_PLAYER_INDEX, key),
+    [postEmote]
+  );
+
   return {
     state: safeState,
     events,
@@ -199,6 +219,8 @@ export function useOfflineGame({
     connected: true,
     connectedPlayers,
     terminatedBy: null,
+    emotes,
+    onSendEmote,
     onBid,
     onPass,
     onTakeDabb,

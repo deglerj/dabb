@@ -39,6 +39,17 @@ Game state is reconstructed by replaying all events via a reducer (`packages/gam
 - `BIDDING_WON`: the `dabb` field is stripped for non-winners (only the bid winner sees the dabb contents).
 - `CARDS_DISCARDED`: only the discarding player sees the actual card IDs; others receive placeholder IDs of the same count.
 
+### Emotes (the only player-to-player channel)
+
+There is no chat. Players send one of six fixed reactions (`packages/shared-types/src/emotes.ts`), shown for `EMOTE_TTL_MS` (10s) next to the sender's name.
+
+Emotes are **not events** and must stay out of the append-only log — they would replay on every reconnect and drag ephemeral chatter through the reducer, the view filter and the game log. Two disjoint sources feed one store (`apps/client/src/hooks/useEmotes.ts`, which merges per seat rather than replacing):
+
+- **Human emotes** go over their own Firebase path, `sessions/<code>/emotes/<playerIndex>` (`apps/client/src/firebase/emotes.ts`), at the same trust level as `presence`.
+- **AI emotes are derived, never transported.** `pickAIEmote` (`packages/game-ai/src/emotes.ts`) is a pure function of the event plus a hash of its id, so every client independently arrives at the same reaction — which is why bots need no Firebase write and no `claimCascade`. Keep it deterministic: a `Math.random()` in there makes every client show a different bot reaction at the same moment.
+
+The replay guard is the event's own **wall-clock age**, not `isInitialLoad`. `isInitialLoad` flips false after the first batch, and `onChildAdded` can beat `getAllEvents` and deliver old events as separate batches after that — age holds regardless of arrival order.
+
 ### Scoreboard & Game Log
 
 - **Scoreboard**: `useRoundHistory` hook; compact `ScoreboardStrip` + expandable modal in client.

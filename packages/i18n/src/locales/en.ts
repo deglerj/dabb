@@ -236,6 +236,16 @@ const en: TranslationKeys = {
     macosSafari: 'Open the "File" menu and choose "Add to Dock".',
     androidFirefox: 'Open the menu (⋮) and tap "Install".',
   },
+  emotes: {
+    open: 'Send a reaction',
+    close: 'Close reactions',
+    happy: 'Nice one',
+    congrats: 'Well played',
+    impatient: 'Any day now',
+    angry: 'Come on!',
+    facepalm: 'Oh man',
+    confused: 'Huh?',
+  },
   options: {
     title: 'Options',
     sound: 'Sound',

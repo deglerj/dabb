@@ -79,6 +79,8 @@ export interface PressableProps {
   hitSlop?: HitSlop;
   testID?: string;
   accessibilityRole?: string;
+  /** Maps to aria-label. Required in practice for buttons whose only content is an icon or emoji. */
+  accessibilityLabel?: string;
   children?: ReactNode | ((state: PressableStateCallbackType) => ReactNode);
 }
 
@@ -115,6 +117,7 @@ function pressableDiv({
   hitSlop,
   testID,
   accessibilityRole,
+  accessibilityLabel,
   children,
   activeOpacity,
   reportPressed,
@@ -135,6 +138,7 @@ function pressableDiv({
       role={accessibilityRole ?? 'button'}
       tabIndex={disabled ? -1 : 0}
       aria-disabled={disabled || undefined}
+      aria-label={accessibilityLabel}
       className={
         activeOpacity === undefined ? 'rn-box rn-pressable' : 'rn-box rn-pressable rn-touchable'
       }

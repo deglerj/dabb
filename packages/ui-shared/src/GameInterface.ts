@@ -3,7 +3,7 @@
  * Both useGame and useOfflineGame implement this interface.
  * GameScreen accepts it as a prop, unaware of transport layer.
  */
-import type { CardId, GameEvent, GameState, PlayerIndex, Suit } from '@dabb/shared-types';
+import type { CardId, EmoteKey, GameEvent, GameState, PlayerIndex, Suit } from '@dabb/shared-types';
 
 export interface GameInterface {
   state: GameState;
@@ -25,6 +25,13 @@ export interface GameInterface {
    * reported the termination without saying who did it. Always null offline.
    */
   terminatedBy: { nickname: string | null } | null;
+  /**
+   * Seats showing an emote right now. Emotes are ephemeral and never enter the event log,
+   * so this map is not derived from `events` and does not survive a reload of its own accord.
+   */
+  emotes: Map<PlayerIndex, EmoteKey>;
+  /** Sends an emote from the local player. */
+  onSendEmote: (key: EmoteKey) => void;
   onBid: (amount: number) => void;
   onPass: () => void;
   onTakeDabb: () => void;

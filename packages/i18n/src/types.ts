@@ -242,6 +242,20 @@ export interface TranslationKeys {
     macosSafari: string;
     androidFirefox: string;
   };
+  /**
+   * Emote picker. The per-emote strings are the short phrase shown next to the glyph in the
+   * menu, and double as the accessible name — the glyph alone is not a label.
+   */
+  emotes: {
+    open: string;
+    close: string;
+    happy: string;
+    congrats: string;
+    impatient: string;
+    angry: string;
+    facepalm: string;
+    confused: string;
+  };
   options: {
     title: string;
     sound: string;

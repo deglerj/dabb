@@ -1,3 +1,4 @@
+export { pickAIEmote } from './emotes.js';
 export type { AIPlayer, AIDifficulty } from './AIPlayer.js';
 export { createAIPlayer } from './AIPlayer.js';
 export { BinokelAIPlayer } from './BinokelAIPlayer.js';

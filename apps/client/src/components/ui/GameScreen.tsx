@@ -32,6 +32,7 @@ import { DABB_SIZE } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
 import { useGameDimensions, MAX_GAME_WIDTH } from '../../hooks/useGameDimensions.js';
+import { TOP_RIGHT_CONTROLS_RIGHT, TOP_RIGHT_CONTROLS_TOP } from '../../constants.js';
 import { useTurnHaptic } from '../../hooks/useTurnHaptic.js';
 import { playSound } from '../../utils/sounds.js';
 import { triggerHaptic } from '../../utils/haptics.js';
@@ -47,6 +48,7 @@ import { deriveWinnerInfo } from '../game/winnerInfo.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
 import { OptionsButton } from './OptionsButton.js';
+import { EmoteButton } from './EmoteButton.js';
 import GameScreenErrorBoundary from './GameScreenErrorBoundary.js';
 
 export interface GameScreenProps {
@@ -99,6 +101,8 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     connected,
     connectedPlayers,
     terminatedBy,
+    emotes,
+    onSendEmote,
     onBid,
     onPass,
     onTakeDabb,
@@ -403,6 +407,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
                   isConnected={connectedPlayers.has(opIdx)}
                   isTeammate={isTeammate}
                   position={pos}
+                  emote={emotes.get(opIdx)}
                 />
               );
             })}
@@ -564,9 +569,10 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
             <View
               style={[
                 styles.optionsButtonContainer,
-                { top: insets.top + 8, paddingRight: insets.right },
+                { top: insets.top + TOP_RIGHT_CONTROLS_TOP, paddingRight: insets.right },
               ]}
             >
+              <EmoteButton onSendEmote={onSendEmote} activeEmote={emotes.get(playerIndex)} />
               <OptionsButton onExitGame={handleExitGame} />
             </View>
           </View>
@@ -603,6 +609,10 @@ const styles = StyleSheet.create({
   },
   optionsButtonContainer: {
     position: 'absolute',
-    right: 16,
+    right: TOP_RIGHT_CONTROLS_RIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    zIndex: 60,
   },
 });
