@@ -5,6 +5,7 @@ export { useTableEffects } from './src/table/useTableEffects.js';
 export {
   getFeltBounds,
   isWithinFeltBounds,
+  isWithinDropZone,
   DEFAULT_SURROUND_FRACTION,
 } from './src/table/feltBounds.js';
 export type { FeltBounds } from './src/table/feltBounds.js';

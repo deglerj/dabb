@@ -28,3 +28,18 @@ export function isWithinFeltBounds(x: number, y: number, bounds: FeltBounds): bo
     x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height
   );
 }
+
+/**
+ * Where a dragged hand card counts as played: on the felt, but above the hand arc.
+ * The felt spans nearly the whole screen and reaches underneath the hand, so felt bounds
+ * alone would turn a drag back down onto the hand into a play instead of a cancel.
+ * `handTopY` is the topmost hand card's y (see deriveCardPositions), same coordinate space.
+ */
+export function isWithinDropZone(
+  x: number,
+  y: number,
+  bounds: FeltBounds,
+  handTopY: number
+): boolean {
+  return isWithinFeltBounds(x, y, bounds) && y < handTopY;
+}

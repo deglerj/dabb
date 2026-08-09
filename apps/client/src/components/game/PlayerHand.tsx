@@ -3,7 +3,7 @@ import {
   CardView,
   deriveCardPositions,
   getFeltBounds,
-  isWithinFeltBounds,
+  isWithinDropZone,
   type LayoutDimensions,
   type TableEffects,
 } from '@dabb/game-canvas';
@@ -85,8 +85,11 @@ export function PlayerHand({
   const validIds = new Set(validPlays.map((c) => c.id));
   const highlightedIds = computeHighlightedDabbIds(gameState.phase, gameState.dabbCardIds);
 
+  // Topmost hand card — dropping at or below it means the card was dragged back to the hand.
+  const handTopY = Math.min(...Object.values(positions.playerHand).map((p) => p.y));
+
   const handleDrop = (cardId: string) => (x: number, y: number) => {
-    if (isWithinFeltBounds(x, y, feltBounds) && validIds.has(cardId)) {
+    if (isWithinDropZone(x, y, feltBounds, handTopY) && validIds.has(cardId)) {
       onPlayCard(cardId, { x, y });
     }
   };
@@ -118,7 +121,7 @@ export function PlayerHand({
                 onSlotCard!(card.id);
               }}
               onDrop={(x, y) => {
-                if (isWithinFeltBounds(x, y, feltBounds)) {
+                if (isWithinDropZone(x, y, feltBounds, handTopY)) {
                   playSound('card-select');
                   triggerHaptic('card-select');
                   onSlotCard!(card.id);
