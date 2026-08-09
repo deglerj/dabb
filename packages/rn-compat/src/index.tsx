@@ -82,6 +82,12 @@ export interface PressableProps {
   children?: ReactNode | ((state: PressableStateCallbackType) => ReactNode);
 }
 
+export interface TouchableOpacityProps extends Omit<PressableProps, 'style' | 'children'> {
+  style?: StyleProp;
+  activeOpacity?: number;
+  children?: ReactNode;
+}
+
 function activationKeyDown<T extends HTMLElement>(
   e: KeyboardEvent<T>,
   onPress?: (e: MouseEvent<T>) => void
@@ -94,7 +100,15 @@ function activationKeyDown<T extends HTMLElement>(
   onPress?.(e as unknown as MouseEvent<T>);
 }
 
-export function Pressable({
+/**
+ * The pressable div behind both exports below.
+ *
+ * `activeOpacity` is what separates them: TouchableOpacity dims while held, via CSS on the
+ * `rn-touchable` class, and Pressable instead reports `pressed` so the caller can swap
+ * styles itself. Tracking the pressed state costs a render per press, so it is only wired
+ * up when something actually asks for it.
+ */
+function pressableDiv({
   style,
   onPress,
   disabled,
@@ -102,22 +116,37 @@ export function Pressable({
   testID,
   accessibilityRole,
   children,
-}: PressableProps) {
-  ensureBaseCss();
+  activeOpacity,
+  reportPressed,
+}: PressableProps & { activeOpacity?: number; reportPressed: boolean }) {
   const [pressed, setPressed] = useState(false);
   const resolvedStyle = typeof style === 'function' ? style({ pressed }) : style;
   const resolvedChildren = typeof children === 'function' ? children({ pressed }) : children;
+  const track = reportPressed
+    ? {
+        onPointerDown: () => setPressed(true),
+        onPointerUp: () => setPressed(false),
+        onPointerLeave: () => setPressed(false),
+      }
+    : {};
+
   return (
     <div
       role={accessibilityRole ?? 'button'}
       tabIndex={disabled ? -1 : 0}
       aria-disabled={disabled || undefined}
-      className="rn-box rn-pressable"
+      className={
+        activeOpacity === undefined ? 'rn-box rn-pressable' : 'rn-box rn-pressable rn-touchable'
+      }
       data-testid={testID}
-      style={{ ...hitSlopStyle(hitSlop), ...flattenStyle(resolvedStyle) }}
-      onPointerDown={() => setPressed(true)}
-      onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
+      style={{
+        ...(activeOpacity === undefined
+          ? {}
+          : { ['--rn-active-opacity' as string]: activeOpacity }),
+        ...hitSlopStyle(hitSlop),
+        ...flattenStyle(resolvedStyle),
+      }}
+      {...track}
       onKeyDown={disabled ? undefined : (e) => activationKeyDown(e, onPress)}
       onClick={
         disabled
@@ -133,53 +162,16 @@ export function Pressable({
   );
 }
 
-export interface TouchableOpacityProps {
-  style?: StyleProp;
-  onPress?: (e: MouseEvent<HTMLDivElement>) => void;
-  disabled?: boolean;
-  activeOpacity?: number;
-  hitSlop?: HitSlop;
-  testID?: string;
-  accessibilityRole?: string;
-  children?: ReactNode;
+/** Reports its pressed state to `style`/`children` callbacks; applies no effect of its own. */
+export function Pressable(props: PressableProps) {
+  ensureBaseCss();
+  return pressableDiv({ ...props, reportPressed: true });
 }
 
-export function TouchableOpacity({
-  style,
-  onPress,
-  disabled,
-  activeOpacity = 0.2,
-  hitSlop,
-  testID,
-  accessibilityRole,
-  children,
-}: TouchableOpacityProps) {
+/** Dims while held. Pass `activeOpacity={1}` for a tap target that should not visibly react. */
+export function TouchableOpacity({ activeOpacity = 0.2, ...props }: TouchableOpacityProps) {
   ensureBaseCss();
-  return (
-    <div
-      role={accessibilityRole ?? 'button'}
-      tabIndex={disabled ? -1 : 0}
-      aria-disabled={disabled || undefined}
-      className="rn-box rn-pressable rn-touchable"
-      data-testid={testID}
-      style={{
-        ['--rn-active-opacity' as string]: activeOpacity,
-        ...hitSlopStyle(hitSlop),
-        ...flattenStyle(style),
-      }}
-      onKeyDown={disabled ? undefined : (e) => activationKeyDown(e, onPress)}
-      onClick={
-        disabled
-          ? undefined
-          : (e) => {
-              e.stopPropagation();
-              onPress?.(e);
-            }
-      }
-    >
-      {children}
-    </div>
-  );
+  return pressableDiv({ ...props, activeOpacity, reportPressed: false });
 }
 
 // ---------------------------------------------------------------------------
