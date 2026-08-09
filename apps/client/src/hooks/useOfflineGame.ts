@@ -64,6 +64,12 @@ export function useOfflineGame({
     [] // Intentionally empty — names must not change after game starts
   );
 
+  // Offline there is no transport to drop: the human is here and the rest are local AI.
+  const connectedPlayers = useMemo(
+    () => new Set(Array.from({ length: playerCount }, (_, i) => i as PlayerIndex)),
+    [playerCount]
+  );
+
   useEffect(() => {
     let cancelled = false;
 
@@ -216,6 +222,7 @@ export function useOfflineGame({
     isInitialLoad,
     nicknames,
     connected: true,
+    connectedPlayers,
     terminatedByNickname: null,
     onBid,
     onPass,

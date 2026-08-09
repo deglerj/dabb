@@ -176,6 +176,29 @@ export function subscribeToPlayers(
   return () => off(playersRef, 'value', handler);
 }
 
+/**
+ * Live connection state per seat, written by every client's own setupPresence.
+ *
+ * A seat with no presence entry yet reports false — that is a human who has not opened the
+ * game screen. AI seats never write presence at all, so callers have to treat them
+ * separately rather than reading them as disconnected.
+ */
+export function subscribeToPresence(
+  sessionCode: string,
+  callback: (connected: Map<PlayerIndex, boolean>) => void
+): () => void {
+  const presenceRef = ref(db, `sessions/${sessionCode}/presence`);
+  const handler = onValue(presenceRef, (snap) => {
+    const raw = (snap.val() as Record<string, { connected?: boolean }> | null) ?? {};
+    const map = new Map<PlayerIndex, boolean>();
+    for (const [idx, entry] of Object.entries(raw)) {
+      map.set(Number(idx) as PlayerIndex, entry?.connected === true);
+    }
+    callback(map);
+  });
+  return () => off(presenceRef, 'value', handler);
+}
+
 export function subscribeToSessionStatus(
   sessionCode: string,
   callback: (status: SessionMeta['status']) => void

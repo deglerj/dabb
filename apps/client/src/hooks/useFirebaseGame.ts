@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGameState } from '@dabb/ui-shared';
 import type { GameInterface } from '@dabb/ui-shared';
 import { applyEvents } from '@dabb/game-logic';
@@ -6,7 +6,12 @@ import type { CardId, GameEvent, GameState, PlayerIndex, Suit } from '@dabb/shar
 import { GameError } from '@dabb/shared-types';
 import { subscribeToEvents, pushEvents, getAllEvents } from '../firebase/events.js';
 import { hashSecretId } from '../firebase/secretId.js';
-import { getSessionMeta, setupPresence, subscribeToSessionStatus } from '../firebase/session.js';
+import {
+  getSessionMeta,
+  setupPresence,
+  subscribeToPresence,
+  subscribeToSessionStatus,
+} from '../firebase/session.js';
 import type { PlayerInfo } from '../firebase/gameEventFactory.js';
 import type { AIDifficulty } from '@dabb/game-ai';
 import {
@@ -39,6 +44,32 @@ export interface FirebaseGameResult extends GameInterface {
   aiSeats: AISeat[];
 }
 
+/**
+ * Which seats count as reachable.
+ *
+ * Presence alone is not enough. The local player is connected by definition — their own
+ * presence write may not have landed yet, and showing yourself as offline would be absurd.
+ * AI seats never write presence at all: they are driven by whichever client holds the
+ * cascade claim, so reading their missing entry as "disconnected" would mark every bot
+ * offline for the whole game.
+ */
+export function resolveConnectedPlayers(
+  presence: Map<PlayerIndex, boolean>,
+  aiSeats: AISeat[],
+  localPlayerIndex: PlayerIndex
+): Set<PlayerIndex> {
+  const result = new Set<PlayerIndex>([localPlayerIndex]);
+  for (const [idx, isConnected] of presence) {
+    if (isConnected) {
+      result.add(idx);
+    }
+  }
+  for (const seat of aiSeats) {
+    result.add(seat.playerIndex);
+  }
+  return result;
+}
+
 export function useFirebaseGame({
   sessionCode,
   secretId,
@@ -50,6 +81,7 @@ export function useFirebaseGame({
   const [secretHash, setSecretHash] = useState<string>('');
   const [players, setPlayers] = useState<PlayerInfo[]>([]);
   const [aiSeats, setAiSeats] = useState<AISeat[]>([]);
+  const [presence, setPresence] = useState<Map<PlayerIndex, boolean>>(new Map());
 
   const rawEventsRef = useRef<GameEvent[]>([]);
   const fullStateRef = useRef<GameState>(applyEvents([]));
@@ -90,6 +122,18 @@ export function useFirebaseGame({
       setNicknames(nickMap);
     });
   }, [sessionCode]);
+
+  useEffect(() => {
+    if (!sessionCode) {
+      return;
+    }
+    return subscribeToPresence(sessionCode, setPresence);
+  }, [sessionCode]);
+
+  const connectedPlayers = useMemo(
+    () => resolveConnectedPlayers(presence, aiSeats, playerIndex),
+    [presence, aiSeats, playerIndex]
+  );
 
   useEffect(() => {
     if (!sessionCode) {
@@ -224,6 +268,7 @@ export function useFirebaseGame({
     isInitialLoad,
     nicknames,
     connected,
+    connectedPlayers,
     terminatedByNickname,
     onBid,
     onPass,

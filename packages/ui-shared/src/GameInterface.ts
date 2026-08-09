@@ -15,6 +15,12 @@ export interface GameInterface {
   /** Whether the transport is connected (always true offline). */
   connected: boolean;
   /**
+   * Seats currently reachable. AI seats count as connected — they are driven by whichever
+   * client holds the cascade claim and never report presence of their own. Offline, every
+   * seat is connected.
+   */
+  connectedPlayers: Set<PlayerIndex>;
+  /**
    * When a remote player terminates an online game this holds their nickname.
    * Always null offline.
    */

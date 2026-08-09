@@ -186,6 +186,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     isInitialLoad,
     nicknames,
     connected,
+    connectedPlayers,
     terminatedByNickname,
     onBid,
     onPass,
@@ -513,7 +514,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
                   playerIndex={opIdx}
                   nickname={nicknames.get(opIdx) ?? player?.nickname ?? `P${opIdx}`}
                   cardCount={opCards?.length ?? 0}
-                  isConnected={player?.connected ?? false}
+                  isConnected={connectedPlayers.has(opIdx)}
                   isTeammate={isTeammate}
                   position={pos}
                 />
