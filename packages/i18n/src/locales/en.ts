@@ -125,6 +125,7 @@ const en: TranslationKeys = {
     bidColumn: 'Bid',
     bidMet: 'Bid met',
     bidMissed: 'Bid missed',
+    bidPenalty: 'Bid {{bid}} × 2',
     wentOut: 'Went out',
     gameEnded: 'Game ended.',
     youWonRound: 'You won the round! 🎉',

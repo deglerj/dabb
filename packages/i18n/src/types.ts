@@ -135,6 +135,7 @@ export interface TranslationKeys {
     bidColumn: string;
     bidMet: string;
     bidMissed: string;
+    bidPenalty: string;
     wentOut: string;
     gameEnded: string;
     youWonRound: string;

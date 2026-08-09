@@ -125,6 +125,7 @@ const de: TranslationKeys = {
     bidColumn: 'Gebot',
     bidMet: 'Gebot erfüllt',
     bidMissed: 'Gebot verfehlt',
+    bidPenalty: 'Gebot {{bid}} × 2',
     wentOut: 'Abgegangen',
     gameEnded: 'Spiel beendet.',
     youWonRound: 'Du hast die Runde gewonnen! 🎉',
