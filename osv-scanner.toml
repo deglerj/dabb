@@ -56,6 +56,14 @@ id = "CVE-2026-69207"
 reason = "Hono (ReDoS in CORS middleware) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
 
 [[IgnoredVulns]]
+id = "GHSA-frvp-7c67-39w9"
+reason = "Hono Node adapter serve-static path traversal (Windows-only) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-54285"
+reason = "OpenTelemetry core (unbounded memory in W3C Baggage propagation) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
 id = "CVE-2026-18446"
 reason = "fast-uri (host confusion via backslash authority) — transitive via firebase-tools, CLI-only."
 
