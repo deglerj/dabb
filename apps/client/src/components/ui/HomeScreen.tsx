@@ -18,7 +18,6 @@ import type { PlayerCount } from '@dabb/shared-types';
 import { GameError } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import { Colors, Fonts } from '../../theme.js';
-import { storageGet, storageSet } from '../../hooks/useStorage.js';
 import { createSession, joinSession } from '../../firebase/session.js';
 import { APP_VERSION } from '../../constants.js';
 import { OptionsButton } from './OptionsButton.js';
@@ -60,33 +59,27 @@ export default function HomeScreen() {
 
   // Restore nickname from storage on mount
   useEffect(() => {
-    storageGet('dabb-nickname')
-      .then((saved) => {
-        if (saved) {
-          setNickname(saved);
-        }
-      })
-      .catch(() => undefined);
+    const saved = localStorage.getItem('dabb-nickname');
+    if (saved) {
+      setNickname(saved);
+    }
   }, []);
 
   // Check for a resumable offline game on mount
   useEffect(() => {
-    storageGet('dabb-offline-game')
-      .then((raw) => {
-        if (!raw) {
-          return;
-        }
-        try {
-          const payload = JSON.parse(raw) as { phase?: GamePhaseString };
-          const phase = payload.phase;
-          if (phase && phase !== 'finished' && phase !== 'terminated') {
-            setResumableGame(true);
-          }
-        } catch {
-          // Corrupt storage — ignore
-        }
-      })
-      .catch(() => undefined);
+    const raw = localStorage.getItem('dabb-offline-game');
+    if (!raw) {
+      return;
+    }
+    try {
+      const payload = JSON.parse(raw) as { phase?: GamePhaseString };
+      const phase = payload.phase;
+      if (phase && phase !== 'finished' && phase !== 'terminated') {
+        setResumableGame(true);
+      }
+    } catch {
+      // Corrupt storage — ignore
+    }
   }, []);
 
   const handleCreate = async () => {
@@ -102,7 +95,7 @@ export default function HomeScreen() {
     setError('');
     try {
       const result = await createSession(nickname.trim(), playerCount);
-      await storageSet(
+      localStorage.setItem(
         `dabb-${result.sessionCode}`,
         JSON.stringify({
           secretId: result.secretId,
@@ -110,7 +103,7 @@ export default function HomeScreen() {
           playerCount,
         })
       );
-      await storageSet('dabb-nickname', nickname.trim());
+      localStorage.setItem('dabb-nickname', nickname.trim());
       navigate(`/waiting-room/${result.sessionCode}`);
     } catch (err) {
       setError(sessionErrorText(err, t));
@@ -137,14 +130,14 @@ export default function HomeScreen() {
     try {
       const result = await joinSession(joinCode.trim(), nickname.trim());
       const code = joinCode.trim().toLowerCase();
-      await storageSet(
+      localStorage.setItem(
         `dabb-${code}`,
         JSON.stringify({
           secretId: result.secretId,
           playerIndex: result.playerIndex,
         })
       );
-      await storageSet('dabb-nickname', nickname.trim());
+      localStorage.setItem('dabb-nickname', nickname.trim());
       navigate(`/waiting-room/${code}`);
     } catch (err) {
       setError(sessionErrorText(err, t));
@@ -162,7 +155,7 @@ export default function HomeScreen() {
       setError(t('errors.nicknameTooLong'));
       return;
     }
-    await storageSet('dabb-nickname', nickname.trim());
+    localStorage.setItem('dabb-nickname', nickname.trim());
     const params = new URLSearchParams({
       playerCount: String(playerCount),
       difficulty,

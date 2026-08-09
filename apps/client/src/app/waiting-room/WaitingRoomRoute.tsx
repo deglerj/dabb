@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from '@dabb/rn-compat';
 import { useNavigate, useParams } from 'react-router-dom';
 import WaitingRoomScreen from '../../components/ui/WaitingRoomScreen.js';
-import { storageDelete, storageGet } from '../../hooks/useStorage.js';
 import type { PlayerIndex } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import {
@@ -53,11 +52,9 @@ export default function WaitingRoomRoute() {
     }
     void (async () => {
       try {
-        const [sessionRaw, storedNickname, meta] = await Promise.all([
-          storageGet(`dabb-${code}`),
-          storageGet('dabb-nickname'),
-          getSessionMeta(code),
-        ]);
+        const sessionRaw = localStorage.getItem(`dabb-${code}`);
+        const storedNickname = localStorage.getItem('dabb-nickname');
+        const meta = await getSessionMeta(code);
         if (!sessionRaw || !meta) {
           navigate('/', { replace: true });
           return;
@@ -175,11 +172,7 @@ export default function WaitingRoomRoute() {
     } catch {
       // Ignore errors on leave
     }
-    try {
-      await storageDelete(`dabb-${code}`);
-    } catch {
-      // Ignore — leaving regardless
-    }
+    localStorage.removeItem(`dabb-${code}`);
     navigate('/', { replace: true });
   };
 

@@ -6,15 +6,7 @@
 export { I18nProvider } from './components/I18nProvider.js';
 
 // Config
-export {
-  i18n,
-  initI18n,
-  persistLanguage,
-  setStorageAdapter,
-  getStorageAdapter,
-  detectLanguageAsync,
-  type StorageAdapter,
-} from './config.js';
+export { i18n, initI18n, persistLanguage } from './config.js';
 
 // Types
 export {

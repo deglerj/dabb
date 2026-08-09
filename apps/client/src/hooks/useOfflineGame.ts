@@ -4,6 +4,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OfflineGameEngine } from '@dabb/game-ai';
+import { createInitialState } from '@dabb/game-logic';
 import type { GameInterface } from '@dabb/ui-shared';
 import { AI_NAMES } from '@dabb/shared-types';
 import type {
@@ -15,7 +16,6 @@ import type {
   PlayerCount,
 } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
-import { storageGet, storageSet, storageDelete } from './useStorage.js';
 
 const STORAGE_KEY = 'dabb-offline-game';
 const HUMAN_PLAYER_INDEX = 0 as PlayerIndex;
@@ -80,7 +80,7 @@ export function useOfflineGame({
 
       if (resume) {
         try {
-          const raw = await storageGet(STORAGE_KEY);
+          const raw = localStorage.getItem(STORAGE_KEY);
           if (raw) {
             const payload = JSON.parse(raw) as {
               events: GameEvent[];
@@ -119,7 +119,7 @@ export function useOfflineGame({
 
         // Persist after every state change
         const payload = engine.getPersistPayload();
-        void storageSet(STORAGE_KEY, JSON.stringify(payload));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       };
 
       engineRef.current = engine;
@@ -185,36 +185,11 @@ export function useOfflineGame({
 
   const onExit = useCallback(() => {
     engineRef.current = null;
-    void storageDelete(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  // Provide a minimal non-null state so GameScreen doesn't crash before engine starts
-  const safeState = state ?? {
-    phase: 'waiting' as const,
-    playerCount,
-    players: [],
-    hands: new Map(),
-    dabb: [],
-    currentBid: 0,
-    bidWinner: null,
-    currentBidder: null,
-    firstBidder: null,
-    passedPlayers: new Set(),
-    lastBidderIndex: null,
-    trump: null,
-    currentTrick: { cards: [], leadSuit: null, winnerIndex: null },
-    tricksTaken: new Map(),
-    currentPlayer: null,
-    roundScores: new Map(),
-    totalScores: new Map(),
-    targetScore: 1000,
-    declaredMelds: new Map(),
-    dealer: 0 as PlayerIndex,
-    round: 1,
-    wentOut: false,
-    dabbCardIds: [],
-    lastCompletedTrick: null,
-  };
+  // The engine has not produced a state yet on the very first render.
+  const safeState = state ?? createInitialState(playerCount);
 
   return {
     state: safeState,

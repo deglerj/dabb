@@ -40,12 +40,12 @@ export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogPro
 
   const handleSoundToggle = useCallback((value: boolean) => {
     setSoundEnabled(value);
-    void setMuted(!value);
+    setMuted(!value);
   }, []);
 
   const handleHapticsToggle = useCallback((value: boolean) => {
     setHapticsEnabledState(value);
-    void setHapticsEnabled(value);
+    setHapticsEnabled(value);
   }, []);
 
   const handleLanguageSelect = useCallback((lang: SupportedLanguage) => {

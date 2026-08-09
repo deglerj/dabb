@@ -11,91 +11,32 @@ import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, type SupportedLanguage } from '.
 const STORAGE_KEY = 'dabb-language';
 
 /**
- * Storage adapter interface for cross-platform support
+ * The language to start in: whatever was chosen last, else the browser's, else German.
  */
-export interface StorageAdapter {
-  getItem(key: string): Promise<string | null> | string | null;
-  setItem(key: string, value: string): Promise<void> | void;
-}
-
-/**
- * Default web storage adapter using localStorage
- */
-const webStorageAdapter: StorageAdapter = {
-  getItem: (key: string) => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return window.localStorage.getItem(key);
-    }
-    return null;
-  },
-  setItem: (key: string, value: string) => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(key, value);
-    }
-  },
-};
-
-let storageAdapter: StorageAdapter = webStorageAdapter;
-
-/**
- * Set custom storage adapter (e.g., AsyncStorage for React Native)
- */
-export function setStorageAdapter(adapter: StorageAdapter): void {
-  storageAdapter = adapter;
-}
-
-/**
- * Get the storage adapter
- */
-export function getStorageAdapter(): StorageAdapter {
-  return storageAdapter;
-}
-
-/**
- * Detect language from storage or browser settings (sync)
- */
-function detectLanguageSync(): SupportedLanguage {
-  // Check localStorage (works in web)
-  if (typeof window !== 'undefined' && window.localStorage) {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored && SUPPORTED_LANGUAGES.includes(stored as SupportedLanguage)) {
-      return stored as SupportedLanguage;
-    }
+function detectLanguage(): SupportedLanguage {
+  const stored = readStoredLanguage();
+  if (stored !== null) {
+    return stored;
   }
 
-  // Check browser language
-  if (typeof navigator !== 'undefined' && navigator.language) {
-    const browserLang = navigator.language.split('-')[0];
-    if (SUPPORTED_LANGUAGES.includes(browserLang as SupportedLanguage)) {
-      return browserLang as SupportedLanguage;
-    }
+  const browserLang = globalThis.navigator?.language?.split('-')[0];
+  if (browserLang !== undefined && SUPPORTED_LANGUAGES.includes(browserLang as SupportedLanguage)) {
+    return browserLang as SupportedLanguage;
   }
 
   return DEFAULT_LANGUAGE;
 }
 
-/**
- * Detect language from storage or browser settings (async, for mobile)
- */
-export async function detectLanguageAsync(): Promise<SupportedLanguage> {
+function readStoredLanguage(): SupportedLanguage | null {
   try {
-    const stored = await storageAdapter.getItem(STORAGE_KEY);
-    if (stored && SUPPORTED_LANGUAGES.includes(stored as SupportedLanguage)) {
-      return stored as SupportedLanguage;
-    }
+    const stored = globalThis.localStorage?.getItem(STORAGE_KEY);
+    return stored !== null && SUPPORTED_LANGUAGES.includes(stored as SupportedLanguage)
+      ? (stored as SupportedLanguage)
+      : null;
   } catch {
-    // Ignore storage errors
+    // Storage can throw when cookies are blocked — fall back to detection.
+    return null;
   }
-
-  // Check browser language if available
-  if (typeof navigator !== 'undefined' && navigator.language) {
-    const browserLang = navigator.language.split('-')[0];
-    if (SUPPORTED_LANGUAGES.includes(browserLang as SupportedLanguage)) {
-      return browserLang as SupportedLanguage;
-    }
-  }
-
-  return DEFAULT_LANGUAGE;
 }
 
 /**
@@ -103,7 +44,7 @@ export async function detectLanguageAsync(): Promise<SupportedLanguage> {
  */
 export function persistLanguage(language: SupportedLanguage): void {
   try {
-    storageAdapter.setItem(STORAGE_KEY, language);
+    globalThis.localStorage?.setItem(STORAGE_KEY, language);
   } catch {
     // Ignore storage errors
   }
@@ -114,7 +55,7 @@ export function persistLanguage(language: SupportedLanguage): void {
  * fully initialized and the `t()` function is ready to use.
  */
 export function initI18n(initialLanguage?: SupportedLanguage): Promise<typeof i18n> {
-  const language = initialLanguage ?? detectLanguageSync();
+  const language = initialLanguage ?? detectLanguage();
 
   return i18n
     .use(initReactI18next)
