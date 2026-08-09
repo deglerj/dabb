@@ -281,6 +281,10 @@ export function CardView({
         outline: '1px solid transparent',
         willChange: 'transform',
         backfaceVisibility: 'hidden',
+        // Without this the browser claims the vertical touch gesture for scrolling and fires
+        // pointercancel mid-drag, so drag-to-play never works on touch devices. The old
+        // gesture-handler set this itself; the Pointer Events rewrite has to do it explicitly.
+        touchAction: draggable ? 'none' : undefined,
       }}
     >
       {card !== null ? (

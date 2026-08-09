@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.1.3] - 2026-08-09
+
+### Behoben
+
+- Auf Handy und Tablet ließen sich Karten nicht mehr nach oben ziehen, um sie zu spielen – der Browser hat die Wischbewegung als Scrollen verstanden und das Ziehen abgebrochen. Karten lassen sich jetzt wieder ganz normal auf den Tisch ziehen.
+
 ## [4.1.2] - 2026-08-09
 
 ### Behoben
