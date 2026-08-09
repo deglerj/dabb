@@ -16,12 +16,8 @@ import {
 } from '../../firebase/session.js';
 import { pushEvents } from '../../firebase/events.js';
 import { hashSecretId } from '../../firebase/secretId.js';
-import {
-  createStartGameEvents,
-  createTerminateGameEvents,
-} from '../../firebase/gameEventFactory.js';
-import type { PlayerInfo } from '../../firebase/gameEventFactory.js';
-import { applyEvents } from '@dabb/game-logic';
+import { applyEvents, createStartGameEvents, createTerminateGameEvents } from '@dabb/game-logic';
+import type { PlayerInfo } from '@dabb/game-logic';
 
 type PlayerEntry = {
   nickname: string;
@@ -146,11 +142,10 @@ export default function WaitingRoomRoute() {
       }
 
       let seq = 0;
-      const seqGen = () => ++seq;
+      const next = () => ({ sessionId: code, sequence: ++seq });
 
       const events = createStartGameEvents(
-        code,
-        seqGen,
+        next,
         firebasePlayers,
         meta.playerCount,
         meta.targetScore
@@ -170,16 +165,11 @@ export default function WaitingRoomRoute() {
       const secretHash = await hashSecretId(credentialsSecretId);
       const meta = await getSessionMeta(code);
       if (meta && meta.status === 'active') {
-        const emptyState = applyEvents([]);
-        const termEvents = createTerminateGameEvents(
-          code,
-          (() => {
-            let n = 0;
-            return () => ++n;
-          })(),
-          emptyState,
-          playerIndex
-        );
+        let n = 0;
+        const termEvents = createTerminateGameEvents(applyEvents([]), playerIndex, () => ({
+          sessionId: code,
+          sequence: ++n,
+        }));
         await pushEvents(code, termEvents, secretHash);
       }
     } catch {

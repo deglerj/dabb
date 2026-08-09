@@ -63,4 +63,23 @@ export {
 
 // Export
 export { formatCard, formatSuit, formatEventLog } from './export/index.js';
-export type { PlayerInfo, EventLogOptions } from './export/index.js';
+export type { EventLogPlayer, EventLogOptions } from './export/index.js';
+
+// Engine — player actions in, game events out
+export {
+  createBidPlacedEvents,
+  createDealEvent,
+  createDeclareMeldsEvents,
+  createDeclareTrumpEvents,
+  createDiscardCardsEvents,
+  createEventsForAction,
+  createGoOutEvents,
+  createGoingOutScoreEvents,
+  createPlayCardEvents,
+  createPlayerPassedEvents,
+  createRoundEndEvents,
+  createStartGameEvents,
+  createTakeDabbEvents,
+  createTerminateGameEvents,
+} from './engine/index.js';
+export type { EventContext, NextContext, PlayerInfo } from './engine/index.js';

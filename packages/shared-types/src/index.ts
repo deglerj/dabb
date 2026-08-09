@@ -15,6 +15,8 @@ export type {
   PlayedCard,
   RoundHistoryEntry,
   RoundScore,
+  RoundScoreEntry,
+  RoundScores,
   Team,
   TeamScoreEntry,
   Trick,

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGameState } from '@dabb/ui-shared';
 import type { GameInterface } from '@dabb/ui-shared';
 import { applyEvents } from '@dabb/game-logic';
-import type { CardId, GameEvent, GameState, PlayerIndex, Suit } from '@dabb/shared-types';
+import type { AIAction, CardId, GameEvent, GameState, PlayerIndex, Suit } from '@dabb/shared-types';
 import { GameError } from '@dabb/shared-types';
 import { subscribeToEvents, pushEvents, getAllEvents } from '../firebase/events.js';
 import { hashSecretId } from '../firebase/secretId.js';
@@ -12,19 +12,9 @@ import {
   subscribeToPresence,
   subscribeToSessionStatus,
 } from '../firebase/session.js';
-import type { PlayerInfo } from '../firebase/gameEventFactory.js';
 import type { AIDifficulty } from '@dabb/game-ai';
-import {
-  createBidPlacedEvents,
-  createDeclareMeldsEvents,
-  createDeclareTrumpEvents,
-  createDiscardCardsEvents,
-  createGoOutEvents,
-  createPlayCardEvents,
-  createPlayerPassedEvents,
-  createTakeDabbEvents,
-  createTerminateGameEvents,
-} from '../firebase/gameEventFactory.js';
+import { createEventsForAction, createTerminateGameEvents } from '@dabb/game-logic';
+import type { NextContext, PlayerInfo } from '@dabb/game-logic';
 
 export interface UseFirebaseGameOptions {
   sessionCode: string;
@@ -185,18 +175,22 @@ export function useFirebaseGame({
     };
   }, [sessionCode, secretId, playerIndex, processEvents, nicknames]);
 
-  const makeSeq = useCallback((): (() => number) => {
+  /**
+   * Sequence numbers continue from the log we have. A single action can emit a whole
+   * cascade, so the engine takes a factory and stamps each event it produces.
+   */
+  const makeNextContext = useCallback((): NextContext => {
     let n = rawEventsRef.current.length;
-    return () => ++n;
-  }, []);
+    return () => ({ sessionId: sessionCode, sequence: ++n });
+  }, [sessionCode]);
 
-  const pushAction = useCallback(
-    async (eventFactory: (state: GameState, seq: () => number) => GameEvent[]) => {
+  const push = useCallback(
+    async (build: (state: GameState, next: NextContext) => GameEvent[]) => {
       if (!secretHash) {
         return;
       }
       try {
-        const evts = eventFactory(fullStateRef.current, makeSeq());
+        const evts = build(fullStateRef.current, makeNextContext());
         if (evts.length > 0) {
           await pushEvents(sessionCode, evts, secretHash);
         }
@@ -210,56 +204,37 @@ export function useFirebaseGame({
         }
       }
     },
-    [secretHash, sessionCode, makeSeq]
+    [secretHash, sessionCode, makeNextContext]
   );
 
-  const onBid = useCallback(
-    (amount: number) =>
-      pushAction((s, seq) => createBidPlacedEvents(sessionCode, seq, s, playerIndex, amount)),
-    [pushAction, sessionCode, playerIndex]
+  const dispatch = useCallback(
+    (action: AIAction) =>
+      push((state, next) => createEventsForAction(state, playerIndex, action, next)),
+    [push, playerIndex]
   );
 
-  const onPass = useCallback(
-    () => pushAction((s, seq) => createPlayerPassedEvents(sessionCode, seq, s, playerIndex)),
-    [pushAction, sessionCode, playerIndex]
-  );
-
-  const onTakeDabb = useCallback(
-    () => pushAction((s, seq) => createTakeDabbEvents(sessionCode, seq, s, playerIndex)),
-    [pushAction, sessionCode, playerIndex]
-  );
-
+  const onBid = useCallback((amount: number) => dispatch({ type: 'bid', amount }), [dispatch]);
+  const onPass = useCallback(() => dispatch({ type: 'pass' }), [dispatch]);
+  const onTakeDabb = useCallback(() => dispatch({ type: 'takeDabb' }), [dispatch]);
   const onDiscard = useCallback(
-    (cardIds: CardId[]) =>
-      pushAction((s, seq) => createDiscardCardsEvents(sessionCode, seq, s, playerIndex, cardIds)),
-    [pushAction, sessionCode, playerIndex]
+    (cardIds: CardId[]) => dispatch({ type: 'discard', cardIds }),
+    [dispatch]
   );
-
-  const onGoOut = useCallback(
-    () => pushAction((s, seq) => createGoOutEvents(sessionCode, seq, s, playerIndex)),
-    [pushAction, sessionCode, playerIndex]
-  );
-
+  const onGoOut = useCallback(() => dispatch({ type: 'goOut' }), [dispatch]);
   const onDeclareTrump = useCallback(
-    (suit: Suit) =>
-      pushAction((s, seq) => createDeclareTrumpEvents(sessionCode, seq, s, playerIndex, suit)),
-    [pushAction, sessionCode, playerIndex]
+    (suit: Suit) => dispatch({ type: 'declareTrump', suit }),
+    [dispatch]
   );
-
-  const onDeclareMelds = useCallback(
-    () => pushAction((s, seq) => createDeclareMeldsEvents(sessionCode, seq, s, playerIndex)),
-    [pushAction, sessionCode, playerIndex]
-  );
-
+  const onDeclareMelds = useCallback(() => dispatch({ type: 'declareMelds' }), [dispatch]);
   const onPlayCard = useCallback(
-    (cardId: CardId) =>
-      pushAction((s, seq) => createPlayCardEvents(sessionCode, seq, s, playerIndex, cardId)),
-    [pushAction, sessionCode, playerIndex]
+    (cardId: CardId) => dispatch({ type: 'playCard', cardId }),
+    [dispatch]
   );
 
+  // Not a player action — leaving ends the game for everyone, in any active phase.
   const onExit = useCallback(
-    () => pushAction((s, seq) => createTerminateGameEvents(sessionCode, seq, s, playerIndex)),
-    [pushAction, sessionCode, playerIndex]
+    () => push((state, next) => createTerminateGameEvents(state, playerIndex, next)),
+    [push, playerIndex]
   );
 
   return {

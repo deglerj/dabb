@@ -208,14 +208,28 @@ export interface TeamScoreEntry {
   isMyTeam: boolean;
 }
 
+/**
+ * What one player (2/3-player) or one team (4-player) scored in a single round.
+ *
+ * `total` is not always `melds + tricks`: a bid winner who missed their bid forfeits both
+ * and takes `-2 × winningBid` instead, and going out replaces the round with `-1 × bid`
+ * for the bid winner and melds plus a bonus for everyone else.
+ */
+export interface RoundScoreEntry {
+  melds: number;
+  tricks: number;
+  total: number;
+  bidMet: boolean;
+}
+
+/** Per-round scores keyed by player index (2/3-player) or by team (4-player). */
+export type RoundScores = Record<PlayerIndex | Team, RoundScoreEntry>;
+
 // Round history for scoreboard
 export interface RoundHistoryEntry {
   round: number;
   bidWinner: PlayerIndex | null;
   winningBid: number;
   wentOut?: boolean; // true when the bid winner chose to go out (Abgehen)
-  scores: Record<
-    PlayerIndex | Team,
-    { melds: number; tricks: number; total: number; bidMet: boolean }
-  > | null;
+  scores: RoundScores | null;
 }

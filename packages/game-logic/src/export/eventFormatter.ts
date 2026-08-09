@@ -5,7 +5,8 @@
 import type { GameEvent, PlayerIndex, Team } from '@dabb/shared-types';
 import { formatCard, formatCards, formatSuit, formatMeld } from './cardFormatter.js';
 
-export interface PlayerInfo {
+/** Just enough about a player to label them in the log. */
+export interface EventLogPlayer {
   playerIndex: PlayerIndex;
   nickname: string;
   team?: Team;
@@ -14,7 +15,7 @@ export interface PlayerInfo {
 export interface EventLogOptions {
   sessionCode?: string;
   sessionId?: string;
-  players?: PlayerInfo[];
+  players?: EventLogPlayer[];
   terminated?: boolean;
 }
 
@@ -37,7 +38,7 @@ function formatTime(timestamp: number): string {
 /**
  * Format a player reference
  */
-function formatPlayer(playerIndex: PlayerIndex, players: Map<PlayerIndex, PlayerInfo>): string {
+function formatPlayer(playerIndex: PlayerIndex, players: Map<PlayerIndex, EventLogPlayer>): string {
   const player = players.get(playerIndex);
   if (player) {
     return `${player.nickname} [${playerIndex}]`;
@@ -81,7 +82,7 @@ function groupEventsByRound(events: GameEvent[]): GroupedEvents[] {
 function formatEvent(
   event: GameEvent,
   sequenceNum: number,
-  players: Map<PlayerIndex, PlayerInfo>
+  players: Map<PlayerIndex, EventLogPlayer>
 ): string {
   const seqStr = String(sequenceNum).padStart(3, '0');
   const time = formatTime(event.timestamp);
@@ -218,7 +219,10 @@ function formatEvent(
 /**
  * Format a group of events for a round
  */
-function formatRoundEvents(group: GroupedEvents, players: Map<PlayerIndex, PlayerInfo>): string {
+function formatRoundEvents(
+  group: GroupedEvents,
+  players: Map<PlayerIndex, EventLogPlayer>
+): string {
   const lines: string[] = [];
   const playerName = players.get(group.dealer)?.nickname ?? `Player ${group.dealer}`;
 
@@ -284,8 +288,8 @@ function getEventSection(type: GameEvent['type']): string | null {
 /**
  * Extract player info from PLAYER_JOINED events
  */
-function extractPlayersFromEvents(events: GameEvent[]): Map<PlayerIndex, PlayerInfo> {
-  const players = new Map<PlayerIndex, PlayerInfo>();
+function extractPlayersFromEvents(events: GameEvent[]): Map<PlayerIndex, EventLogPlayer> {
+  const players = new Map<PlayerIndex, EventLogPlayer>();
 
   for (const event of events) {
     if (event.type === 'PLAYER_JOINED') {
