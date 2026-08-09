@@ -1,7 +1,7 @@
 /**
  * Waiting room screen for game lobby.
- * Ported from apps/mobile/src/screens/WaitingRoomScreen.tsx.
- * WoodBackground replaced with LinearGradient View; PaperPanel inlined.
+ * Ported from apps/mobile/src/screens/WaitingRoomScreen.tsx; PaperPanel inlined.
+ * Background is the game's own wood + felt table (TableBackdrop), not a CSS gradient.
  */
 
 import React from 'react';
@@ -22,6 +22,7 @@ import type { AIDifficulty } from '@dabb/game-ai';
 import { useTranslation } from '@dabb/i18n';
 import { Colors, Fonts, Shadows } from '../../theme.js';
 import { OptionsButton } from './OptionsButton.js';
+import { TableBackdrop } from './TableBackdrop.js';
 
 interface WaitingRoomScreenProps {
   sessionCode: string;
@@ -79,14 +80,7 @@ function WaitingRoomScreen({
 
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          StyleSheet.absoluteFill,
-          {
-            backgroundImage: `linear-gradient(180deg, ${Colors.woodLight} 0%, ${Colors.woodMid} 30%, ${Colors.woodDark} 70%, ${Colors.woodMid} 100%)`,
-          },
-        ]}
-      />
+      <TableBackdrop />
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -259,20 +253,25 @@ function WaitingRoomScreen({
 
 const styles = StyleSheet.create({
   container: {
+    // woodDark shows for the frame or two before the GameTable shaders paint.
     flex: 1,
-    backgroundColor: Colors.woodMid,
+    backgroundColor: Colors.woodDark,
   },
   scrollContent: {
     padding: 20,
     gap: 16,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
   },
+  // Same sheet the in-game overlays use (PhaseOverlay): aged paper, thin edge, hard shadow.
   paperPanel: {
-    backgroundColor: Colors.paperFace,
-    borderRadius: 3,
+    backgroundColor: Colors.paperAged,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: Colors.paperEdge,
     padding: 16,
-    ...Shadows.panel,
+    ...Shadows.card,
   },
   buttonContent: {
     flexDirection: 'row',
@@ -414,7 +413,7 @@ const styles = StyleSheet.create({
   difficultyButton: {
     flex: 1,
     paddingVertical: 7,
-    borderRadius: 3,
+    borderRadius: 4,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.paperEdge,
@@ -434,9 +433,9 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodyBold,
   },
   addAIButton: {
-    backgroundColor: Colors.paperAged,
+    backgroundColor: Colors.paperFace,
     paddingVertical: 10,
-    borderRadius: 3,
+    borderRadius: 4,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.paperEdge,

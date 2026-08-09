@@ -24,7 +24,18 @@ const DEFAULT_CONFIG: MeldConfig = {
 };
 
 /**
- * Detect all valid melds in a hand
+ * Detect all valid melds in a hand.
+ *
+ * A card may count towards melds of *different* kinds — the König of Kreuz pays in both a
+ * Kreuz-Paar and Vier Könige, the Ober Schippe in both a Binokel and a Schippe-Familie. That
+ * is deliberate and it is the common case: in 2-player hands roughly three declarations in
+ * four contain at least one shared card.
+ *
+ * The single exception is that a Familie absorbs the Paar of its own suit — König and Ober
+ * already spent on the run do not pay again as a marriage. That rule lives entirely in the
+ * call order below: `detectPaar` runs **last** and is handed the melds found so far, which is
+ * the only reason it can see the Familie. Reorder these four pushes and the exclusion dies
+ * silently, quietly inflating every hand that holds a Familie. `melds.test.ts` pins it.
  */
 export function detectMelds(
   hand: Card[],
@@ -46,8 +57,7 @@ export function detectMelds(
   // Detect Familie (A-10-K-O-U of same suit)
   melds.push(...detectFamilie(bySuit, trump, config));
 
-  // Detect Paar (K-O of same suit)
-  // Note: Paar cards can't be part of a Familie
+  // Detect Paar (K-O of same suit) — must stay last, see the note above
   melds.push(...detectPaar(bySuit, trump, melds, config));
 
   return melds;

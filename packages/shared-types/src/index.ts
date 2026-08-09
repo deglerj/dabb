@@ -15,6 +15,8 @@ export type {
   PlayedCard,
   RoundHistoryEntry,
   RoundScore,
+  RoundScoreEntry,
+  RoundScores,
   Team,
   TeamScoreEntry,
   Trick,
@@ -49,13 +51,15 @@ export type {
   MeldsDeclaredEvent,
   NewRoundStartedEvent,
   PlayerJoinedEvent,
-  PlayerLeftEvent,
   PlayerPassedEvent,
-  PlayerReconnectedEvent,
   RoundScoredEvent,
   TrickWonEvent,
   TrumpDeclaredEvent,
 } from './events.js';
+
+// Emote types
+export type { EmoteKey, EmoteSignal } from './emotes.js';
+export { EMOTE_GLYPH, EMOTE_KEYS, EMOTE_TTL_MS } from './emotes.js';
 
 // AI types
 export { AI_NAMES } from './ai.js';
@@ -71,28 +75,6 @@ export type {
   AIPlayCardAction,
   AITakeDabbAction,
 } from './ai.js';
-
-// Game log types
-export type {
-  GameLogEntry,
-  GameLogEntryData,
-  GameLogEntryType,
-  GameStartedLogData,
-  TeamsAnnouncedLogData,
-  RoundStartedLogData,
-  BidPlacedLogData,
-  PlayerPassedLogData,
-  BiddingWonLogData,
-  DabbTakenLogData,
-  GoingOutLogData,
-  TrumpDeclaredLogData,
-  MeldsDeclaredLogData,
-  CardPlayedLogData,
-  TrickWonLogData,
-  RoundScoredLogData,
-  GameFinishedLogData,
-  GameTerminatedLogData,
-} from './gameLog.js';
 
 // Error types
 export type { ServerErrorCode } from './errors.js';

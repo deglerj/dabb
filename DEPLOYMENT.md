@@ -49,41 +49,19 @@ Web client is deployed automatically by GitHub Actions on every push to `main` t
 
 The Firebase project (`dabb`) must be configured once manually. Steps: create a Firebase project, enable Realtime Database (`europe-west1`), register the web app, copy the config values as environment variables, and apply the security rules below.
 
-**Firebase security rules** (set in Firebase Console → Realtime Database → Rules):
+**Firebase security rules** live in [`database.rules.json`](database.rules.json) and are deployed
+with the project — do not maintain a second copy here or paste rules into the Firebase Console by
+hand, or the two drift apart:
 
-```json
-{
-  "rules": {
-    "sessions": {
-      "$code": {
-        ".read": "auth == null",
-        "meta": {
-          "status": { ".write": "auth == null" },
-          "playerCount": { ".write": "!data.exists()" },
-          "targetScore": { ".write": "!data.exists()" },
-          "createdAt": { ".write": "!data.exists()" },
-          "players": {
-            "$playerIndex": { ".write": "!data.exists()" }
-          }
-        },
-        "events": {
-          "$eventId": {
-            ".write": "root.child('sessions/' + $code + '/meta/players').forEach(function(p) {
-              return p.child('secretHash').val() === newData.child('authorHash').val()
-            })"
-          }
-        },
-        "presence": {
-          "$playerIndex": { ".write": "auth == null" }
-        },
-        "aiClaims": {
-          "$claimId": { ".write": "auth == null" }
-        }
-      }
-    }
-  }
-}
+```bash
+pnpm exec firebase deploy --only database
 ```
+
+The emulator uses a separate, wide-open ruleset (`database.rules.dev.json`, selected by
+`firebase.dev.json`) so local dev and the Playwright smoke test never trip over auth. `dev.sh` and
+`apps/client/playwright.config.ts` pass `--config firebase.dev.json` for exactly that reason. Never
+point `firebase.json` at the dev rules — `firebase deploy` reads `firebase.json`, so that would
+publish `".write": true` to production.
 
 ---
 

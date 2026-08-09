@@ -117,7 +117,6 @@ const en: TranslationKeys = {
     goOut: 'Go out',
     goOutLink: 'Go out...',
     goOutIn: 'Go out in {{suit}}',
-    orGoOut: 'Or go out:',
     goOutConfirmTitle: 'Go out?',
     goOutConfirmMessage:
       'You will lose your bid and get no melds. Other players will receive their melds plus 40 points.',
@@ -126,6 +125,7 @@ const en: TranslationKeys = {
     bidColumn: 'Bid',
     bidMet: 'Bid met',
     bidMissed: 'Bid missed',
+    bidPenalty: 'Bid {{bid}} × 2',
     wentOut: 'Went out',
     gameEnded: 'Game ended.',
     youWonRound: 'You won the round! 🎉',
@@ -174,6 +174,7 @@ const en: TranslationKeys = {
     goingOut: '{{name}} goes out in {{suit}}',
     trumpDeclared: '{{name}} declares {{suit}} as trump',
     dabbTaken: '{{name}} picks up the Dabb',
+    trumpDiscarded: '{{name}} lays away {{cards}} (trump)',
     meldsDeclared: '{{name}} declares {{points}} points',
     meldsNone: '{{name}} has no melds',
     cardPlayed: '{{name}} plays {{card}}',
@@ -185,12 +186,19 @@ const en: TranslationKeys = {
   rules: {
     title: 'Game Rules',
     sectionGoal: 'Goal',
-    goal: 'First to 1,000 points wins. With 4 players, two players form a team.',
+    goal: 'First to 1000 points wins. If several reach 1000 in the same round, the highest total takes it — and on an exact tie, the highest bidder. With 4 players, partners sit opposite each other.',
     sectionBidding: 'Bidding',
     bidding:
-      'Bidding starts at 150. The highest bidder takes the Dabb (hidden cards), discards some, and picks the trump suit. Optionally, go out — the round ends immediately and opponents score their melds plus a 40-point bonus.',
+      'Bidding starts at 150. The highest bidder takes the Dabb (hidden cards), picks the trump suit, and then lays away four cards. Any trump laid away must be announced — everyone sees it in the game log.',
+    sectionScoring: 'Scoring',
+    scoring:
+      'Meld points plus trick points count for you. The highest bidder\u2019s laid-away cards count towards their tricks, and the last trick is worth 10 extra. Make your bid and you keep everything. Miss it and you score nothing and lose twice your bid.',
+    sectionGoOut: 'Going Out',
+    goOut:
+      'Instead of laying away, the highest bidder can go out: the round ends immediately, they lose their bid once (not twice), and every opponent scores their melds plus a 40-point bonus.',
     melds: 'Melds',
-    meldsIntro: 'Declare melds before tricks:',
+    meldsIntro:
+      'Declare your melds before the tricks. A card can count in several melds of different kinds — but a Familie takes the Paar of its own suit with it:',
     meldPaar: 'Paar – König + Ober of same suit',
     meldFamilie: 'Familie – Ass–Zehn–König–Ober–Buabe of same suit',
     meldBinokel: 'Binokel – Ober Schippe + Buabe Bollen',
@@ -228,6 +236,16 @@ const en: TranslationKeys = {
     macosSafari: 'Open the "File" menu and choose "Add to Dock".',
     androidFirefox: 'Open the menu (⋮) and tap "Install".',
   },
+  emotes: {
+    open: 'Send a reaction',
+    close: 'Close reactions',
+    happy: 'Nice one',
+    congrats: 'Well played',
+    impatient: 'Any day now',
+    angry: 'Come on!',
+    facepalm: 'Oh man',
+    confused: 'Huh?',
+  },
   options: {
     title: 'Options',
     sound: 'Sound',
@@ -241,14 +259,10 @@ const en: TranslationKeys = {
     // Session errors
     SESSION_NOT_FOUND: 'Session not found',
     SESSION_FULL: 'Session is full',
-    SESSION_CODE_GENERATION_FAILED: 'Failed to generate game code',
-    NICKNAME_TOO_LONG: 'Nickname must be 10 characters or fewer',
     // Game start errors
-    NOT_ENOUGH_PLAYERS: '{{required}} players are required',
     GAME_ALREADY_STARTED: 'Game has already started',
     // General game errors
     NOT_YOUR_TURN: "It's not your turn",
-    GAME_STATE_NOT_INITIALIZED: 'Game state not initialized',
     // Bidding phase errors
     NOT_IN_BIDDING_PHASE: 'Not in bidding phase',
     NOT_YOUR_TURN_TO_BID: "It's not your turn to bid",
@@ -276,11 +290,6 @@ const en: TranslationKeys = {
     // Game termination errors
     CANNOT_TERMINATE_IN_CURRENT_PHASE: 'Game cannot be terminated in current phase',
     // AI player errors
-    CANNOT_ADD_AI_WHEN_GAME_STARTED: 'Cannot add AI after the game has started',
-    CANNOT_REMOVE_AI_WHEN_GAME_STARTED: 'Cannot remove AI after the game has started',
-    PLAYER_NOT_AI: 'Player is not an AI player',
-    NO_AVAILABLE_SLOTS: 'No available slots',
-    NOT_HOST: 'Only the host can perform this action',
     // Generic fallback
     UNKNOWN_ERROR: 'Unknown error',
   },

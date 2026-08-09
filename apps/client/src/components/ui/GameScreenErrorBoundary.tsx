@@ -11,7 +11,7 @@ import React from 'react';
 import type { GameState, GameEvent } from '@dabb/shared-types';
 import ErrorBoundaryScreen from './ErrorBoundaryScreen.js';
 
-export function serializeGameState(state: GameState): Record<string, unknown> {
+function serializeGameState(state: GameState): Record<string, unknown> {
   return {
     phase: state.phase,
     round: state.round,

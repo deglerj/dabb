@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OfflineGameEngine } from '../OfflineGameEngine.js';
+import { canPass, getMinBid, getValidPlays } from '@dabb/game-logic';
 import type { PlayerIndex } from '@dabb/shared-types';
-import { detectMelds } from '@dabb/game-logic';
 
 // Advance fake time enough to clear all AI delays (card plays: 700ms, tricks: 4500ms)
 const ADVANCE_MS = 60_000;
@@ -32,7 +32,10 @@ async function dispatchOneHumanAction(
     if (state.passedPlayers.has(humanPlayerIndex)) {
       return false;
     }
-    const p = engine.dispatch({ type: 'pass' });
+    // The opening bidder is not allowed to pass, so bid the minimum and let the AI take it.
+    const p = canPass(state.currentBid)
+      ? engine.dispatch({ type: 'pass' })
+      : engine.dispatch({ type: 'bid', amount: getMinBid(state.currentBid) });
     await advanceFakeTime();
     await p;
     return true;
@@ -59,9 +62,7 @@ async function dispatchOneHumanAction(
     if (state.declaredMelds.has(humanPlayerIndex)) {
       return false;
     }
-    const hand = state.hands.get(humanPlayerIndex) || [];
-    const melds = detectMelds(hand, state.trump ?? 'herz');
-    const p = engine.dispatch({ type: 'declareMelds', melds });
+    const p = engine.dispatch({ type: 'declareMelds' });
     await advanceFakeTime();
     await p;
     return true;
@@ -74,7 +75,9 @@ async function dispatchOneHumanAction(
     if (hand.length === 0) {
       return false;
     }
-    const p = engine.dispatch({ type: 'playCard', cardId: hand[0].id });
+    // Must be a legal play: the engine validates follow-suit/beat/trump like the real UI does.
+    const playable = getValidPlays(hand, state.currentTrick, state.trump!);
+    const p = engine.dispatch({ type: 'playCard', cardId: playable[0].id });
     await advanceFakeTime();
     await p;
     return true;
@@ -335,7 +338,8 @@ describe('OfflineGameEngine — full game paths (fake timers)', () => {
       };
       const hand = view.state.hands.get(0) || [];
       if (hand.length > 0) {
-        const p = engine.dispatch({ type: 'playCard', cardId: hand[0].id });
+        const playable = getValidPlays(hand, view.state.currentTrick, view.state.trump!);
+        const p = engine.dispatch({ type: 'playCard', cardId: playable[0].id });
         await advanceFakeTime();
         await p;
         expect(fireCount.length).toBeGreaterThan(0);

@@ -5,3 +5,105 @@
 id = "CVE-2026-41907"
 reason = "Only affects uuid v3/v5/v6 with buf parameter. Project uses only v4 (generators.ts, OfflineGameEngine.ts, secretId.ts)."
 
+# --- firebase-tools devDependency tree ---
+# All entries below are transitive deps of firebase-tools (CLI/emulator dev tool,
+# used only for local emulation and deploy). None of these packages are bundled
+# into the client production build. Latest firebase-tools (15.26.0) already in use;
+# no upstream fix available yet. Re-check on firebase-tools upgrade.
+
+[[IgnoredVulns]]
+id = "CVE-2025-71330"
+reason = "image-size (ICNS parser DoS) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2025-71329"
+reason = "image-size (JXL/HEIF parser DoS) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-16729"
+reason = "undici (cookie attribute injection) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-15157"
+reason = "undici (CRLF injection via blob type) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-14643"
+reason = "undici (cross-user info disclosure via Cache-Control whitespace) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-16728"
+reason = "undici (response desync via retry interceptor) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-13697"
+reason = "undici (cross-user info disclosure via degenerate cache directives) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-69152"
+reason = "brace-expansion (DoS via unbounded arrays) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-69192"
+reason = "ip-address (octal/decimal octet SSRF bypass) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-69198"
+reason = "ip-address (CIDR suffix SSRF bypass) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-54272"
+reason = "ip-address (IPv4-mapped/NAT64 misclassification SSRF bypass) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-71498"
+reason = "node-re2 (OOB heap read via truncated UTF-8) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-71850"
+reason = "Hono (memo() cross-user SSR data disclosure) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-71849"
+reason = "Hono (Proxy Helper Connection-header leak) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-71848"
+reason = "Hono (ReDoS in Language Middleware) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-69207"
+reason = "Hono (ReDoS in CORS middleware) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
+
+[[IgnoredVulns]]
+id = "GHSA-frvp-7c67-39w9"
+reason = "Hono Node adapter serve-static path traversal (Windows-only) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-18446"
+reason = "fast-uri (host confusion via backslash authority) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-16221"
+reason = "fast-uri (host confusion via literal backslash delimiter) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "GHSA-5p4m-2wfm-xmqj"
+reason = "js-yaml (quadratic CPU in !!omap resolution) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "GHSA-r292-9mhp-454m"
+reason = "node-tar (recursion stack-overflow DoS) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-67213"
+reason = "nanoid (infinite loop on size=0 with custom generator) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-54285"
+reason = "OpenTelemetry core (unbounded memory in W3C Baggage propagation) — transitive via firebase-tools, CLI-only."
+
+[[IgnoredVulns]]
+id = "CVE-2026-2391"
+reason = "qs (arrayLimit bypass DoS) — transitive via firebase-tools, CLI-only."
+

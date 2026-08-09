@@ -6,6 +6,8 @@ import type { PlayerIndex, RoundHistoryEntry, Team, TeamScoreEntry } from '@dabb
 import type { RoundHistoryResult } from '@dabb/ui-shared';
 import { useTranslation } from '@dabb/i18n';
 
+type RoundScoreEntry = NonNullable<RoundHistoryEntry['scores']>[PlayerIndex];
+
 export interface ScoreboardModalProps {
   visible: boolean;
   onClose: () => void;
@@ -66,6 +68,50 @@ export function ScoreboardModal({
     );
   }
 
+  /**
+   * One player's (or team's) score for one round.
+   *
+   * A missed bid shows the arithmetic behind the total instead of the melds and tricks that
+   * were earned: those are forfeited, so printing them above a `-2 × bid` total states two
+   * numbers that don't add up to the third and leaves the penalty unexplained.
+   */
+  function ScoreCell({
+    score,
+    round,
+    isBidWinner,
+  }: {
+    score: RoundScoreEntry | undefined;
+    round: RoundHistoryEntry;
+    isBidWinner: boolean;
+  }) {
+    if (score === undefined) {
+      return <Text style={styles.scoreTotal}>—</Text>;
+    }
+
+    const missedBid = isBidWinner && !score.bidMet && !round.wentOut;
+
+    return (
+      <>
+        <Text style={styles.scoreDetail}>
+          {missedBid
+            ? t('game.bidPenalty', { bid: round.winningBid })
+            : round.wentOut
+              ? `🃏 ${score.melds}`
+              : `🃏 ${score.melds} + 🏆 ${score.tricks}`}
+        </Text>
+        <Text
+          style={[
+            styles.scoreTotal,
+            isBidWinner && score.bidMet ? styles.bidMet : undefined,
+            score.total < 0 ? styles.scoreTotalNegative : undefined,
+          ]}
+        >
+          {score.total}
+        </Text>
+      </>
+    );
+  }
+
   // Determine the team of the bid winner (for column highlight)
   function bidWinnerTeam(round: RoundHistoryEntry): Team | null {
     if (round.bidWinner === null || !teamsByPlayerIndex) {
@@ -75,7 +121,7 @@ export function ScoreboardModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.card}>
           <View style={styles.header}>
@@ -126,63 +172,24 @@ export function ScoreboardModal({
                   {round.bidWinner !== null && <BidBadge round={round} />}
                 </View>
                 {teamScores
-                  ? teamScores.map((te) => {
-                      const score = round.scores?.[te.team as unknown as PlayerIndex];
-                      const isWinnerTeam = bidWinnerTeam(round) === te.team;
-                      return (
-                        <View key={te.team} style={[styles.cell, styles.playerCell]}>
-                          {score !== undefined ? (
-                            <>
-                              <Text style={styles.scoreDetail}>
-                                {round.wentOut
-                                  ? `🃏 ${score.melds}`
-                                  : `🃏 ${score.melds} + 🏆 ${score.tricks}`}
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.scoreTotal,
-                                  isWinnerTeam && score.bidMet ? styles.bidMet : undefined,
-                                  score.total < 0 ? styles.scoreTotalNegative : undefined,
-                                ]}
-                              >
-                                {score.total}
-                              </Text>
-                            </>
-                          ) : (
-                            <Text style={styles.scoreTotal}>—</Text>
-                          )}
-                        </View>
-                      );
-                    })
-                  : playerIndices.map((pi) => {
-                      const score = round.scores?.[pi];
-                      return (
-                        <View key={pi} style={[styles.cell, styles.playerCell]}>
-                          {score !== undefined ? (
-                            <>
-                              <Text style={styles.scoreDetail}>
-                                {round.wentOut
-                                  ? `🃏 ${score.melds}`
-                                  : `🃏 ${score.melds} + 🏆 ${score.tricks}`}
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.scoreTotal,
-                                  pi === round.bidWinner && score.bidMet
-                                    ? styles.bidMet
-                                    : undefined,
-                                  score.total < 0 ? styles.scoreTotalNegative : undefined,
-                                ]}
-                              >
-                                {score.total}
-                              </Text>
-                            </>
-                          ) : (
-                            <Text style={styles.scoreTotal}>—</Text>
-                          )}
-                        </View>
-                      );
-                    })}
+                  ? teamScores.map((te) => (
+                      <View key={te.team} style={[styles.cell, styles.playerCell]}>
+                        <ScoreCell
+                          score={round.scores?.[te.team as unknown as PlayerIndex]}
+                          round={round}
+                          isBidWinner={bidWinnerTeam(round) === te.team}
+                        />
+                      </View>
+                    ))
+                  : playerIndices.map((pi) => (
+                      <View key={pi} style={[styles.cell, styles.playerCell]}>
+                        <ScoreCell
+                          score={round.scores?.[pi]}
+                          round={round}
+                          isBidWinner={pi === round.bidWinner}
+                        />
+                      </View>
+                    ))}
               </View>
             ))}
 

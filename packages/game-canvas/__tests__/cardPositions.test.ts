@@ -16,7 +16,6 @@ const ROW_OVERLAP = 0.4;
 const LAYOUT: LayoutDimensions = {
   width: 800,
   height: 600,
-  playerCount: 3,
 };
 
 const SUITS_CYCLE = ['kreuz', 'schippe', 'herz', 'bollen'] as const;
@@ -76,7 +75,7 @@ describe('deriveCardPositions', () => {
     const result = deriveCardPositions(
       {
         handCards: [],
-        trickCardIds: [{ cardId: 't1', seatIndex: 1 }],
+        trickCardIds: ['t1'],
         wonPilePlayerIds: [],
         opponentCardCounts: {},
       },
@@ -107,7 +106,7 @@ describe('deriveCardPositions', () => {
 
 describe('deriveCardPositions — hand scaling', () => {
   it('scales up to the cap when hand fits comfortably (few cards, wide screen)', () => {
-    const layout = { width: 800, height: 1200, playerCount: 3 as const };
+    const layout = { width: 800, height: 1200 };
     const result = deriveCardPositions(makeInput(5), layout);
     expect(result.cardScale).toBe(1.5);
   });
@@ -115,7 +114,7 @@ describe('deriveCardPositions — hand scaling', () => {
   it('scales down when a large row overflows a 375px portrait phone', () => {
     // 16 cards: 5 kreuz + 4 schippe + 4 herz + 3 bollen
     // Boundaries at 5, 9, 13 → closest to 8 is 9 → top row = 9 cards
-    const layout = { width: 375, height: 812, playerCount: 3 as const };
+    const layout = { width: 375, height: 812 };
     const input = {
       handCards: [
         ...Array.from({ length: 5 }, (_, i) => ({ id: `kreuz-${i}`, suit: 'kreuz' })),
@@ -137,7 +136,7 @@ describe('deriveCardPositions — hand scaling', () => {
   });
 
   it('bottom-anchors the hand so it never goes off-screen', () => {
-    const layout = { width: 375, height: 812, playerCount: 3 as const };
+    const layout = { width: 375, height: 812 };
     const result = deriveCardPositions(makeInput(12), layout);
     const scaledH = CARD_HEIGHT * result.cardScale;
     // makeInput(12) splits at 6 → card-6 is the first card of the bottom row
@@ -146,7 +145,7 @@ describe('deriveCardPositions — hand scaling', () => {
   });
 
   it('cards are horizontally centered', () => {
-    const layout = { width: 375, height: 812, playerCount: 3 as const };
+    const layout = { width: 375, height: 812 };
     const result = deriveCardPositions(makeInput(4), layout);
     const first = result.playerHand['card-0']!;
     const last = result.playerHand['card-3']!;
@@ -161,16 +160,16 @@ describe('deriveCardPositions — hand scaling', () => {
     const n = 3;
     const naturalWidth = n * CARD_WIDTH - (n - 1) * CARD_OVERLAP;
     const screenWidth = naturalWidth + 2 * HAND_SIDE_MARGIN;
-    const layout = { width: screenWidth, height: 800, playerCount: 3 as const };
+    const layout = { width: screenWidth, height: 800 };
     const result = deriveCardPositions(makeInput(n), layout);
     expect(result.cardScale).toBeCloseTo(1, 5);
   });
 });
 
 describe('deriveCardPositions — two-row hand layout', () => {
-  const mobileLayout = { width: 375, height: 812, playerCount: 3 as const };
+  const mobileLayout = { width: 375, height: 812 };
   // Wide layout must be >= MOBILE_BREAKPOINT_WIDTH to stay in single-row mode
-  const wideLayout = { width: MOBILE_BREAKPOINT_WIDTH + 320, height: 812, playerCount: 3 as const };
+  const wideLayout = { width: MOBILE_BREAKPOINT_WIDTH + 320, height: 812 };
 
   it('activates two-row mode on narrow screen with more than MAX_CARDS_PER_ROW cards', () => {
     // makeInput(11) → split at 5 → top row: cards 0–4, bottom row: cards 5–10

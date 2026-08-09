@@ -23,7 +23,6 @@ export interface TrickAnimationLayerProps {
   players: Player[];
   /** Display names keyed by playerIndex; falls back to player.nickname when absent. */
   nicknames: Map<PlayerIndex, string>;
-  playerCount: 3 | 4;
   effects?: TableEffects;
   /** Drop position from the local player's last drag-to-play; used as card flight origin. */
   localPlayerDropOrigin?: { x: number; y: number };
@@ -34,7 +33,6 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
   myPlayerIndex,
   players,
   nicknames,
-  playerCount,
   effects,
   localPlayerDropOrigin,
 }: TrickAnimationLayerProps) {
@@ -75,11 +73,11 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
     const pos = deriveCardPositions(
       {
         handCards: [],
-        trickCardIds: displayCards.map((pc) => ({ cardId: pc.cardId, seatIndex: pc.playerIndex })),
+        trickCardIds: displayCards.map((pc) => pc.cardId),
         wonPilePlayerIds,
         opponentCardCounts,
       },
-      { width, height, playerCount }
+      { width, height }
     );
 
     const dest = winnerPlayerId ? pos.wonPiles[winnerPlayerId] : null;
@@ -101,16 +99,7 @@ export const TrickAnimationLayer = React.memo(function TrickAnimationLayer({
     };
 
     return { positions: pos, sweepDest: dest, getOrigin: origin };
-  }, [
-    players,
-    myPlayerIndex,
-    displayCards,
-    width,
-    height,
-    playerCount,
-    winnerPlayerId,
-    localPlayerDropOrigin,
-  ]);
+  }, [players, myPlayerIndex, displayCards, width, height, winnerPlayerId, localPlayerDropOrigin]);
 
   // Fire particles at pile when the last card starts sweeping
   useEffect(() => {

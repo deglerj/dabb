@@ -26,12 +26,6 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
     case 'PLAYER_JOINED':
       return handlePlayerJoined(state, event);
 
-    case 'PLAYER_LEFT':
-      return handlePlayerLeft(state, event);
-
-    case 'PLAYER_RECONNECTED':
-      return handlePlayerReconnected(state, event);
-
     case 'CARDS_DEALT':
       return handleCardsDealt(state, event);
 
@@ -122,36 +116,11 @@ function handlePlayerJoined(
     nickname: event.payload.nickname,
     playerIndex: event.payload.playerIndex,
     team: event.payload.team,
-    connected: true,
   };
 
   return {
     ...state,
     players: [...state.players, newPlayer],
-  };
-}
-
-function handlePlayerLeft(
-  state: GameState,
-  event: Extract<GameEvent, { type: 'PLAYER_LEFT' }>
-): GameState {
-  return {
-    ...state,
-    players: state.players.map((p) =>
-      p.playerIndex === event.payload.playerIndex ? { ...p, connected: false } : p
-    ),
-  };
-}
-
-function handlePlayerReconnected(
-  state: GameState,
-  event: Extract<GameEvent, { type: 'PLAYER_RECONNECTED' }>
-): GameState {
-  return {
-    ...state,
-    players: state.players.map((p) =>
-      p.playerIndex === event.payload.playerIndex ? { ...p, connected: true } : p
-    ),
   };
 }
 
@@ -253,6 +222,7 @@ function handleDabbTaken(
 
   return {
     ...state,
+    phase: 'trump', // Trump is declared before the layaway, not after
     hands: newHands,
     dabb: [], // Dabb is now empty
     dabbCardIds: event.payload.dabbCards.map((c) => c.id),
@@ -266,7 +236,14 @@ function handleCardsDiscarded(
   const currentHand = state.hands.get(event.payload.playerIndex) || [];
   const discardedIds = new Set(event.payload.discardedCards);
   const discardedCards = currentHand.filter((c) => discardedIds.has(c.id));
-  const newHand = currentHand.filter((c) => !discardedIds.has(c.id));
+  const keptCards = currentHand.filter((c) => !discardedIds.has(c.id));
+
+  // In another player's view most discarded IDs are 'hidden' placeholders that match nothing
+  // in the (equally placeholder) hand, so the filter above removes too few cards and the bid
+  // winner appears to hold the dabb forever. Trim the shortfall off the front — placeholders
+  // sit there, the face-up dabb cards were appended at the end by DABB_TAKEN.
+  const shortfall = event.payload.discardedCards.length - discardedCards.length;
+  const newHand = shortfall > 0 ? keptCards.slice(shortfall) : keptCards;
 
   const newHands = new Map(state.hands);
   newHands.set(event.payload.playerIndex, newHand);
@@ -278,9 +255,10 @@ function handleCardsDiscarded(
 
   return {
     ...state,
-    phase: 'trump',
+    phase: 'melding',
     hands: newHands,
     tricksTaken: newTricksTaken,
+    declaredMelds: new Map(),
   };
 }
 
@@ -303,9 +281,8 @@ function handleTrumpDeclared(
 ): GameState {
   return {
     ...state,
-    phase: 'melding',
+    phase: 'discard',
     trump: event.payload.suit,
-    declaredMelds: new Map(),
   };
 }
 
@@ -326,10 +303,14 @@ function handleMeldingComplete(
   state: GameState,
   _event: Extract<GameEvent, { type: 'MELDING_COMPLETE' }>
 ): GameState {
-  // Initialize tricks taken for each player
-  const tricksTaken = new Map<PlayerIndex, Card[][]>();
+  // Ensure every player has a tricks entry, but keep what's already there — the bid
+  // winner's discarded dabb cards were added by CARDS_DISCARDED and count as trick points.
+  const tricksTaken = new Map<PlayerIndex, Card[][]>(state.tricksTaken);
   for (let i = 0; i < state.playerCount; i++) {
-    tricksTaken.set(i as PlayerIndex, []);
+    const idx = i as PlayerIndex;
+    if (!tricksTaken.has(idx)) {
+      tricksTaken.set(idx, []);
+    }
   }
 
   return {

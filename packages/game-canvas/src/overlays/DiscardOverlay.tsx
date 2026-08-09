@@ -13,15 +13,16 @@ import { StyleSheet, Text, View } from '@dabb/rn-compat';
 import { HapticTouchableOpacity } from '../components/HapticTouchableOpacity.js';
 import { useTranslation } from '@dabb/i18n';
 import type { Suit } from '@dabb/shared-types';
-import { SUITS } from '@dabb/shared-types';
 import { getSuitColor, SUIT_SYMBOLS } from '@dabb/card-assets';
 
 export interface DiscardOverlayProps {
   visible: boolean;
   discardCount: number;
   slottedCount: number;
+  /** Already declared by this point — going out uses it, it is no longer chosen here. */
+  trump: Suit;
   onDiscard: () => void;
-  onGoOut: (suit: Suit) => void;
+  onGoOut: () => void;
 }
 
 const EASE_OUT_CUBIC = 'cubic-bezier(0.215,0.61,0.355,1)';
@@ -32,12 +33,12 @@ export function DiscardOverlay({
   visible,
   discardCount,
   slottedCount,
+  trump,
   onDiscard,
   onGoOut,
 }: DiscardOverlayProps) {
   const { t } = useTranslation();
   const [showGoOut, setShowGoOut] = useState(false);
-  const [pendingSuit, setPendingSuit] = useState<Suit | null>(null);
 
   const [opacity, setOpacity] = useState(0);
   const [translateY, setTranslateY] = useState(-20);
@@ -52,7 +53,6 @@ export function DiscardOverlay({
       setOpacity(0);
       setTranslateY(-10);
       setScale(0.97);
-      setPendingSuit(null);
       setShowGoOut(false);
     }
   }, [visible]);
@@ -90,44 +90,28 @@ export function DiscardOverlay({
 
         <View style={styles.divider} />
 
-        {/* Go Out section */}
+        {/* Go Out section — the suit is whatever was declared as trump a step earlier */}
         {!showGoOut ? (
           <HapticTouchableOpacity onPress={() => setShowGoOut(true)}>
             <Text style={styles.goOutLink}>{t('game.goOutLink')}</Text>
           </HapticTouchableOpacity>
-        ) : pendingSuit === null ? (
-          <>
-            <Text style={styles.goOutLabel}>{t('game.orGoOut')}</Text>
-            <View style={styles.suitRow}>
-              {SUITS.map((suit) => (
-                <HapticTouchableOpacity
-                  key={suit}
-                  style={[styles.suitButton, { backgroundColor: getSuitColor(suit) }]}
-                  onPress={() => setPendingSuit(suit)}
-                >
-                  <Text style={styles.suitButtonText}>{SUIT_SYMBOLS[suit]}</Text>
-                </HapticTouchableOpacity>
-              ))}
-            </View>
-          </>
         ) : (
           <>
             <Text style={styles.confirmTitle}>
-              {t('game.goOutConfirmTitle')} {SUIT_SYMBOLS[pendingSuit]}
+              {t('game.goOutConfirmTitle')} {SUIT_SYMBOLS[trump]}
             </Text>
             <Text style={styles.confirmMessage}>{t('game.goOutConfirmMessage')}</Text>
             <View style={styles.confirmRow}>
               <HapticTouchableOpacity
                 style={styles.cancelButton}
-                onPress={() => setPendingSuit(null)}
+                onPress={() => setShowGoOut(false)}
               >
                 <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
               </HapticTouchableOpacity>
               <HapticTouchableOpacity
-                style={[styles.suitButton, { backgroundColor: getSuitColor(pendingSuit) }]}
+                style={[styles.suitButton, { backgroundColor: getSuitColor(trump) }]}
                 onPress={() => {
-                  onGoOut(pendingSuit);
-                  setPendingSuit(null);
+                  onGoOut();
                   setShowGoOut(false);
                 }}
               >
@@ -200,15 +184,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#7a6040',
     textDecorationLine: 'underline',
-  },
-  goOutLabel: {
-    fontSize: 13,
-    color: '#7a6040',
-    marginBottom: 8,
-  },
-  suitRow: {
-    flexDirection: 'row',
-    gap: 8,
   },
   suitButton: {
     borderRadius: 6,

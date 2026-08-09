@@ -1,40 +1,23 @@
 import { useEffect, useRef } from 'react';
-import { applyEvents } from '@dabb/game-logic';
+import { applyEvents, createEventsForAction, whoActsNext } from '@dabb/game-logic';
 import { createAIPlayer } from '@dabb/game-ai';
-import type { GameEvent, PlayerIndex } from '@dabb/shared-types';
+import type { GameEvent } from '@dabb/shared-types';
 import { pushEvents, claimCascade } from '../firebase/events.js';
 import { hashSecretId } from '../firebase/secretId.js';
-import {
-  createBidPlacedEvents,
-  createPlayerPassedEvents,
-  createTakeDabbEvents,
-  createDiscardCardsEvents,
-  createGoOutEvents,
-  createDeclareTrumpEvents,
-  createDeclareMeldsEvents,
-  createPlayCardEvents,
-} from '../firebase/gameEventFactory.js';
-import type { PlayerInfo, SeqGen } from '../firebase/gameEventFactory.js';
+import type { AISeat } from './useFirebaseGame.js';
 
 interface UseAIOptions {
   sessionCode: string;
   secretId: string;
   rawEvents: GameEvent[];
-  players: PlayerInfo[];
-  aiPlayerIndices: PlayerIndex[];
+  aiSeats: AISeat[];
 }
 
-export function useAI({
-  sessionCode,
-  secretId,
-  rawEvents,
-  players,
-  aiPlayerIndices,
-}: UseAIOptions): void {
+export function useAI({ sessionCode, secretId, rawEvents, aiSeats }: UseAIOptions): void {
   const processingRef = useRef(false);
 
   useEffect(() => {
-    if (aiPlayerIndices.length === 0) {
+    if (aiSeats.length === 0) {
       return;
     }
     if (processingRef.current) {
@@ -42,11 +25,12 @@ export function useAI({
     }
 
     const fullState = applyEvents(rawEvents);
-    const currentPlayer = fullState.currentPlayer;
-    if (currentPlayer === null || currentPlayer === undefined) {
+    const currentPlayer = whoActsNext(fullState);
+    if (currentPlayer === null) {
       return;
     }
-    if (!aiPlayerIndices.includes(currentPlayer)) {
+    const seat = aiSeats.find((s) => s.playerIndex === currentPlayer);
+    if (!seat) {
       return;
     }
 
@@ -61,57 +45,18 @@ export function useAI({
           return;
         }
 
-        const aiPlayer = createAIPlayer();
+        const aiPlayer = createAIPlayer(seat.difficulty);
         const action = await aiPlayer.decide({
           gameState: fullState,
           playerIndex: currentPlayer,
           sessionId: sessionCode,
         });
 
-        const seq: SeqGen = (() => {
-          let n = rawEvents.length;
-          return () => ++n;
-        })();
-
-        let evts: GameEvent[] = [];
-
-        if (action.type === 'bid') {
-          evts = createBidPlacedEvents(sessionCode, seq, fullState, currentPlayer, action.amount);
-        } else if (action.type === 'pass') {
-          evts = createPlayerPassedEvents(sessionCode, seq, fullState, currentPlayer);
-        } else if (action.type === 'takeDabb') {
-          evts = createTakeDabbEvents(sessionCode, seq, fullState, currentPlayer);
-        } else if (action.type === 'discard') {
-          evts = createDiscardCardsEvents(
-            sessionCode,
-            seq,
-            fullState,
-            currentPlayer,
-            action.cardIds
-          );
-        } else if (action.type === 'goOut') {
-          evts = createGoOutEvents(sessionCode, seq, fullState, currentPlayer, action.suit);
-        } else if (action.type === 'declareTrump') {
-          evts = createDeclareTrumpEvents(sessionCode, seq, fullState, currentPlayer, action.suit);
-        } else if (action.type === 'declareMelds') {
-          evts = createDeclareMeldsEvents(
-            sessionCode,
-            seq,
-            fullState,
-            currentPlayer,
-            action.melds,
-            players
-          );
-        } else if (action.type === 'playCard') {
-          evts = createPlayCardEvents(
-            sessionCode,
-            seq,
-            fullState,
-            currentPlayer,
-            action.cardId,
-            players
-          );
-        }
+        let n = rawEvents.length;
+        const evts = createEventsForAction(fullState, currentPlayer, action, () => ({
+          sessionId: sessionCode,
+          sequence: ++n,
+        }));
 
         if (evts.length > 0) {
           await pushEvents(sessionCode, evts, secretHash);
@@ -120,5 +65,5 @@ export function useAI({
         processingRef.current = false;
       }
     })();
-  }, [rawEvents.length, aiPlayerIndices, sessionCode, secretId, players]);
+  }, [rawEvents.length, aiSeats, sessionCode, secretId]);
 }

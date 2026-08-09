@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Card, GameEvent, PlayerIndex, Suit } from '@dabb/shared-types';
 
-import {
-  formatCard,
-  formatCards,
-  formatSuit,
-  formatMeld,
-  formatMelds,
-} from '../export/cardFormatter.js';
+import { formatCard, formatCards, formatSuit, formatMeld } from '../export/cardFormatter.js';
 import { formatEventLog } from '../export/eventFormatter.js';
 
 // Helper to create cards
@@ -110,17 +104,6 @@ describe('Card Formatter', () => {
     it('formats Vier Ass', () => {
       const meld = { type: 'vier-ass' as const, cards: [], points: 100 };
       expect(formatMeld(meld)).toBe('Vier Ass (100 pts)');
-    });
-  });
-
-  describe('formatMelds', () => {
-    it('formats multiple melds as bulleted list', () => {
-      const melds = [
-        { type: 'paar' as const, cards: [], points: 40, suit: 'herz' as const },
-        { type: 'binokel' as const, cards: [], points: 40 },
-      ];
-      const expected = '- Paar in Herz (40 pts)\n- Binokel (40 pts)';
-      expect(formatMelds(melds)).toBe(expected);
     });
   });
 });

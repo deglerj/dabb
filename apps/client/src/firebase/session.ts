@@ -3,11 +3,15 @@ import { db } from './config.js';
 import { generateSessionCode } from './sessionCode.js';
 import { getOrCreateSecretId, hashSecretId } from './secretId.js';
 import type { PlayerCount, PlayerIndex } from '@dabb/shared-types';
+import { GameError, GAME_ERROR_CODES } from '@dabb/shared-types';
+import type { AIDifficulty } from '@dabb/game-ai';
 
 export interface SessionPlayer {
   nickname: string;
   secretHash: string | null;
   isAI: boolean;
+  /** Only set for AI players; absent for humans and for AI added before this was stored. */
+  aiDifficulty?: AIDifficulty;
 }
 
 export interface SessionMeta {
@@ -53,6 +57,19 @@ export async function createSession(
   return { sessionCode, secretId, playerIndex: 0 as PlayerIndex };
 }
 
+/** The lowest seat nobody has taken, or null when the table is full. */
+function firstFreeSeat(
+  players: Record<string, unknown>,
+  playerCount: PlayerCount
+): PlayerIndex | null {
+  for (let i = 0; i < playerCount; i++) {
+    if (!(String(i) in players)) {
+      return i as PlayerIndex;
+    }
+  }
+  return null;
+}
+
 export async function joinSession(
   sessionCode: string,
   nickname: string
@@ -62,26 +79,18 @@ export async function joinSession(
   const snapshot = await get(metaRef);
 
   if (!snapshot.exists()) {
-    throw new Error('SESSION_NOT_FOUND');
+    throw new GameError(GAME_ERROR_CODES.SESSION_NOT_FOUND);
   }
 
   const meta = snapshot.val() as SessionMeta;
 
   if (meta.status !== 'waiting') {
-    throw new Error('GAME_STARTED');
+    throw new GameError(GAME_ERROR_CODES.GAME_ALREADY_STARTED);
   }
 
-  const takenSlots = Object.keys(meta.players).map(Number);
-  let playerIndex: PlayerIndex | null = null;
-  for (let i = 0; i < meta.playerCount; i++) {
-    if (!takenSlots.includes(i)) {
-      playerIndex = i as PlayerIndex;
-      break;
-    }
-  }
-
+  const playerIndex = firstFreeSeat(meta.players, meta.playerCount);
   if (playerIndex === null) {
-    throw new Error('SESSION_FULL');
+    throw new GameError(GAME_ERROR_CODES.SESSION_FULL);
   }
 
   const secretId = await getOrCreateSecretId(code);
@@ -100,24 +109,19 @@ export async function addAIPlayer(
   sessionCode: string,
   players: Record<string, SessionPlayer>,
   playerCount: PlayerCount,
-  aiNickname: string
+  aiNickname: string,
+  aiDifficulty: AIDifficulty
 ): Promise<PlayerIndex> {
-  const takenSlots = Object.keys(players).map(Number);
-  let playerIndex: PlayerIndex | null = null;
-  for (let i = 0; i < playerCount; i++) {
-    if (!takenSlots.includes(i)) {
-      playerIndex = i as PlayerIndex;
-      break;
-    }
-  }
+  const playerIndex = firstFreeSeat(players, playerCount);
   if (playerIndex === null) {
-    throw new Error('SESSION_FULL');
+    throw new GameError(GAME_ERROR_CODES.SESSION_FULL);
   }
 
   await set(ref(db, `sessions/${sessionCode}/meta/players/${playerIndex}`), {
     nickname: aiNickname,
     secretHash: null,
     isAI: true,
+    aiDifficulty,
   });
 
   return playerIndex;
@@ -168,6 +172,29 @@ export function subscribeToPlayers(
     callback((snap.val() as Record<string, SessionPlayer>) ?? {});
   });
   return () => off(playersRef, 'value', handler);
+}
+
+/**
+ * Live connection state per seat, written by every client's own setupPresence.
+ *
+ * A seat with no presence entry yet reports false — that is a human who has not opened the
+ * game screen. AI seats never write presence at all, so callers have to treat them
+ * separately rather than reading them as disconnected.
+ */
+export function subscribeToPresence(
+  sessionCode: string,
+  callback: (connected: Map<PlayerIndex, boolean>) => void
+): () => void {
+  const presenceRef = ref(db, `sessions/${sessionCode}/presence`);
+  const handler = onValue(presenceRef, (snap) => {
+    const raw = (snap.val() as Record<string, { connected?: boolean }> | null) ?? {};
+    const map = new Map<PlayerIndex, boolean>();
+    for (const [idx, entry] of Object.entries(raw)) {
+      map.set(Number(idx) as PlayerIndex, entry?.connected === true);
+    }
+    callback(map);
+  });
+  return () => off(presenceRef, 'value', handler);
 }
 
 export function subscribeToSessionStatus(

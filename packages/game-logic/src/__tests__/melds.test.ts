@@ -190,6 +190,77 @@ describe('Meld Detection', () => {
     });
   });
 
+  describe('card reuse across melds', () => {
+    // A card may pay in melds of different kinds, with one exception: a Familie absorbs the
+    // Paar of its own suit. That exception is purely a function of detectPaar running last
+    // and receiving the melds found so far — reordering the pushes in detectMelds would drop
+    // it silently, so these pin it.
+    const familie = (suit: Suit, copy: 0 | 1 = 0) => [
+      card(suit, 'ass', copy),
+      card(suit, '10', copy),
+      card(suit, 'koenig', copy),
+      card(suit, 'ober', copy),
+      card(suit, 'buabe', copy),
+    ];
+
+    it('does not pay a Paar for the König and Ober inside a Familie', () => {
+      const melds = detectMelds(familie('herz'), 'kreuz');
+
+      expect(melds.filter((m) => m.type === 'familie')).toHaveLength(1);
+      expect(melds.filter((m) => m.type === 'paar')).toHaveLength(0);
+    });
+
+    it('pays a Paar from a spare König and Ober left over by the Familie', () => {
+      const hand = [...familie('herz'), card('herz', 'koenig', 1), card('herz', 'ober', 1)];
+
+      const melds = detectMelds(hand, 'kreuz');
+
+      expect(melds.filter((m) => m.type === 'familie')).toHaveLength(1);
+      const paare = melds.filter((m) => m.type === 'paar');
+      expect(paare).toHaveLength(1);
+      // The spare copies, not the ones spent on the Familie
+      expect(paare[0].cards.sort()).toEqual(['herz-koenig-1', 'herz-ober-1']);
+    });
+
+    it('pays no Paar at all when both Familien of a suit are held', () => {
+      const melds = detectMelds([...familie('herz', 0), ...familie('herz', 1)], 'kreuz');
+
+      expect(melds.filter((m) => m.type === 'familie')).toHaveLength(2);
+      expect(melds.filter((m) => m.type === 'paar')).toHaveLength(0);
+    });
+
+    it('lets a König pay in both Vier Könige and a Paar (different kinds)', () => {
+      const hand = [
+        card('kreuz', 'koenig'),
+        card('schippe', 'koenig'),
+        card('herz', 'koenig'),
+        card('bollen', 'koenig'),
+        card('herz', 'ober'),
+      ];
+
+      const melds = detectMelds(hand, 'kreuz');
+      const vier = melds.find((m) => m.type === 'vier-koenig');
+      const paar = melds.find((m) => m.type === 'paar');
+
+      expect(vier).toBeDefined();
+      expect(paar).toBeDefined();
+      // Same physical card in both melds — deliberate, not double-counting a mistake
+      expect(vier!.cards).toContain('herz-koenig-0');
+      expect(paar!.cards).toContain('herz-koenig-0');
+      expect(calculateMeldPoints(melds)).toBe(100);
+    });
+
+    it('lets the Ober Schippe pay in both a Binokel and a Schippe-Paar', () => {
+      const hand = [card('schippe', 'ober'), card('bollen', 'buabe'), card('schippe', 'koenig')];
+
+      const melds = detectMelds(hand, 'kreuz');
+
+      expect(melds.find((m) => m.type === 'binokel')?.cards).toContain('schippe-ober-0');
+      expect(melds.find((m) => m.type === 'paar')?.cards).toContain('schippe-ober-0');
+      expect(calculateMeldPoints(melds)).toBe(60);
+    });
+  });
+
   describe('calculateMeldPoints', () => {
     it('sums all meld points', () => {
       const melds = [

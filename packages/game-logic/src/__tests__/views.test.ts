@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Card, CardId, GameEvent, PlayerIndex } from '@dabb/shared-types';
-import { filterEventForPlayer, filterEventsForPlayer, isHiddenCard } from '../state/views.js';
+import { filterEventForPlayer, filterEventsForPlayer } from '../state/views.js';
 
 // Helper to make a visible card
 function visibleCard(suit: Card['suit'], rank: Card['rank'], copy: 0 | 1 = 0): Card {
@@ -147,6 +147,26 @@ describe('filterEventForPlayer', () => {
       expect(payload.discardedCards.every((id) => id === 'hidden')).toBe(true);
     });
 
+    it('reveals buried trump to other players but keeps the rest face down', () => {
+      // Burying trump is legal, but it has to be announced. The reveal is derived from the
+      // card IDs by each receiving client, not reported by the discarder.
+      const filtered = filterEventForPlayer(discardEvent, 1 as PlayerIndex, 'herz');
+      const payload = (filtered as typeof discardEvent).payload;
+      expect(payload.discardedCards).toEqual(['herz-ass-0', 'hidden']);
+    });
+
+    it('announces nothing when no trump was buried', () => {
+      const filtered = filterEventForPlayer(discardEvent, 1 as PlayerIndex, 'schippe');
+      const payload = (filtered as typeof discardEvent).payload;
+      expect(payload.discardedCards).toEqual(['hidden', 'hidden']);
+    });
+
+    it('never masks anything from the discarder themselves', () => {
+      const filtered = filterEventForPlayer(discardEvent, 0 as PlayerIndex, 'herz');
+      const payload = (filtered as typeof discardEvent).payload;
+      expect(payload.discardedCards).toEqual(['herz-ass-0', 'kreuz-koenig-0']);
+    });
+
     it('preserves the discard count for other players', () => {
       const discardFour: Extract<GameEvent, { type: 'CARDS_DISCARDED' }> = {
         ...baseEvent(2),
@@ -223,26 +243,55 @@ describe('filterEventsForPlayer', () => {
   it('returns empty array for empty input', () => {
     expect(filterEventsForPlayer([], 0 as PlayerIndex)).toEqual([]);
   });
-});
 
-describe('isHiddenCard', () => {
-  it('returns true for cards with hidden- prefix', () => {
-    const hidden: Card = { id: 'hidden-0', suit: 'kreuz', rank: 'buabe', copy: 0 };
-    expect(isHiddenCard(hidden)).toBe(true);
+  it('carries the declared trump forward to reveal buried trump (regression)', () => {
+    // Filtering a CARDS_DISCARDED event in isolation has no trump and hides everything;
+    // only the full log knows what was declared a few events earlier.
+    const events: GameEvent[] = [
+      {
+        ...baseEvent(1),
+        type: 'TRUMP_DECLARED',
+        payload: { playerIndex: 0 as PlayerIndex, suit: 'herz' },
+      },
+      {
+        ...baseEvent(2),
+        type: 'CARDS_DISCARDED',
+        payload: {
+          playerIndex: 0 as PlayerIndex,
+          discardedCards: ['herz-10-1', 'bollen-buabe-0'] as CardId[],
+        },
+      },
+    ];
+
+    const filtered = filterEventsForPlayer(events, 1 as PlayerIndex);
+    const discard = filtered[1] as Extract<GameEvent, { type: 'CARDS_DISCARDED' }>;
+    expect(discard.payload.discardedCards).toEqual(['herz-10-1', 'hidden']);
   });
 
-  it('returns true for hidden-1 etc.', () => {
-    const hidden: Card = { id: 'hidden-1', suit: 'kreuz', rank: 'buabe', copy: 0 };
-    expect(isHiddenCard(hidden)).toBe(true);
-  });
+  it('forgets the trump when a new round starts', () => {
+    const events: GameEvent[] = [
+      {
+        ...baseEvent(1),
+        type: 'TRUMP_DECLARED',
+        payload: { playerIndex: 0 as PlayerIndex, suit: 'herz' },
+      },
+      {
+        ...baseEvent(2),
+        type: 'NEW_ROUND_STARTED',
+        payload: { round: 2, dealer: 1 as PlayerIndex },
+      },
+      {
+        ...baseEvent(3),
+        type: 'CARDS_DISCARDED',
+        payload: {
+          playerIndex: 0 as PlayerIndex,
+          discardedCards: ['herz-10-1'] as CardId[],
+        },
+      },
+    ];
 
-  it('returns false for real card IDs', () => {
-    const real: Card = visibleCard('herz', 'ass');
-    expect(isHiddenCard(real)).toBe(false);
-  });
-
-  it('returns false for a card whose ID contains "hidden" elsewhere', () => {
-    const real: Card = { id: 'kreuz-ass-hidden', suit: 'kreuz', rank: 'ass', copy: 0 };
-    expect(isHiddenCard(real)).toBe(false);
+    const filtered = filterEventsForPlayer(events, 1 as PlayerIndex);
+    const discard = filtered[2] as Extract<GameEvent, { type: 'CARDS_DISCARDED' }>;
+    expect(discard.payload.discardedCards).toEqual(['hidden']);
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@dabb/client",
-  "version": "3.0.0",
+  "version": "4.1.0",
   "type": "module",
   "scripts": {
     "start": "vite",
@@ -13,7 +13,7 @@
     "test:e2e": "playwright test",
     "bundle:web": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist coverage"
   },
   "dependencies": {
     "@dabb/card-assets": "workspace:*",

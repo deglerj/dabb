@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from '@dabb/rn-compat';
 import { useNavigate, useParams } from 'react-router-dom';
-import { storageGet } from '../../hooks/useStorage.js';
 import { useFirebaseGame } from '../../hooks/useFirebaseGame.js';
 import { useAI } from '../../hooks/useAI.js';
 import GameScreen from '../../components/ui/GameScreen.js';
@@ -23,18 +22,16 @@ export default function GameRoute() {
       navigate('/', { replace: true });
       return;
     }
-    void (async () => {
-      try {
-        const raw = await storageGet(`dabb-${code}`);
-        if (!raw) {
-          navigate('/', { replace: true });
-          return;
-        }
-        setCredentials(JSON.parse(raw) as StoredSession);
-      } catch {
+    try {
+      const raw = localStorage.getItem(`dabb-${code}`);
+      if (!raw) {
         navigate('/', { replace: true });
+        return;
       }
-    })();
+      setCredentials(JSON.parse(raw) as StoredSession);
+    } catch {
+      navigate('/', { replace: true });
+    }
   }, [code, navigate]);
 
   const game = useFirebaseGame(
@@ -51,8 +48,7 @@ export default function GameRoute() {
     sessionCode: code ?? '',
     secretId: credentials?.secretId ?? '',
     rawEvents: game.rawEvents ?? [],
-    players: game.players ?? [],
-    aiPlayerIndices: game.aiPlayerIndices ?? [],
+    aiSeats: game.aiSeats ?? [],
   });
 
   if (!credentials) {

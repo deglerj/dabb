@@ -169,20 +169,6 @@ export interface PlayerJoinedEvent extends BaseEvent {
   };
 }
 
-export interface PlayerLeftEvent extends BaseEvent {
-  type: 'PLAYER_LEFT';
-  payload: {
-    playerIndex: PlayerIndex;
-  };
-}
-
-export interface PlayerReconnectedEvent extends BaseEvent {
-  type: 'PLAYER_RECONNECTED';
-  payload: {
-    playerIndex: PlayerIndex;
-  };
-}
-
 // New round event
 export interface NewRoundStartedEvent extends BaseEvent {
   type: 'NEW_ROUND_STARTED';
@@ -211,8 +197,6 @@ export type GameEvent =
   | GameFinishedEvent
   | GameTerminatedEvent
   | PlayerJoinedEvent
-  | PlayerLeftEvent
-  | PlayerReconnectedEvent
   | NewRoundStartedEvent;
 
 export type GameEventType = GameEvent['type'];

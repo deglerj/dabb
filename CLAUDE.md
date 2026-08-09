@@ -19,7 +19,11 @@ docs/{arc42/, adr/, design/, AI_STRATEGY.md, KEY_FILES.md}
 
 All game state is stored as an append-only event log in Firebase RTDB per session. Clients read and write events directly — no application server intermediary.
 
-Key client files: `apps/client/src/firebase/` (session, events, config, gameEventFactory, secretId)
+### One Rules Engine
+
+`packages/game-logic/src/engine/` turns a player action into the events it produces, validating it first and expanding the whole cascade (a card play can finish a trick, a round and the game). All three drivers go through `createEventsForAction`: the online client (`useFirebaseGame`, `useAI`), offline play (`OfflineGameEngine`) and the simulation (`SimulationEngine`). They differ only in transport and pacing. Do not re-implement scoring, dealing or phase advancement in a driver — that is exactly what drifted before.
+
+Key client files: `apps/client/src/firebase/` (session, events, config, secretId) — transport only; the rules live in `packages/game-logic/src/engine/`
 
 Key events: `GameStartedEvent`, `CardsDealtEvent`, `BidPlacedEvent`, `PlayerPassedEvent`, `BiddingWonEvent`, `DabbTakenEvent`, `CardsDiscardedEvent`, `GoingOutEvent`, `TrumpDeclaredEvent`, `MeldsDeclaredEvent`, `MeldingCompleteEvent`, `CardPlayedEvent`, `TrickWonEvent`, `RoundScoredEvent`, `GameFinishedEvent`, `GameTerminatedEvent`, `PlayerJoinedEvent`, `PlayerLeftEvent`, `PlayerReconnectedEvent`, `NewRoundStartedEvent`.
 
@@ -35,10 +39,21 @@ Game state is reconstructed by replaying all events via a reducer (`packages/gam
 - `BIDDING_WON`: the `dabb` field is stripped for non-winners (only the bid winner sees the dabb contents).
 - `CARDS_DISCARDED`: only the discarding player sees the actual card IDs; others receive placeholder IDs of the same count.
 
+### Emotes (the only player-to-player channel)
+
+There is no chat. Players send one of six fixed reactions (`packages/shared-types/src/emotes.ts`), shown for `EMOTE_TTL_MS` (10s) next to the sender's name.
+
+Emotes are **not events** and must stay out of the append-only log — they would replay on every reconnect and drag ephemeral chatter through the reducer, the view filter and the game log. Two disjoint sources feed one store (`apps/client/src/hooks/useEmotes.ts`, which merges per seat rather than replacing):
+
+- **Human emotes** go over their own Firebase path, `sessions/<code>/emotes/<playerIndex>` (`apps/client/src/firebase/emotes.ts`), at the same trust level as `presence`.
+- **AI emotes are derived, never transported.** `pickAIEmote` (`packages/game-ai/src/emotes.ts`) is a pure function of the event plus a hash of its id, so every client independently arrives at the same reaction — which is why bots need no Firebase write and no `claimCascade`. Keep it deterministic: a `Math.random()` in there makes every client show a different bot reaction at the same moment.
+
+The replay guard is the event's own **wall-clock age**, not `isInitialLoad`. `isInitialLoad` flips false after the first batch, and `onChildAdded` can beat `getAllEvents` and deliver old events as separate batches after that — age holds regardless of arrival order.
+
 ### Scoreboard & Game Log
 
 - **Scoreboard**: `useRoundHistory` hook; compact `ScoreboardStrip` + expandable modal in client.
-- **Game Log**: `useGameLog` hook; shows latest entries; tab-based overlay in client; pulsing your-turn banner.
+- **Game Log**: `useGameLog` hook turns events straight into display lines (it takes the nicknames and a `t` function); tab-based overlay in client.
 
 ### RN-Shaped Component Shim (`@dabb/rn-compat`)
 
@@ -61,7 +76,7 @@ Languages: `de` (default), `en`. Use `useTranslation()` from `@dabb/i18n`. Swabi
 
 ### Game Error Codes
 
-`GameError(GAME_ERROR_CODES.X, params)` is thrown client-side in `gameEventFactory.ts` when a player makes an invalid move. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Game start, General game, Bidding, Dabb, Going out, Trump, Melding, Tricks, Game termination, AI, Generic fallback). Add error: `/add-error` skill.
+`GameError(GAME_ERROR_CODES.X, params)` is thrown by `game-logic/src/engine/actions.ts` when a player makes an invalid move, and by `firebase/session.ts` for session failures. Client: `t(`serverErrors.${errorCode}`, params)`. Parameterized errors use `{{count}}` syntax. All error codes defined in `packages/shared-types/src/errors.ts` (categories: Session, Game start, General game, Bidding, Dabb, Going out, Trump, Melding, Tricks, Game termination, Generic fallback). Add error: `/add-error` skill.
 
 ## Commands
 
@@ -86,14 +101,14 @@ pnpm simulate -- --players 3 --games 100 --concurrency 4
 
 See `docs/KEY_FILES.md` for the full list. Most important entry points:
 
-| File                                               | Purpose                                             |
-| -------------------------------------------------- | --------------------------------------------------- |
-| `packages/shared-types/src/`                       | All shared types (cards, game, events, errors)      |
-| `packages/game-logic/src/state/reducer.ts`         | Event sourcing reducer                              |
-| `packages/game-logic/src/__tests__/testHelpers.ts` | Integration test helpers                            |
-| `apps/client/src/firebase/gameEventFactory.ts`     | Client-side game action validation + event creation |
-| `apps/client/src/hooks/useFirebaseGame.ts`         | Main game hook (Firebase subscriptions + state)     |
-| `packages/i18n/src/locales/`                       | Translation files (de.ts, en.ts)                    |
+| File                                               | Purpose                                          |
+| -------------------------------------------------- | ------------------------------------------------ |
+| `packages/shared-types/src/`                       | All shared types (cards, game, events, errors)   |
+| `packages/game-logic/src/state/reducer.ts`         | Event sourcing reducer                           |
+| `packages/game-logic/src/__tests__/testHelpers.ts` | Integration test helpers                         |
+| `packages/game-logic/src/engine/`                  | Action validation, event cascades, round scoring |
+| `apps/client/src/hooks/useFirebaseGame.ts`         | Main game hook (Firebase subscriptions + state)  |
+| `packages/i18n/src/locales/`                       | Translation files (de.ts, en.ts)                 |
 
 ## Testing
 
@@ -122,7 +137,19 @@ Run locally from repo root: `pnpm exec firebase emulators:start --only database 
 
 See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding starts at 150, melds score points (Paar: 20, Familie: 100, Binokel: 40), must follow suit/beat/trump, first to 1000 wins.
 
-**Going Out (Abgehen)**: After taking dabb, before discarding, bid winner can choose a trump suit to go out in. Bid winner loses their bid as points; opponents each get melds + 40 bonus. Round ends immediately. `wentOut: boolean` in GameState.
+**Bid winner phase order**: `dabb` (take it) → `trump` (declare it) → `discard` (lay four away) → `melding`. Trump is declared **before** the layaway so that burying a trump is a real decision. Buried trump must be announced: `filterCardsDiscarded` (views.ts) leaves trump-suited card IDs readable to everyone and replaces the rest with `'hidden'`, and `useGameLog` turns that into a `trump_discarded` entry. The reveal is derived per client from the card IDs, not reported by the discarder — so `filterEventsForPlayer` must be given the whole log (it folds the round's trump forward), never an isolated batch.
+
+**Scoring a round**: melds + trick points, with the bid winner's discarded cards counting towards their tricks and 10 for the last trick. Miss the bid and the whole round is discarded and replaced by **`-2 × winningBid`** (`bidMet: false`). Going out costs only `-1 × winningBid` — the 2:1 ratio is what makes Abgehen worth choosing, so don't "fix" one without the other. All of this lives once, in `game-logic/src/engine/scoring.ts`.
+
+**Ending the game**: `determineGameWinner` (`game-logic/state/winner.ts`) is the single source of this rule — several players can cross the target in one round, so highest total wins, and an exact tie goes to the bid winner. Ties are common because every score component is a multiple of ten. If the tied players don't include the bid winner, the lowest seat index wins — arbitrary, and the known limitation. Every scoring path goes through the helper via `game-logic/src/engine/scoring.ts`; the call sites each used to inline the loop and drifted.
+
+**Melds**: a card may pay in melds of different kinds (König in both a Paar and Vier Könige) — deliberate, and the common case in 2-player hands. The one exception is that a Familie absorbs the Paar of its own suit, and that rule exists _only_ because `detectPaar` is called last in `detectMelds` and receives the melds found so far. Do not reorder those pushes; `melds.test.ts` fails if you do.
+
+**Going Out (Abgehen)**: After taking the dabb and declaring trump, instead of laying away, the bid winner can go out. Bid winner loses their bid once; opponents each get melds + 40 bonus. Round ends immediately. `wentOut: boolean` in GameState.
+
+**4-player teams**: Partners sit opposite each other — team is always `playerIndex % 2`. Scoring is per team; team lookups must read `state.players` (populated from `PLAYER_JOINED`), never a `PlayerInfo[]` from Firebase session meta, which has no team field.
+
+**Partner exemption**: In 4-player games, when your partner is currently winning the trick, "must beat" and "must trump" are lifted (following suit still applies). Pass `isPartnerWinning(...)` as the 4th argument to `getValidPlays`/`isValidPlay` — it defaults to `false`, so any new call site silently enforces the strict rules.
 
 **AI Simulation**: `pnpm simulate` runs AI-only games in-memory (no Firebase). See `docs/AI_STRATEGY.md`. CLI flags: `--players`, `--games`, `--concurrency`, `--target-score`, `--max-actions`, `--timeout`, `--output-dir`.
 

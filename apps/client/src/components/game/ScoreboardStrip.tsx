@@ -8,6 +8,11 @@ import { View, Text, StyleSheet, TouchableOpacity, useSafeAreaInsets } from '@da
 import type { PlayerIndex, Suit, TeamScoreEntry } from '@dabb/shared-types';
 import { formatSuit } from '@dabb/game-logic';
 import { useTranslation } from '@dabb/i18n';
+import {
+  TOP_RIGHT_CONTROLS_RESERVE,
+  TOP_RIGHT_CONTROLS_SIZE,
+  TOP_RIGHT_CONTROLS_TOP,
+} from '../../constants.js';
 
 export interface ScoreboardStripProps {
   totalScores: Array<{ playerIndex: PlayerIndex; score: number }>;
@@ -43,7 +48,16 @@ export function ScoreboardStrip({
         styles.strip,
         {
           paddingLeft: Math.max(8, insets.left + 4),
-          paddingRight: Math.max(60, insets.right + 60),
+          paddingRight: Math.max(
+            TOP_RIGHT_CONTROLS_RESERVE,
+            insets.right + TOP_RIGHT_CONTROLS_RESERVE
+          ),
+          // The strip owns the top safe area, and minHeight keeps it tall enough to contain
+          // the floating controls that overlap it — otherwise their corners end up on the
+          // felt below. The text padding is deliberately its own number: nudging the buttons
+          // should not shift "Gebot"/"Trumpf" with them.
+          paddingTop: insets.top + 4,
+          minHeight: insets.top + TOP_RIGHT_CONTROLS_TOP + TOP_RIGHT_CONTROLS_SIZE + 4,
         },
       ]}
       onPress={onPress}
@@ -109,7 +123,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2a1a0a',
     paddingLeft: 8,
-    paddingRight: 60,
+    paddingRight: TOP_RIGHT_CONTROLS_RESERVE,
     paddingVertical: 4,
     gap: 6,
     minHeight: 36,

@@ -26,21 +26,13 @@ import {
   useRoundHistory,
   useCelebration,
 } from '@dabb/ui-shared';
-import { detectMelds, formatCard, formatSuit } from '@dabb/game-logic';
-import type {
-  PlayerIndex,
-  Card,
-  GameLogEntry,
-  Suit,
-  Rank,
-  Team,
-  TeamScoreEntry,
-} from '@dabb/shared-types';
-import { DABB_SIZE, SUIT_NAMES, formatMeldName } from '@dabb/shared-types';
+import { detectMelds } from '@dabb/game-logic';
+import type { PlayerIndex, Card, Team, TeamScoreEntry } from '@dabb/shared-types';
+import { DABB_SIZE } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
 import { useGameDimensions, MAX_GAME_WIDTH } from '../../hooks/useGameDimensions.js';
-import { useTurnNotification } from '../../hooks/useTurnNotification.js';
+import { TOP_RIGHT_CONTROLS_RIGHT, TOP_RIGHT_CONTROLS_TOP } from '../../constants.js';
 import { useTurnHaptic } from '../../hooks/useTurnHaptic.js';
 import { playSound } from '../../utils/sounds.js';
 import { triggerHaptic } from '../../utils/haptics.js';
@@ -50,12 +42,13 @@ import { PlayerHand } from '../game/PlayerHand.js';
 import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
 import { ScoreboardStrip } from '../game/ScoreboardStrip.js';
 import { GameLogTab } from '../game/GameLogTab.js';
-import type { RichLogEntry } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
+import { deriveWinnerInfo } from '../game/winnerInfo.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
 import { OptionsButton } from './OptionsButton.js';
+import { EmoteButton } from './EmoteButton.js';
 import GameScreenErrorBoundary from './GameScreenErrorBoundary.js';
 
 export interface GameScreenProps {
@@ -93,70 +86,6 @@ function computeOpponentPositions(
   return positions;
 }
 
-/**
- * Format a GameLogEntry into a human-readable string.
- */
-function formatLogEntryText(
-  entry: GameLogEntry,
-  nicknames: Map<PlayerIndex, string>,
-  t: (key: string, options?: Record<string, unknown>) => string
-): string {
-  const name =
-    entry.playerIndex !== null ? (nicknames.get(entry.playerIndex) ?? `P${entry.playerIndex}`) : '';
-  const d = entry.data;
-
-  switch (d.kind) {
-    case 'game_started':
-      return t('gameLog.gameStarted', { playerCount: d.playerCount, targetScore: d.targetScore });
-    case 'teams_announced':
-      return t('gameLog.teamsAnnounced', { team0: d.team0.join(', '), team1: d.team1.join(', ') });
-    case 'round_started':
-      return t('gameLog.roundStarted', { round: d.round });
-    case 'bid_placed':
-      return t('gameLog.bidPlaced', { name, amount: d.amount });
-    case 'player_passed':
-      return t('gameLog.playerPassed', { name });
-    case 'bidding_won':
-      return t('gameLog.biddingWon', { name, bid: d.winningBid });
-    case 'dabb_taken':
-      return t('gameLog.dabbTaken', { name });
-    case 'going_out':
-      return t('gameLog.goingOut', { name, suit: formatSuit(d.suit) });
-    case 'trump_declared':
-      return t('gameLog.trumpDeclared', { name, suit: formatSuit(d.suit) });
-    case 'melds_declared':
-      return d.totalPoints === 0
-        ? t('gameLog.meldsNone', { name })
-        : t('gameLog.meldsDeclared', { name, points: d.totalPoints });
-    case 'melds_summary':
-      return d.playerMelds
-        .map((pm) => {
-          const pmName = nicknames.get(pm.playerIndex) ?? `P${pm.playerIndex}`;
-          return pm.totalPoints === 0
-            ? t('gameLog.meldsNone', { name: pmName })
-            : t('gameLog.meldsDeclared', { name: pmName, points: pm.totalPoints });
-        })
-        .join(', ');
-    case 'card_played':
-      return t('gameLog.cardPlayed', { name, card: formatCard(d.card) });
-    case 'trick_won':
-      return t('gameLog.trickWon', { name, points: d.points });
-    case 'round_scored':
-      return t('gameLog.roundScored');
-    case 'game_finished':
-      return t('gameLog.gameFinished', {
-        name: d.winnerNames.join(' & '),
-      });
-    case 'game_terminated':
-      return t('gameLog.gameTerminated', { name });
-    default: {
-      const _exhaustive: never = d;
-      void _exhaustive;
-      return entry.type;
-    }
-  }
-}
-
 export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -170,7 +99,10 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     isInitialLoad,
     nicknames,
     connected,
-    terminatedByNickname,
+    connectedPlayers,
+    terminatedBy,
+    emotes,
+    onSendEmote,
     onBid,
     onPass,
     onTakeDabb,
@@ -191,35 +123,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const { rounds, currentRound } = useRoundHistory(events);
 
   // Game log
-  const { entries: logEntries, lastImportantEntry } = useGameLog(events, state, playerIndex);
-  const richLogEntries = useMemo(
-    (): RichLogEntry[] =>
-      logEntries.map((e) => ({
-        key: e.id,
-        text: formatLogEntryText(e, nicknames, t),
-        detail:
-          e.data.kind === 'melds_declared'
-            ? e.data.melds.map((meld) => ({
-                name: formatMeldName(meld, SUIT_NAMES),
-                cards: meld.cards.map((cardId) => {
-                  const [suit, rank, copy] = cardId.split('-');
-                  return formatCard({
-                    id: cardId,
-                    suit: suit as Suit,
-                    rank: rank as Rank,
-                    copy: Number(copy) as 0 | 1,
-                  });
-                }),
-                points: meld.points,
-              }))
-            : undefined,
-      })),
-    [logEntries, nicknames, t]
-  );
-  const collapsedSummary = useMemo(
-    () => (lastImportantEntry ? formatLogEntryText(lastImportantEntry, nicknames, t) : undefined),
-    [lastImportantEntry, nicknames, t]
-  );
+  const { entries: logEntries, collapsedSummary } = useGameLog(events, nicknames, t);
 
   // Opponent positions
   const opponentPositions = useMemo(
@@ -241,7 +145,6 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     state.players
   );
 
-  useTurnNotification(state, playerIndex, isInitialLoad);
   useTurnHaptic(state, playerIndex, isInitialLoad);
 
   // Sound effects: play on new events, suppressed during initial load on reconnect.
@@ -367,8 +270,8 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   );
 
   const handleConfirmMelds = useCallback(() => {
-    onDeclareMelds(detectedMelds);
-  }, [onDeclareMelds, detectedMelds]);
+    onDeclareMelds();
+  }, [onDeclareMelds]);
 
   // Celebration: show confetti for round win, fireworks for game win
   const { confettiRound, showFireworks } = useCelebration(events, playerIndex);
@@ -376,51 +279,10 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   // Termination — derive winner info for 4-player (team) and 2/3-player (individual)
   const isTerminated = state.phase === 'terminated' || state.phase === 'finished';
 
-  const winnerInfo = useMemo(() => {
-    if (state.phase !== 'finished') {
-      return null;
-    }
-    if (state.playerCount === 4) {
-      // 4-player: totalScores keyed by Team
-      const winningTeam =
-        ([0, 1] as Team[]).find((t) => (state.totalScores.get(t) ?? 0) >= state.targetScore) ??
-        null;
-      if (winningTeam === null) {
-        return null;
-      }
-      const myPlayer = state.players.find((p) => p.playerIndex === playerIndex);
-      const isLocalWinner = myPlayer?.team === winningTeam;
-      const winnerNicknames = state.players
-        .filter((p) => p.team === winningTeam)
-        .sort((a, b) => a.playerIndex - b.playerIndex)
-        .map((p) => nicknames.get(p.playerIndex) ?? p.nickname);
-      const winnerId = state.players.find((p) => p.team === winningTeam)?.id ?? null;
-      return { winnerId, winnerNicknames, isLocalWinner };
-    } else {
-      // 2/3-player: totalScores keyed by PlayerIndex
-      const winnerPlayer =
-        state.players.find((p) => {
-          const score = state.totalScores.get(p.playerIndex);
-          return score !== undefined && score >= state.targetScore;
-        }) ?? null;
-      if (!winnerPlayer) {
-        return null;
-      }
-      return {
-        winnerId: winnerPlayer.id,
-        winnerNicknames: [nicknames.get(winnerPlayer.playerIndex) ?? winnerPlayer.nickname],
-        isLocalWinner: winnerPlayer.playerIndex === playerIndex,
-      };
-    }
-  }, [
-    state.phase,
-    state.playerCount,
-    state.totalScores,
-    state.targetScore,
-    state.players,
-    playerIndex,
-    nicknames,
-  ]);
+  const winnerInfo = useMemo(
+    () => deriveWinnerInfo(state, nicknames, playerIndex),
+    [state, nicknames, playerIndex]
+  );
 
   // Block accidental navigation (browser back button, closing the tab) while a game is in
   // progress — the explicit exit/done/reload paths below set skipBlockRef first, since they
@@ -455,27 +317,23 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     }
   }, [blocker, t]);
 
-  const handleDone = useCallback(() => {
+  /** Leaves for the home screen without the are-you-sure prompt. */
+  const leaveToHome = useCallback(() => {
     skipBlockRef.current = true;
     navigate('/', { replace: true });
   }, [navigate]);
 
   const handleExitGame = useCallback(() => {
     onExit();
-    skipBlockRef.current = true;
-    navigate('/', { replace: true });
-  }, [onExit, navigate]);
-
-  const handleReload = useCallback(() => {
-    skipBlockRef.current = true;
-    navigate('/', { replace: true });
-  }, [navigate]);
+    leaveToHome();
+  }, [onExit, leaveToHome]);
 
   // Phase overlay
   const showBidding = state.phase === 'bidding';
   const showDabbTake = state.phase === 'dabb' && isBidWinner && state.dabb.length > 0;
-  const showDiscard = state.phase === 'dabb' && isBidWinner && state.dabb.length === 0;
   const showTrump = state.phase === 'trump' && isBidWinner;
+  // Trump is already declared here, so the layaway is made knowing what counts as trump.
+  const showDiscard = state.phase === 'discard' && isBidWinner;
 
   // Reset slotted cards if discard phase exits unexpectedly (reconnect, phase advance)
   useEffect(() => {
@@ -483,14 +341,18 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
       setSlottedCardIds([]);
     }
   }, [showDiscard]);
-  const showMelding = state.phase === 'melding' && !(isBidWinner && state.wentOut);
+  // Hidden once you've declared (waiting on the others) and for a bid winner who went out.
+  const showMelding =
+    state.phase === 'melding' &&
+    !(isBidWinner && state.wentOut) &&
+    !state.declaredMelds.has(playerIndex);
 
   return (
     <GameScreenErrorBoundary
       state={state}
       events={events}
       connected={connected}
-      onReload={handleReload}
+      onReload={leaveToHome}
     >
       {state.phase === 'waiting' ? (
         <View style={styles.loadingContainer}>
@@ -513,7 +375,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
             <GameTable width={width} height={height} effects={effects} />
 
             {/* Reconnecting banner */}
-            <ReconnectingBanner visible={!connected && !terminatedByNickname} />
+            <ReconnectingBanner visible={!connected && terminatedBy === null} />
 
             {/* Scoreboard strip at top */}
             <ScoreboardStrip
@@ -542,9 +404,10 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
                   playerIndex={opIdx}
                   nickname={nicknames.get(opIdx) ?? player?.nickname ?? `P${opIdx}`}
                   cardCount={opCards?.length ?? 0}
-                  isConnected={player?.connected ?? false}
+                  isConnected={connectedPlayers.has(opIdx)}
                   isTeammate={isTeammate}
                   position={pos}
+                  emote={emotes.get(opIdx)}
                 />
               );
             })}
@@ -555,7 +418,6 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               myPlayerIndex={playerIndex}
               players={state.players}
               nicknames={nicknames}
-              playerCount={state.playerCount as 3 | 4}
               effects={effects}
               localPlayerDropOrigin={lastDropPos}
             />
@@ -594,6 +456,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               visible={showDiscard}
               discardCount={discardCount}
               slottedCount={slottedCardIds.length}
+              trump={state.trump ?? 'herz'}
               onDiscard={handleDiscard}
               onGoOut={onGoOut}
             />
@@ -667,7 +530,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
             {/* Game log */}
             <View style={styles.logContainer}>
               <GameLogTab
-                entries={richLogEntries}
+                entries={logEntries}
                 collapsedSummary={collapsedSummary}
                 isExpanded={logExpanded}
                 onToggle={() => setLogExpanded((v) => !v)}
@@ -700,15 +563,16 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               winnerId={winnerInfo?.winnerId ?? null}
               winnerNicknames={winnerInfo?.winnerNicknames ?? []}
               isLocalWinner={winnerInfo?.isLocalWinner ?? false}
-              terminatedByNickname={terminatedByNickname}
-              onDone={handleDone}
+              terminatedBy={terminatedBy}
+              onDone={leaveToHome}
             />
             <View
               style={[
                 styles.optionsButtonContainer,
-                { top: insets.top + 8, paddingRight: insets.right },
+                { top: insets.top + TOP_RIGHT_CONTROLS_TOP, paddingRight: insets.right },
               ]}
             >
+              <EmoteButton onSendEmote={onSendEmote} activeEmote={emotes.get(playerIndex)} />
               <OptionsButton onExitGame={handleExitGame} />
             </View>
           </View>
@@ -745,6 +609,10 @@ const styles = StyleSheet.create({
   },
   optionsButtonContainer: {
     position: 'absolute',
-    right: 16,
+    right: TOP_RIGHT_CONTROLS_RIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    zIndex: 60,
   },
 });

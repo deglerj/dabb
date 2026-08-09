@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SURROUND_FRACTION, getFeltBounds, isWithinFeltBounds } from '../feltBounds.js';
+import {
+  DEFAULT_SURROUND_FRACTION,
+  getFeltBounds,
+  isWithinDropZone,
+  isWithinFeltBounds,
+} from '../feltBounds.js';
 
 describe('getFeltBounds', () => {
   it('returns correct bounds for a square-ish screen with default surroundFraction', () => {
@@ -76,5 +81,26 @@ describe('isWithinFeltBounds', () => {
     // The same local coordinate is wrongly accepted if bounds were computed from the raw,
     // uncapped window width instead — this is the exact bug that shipped.
     expect(isWithinFeltBounds(1430, 450, wrongBounds)).toBe(true);
+  });
+});
+
+describe('isWithinDropZone', () => {
+  const bounds = getFeltBounds(800, 600); // felt spans x:[40,760] y:[40,560]
+  const handTopY = 480; // topmost hand card
+
+  it('accepts a drop on the felt above the hand', () => {
+    expect(isWithinDropZone(400, 300, bounds, handTopY)).toBe(true);
+  });
+
+  // Regression: the felt reaches underneath the hand arc, so felt bounds alone counted a card
+  // dragged back down onto the hand as a play unless it landed below the felt's bottom edge.
+  it('rejects a drop back onto the hand even though it is still on the felt', () => {
+    expect(isWithinFeltBounds(400, 500, bounds)).toBe(true);
+    expect(isWithinDropZone(400, 500, bounds, handTopY)).toBe(false);
+    expect(isWithinDropZone(400, handTopY, bounds, handTopY)).toBe(false);
+  });
+
+  it('still rejects a drop off the felt', () => {
+    expect(isWithinDropZone(0, 300, bounds, handTopY)).toBe(false);
   });
 });

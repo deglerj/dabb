@@ -3,13 +3,6 @@ import { AI_NAMES } from '@dabb/shared-types';
 import { renderHook, act } from '@testing-library/react';
 import { useOfflineGame } from '../useOfflineGame.js';
 
-// Mock storage
-vi.mock('../useStorage.js', () => ({
-  storageGet: vi.fn().mockResolvedValue(null),
-  storageSet: vi.fn().mockResolvedValue(undefined),
-  storageDelete: vi.fn().mockResolvedValue(undefined),
-}));
-
 // vi.mock is hoisted — use vi.hoisted() for variables referenced inside factory
 const { mockDispatch, mockGetView, mockStart } = vi.hoisted(() => {
   const mockDispatch = vi.fn().mockResolvedValue(undefined);
@@ -76,7 +69,7 @@ describe('useOfflineGame', () => {
     expect(result.current).toHaveProperty('isInitialLoad');
     expect(result.current).toHaveProperty('nicknames');
     expect(result.current).toHaveProperty('connected');
-    expect(result.current).toHaveProperty('terminatedByNickname');
+    expect(result.current).toHaveProperty('terminatedBy');
     expect(result.current).toHaveProperty('onBid');
     expect(result.current).toHaveProperty('onPass');
     expect(result.current).toHaveProperty('onExit');
@@ -89,11 +82,11 @@ describe('useOfflineGame', () => {
     expect(result.current.connected).toBe(true);
   });
 
-  it('terminatedByNickname is always null', () => {
+  it('terminatedBy is always null', () => {
     const { result } = renderHook(() =>
       useOfflineGame({ playerCount: 2, difficulty: 'medium', nickname: 'Hans', resume: false })
     );
-    expect(result.current.terminatedByNickname).toBeNull();
+    expect(result.current.terminatedBy).toBeNull();
   });
 
   it('nicknames contains human player name and AI names', async () => {
@@ -132,8 +125,8 @@ describe('useOfflineGame', () => {
     expect(namesAfter).toBe(namesBefore);
   });
 
-  it('onExit clears storage', async () => {
-    const { storageDelete } = await import('../useStorage.js');
+  it('onExit clears the saved game', async () => {
+    const removeItem = vi.spyOn(Storage.prototype, 'removeItem');
     const { result } = renderHook(() =>
       useOfflineGame({ playerCount: 2, difficulty: 'medium', nickname: 'Hans', resume: false })
     );
@@ -142,6 +135,7 @@ describe('useOfflineGame', () => {
       result.current.onExit();
     });
 
-    expect(storageDelete).toHaveBeenCalledWith('dabb-offline-game');
+    expect(removeItem).toHaveBeenCalledWith('dabb-offline-game');
+    removeItem.mockRestore();
   });
 });

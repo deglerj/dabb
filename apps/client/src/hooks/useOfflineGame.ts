@@ -4,19 +4,21 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OfflineGameEngine } from '@dabb/game-ai';
+import { createInitialState } from '@dabb/game-logic';
 import type { GameInterface } from '@dabb/ui-shared';
 import { AI_NAMES } from '@dabb/shared-types';
 import type {
   CardId,
+  EmoteKey,
   GameEvent,
   GameState,
-  Meld,
   PlayerIndex,
   Suit,
   PlayerCount,
 } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
-import { storageGet, storageSet, storageDelete } from './useStorage.js';
+import { useEmotes } from './useEmotes.js';
+import { useAIEmotes } from './useAIEmotes.js';
 
 const STORAGE_KEY = 'dabb-offline-game';
 const HUMAN_PLAYER_INDEX = 0 as PlayerIndex;
@@ -65,6 +67,12 @@ export function useOfflineGame({
     [] // Intentionally empty — names must not change after game starts
   );
 
+  // Offline there is no transport to drop: the human is here and the rest are local AI.
+  const connectedPlayers = useMemo(
+    () => new Set(Array.from({ length: playerCount }, (_, i) => i as PlayerIndex)),
+    [playerCount]
+  );
+
   useEffect(() => {
     let cancelled = false;
 
@@ -75,7 +83,7 @@ export function useOfflineGame({
 
       if (resume) {
         try {
-          const raw = await storageGet(STORAGE_KEY);
+          const raw = localStorage.getItem(STORAGE_KEY);
           if (raw) {
             const payload = JSON.parse(raw) as {
               events: GameEvent[];
@@ -114,7 +122,7 @@ export function useOfflineGame({
 
         // Persist after every state change
         const payload = engine.getPersistPayload();
-        void storageSet(STORAGE_KEY, JSON.stringify(payload));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       };
 
       engineRef.current = engine;
@@ -159,24 +167,18 @@ export function useOfflineGame({
     },
     [dispatch]
   );
-  const onGoOut = useCallback(
-    (suit: Suit) => {
-      void dispatch({ type: 'goOut', suit });
-    },
-    [dispatch]
-  );
+  const onGoOut = useCallback(() => {
+    void dispatch({ type: 'goOut' });
+  }, [dispatch]);
   const onDeclareTrump = useCallback(
     (suit: Suit) => {
       void dispatch({ type: 'declareTrump', suit });
     },
     [dispatch]
   );
-  const onDeclareMelds = useCallback(
-    (melds: Meld[]) => {
-      void dispatch({ type: 'declareMelds', melds });
-    },
-    [dispatch]
-  );
+  const onDeclareMelds = useCallback(() => {
+    void dispatch({ type: 'declareMelds' });
+  }, [dispatch]);
   const onPlayCard = useCallback(
     (cardId: CardId) => {
       void dispatch({ type: 'playCard', cardId });
@@ -186,36 +188,28 @@ export function useOfflineGame({
 
   const onExit = useCallback(() => {
     engineRef.current = null;
-    void storageDelete(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  // Provide a minimal non-null state so GameScreen doesn't crash before engine starts
-  const safeState = state ?? {
-    phase: 'waiting' as const,
-    playerCount,
-    players: [],
-    hands: new Map(),
-    dabb: [],
-    currentBid: 0,
-    bidWinner: null,
-    currentBidder: null,
-    firstBidder: null,
-    passedPlayers: new Set(),
-    lastBidderIndex: null,
-    trump: null,
-    currentTrick: { cards: [], leadSuit: null, winnerIndex: null },
-    tricksTaken: new Map(),
-    currentPlayer: null,
-    roundScores: new Map(),
-    totalScores: new Map(),
-    targetScore: 1000,
-    declaredMelds: new Map(),
-    dealer: 0 as PlayerIndex,
-    round: 1,
-    wentOut: false,
-    dabbCardIds: [],
-    lastCompletedTrick: null,
-  };
+  // The engine has not produced a state yet on the very first render.
+  const safeState = state ?? createInitialState(playerCount);
+
+  // Offline there is nothing to transport: every seat but the human is a bot, and their
+  // emotes are derived from the same event log the online client derives them from.
+  const { visible: emotes, post: postEmote } = useEmotes();
+  const aiPlayerIndices = useMemo(
+    () =>
+      Array.from({ length: safeState.playerCount }, (_, i) => i as PlayerIndex).filter(
+        (i) => i !== HUMAN_PLAYER_INDEX
+      ),
+    [safeState.playerCount]
+  );
+  useAIEmotes(events, safeState, aiPlayerIndices, postEmote);
+
+  const onSendEmote = useCallback(
+    (key: EmoteKey) => postEmote(HUMAN_PLAYER_INDEX, key),
+    [postEmote]
+  );
 
   return {
     state: safeState,
@@ -223,7 +217,10 @@ export function useOfflineGame({
     isInitialLoad,
     nicknames,
     connected: true,
-    terminatedByNickname: null,
+    connectedPlayers,
+    terminatedBy: null,
+    emotes,
+    onSendEmote,
     onBid,
     onPass,
     onTakeDabb,

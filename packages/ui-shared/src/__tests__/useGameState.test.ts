@@ -44,20 +44,6 @@ describe('useGameState', () => {
     expect(result.current.isInitialLoad).toBe(false);
   });
 
-  it('isInitialLoad resets to true after reset()', async () => {
-    const { result } = renderHook(() => useGameState({ playerIndex: 0 }));
-
-    await act(async () => {
-      result.current.processEvents([startedEvent]);
-    });
-    expect(result.current.isInitialLoad).toBe(false);
-
-    act(() => {
-      result.current.reset();
-    });
-    expect(result.current.isInitialLoad).toBe(true);
-  });
-
   it('isInitialLoad is still true synchronously during the render where events arrive', () => {
     const { result } = renderHook(() => useGameState({ playerIndex: 0 }));
 

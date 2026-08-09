@@ -16,25 +16,23 @@ interface UseGameStateReturn {
   events: GameEvent[];
   isInitialLoad: boolean;
   processEvents: (newEvents: GameEvent[]) => void;
-  reset: () => void;
 }
 
 export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
   const { playerIndex, initialPlayerCount = 4 } = options;
 
+  // Unfiltered log is kept because filtering is not incremental — see processEvents.
+  const [, setRawEvents] = useState<GameEvent[]>([]);
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [state, setState] = useState<GameState>(() => createInitialState(initialPlayerCount));
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const processEvents = useCallback(
     (newEvents: GameEvent[]) => {
-      // Filter events for this player's view
-      const filteredEvents = filterEventsForPlayer(newEvents, playerIndex);
-
-      setEvents((prev) => {
+      setRawEvents((prev) => {
         // Deduplicate by event ID
         const existingIds = new Set(prev.map((e) => e.id));
-        const uniqueNewEvents = filteredEvents.filter((e) => !existingIds.has(e.id));
+        const uniqueNewEvents = newEvents.filter((e) => !existingIds.has(e.id));
 
         if (uniqueNewEvents.length === 0) {
           return prev;
@@ -42,9 +40,12 @@ export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
 
         const combined = [...prev, ...uniqueNewEvents].sort((a, b) => a.sequence - b.sequence);
 
-        // Rebuild state from all events
-        const newState = applyEvents(combined);
-        setState(newState);
+        // Filter the whole log, not just the new batch: revealing the bid winner's buried
+        // trump needs the trump suit from an earlier event, so a batch on its own is not
+        // enough context. Rebuilding state already walks every event anyway.
+        const filtered = filterEventsForPlayer(combined, playerIndex);
+        setEvents(filtered);
+        setState(applyEvents(filtered));
 
         return combined;
       });
@@ -64,17 +65,10 @@ export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
     }
   }, [events]);
 
-  const reset = useCallback(() => {
-    setEvents([]);
-    setState(createInitialState(initialPlayerCount));
-    setIsInitialLoad(true);
-  }, [initialPlayerCount]);
-
   return {
     state,
     events,
     isInitialLoad,
     processEvents,
-    reset,
   };
 }

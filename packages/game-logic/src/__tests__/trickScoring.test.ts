@@ -55,6 +55,56 @@ describe('Trick scoring', () => {
       expect(bidWinnerTricks[0]).toEqual(expect.arrayContaining(discarded));
     });
 
+    it('keeps the discarded cards when the trick phase begins (regression)', () => {
+      const discarded = [card('schippe', 'ass'), card('schippe', '10')]; // 21 pts
+      const state: GameState = {
+        ...createInitialState(2),
+        phase: 'dabb',
+        bidWinner: 0 as PlayerIndex,
+        hands: new Map<PlayerIndex, Card[]>([
+          [0 as PlayerIndex, [card('herz', 'ass'), ...discarded]],
+          [1 as PlayerIndex, []],
+        ]),
+        tricksTaken: new Map<PlayerIndex, Card[][]>(),
+      };
+
+      const afterDiscard = applyEvent(
+        state,
+        createCardsDiscardedEvent(
+          { sessionId: 'test', sequence: 1 },
+          0 as PlayerIndex,
+          discarded.map((c) => c.id)
+        )
+      );
+      // MELDING_COMPLETE used to rebuild tricksTaken from scratch, silently dropping the
+      // discard group and its points before a single trick had been played.
+      const afterMelding = applyEvent(
+        applyEvent(afterDiscard, {
+          id: 'trump',
+          sessionId: 'test',
+          sequence: 2,
+          timestamp: 0,
+          type: 'TRUMP_DECLARED',
+          payload: { playerIndex: 0 as PlayerIndex, suit: 'herz' as Suit },
+        }),
+        {
+          id: 'melding-complete',
+          sessionId: 'test',
+          sequence: 3,
+          timestamp: 0,
+          type: 'MELDING_COMPLETE',
+          payload: { meldScores: { 0: 0, 1: 0 } as Record<PlayerIndex, number> },
+        }
+      );
+
+      expect(afterMelding.phase).toBe('tricks');
+      expect(afterMelding.tricksTaken.get(0 as PlayerIndex)).toHaveLength(1);
+      expect(afterMelding.tricksTaken.get(1 as PlayerIndex)).toEqual([]);
+      expect(calculatePlayerTrickRawPoints(0 as PlayerIndex, afterMelding.tricksTaken, null)).toBe(
+        21
+      );
+    });
+
     it('does not add cards to non-bid-winner tricksTaken', () => {
       const discarded = [card('schippe', 'ass'), card('schippe', '10')];
       const remaining = [card('herz', 'ass')];

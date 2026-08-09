@@ -1,350 +1,297 @@
 /**
- * Hook to convert game events to log entries for display
+ * Turns the event log into the lines shown in the game log panel.
+ *
+ * Events used to be mapped into a GameLogEntry intermediate first, which the screen then
+ * switched over a second time to produce text. Every entry kind mapped one-to-one to an
+ * event type and had exactly one consumer, so the middle representation only bought a
+ * second switch to keep in step with the first.
  */
 
 import { useMemo } from 'react';
-import type { GameEvent, GameLogEntry, GameState, PlayerIndex, Team } from '@dabb/shared-types';
+import { formatCard, formatSuit } from '@dabb/game-logic';
+import { formatMeldName, SUIT_NAMES } from '@dabb/shared-types';
+import type { Card, GameEvent, Meld, PlayerIndex, Rank, Suit, Team } from '@dabb/shared-types';
 
-const DEFAULT_VISIBLE_ENTRIES = 5;
+/** Translation function, passed in so this package stays independent of the i18n setup. */
+export type Translate = (key: string, options?: Record<string, unknown>) => string;
 
-const IMPORTANT_ENTRY_TYPES = new Set<GameLogEntry['type']>([
-  'going_out',
-  'trick_won',
-  'round_scored',
-  'melds_declared',
-  'game_finished',
-]);
-
-export interface GameLogResult {
-  /** All log entries in chronological order (oldest first) */
-  entries: GameLogEntry[];
-  /** The latest N entries for collapsed view (last N, chronological order) */
-  latestEntries: GameLogEntry[];
-  /** The most recent entry considered important (going out, trick/meld/round/game won) */
-  lastImportantEntry: GameLogEntry | null;
-  /** Whether it's the current player's turn */
-  isYourTurn: boolean;
+export interface MeldDetail {
+  name: string; // e.g. "Herz-Paar", "Binokel"
+  cards: string[]; // e.g. ["Herz König", "Herz Ober"] — formatCard returns suit then rank
+  points: number;
 }
 
-/**
- * Converts game events to displayable log entries
- * Skips secret events (CARDS_DEALT, CARDS_DISCARDED, MELDING_COMPLETE)
- */
+export interface LogLine {
+  key: string;
+  text: string;
+  /** Only set for a player's own meld declaration. */
+  detail?: MeldDetail[];
+}
+
+export interface GameLogResult {
+  /** All lines in chronological order (oldest first). */
+  entries: LogLine[];
+  /**
+   * One-line summary for the collapsed panel: the most recent thing worth reporting.
+   * Consecutive meld declarations collapse into a single line.
+   */
+  collapsedSummary?: string;
+}
+
+/** Rebuild a Card from its `suit-rank-copy` ID, for events that carry only IDs. */
+function cardFromId(cardId: string): Card {
+  const [suit, rank, copy] = cardId.split('-');
+  return { id: cardId, suit: suit as Suit, rank: rank as Rank, copy: Number(copy) as 0 | 1 };
+}
+
+function meldDetail(melds: Meld[]): MeldDetail[] {
+  return melds.map((meld) => ({
+    name: formatMeldName(meld, SUIT_NAMES),
+    cards: meld.cards.map((cardId) => formatCard(cardFromId(cardId))),
+    points: meld.points,
+  }));
+}
+
+/** What the log is building up as it walks the events. */
+interface Line extends LogLine {
+  important: boolean;
+  /** Set on meld declarations so consecutive ones can be merged for the collapsed view. */
+  isMeld: boolean;
+}
+
 export function useGameLog(
   events: GameEvent[],
-  state: GameState | null,
-  currentPlayerIndex: PlayerIndex | null
+  nicknames: Map<PlayerIndex, string>,
+  t: Translate
 ): GameLogResult {
   return useMemo(() => {
-    const entries: GameLogEntry[] = [];
-    const playerTeamData = new Map<PlayerIndex, { nickname: string; team: Team }>();
+    const lines: Line[] = [];
+    const nameOf = (idx: PlayerIndex) => nicknames.get(idx) ?? `P${idx}`;
+
+    // Nicknames and teams as the log itself saw them, so a game replayed from events alone
+    // can still name the winner without the caller's map.
+    const joined = new Map<PlayerIndex, { nickname: string; team?: Team }>();
+    // The buried-trump reveal is derived per client from the card IDs left readable by
+    // filterCardsDiscarded, so the trump in force has to be carried forward as we go.
+    let trump: Suit | null = null;
+
+    const push = (key: string, text: string, opts: Partial<Line> = {}) => {
+      lines.push({ key, text, important: false, isMeld: false, ...opts });
+    };
 
     for (const event of events) {
-      // Track player team data from PLAYER_JOINED events
-      if (event.type === 'PLAYER_JOINED' && event.payload.team !== undefined) {
-        playerTeamData.set(event.payload.playerIndex, {
-          nickname: event.payload.nickname,
-          team: event.payload.team,
-        });
-      }
+      const id = event.id;
 
-      // GAME_FINISHED needs playerTeamData to resolve winner names — handle inline
-      if (event.type === 'GAME_FINISHED') {
-        const winnerValue = event.payload.winner;
-        const teamEntries = Array.from(playerTeamData.values());
-        const isTeamWinner =
-          teamEntries.length > 0 && teamEntries.some((e) => e.team === winnerValue);
-
-        let winnerNames: string[];
-        if (isTeamWinner) {
-          winnerNames = Array.from(playerTeamData.entries())
-            .filter(([, data]) => data.team === winnerValue)
-            .map(([, data]) => data.nickname);
-        } else {
-          const entry = playerTeamData.get(winnerValue as PlayerIndex);
-          winnerNames = entry ? [entry.nickname] : [String(winnerValue)];
-        }
-
-        entries.push({
-          id: event.id,
-          timestamp: event.timestamp,
-          type: 'game_finished',
-          playerIndex: null,
-          data: { kind: 'game_finished', winner: winnerValue, winnerNames },
-        });
-        continue;
-      }
-
-      const logEntry = eventToLogEntry(event);
-      if (logEntry) {
-        entries.push(logEntry);
-      }
-
-      // After GAME_STARTED in 4-player, emit team announcement
-      if (event.type === 'GAME_STARTED' && event.payload.playerCount === 4) {
-        const team0 = [...playerTeamData.values()]
-          .filter((p) => p.team === 0)
-          .map((p) => p.nickname);
-        const team1 = [...playerTeamData.values()]
-          .filter((p) => p.team === 1)
-          .map((p) => p.nickname);
-        if (team0.length > 0 && team1.length > 0) {
-          entries.push({
-            id: `${event.id}-teams`,
-            timestamp: event.timestamp,
-            type: 'teams_announced',
-            playerIndex: null,
-            data: { kind: 'teams_announced', team0, team1 },
+      switch (event.type) {
+        case 'PLAYER_JOINED':
+          joined.set(event.payload.playerIndex, {
+            nickname: event.payload.nickname,
+            ...(event.payload.team === undefined ? {} : { team: event.payload.team }),
           });
+          break;
+
+        case 'GAME_STARTED': {
+          push(
+            id,
+            t('gameLog.gameStarted', {
+              playerCount: event.payload.playerCount,
+              targetScore: event.payload.targetScore,
+            })
+          );
+          if (event.payload.playerCount === 4) {
+            const namesOfTeam = (team: Team) =>
+              [...joined.values()].filter((p) => p.team === team).map((p) => p.nickname);
+            const team0 = namesOfTeam(0);
+            const team1 = namesOfTeam(1);
+            if (team0.length > 0 && team1.length > 0) {
+              push(
+                `${id}-teams`,
+                t('gameLog.teamsAnnounced', {
+                  team0: team0.join(', '),
+                  team1: team1.join(', '),
+                })
+              );
+            }
+          }
+          break;
         }
+
+        case 'NEW_ROUND_STARTED':
+          trump = null;
+          push(id, t('gameLog.roundStarted', { round: event.payload.round }));
+          break;
+
+        case 'BID_PLACED':
+          push(
+            id,
+            t('gameLog.bidPlaced', {
+              name: nameOf(event.payload.playerIndex),
+              amount: event.payload.amount,
+            })
+          );
+          break;
+
+        case 'PLAYER_PASSED':
+          push(id, t('gameLog.playerPassed', { name: nameOf(event.payload.playerIndex) }));
+          break;
+
+        case 'BIDDING_WON':
+          push(
+            id,
+            t('gameLog.biddingWon', {
+              name: nameOf(event.payload.playerIndex),
+              bid: event.payload.winningBid,
+            })
+          );
+          break;
+
+        case 'DABB_TAKEN':
+          push(id, t('gameLog.dabbTaken', { name: nameOf(event.payload.playerIndex) }));
+          break;
+
+        case 'TRUMP_DECLARED':
+          trump = event.payload.suit;
+          push(
+            id,
+            t('gameLog.trumpDeclared', {
+              name: nameOf(event.payload.playerIndex),
+              suit: formatSuit(event.payload.suit),
+            })
+          );
+          break;
+
+        case 'GOING_OUT':
+          trump = event.payload.suit;
+          push(
+            id,
+            t('gameLog.goingOut', {
+              name: nameOf(event.payload.playerIndex),
+              suit: formatSuit(event.payload.suit),
+            }),
+            { important: true }
+          );
+          break;
+
+        // The layaway is face down, but buried trump has to be announced. filterCardsDiscarded
+        // leaves exactly those card IDs readable and replaces the rest with 'hidden'.
+        case 'CARDS_DISCARDED': {
+          if (trump === null) {
+            break;
+          }
+          const trumpCards = event.payload.discardedCards.filter((cardId) =>
+            cardId.startsWith(`${trump}-`)
+          );
+          if (trumpCards.length === 0) {
+            break;
+          }
+          push(
+            id,
+            t('gameLog.trumpDiscarded', {
+              name: nameOf(event.payload.playerIndex),
+              cards: trumpCards.map((cardId) => formatCard(cardFromId(cardId))).join(', '),
+            })
+          );
+          break;
+        }
+
+        case 'MELDS_DECLARED': {
+          const name = nameOf(event.payload.playerIndex);
+          const points = event.payload.totalPoints;
+          push(
+            id,
+            points === 0
+              ? t('gameLog.meldsNone', { name })
+              : t('gameLog.meldsDeclared', { name, points }),
+            { important: true, isMeld: true, detail: meldDetail(event.payload.melds) }
+          );
+          break;
+        }
+
+        case 'CARD_PLAYED':
+          push(
+            id,
+            t('gameLog.cardPlayed', {
+              name: nameOf(event.payload.playerIndex),
+              card: formatCard(event.payload.card),
+            })
+          );
+          break;
+
+        case 'TRICK_WON':
+          push(
+            id,
+            t('gameLog.trickWon', {
+              name: nameOf(event.payload.winnerIndex),
+              points: event.payload.points,
+            }),
+            { important: true }
+          );
+          break;
+
+        case 'ROUND_SCORED':
+          push(id, t('gameLog.roundScored'), { important: true });
+          break;
+
+        case 'GAME_FINISHED': {
+          const winner = event.payload.winner;
+          const asTeam = [...joined.values()].filter((p) => p.team === winner);
+          const winnerNames =
+            asTeam.length > 0
+              ? asTeam.map((p) => p.nickname)
+              : [joined.get(winner as PlayerIndex)?.nickname ?? String(winner)];
+          push(id, t('gameLog.gameFinished', { name: winnerNames.join(' & ') }), {
+            important: true,
+          });
+          break;
+        }
+
+        case 'GAME_TERMINATED':
+          push(id, t('gameLog.gameTerminated', { name: nameOf(event.payload.terminatedBy) }));
+          break;
+
+        // Secret or uninteresting — nothing to show.
+        case 'CARDS_DEALT':
+        case 'MELDING_COMPLETE':
+          break;
       }
     }
 
-    // Determine if it's the current player's turn
-    const isYourTurn =
-      currentPlayerIndex !== null &&
-      state !== null &&
-      state.currentPlayer === currentPlayerIndex &&
-      (state.phase === 'bidding' || state.phase === 'tricks');
-
-    const lastImportantEntry = synthesizeLastImportantEntry(entries);
-
     return {
-      entries,
-      latestEntries: entries.slice(-DEFAULT_VISIBLE_ENTRIES),
-      lastImportantEntry,
-      isYourTurn,
+      entries: lines.map(({ key, text, detail }) =>
+        detail ? { key, text, detail } : { key, text }
+      ),
+      collapsedSummary: summarise(lines),
     };
-  }, [events, state, currentPlayerIndex]);
+  }, [events, nicknames, t]);
 }
 
 /**
- * Finds the most recent important log entry, merging consecutive melds_declared
- * entries into a single melds_summary entry for the collapsed view.
+ * The most recent important line, with a run of meld declarations reported as one.
  *
- * Receives entries in chronological order (oldest first).
+ * Everyone melds at roughly the same moment, so showing only the last player's declaration
+ * in the collapsed panel would hide the rest.
  */
-function synthesizeLastImportantEntry(entries: GameLogEntry[]): GameLogEntry | null {
-  // Reverse scan to find the last important entry
-  let foundIndex = -1;
-  for (let i = entries.length - 1; i >= 0; i--) {
-    if (IMPORTANT_ENTRY_TYPES.has(entries[i].type)) {
-      foundIndex = i;
+function summarise(lines: Line[]): string | undefined {
+  let last = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].important) {
+      last = i;
       break;
     }
   }
-
-  if (foundIndex === -1) {
-    return null;
+  if (last === -1) {
+    return undefined;
+  }
+  if (!lines[last].isMeld) {
+    return lines[last].text;
   }
 
-  const found = entries[foundIndex];
-  if (found.type !== 'melds_declared') {
-    return found;
+  let start = last;
+  while (start > 0 && lines[start - 1].isMeld) {
+    start--;
   }
-
-  // Find the start of the contiguous melds_declared run by scanning backwards
-  let startIndex = foundIndex;
-  while (startIndex > 0 && entries[startIndex - 1].type === 'melds_declared') {
-    startIndex--;
-  }
-
-  if (startIndex === foundIndex) {
-    // Only one melds_declared entry
-    return found;
-  }
-
-  // Collect entries startIndex..foundIndex inclusive — already chronological (oldest first)
-  const meldEntries = entries.slice(startIndex, foundIndex + 1);
-
-  return {
-    id: found.id,
-    timestamp: found.timestamp,
-    type: 'melds_summary',
-    playerIndex: null,
-    data: {
-      kind: 'melds_summary',
-      playerMelds: meldEntries.map((e) => ({
-        playerIndex: e.playerIndex as PlayerIndex,
-        totalPoints: e.data.kind === 'melds_declared' ? e.data.totalPoints : 0,
-      })),
-    },
-  };
-}
-
-/**
- * Converts a single game event to a log entry
- * Returns null for secret events that shouldn't be logged
- */
-function eventToLogEntry(event: GameEvent): GameLogEntry | null {
-  switch (event.type) {
-    case 'GAME_STARTED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'game_started',
-        playerIndex: null,
-        data: {
-          kind: 'game_started',
-          playerCount: event.payload.playerCount,
-          targetScore: event.payload.targetScore,
-        },
-      };
-
-    case 'NEW_ROUND_STARTED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'round_started',
-        playerIndex: null,
-        data: {
-          kind: 'round_started',
-          round: event.payload.round,
-        },
-      };
-
-    case 'BID_PLACED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'bid_placed',
-        playerIndex: event.payload.playerIndex,
-        data: {
-          kind: 'bid_placed',
-          amount: event.payload.amount,
-        },
-      };
-
-    case 'PLAYER_PASSED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'player_passed',
-        playerIndex: event.payload.playerIndex,
-        data: {
-          kind: 'player_passed',
-        },
-      };
-
-    case 'BIDDING_WON':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'bidding_won',
-        playerIndex: event.payload.playerIndex,
-        data: {
-          kind: 'bidding_won',
-          winningBid: event.payload.winningBid,
-        },
-      };
-
-    case 'GOING_OUT':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'going_out',
-        playerIndex: event.payload.playerIndex,
-        data: {
-          kind: 'going_out',
-          suit: event.payload.suit,
-        },
-      };
-
-    case 'TRUMP_DECLARED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'trump_declared',
-        playerIndex: event.payload.playerIndex,
-        data: {
-          kind: 'trump_declared',
-          suit: event.payload.suit,
-        },
-      };
-
-    case 'MELDS_DECLARED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'melds_declared',
-        playerIndex: event.payload.playerIndex,
-        data: {
-          kind: 'melds_declared',
-          melds: event.payload.melds,
-          totalPoints: event.payload.totalPoints,
-        },
-      };
-
-    case 'CARD_PLAYED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'card_played',
-        playerIndex: event.payload.playerIndex,
-        data: {
-          kind: 'card_played',
-          card: event.payload.card,
-        },
-      };
-
-    case 'TRICK_WON':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'trick_won',
-        playerIndex: event.payload.winnerIndex,
-        data: {
-          kind: 'trick_won',
-          points: event.payload.points,
-        },
-      };
-
-    case 'ROUND_SCORED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'round_scored',
-        playerIndex: null,
-        data: {
-          kind: 'round_scored',
-          scores: event.payload.scores,
-        },
-      };
-
-    case 'GAME_TERMINATED':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'game_terminated',
-        playerIndex: event.payload.terminatedBy,
-        data: {
-          kind: 'game_terminated',
-          reason: event.payload.reason,
-        },
-      };
-
-    case 'DABB_TAKEN':
-      return {
-        id: event.id,
-        timestamp: event.timestamp,
-        type: 'dabb_taken',
-        playerIndex: event.payload.playerIndex,
-        data: {
-          kind: 'dabb_taken',
-          cards: event.payload.dabbCards,
-        },
-      };
-
-    // Secret events that shouldn't be logged
-    case 'CARDS_DEALT':
-    case 'CARDS_DISCARDED':
-    case 'MELDING_COMPLETE':
-    case 'PLAYER_JOINED':
-    case 'PLAYER_LEFT':
-    case 'PLAYER_RECONNECTED':
-      return null;
-
-    default:
-      return null;
-  }
+  return lines
+    .slice(start, last + 1)
+    .map((line) => line.text)
+    .join(', ');
 }

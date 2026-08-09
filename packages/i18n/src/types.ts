@@ -127,7 +127,6 @@ export interface TranslationKeys {
     backToHome: string;
     goOut: string;
     goOutIn: string;
-    orGoOut: string;
     goOutConfirmTitle: string;
     goOutConfirmMessage: string;
     goOutLink: string;
@@ -136,6 +135,7 @@ export interface TranslationKeys {
     bidColumn: string;
     bidMet: string;
     bidMissed: string;
+    bidPenalty: string;
     wentOut: string;
     gameEnded: string;
     youWonRound: string;
@@ -185,6 +185,7 @@ export interface TranslationKeys {
     goingOut: string;
     trumpDeclared: string;
     dabbTaken: string;
+    trumpDiscarded: string;
     meldsDeclared: string;
     meldsNone: string;
     cardPlayed: string;
@@ -199,6 +200,10 @@ export interface TranslationKeys {
     goal: string;
     sectionBidding: string;
     bidding: string;
+    sectionScoring: string;
+    scoring: string;
+    sectionGoOut: string;
+    goOut: string;
     melds: string;
     meldsIntro: string;
     meldPaar: string;
@@ -237,6 +242,20 @@ export interface TranslationKeys {
     macosSafari: string;
     androidFirefox: string;
   };
+  /**
+   * Emote picker. The per-emote strings are the short phrase shown next to the glyph in the
+   * menu, and double as the accessible name — the glyph alone is not a label.
+   */
+  emotes: {
+    open: string;
+    close: string;
+    happy: string;
+    congrats: string;
+    impatient: string;
+    angry: string;
+    facepalm: string;
+    confused: string;
+  };
   options: {
     title: string;
     sound: string;
@@ -250,14 +269,10 @@ export interface TranslationKeys {
     // Session errors
     SESSION_NOT_FOUND: string;
     SESSION_FULL: string;
-    SESSION_CODE_GENERATION_FAILED: string;
-    NICKNAME_TOO_LONG: string;
     // Game start errors
-    NOT_ENOUGH_PLAYERS: string;
     GAME_ALREADY_STARTED: string;
     // General game errors
     NOT_YOUR_TURN: string;
-    GAME_STATE_NOT_INITIALIZED: string;
     // Bidding phase errors
     NOT_IN_BIDDING_PHASE: string;
     NOT_YOUR_TURN_TO_BID: string;
@@ -285,11 +300,6 @@ export interface TranslationKeys {
     // Game termination errors
     CANNOT_TERMINATE_IN_CURRENT_PHASE: string;
     // AI player errors
-    CANNOT_ADD_AI_WHEN_GAME_STARTED: string;
-    CANNOT_REMOVE_AI_WHEN_GAME_STARTED: string;
-    PLAYER_NOT_AI: string;
-    NO_AVAILABLE_SLOTS: string;
-    NOT_HOST: string;
     // Generic fallback
     UNKNOWN_ERROR: string;
   };

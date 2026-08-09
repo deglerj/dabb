@@ -139,16 +139,17 @@ describe('Two-Player Round Integration', () => {
       card('bollen', 'koenig', 0),
       card('bollen', 'buabe', 0),
     ];
-    game.alice.discards(discardCards);
-
-    expect(game.state.phase).toBe('trump');
-    expect(game.state.hands.get(0 as PlayerIndex)).toHaveLength(18);
-
     // ===== TRUMP DECLARATION =====
+    // Trump is declared before the layaway, so burying a trump card is a real choice.
     game.alice.declaresTrump('herz');
 
-    expect(game.state.phase).toBe('melding');
+    expect(game.state.phase).toBe('discard');
     expect(game.state.trump).toBe('herz');
+
+    game.alice.discards(discardCards);
+
+    expect(game.state.phase).toBe('melding');
+    expect(game.state.hands.get(0 as PlayerIndex)).toHaveLength(18);
 
     // ===== MELD DECLARATION =====
     // Detect and declare melds for Alice
@@ -219,10 +220,12 @@ describe('Two-Player Round Integration', () => {
     expect(game.state.tricksTaken.get(0 as PlayerIndex)).toBeDefined();
     expect(game.state.tricksTaken.get(1 as PlayerIndex)).toBeDefined();
 
-    // Total tricks should equal 18
+    // 18 tricks, plus Alice's discard group which survives MELDING_COMPLETE and counts
+    // as trick points for her (regression: it used to be wiped when tricks began)
     const aliceTricks = game.state.tricksTaken.get(0 as PlayerIndex)!;
     const bobTricks = game.state.tricksTaken.get(1 as PlayerIndex)!;
-    expect(aliceTricks.length + bobTricks.length).toBe(18);
+    expect(aliceTricks.length + bobTricks.length).toBe(19);
+    expect(aliceTricks).toContainEqual(expect.arrayContaining(discardCards));
 
     // ===== SCORING =====
     const aliceMeldPoints = calculateMeldPoints(aliceMelds);

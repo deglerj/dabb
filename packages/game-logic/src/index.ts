@@ -17,9 +17,7 @@ export {
   createMeldsDeclaredEvent,
   createNewRoundStartedEvent,
   createPlayerJoinedEvent,
-  createPlayerLeftEvent,
   createPlayerPassedEvent,
-  createPlayerReconnectedEvent,
   createRoundScoredEvent,
   createTrickWonEvent,
   createTrumpDeclaredEvent,
@@ -35,11 +33,14 @@ export {
   canPass,
   determineTrickWinner,
   getBiddingWinner,
+  getCurrentTrickWinner,
   getFirstBidder,
   getMinBid,
   getNextBidder,
+  getPartnerIndex,
   getValidPlays,
   isBiddingComplete,
+  isPartnerWinning,
   isValidBid,
   isValidPlay,
   LAST_TRICK_BONUS,
@@ -52,17 +53,31 @@ export {
   createInitialState,
   filterEventForPlayer,
   filterEventsForPlayer,
-  isHiddenCard,
   resetForNewRound,
+  whoActsNext,
+  isWaitingOn,
+  determineGameWinner,
 } from './state/index.js';
 
 // Export
+export { formatCard, formatSuit, formatEventLog } from './export/index.js';
+export type { EventLogPlayer, EventLogOptions } from './export/index.js';
+
+// Engine — player actions in, game events out
 export {
-  formatCard,
-  formatCards,
-  formatSuit,
-  formatMeld,
-  formatMelds,
-  formatEventLog,
-} from './export/index.js';
-export type { PlayerInfo, EventLogOptions } from './export/index.js';
+  createBidPlacedEvents,
+  createDealEvent,
+  createDeclareMeldsEvents,
+  createDeclareTrumpEvents,
+  createDiscardCardsEvents,
+  createEventsForAction,
+  createGoOutEvents,
+  createGoingOutScoreEvents,
+  createPlayCardEvents,
+  createPlayerPassedEvents,
+  createRoundEndEvents,
+  createStartGameEvents,
+  createTakeDabbEvents,
+  createTerminateGameEvents,
+} from './engine/index.js';
+export type { EventContext, NextContext, PlayerInfo } from './engine/index.js';

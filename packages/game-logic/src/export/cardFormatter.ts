@@ -53,10 +53,3 @@ export function formatMeld(meld: Meld): string {
   const suitPart = meld.suit ? ` in ${formatSuit(meld.suit)}` : '';
   return `${name}${suitPart} (${meld.points} pts)`;
 }
-
-/**
- * Format an array of melds as a bulleted list
- */
-export function formatMelds(melds: Meld[]): string {
-  return melds.map((m) => `- ${formatMeld(m)}`).join('\n');
-}

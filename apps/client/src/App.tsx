@@ -1,12 +1,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet, useRouteError } from 'react-router-dom';
 import { ActivityIndicator, View } from '@dabb/rn-compat';
-import {
-  I18nProvider,
-  DEFAULT_LANGUAGE,
-  detectLanguageAsync,
-  type SupportedLanguage,
-} from '@dabb/i18n';
+import { I18nProvider } from '@dabb/i18n';
 import AppErrorBoundary from './components/ui/AppErrorBoundary.js';
 import ErrorBoundaryScreen from './components/ui/ErrorBoundaryScreen.js';
 import { loadSoundPreferences } from './utils/sounds.js';
@@ -65,7 +60,6 @@ async function loadFonts(): Promise<void> {
 
 function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [language, setLanguage] = useState<SupportedLanguage | null>(null);
 
   useEffect(() => {
     loadFonts()
@@ -74,23 +68,17 @@ function RootLayout() {
   }, []);
 
   useEffect(() => {
-    void detectLanguageAsync()
-      .then(setLanguage)
-      .catch(() => setLanguage(DEFAULT_LANGUAGE));
+    loadSoundPreferences();
+    loadHapticsPreferences();
   }, []);
 
-  useEffect(() => {
-    void loadSoundPreferences();
-    void loadHapticsPreferences();
-  }, []);
-
-  if (!fontsLoaded || language === null) {
+  if (!fontsLoaded) {
     return null;
   }
 
   return (
     <View style={{ flex: 1 }}>
-      <I18nProvider initialLanguage={language}>
+      <I18nProvider>
         <Suspense
           fallback={
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
