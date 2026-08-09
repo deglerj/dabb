@@ -1,59 +1,25 @@
 /**
  * In-memory game simulation engine for AI-vs-AI games.
  *
- * Runs a complete game without database, server, or Socket.IO —
- * uses pure game-logic functions and BinokelAIPlayer for decisions.
+ * Runs a complete game without database or network. The rules come from @dabb/game-logic's
+ * engine, the same one the client and offline play use, so a simulated game is scored
+ * exactly like a real one. What lives here is the driving loop and its safety limits.
  */
 
 import {
   applyEvent,
   applyEvents,
-  calculateMeldPoints,
-  calculatePlayerTrickRawPoints,
-  calculateTrickPoints,
-  createBidPlacedEvent,
-  createBiddingWonEvent,
-  createCardPlayedEvent,
-  createCardsDealtEvent,
-  createCardsDiscardedEvent,
-  createDabbTakenEvent,
-  createDeck,
-  createGameFinishedEvent,
+  createDealEvent,
+  createEventsForAction,
   createGameStartedEvent,
-  createGoingOutEvent,
-  createMeldingCompleteEvent,
-  createMeldsDeclaredEvent,
-  createNewRoundStartedEvent,
   createPlayerJoinedEvent,
-  createPlayerPassedEvent,
-  createRoundScoredEvent,
-  createTrickWonEvent,
-  createTrumpDeclaredEvent,
-  dealCards,
-  determineTrickWinner,
-  getBiddingWinner,
-  isBiddingComplete,
-  shuffleDeck,
+  whoActsNext,
 } from '@dabb/game-logic';
-import type {
-  Card,
-  GameEvent,
-  GameState,
-  PlayerCount,
-  PlayerIndex,
-  Team,
-} from '@dabb/shared-types';
+import type { NextContext } from '@dabb/game-logic';
+import type { GameEvent, GameState, PlayerCount, PlayerIndex, Team } from '@dabb/shared-types';
+import { AI_NAMES } from '@dabb/shared-types';
 
 import { createAIPlayer, type AIPlayer, type AIDifficulty } from '@dabb/game-ai';
-
-// Team scoring helpers for 4-player games
-function simGetPlayerTeam(state: GameState, playerIndex: PlayerIndex): Team {
-  return state.players.find((p) => p.playerIndex === playerIndex)!.team!;
-}
-
-function simGetTeamPlayerIndices(state: GameState, team: Team): PlayerIndex[] {
-  return state.players.filter((p) => p.team === team).map((p) => p.playerIndex);
-}
 
 export interface SimulationOptions {
   sessionId: string;
@@ -77,8 +43,6 @@ export interface SimulationResult {
   errorStack?: string;
 }
 
-const AI_NAMES = ['Alice', 'Bob', 'Charlie', 'Diana'];
-
 export class SimulationEngine {
   private events: GameEvent[] = [];
   private state!: GameState;
@@ -88,9 +52,10 @@ export class SimulationEngine {
 
   constructor(private readonly options: SimulationOptions) {}
 
-  private ctx() {
-    return { sessionId: this.options.sessionId, sequence: ++this.sequence };
-  }
+  private next: NextContext = () => ({
+    sessionId: this.options.sessionId,
+    sequence: ++this.sequence,
+  });
 
   private emit(event: GameEvent): void {
     this.events.push(event);
@@ -132,379 +97,54 @@ export class SimulationEngine {
   private initialize(): void {
     const { playerCount, targetScore } = this.options;
 
-    // Create AI instances with configured difficulty
     const difficulty = this.options.difficulty ?? 'medium';
     for (let i = 0; i < playerCount; i++) {
       this.aiPlayers.set(i as PlayerIndex, createAIPlayer(difficulty));
     }
 
-    // Build initialization events
     const initEvents: GameEvent[] = [];
     for (let i = 0; i < playerCount; i++) {
-      const idx = i as PlayerIndex;
       // 4-player: partners sit opposite each other, so seat parity decides the team
       const team = playerCount === 4 ? ((i % 2) as Team) : undefined;
-      initEvents.push(createPlayerJoinedEvent(this.ctx(), `ai-${i}`, idx, AI_NAMES[i], team));
+      initEvents.push(
+        createPlayerJoinedEvent(this.next(), `ai-${i}`, i as PlayerIndex, AI_NAMES[i], team)
+      );
     }
 
-    const dealer = 0 as PlayerIndex;
-    initEvents.push(createGameStartedEvent(this.ctx(), playerCount, targetScore, dealer));
+    initEvents.push(
+      createGameStartedEvent(this.next(), playerCount, targetScore, 0 as PlayerIndex)
+    );
+    initEvents.push(createDealEvent(this.next, playerCount));
 
-    const deck = shuffleDeck(createDeck());
-    const { hands, dabb } = dealCards(deck, playerCount);
-    const handsRecord = {} as Record<PlayerIndex, Card[]>;
-    hands.forEach((cards, index) => {
-      handsRecord[index as PlayerIndex] = cards;
-    });
-    initEvents.push(createCardsDealtEvent(this.ctx(), handsRecord, dabb));
-
-    // Apply all init events via applyEvents
     this.state = applyEvents(initEvents);
     this.events.push(...initEvents);
   }
 
+  /**
+   * Asks whoever the game is waiting on for their move and applies it.
+   *
+   * whoActsNext covers the phase-by-phase question of whose turn it is, including melding,
+   * where it hands back one undeclared player at a time.
+   */
   private async step(): Promise<void> {
-    switch (this.state.phase) {
-      case 'bidding':
-        await this.handleBidding();
-        break;
-      case 'dabb':
-        await this.handleDabb();
-        break;
-      case 'trump':
-        await this.handleTrump();
-        break;
-      case 'melding':
-        await this.handleMelding();
-        break;
-      case 'tricks':
-        await this.handleTricks();
-        break;
-      default:
-        throw new Error(`Unexpected phase: ${this.state.phase}`);
+    const playerIndex = whoActsNext(this.state);
+    if (playerIndex === null) {
+      throw new Error(`Nobody to act in phase: ${this.state.phase}`);
     }
-  }
 
-  private getAI(playerIndex: PlayerIndex): AIPlayer {
     const ai = this.aiPlayers.get(playerIndex);
     if (!ai) {
       throw new Error(`No AI player for index ${playerIndex}`);
     }
-    return ai;
-  }
 
-  private context(playerIndex: PlayerIndex) {
-    return {
+    const action = await ai.decide({
       gameState: this.state,
       playerIndex,
       sessionId: this.options.sessionId,
-    };
-  }
+    });
 
-  private async handleBidding(): Promise<void> {
-    const playerIndex = this.state.currentBidder!;
-    const ai = this.getAI(playerIndex);
-    const action = await ai.decide(this.context(playerIndex));
-
-    if (action.type === 'bid') {
-      this.emit(createBidPlacedEvent(this.ctx(), playerIndex, action.amount));
-    } else if (action.type === 'pass') {
-      this.emit(createPlayerPassedEvent(this.ctx(), playerIndex));
-
-      // Check if bidding is complete after pass
-      if (isBiddingComplete(this.state.playerCount, this.state.passedPlayers)) {
-        const winner = getBiddingWinner(this.state.playerCount, this.state.passedPlayers);
-        if (winner !== null) {
-          this.emit(
-            createBiddingWonEvent(this.ctx(), winner, this.state.currentBid || 150, this.state.dabb)
-          );
-        }
-      }
-    }
-  }
-
-  private async handleDabb(): Promise<void> {
-    const playerIndex = this.state.bidWinner!;
-    const ai = this.getAI(playerIndex);
-    const action = await ai.decide(this.context(playerIndex));
-
-    switch (action.type) {
-      case 'takeDabb':
-        this.emit(createDabbTakenEvent(this.ctx(), playerIndex, this.state.dabb));
-        break;
-      case 'discard':
-        this.emit(createCardsDiscardedEvent(this.ctx(), playerIndex, action.cardIds));
-        break;
-      case 'goOut':
-        this.emit(createGoingOutEvent(this.ctx(), playerIndex, action.suit));
-        break;
-    }
-  }
-
-  private async handleTrump(): Promise<void> {
-    const playerIndex = this.state.bidWinner!;
-    const ai = this.getAI(playerIndex);
-    const action = await ai.decide(this.context(playerIndex));
-
-    if (action.type === 'declareTrump') {
-      this.emit(createTrumpDeclaredEvent(this.ctx(), playerIndex, action.suit));
-    }
-  }
-
-  private async handleMelding(): Promise<void> {
-    // Find first player who hasn't declared melds yet
-    let activePlayer: PlayerIndex | null = null;
-    for (let i = 0; i < this.state.playerCount; i++) {
-      const idx = i as PlayerIndex;
-      if (!this.state.declaredMelds.has(idx)) {
-        if (this.state.wentOut && idx === this.state.bidWinner) {
-          continue;
-        }
-        activePlayer = idx;
-        break;
-      }
-    }
-
-    if (activePlayer === null) {
-      return;
-    }
-
-    const ai = this.getAI(activePlayer);
-    const action = await ai.decide(this.context(activePlayer));
-
-    if (action.type === 'declareMelds') {
-      const totalPoints = calculateMeldPoints(action.melds);
-      this.emit(createMeldsDeclaredEvent(this.ctx(), activePlayer, action.melds, totalPoints));
-
-      // Check if all players have declared
-      const expectedMeldCount = this.state.wentOut
-        ? this.state.playerCount - 1
-        : this.state.playerCount;
-
-      if (this.state.declaredMelds.size === expectedMeldCount) {
-        const meldScores = {} as Record<PlayerIndex, number>;
-        this.state.declaredMelds.forEach((melds, idx) => {
-          meldScores[idx] = calculateMeldPoints(melds);
-        });
-
-        if (this.state.wentOut) {
-          const bidWinner = this.state.bidWinner!;
-          meldScores[bidWinner] = 0;
-        }
-
-        this.emit(createMeldingCompleteEvent(this.ctx(), meldScores));
-
-        if (this.state.wentOut) {
-          this.scoreGoingOut(meldScores);
-        }
-      }
-    }
-  }
-
-  private async handleTricks(): Promise<void> {
-    const playerIndex = this.state.currentPlayer!;
-    const ai = this.getAI(playerIndex);
-    const action = await ai.decide(this.context(playerIndex));
-
-    if (action.type === 'playCard') {
-      const hand = this.state.hands.get(playerIndex) || [];
-      const card = hand.find((c) => c.id === action.cardId);
-      if (!card) {
-        throw new Error(
-          `AI tried to play card ${action.cardId} not in hand. Hand: ${hand.map((c) => c.id).join(', ')}`
-        );
-      }
-
-      this.emit(createCardPlayedEvent(this.ctx(), playerIndex, card));
-
-      // Check if trick is complete
-      if (this.state.currentTrick.cards.length === this.state.playerCount) {
-        const winnerIdx = determineTrickWinner(this.state.currentTrick, this.state.trump!);
-        const winnerPlayerIndex = this.state.currentTrick.cards[winnerIdx].playerIndex;
-        const trickCards = this.state.currentTrick.cards.map((pc) => pc.card);
-        const points = calculateTrickPoints(trickCards);
-
-        this.emit(createTrickWonEvent(this.ctx(), winnerPlayerIndex, trickCards, points));
-
-        // Check if round is over (all cards played)
-        const allHandsEmpty = Array.from(this.state.hands.values()).every((h) => h.length === 0);
-        if (allHandsEmpty) {
-          this.scoreRound();
-        }
-      }
-    }
-  }
-
-  private scoreGoingOut(meldScores: Record<PlayerIndex, number>): void {
-    const bidWinner = this.state.bidWinner!;
-    const winningBid = this.state.currentBid || 150;
-    const goingOutBonus = 40;
-
-    const scores = {} as Record<
-      PlayerIndex | Team,
-      { melds: number; tricks: number; total: number; bidMet: boolean }
-    >;
-
-    if (this.state.playerCount === 4) {
-      const bidWinnerTeam = simGetPlayerTeam(this.state, bidWinner);
-      const opponentTeam = (1 - bidWinnerTeam) as Team;
-
-      scores[bidWinnerTeam] = { melds: 0, tricks: 0, total: -winningBid, bidMet: false };
-
-      const opponentIndices = simGetTeamPlayerIndices(this.state, opponentTeam);
-      const opponentMelds = opponentIndices.reduce(
-        (s: number, idx) => s + (meldScores[idx] || 0),
-        0
-      );
-      scores[opponentTeam] = {
-        melds: opponentMelds,
-        tricks: 0,
-        total: opponentMelds + goingOutBonus,
-        bidMet: true,
-      };
-    } else {
-      for (let i = 0; i < this.state.playerCount; i++) {
-        const idx = i as PlayerIndex;
-        if (idx === bidWinner) {
-          scores[idx] = { melds: 0, tricks: 0, total: -winningBid, bidMet: false };
-        } else {
-          const melds = meldScores[idx] || 0;
-          scores[idx] = { melds, tricks: 0, total: melds + goingOutBonus, bidMet: true };
-        }
-      }
-    }
-
-    this.emitRoundScored(scores);
-  }
-
-  private scoreRound(): void {
-    const bidWinner = this.state.bidWinner!;
-    const winningBid = this.state.currentBid || 150;
-
-    const scores = {} as Record<
-      PlayerIndex | Team,
-      { melds: number; tricks: number; total: number; bidMet: boolean }
-    >;
-
-    if (this.state.playerCount === 4) {
-      // Per-player intermediates
-      const playerMelds = new Map<PlayerIndex, number>();
-      const playerTricksRaw = new Map<PlayerIndex, number>();
-      for (let i = 0; i < 4; i++) {
-        const idx = i as PlayerIndex;
-        playerMelds.set(idx, calculateMeldPoints(this.state.declaredMelds.get(idx) || []));
-        playerTricksRaw.set(
-          idx,
-          calculatePlayerTrickRawPoints(
-            idx,
-            this.state.tricksTaken,
-            this.state.lastCompletedTrick?.winnerIndex ?? null
-          )
-        );
-      }
-
-      const bidWinnerTeam = simGetPlayerTeam(this.state, bidWinner);
-      for (const team of [0, 1] as Team[]) {
-        const indices = simGetTeamPlayerIndices(this.state, team);
-        const teamMelds = indices.reduce((s: number, idx) => s + playerMelds.get(idx)!, 0);
-        // Round the team's trick total once — rounding each player first would inflate
-        // the team score and break the 250-points-per-round invariant.
-        const teamTricksRaw = indices.reduce((s: number, idx) => s + playerTricksRaw.get(idx)!, 0);
-        const teamTricks = Math.round(teamTricksRaw / 10) * 10;
-        const rawTotal = teamMelds + teamTricks;
-        const isBidWinnerTeam = team === bidWinnerTeam;
-        const bidMet = !isBidWinnerTeam || rawTotal >= winningBid;
-        const total = isBidWinnerTeam && !bidMet ? -2 * winningBid : rawTotal;
-        scores[team] = { melds: teamMelds, tricks: teamTricks, total, bidMet };
-      }
-    } else {
-      for (let i = 0; i < this.state.playerCount; i++) {
-        const idx = i as PlayerIndex;
-        const melds = calculateMeldPoints(this.state.declaredMelds.get(idx) || []);
-        const tricksRaw = calculatePlayerTrickRawPoints(
-          idx,
-          this.state.tricksTaken,
-          this.state.lastCompletedTrick?.winnerIndex ?? null
-        );
-        // Binokel rule: trick points rounded to nearest 10 (5 rounds up)
-        const tricks = Math.round(tricksRaw / 10) * 10;
-        const rawTotal = melds + tricks;
-        const isBidWinner = idx === bidWinner;
-        const bidMet = !isBidWinner || rawTotal >= winningBid;
-        const total = isBidWinner && !bidMet ? -2 * winningBid : rawTotal;
-
-        scores[idx] = { melds, tricks, total, bidMet };
-      }
-    }
-
-    this.emitRoundScored(scores);
-  }
-
-  private emitRoundScored(
-    scores: Record<
-      PlayerIndex | Team,
-      { melds: number; tricks: number; total: number; bidMet: boolean }
-    >
-  ): void {
-    const totalScores = {} as Record<PlayerIndex | Team, number>;
-
-    if (this.state.playerCount === 4) {
-      for (const team of [0, 1] as Team[]) {
-        const prev = this.state.totalScores.get(team) ?? 0;
-        totalScores[team] = prev + scores[team].total;
-      }
-    } else {
-      for (let i = 0; i < this.state.playerCount; i++) {
-        const idx = i as PlayerIndex;
-        const currentTotal = this.state.totalScores.get(idx) || 0;
-        totalScores[idx] = currentTotal + scores[idx].total;
-      }
-    }
-
-    this.emit(createRoundScoredEvent(this.ctx(), scores, totalScores));
-
-    // Check if game is finished
-    let winner: PlayerIndex | Team | null = null;
-    let highestScore = 0;
-
-    if (this.state.playerCount === 4) {
-      for (const team of [0, 1] as Team[]) {
-        if (totalScores[team] >= this.state.targetScore && totalScores[team] > highestScore) {
-          winner = team;
-          highestScore = totalScores[team];
-        }
-      }
-    } else {
-      for (let i = 0; i < this.state.playerCount; i++) {
-        const idx = i as PlayerIndex;
-        if (totalScores[idx] >= this.state.targetScore && totalScores[idx] > highestScore) {
-          winner = idx;
-          highestScore = totalScores[idx];
-        }
-      }
-    }
-
-    if (winner !== null) {
-      this.emit(createGameFinishedEvent(this.ctx(), winner, totalScores));
-    } else {
-      // Start new round
-      const newDealer = ((this.state.dealer + 1) % this.state.playerCount) as PlayerIndex;
-      this.emit(createNewRoundStartedEvent(this.ctx(), this.state.round + 1, newDealer));
-
-      // Deal new cards
-      const deck = shuffleDeck(createDeck());
-      const { hands, dabb } = dealCards(deck, this.state.playerCount);
-      const handsRecord = {} as Record<PlayerIndex, Card[]>;
-      hands.forEach((cards, index) => {
-        handsRecord[index as PlayerIndex] = cards;
-      });
-      this.emit(createCardsDealtEvent(this.ctx(), handsRecord, dabb));
-
-      // Reset AI instances for new round (clear any per-round state)
-      const difficulty = this.options.difficulty ?? 'medium';
-      for (let i = 0; i < this.state.playerCount; i++) {
-        this.aiPlayers.set(i as PlayerIndex, createAIPlayer(difficulty));
-      }
+    for (const event of createEventsForAction(this.state, playerIndex, action, this.next)) {
+      this.emit(event);
     }
   }
 
@@ -514,7 +154,6 @@ export class SimulationEngine {
       scores[key] = score;
     });
 
-    // Find winner from GAME_FINISHED event
     let winner: PlayerIndex | null = null;
     const finishEvent = this.events.find((e) => e.type === 'GAME_FINISHED');
     if (finishEvent && finishEvent.type === 'GAME_FINISHED') {

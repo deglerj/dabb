@@ -29,11 +29,11 @@ const SOUND_FILES: Record<SoundName, string> = {
 
 let muted = false;
 
-export async function loadSoundPreferences() {
+export function loadSoundPreferences() {
   muted = localStorage.getItem(MUTED_KEY) === 'true';
 }
 
-export async function setMuted(value: boolean) {
+export function setMuted(value: boolean) {
   muted = value;
   localStorage.setItem(MUTED_KEY, String(value));
 }

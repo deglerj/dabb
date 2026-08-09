@@ -117,7 +117,6 @@ const de: TranslationKeys = {
     goOut: 'Abgehen',
     goOutLink: 'Abgehen...',
     goOutIn: 'Ab in {{suit}}',
-    orGoOut: 'Oder abgehen:',
     goOutConfirmTitle: 'Abgehen?',
     goOutConfirmMessage:
       'Du verlierst dein Gebot und bekommst keine Meldungen. Die anderen Spieler bekommen ihre Meldungen plus 40 Punkte.',
@@ -126,6 +125,7 @@ const de: TranslationKeys = {
     bidColumn: 'Gebot',
     bidMet: 'Gebot erfüllt',
     bidMissed: 'Gebot verfehlt',
+    bidPenalty: 'Gebot {{bid}} × 2',
     wentOut: 'Abgegangen',
     gameEnded: 'Spiel beendet.',
     youWonRound: 'Du hast die Runde gewonnen! 🎉',
@@ -175,6 +175,7 @@ const de: TranslationKeys = {
     goingOut: '{{name}} geht ab in {{suit}}',
     trumpDeclared: '{{name}} wählt {{suit}} als Trumpf',
     dabbTaken: '{{name}} nimmt den Dabb auf',
+    trumpDiscarded: '{{name}} legt {{cards}} ab (Trumpf)',
     meldsDeclared: '{{name}} meldet {{points}} Punkte',
     meldsNone: '{{name}} hat keine Meldungen',
     cardPlayed: '{{name}} spielt {{card}}',
@@ -186,12 +187,19 @@ const de: TranslationKeys = {
   rules: {
     title: 'Spielregeln',
     sectionGoal: 'Ziel',
-    goal: 'Wer zuerst 1000 Punkte erreicht, gewinnt. Bei 4 Spielern spielen je zwei zusammen.',
+    goal: 'Wer zuerst 1000 Punkte erreicht, gewinnt. Erreichen mehrere die 1000 in derselben Runde, gewinnt die höhere Punktzahl – bei Gleichstand der Höchstbietende. Bei 4 Spielern spielen je zwei zusammen.',
     sectionBidding: 'Reizen',
     bidding:
-      'Geboten wird ab 150. Der Höchstbietende nimmt den Dabb (verdeckte Karten), legt Karten ab und wählt Trumpf. Optional: Abgehen – Runde endet sofort, Gegner kassieren Meldepunkte + 40 Bonus.',
+      'Geboten wird ab 150. Der Höchstbietende nimmt den Dabb (verdeckte Karten), wählt Trumpf und legt dann vier Karten ab. Abgelegte Trümpfe müssen angesagt werden – alle sehen sie im Spielverlauf.',
+    sectionScoring: 'Punkte',
+    scoring:
+      'Meldepunkte plus Stichpunkte zählen für dich. Die abgelegten Karten des Höchstbietenden zählen zu seinen Stichen, der letzte Stich bringt 10 Punkte extra. Wer sein Gebot erreicht, schreibt alles gut. Wer es verfehlt, bekommt nichts und verliert das Doppelte seines Gebots.',
+    sectionGoOut: 'Abgehen',
+    goOut:
+      'Statt abzulegen kann der Höchstbietende abgehen: Die Runde endet sofort, er verliert sein Gebot einfach (nicht doppelt), und jeder Gegner kassiert seine Meldepunkte plus 40 Bonus.',
     melds: 'Melden',
-    meldsIntro: 'Vor den Stichen Meldungen ablegen:',
+    meldsIntro:
+      'Vor den Stichen Meldungen ablegen. Eine Karte darf in mehreren verschiedenen Meldungen zählen – eine Familie nimmt aber das Paar ihrer Farbe mit:',
     meldPaar: 'Paar (König + Ober, gleiche Farbe)',
     meldFamilie: 'Familie (Ass–Zehn–König–Ober–Buabe, gleiche Farbe)',
     meldBinokel: 'Binokel (Ober Schippe + Buabe Bollen)',
@@ -242,14 +250,10 @@ const de: TranslationKeys = {
     // Session errors
     SESSION_NOT_FOUND: 'Sitzung nicht gefunden',
     SESSION_FULL: 'Sitzung ist voll',
-    SESSION_CODE_GENERATION_FAILED: 'Spielcode konnte nicht erstellt werden',
-    NICKNAME_TOO_LONG: 'Der Spitzname darf maximal 10 Zeichen lang sein',
     // Game start errors
-    NOT_ENOUGH_PLAYERS: 'Es werden {{required}} Spieler benötigt',
     GAME_ALREADY_STARTED: 'Spiel hat bereits begonnen',
     // General game errors
     NOT_YOUR_TURN: 'Du bist nicht am Zug',
-    GAME_STATE_NOT_INITIALIZED: 'Spielzustand nicht initialisiert',
     // Bidding phase errors
     NOT_IN_BIDDING_PHASE: 'Nicht in der Reizphase',
     NOT_YOUR_TURN_TO_BID: 'Du bist nicht am Reizen',
@@ -277,13 +281,6 @@ const de: TranslationKeys = {
     // Game termination errors
     CANNOT_TERMINATE_IN_CURRENT_PHASE: 'Spiel kann in dieser Phase nicht beendet werden',
     // AI player errors
-    CANNOT_ADD_AI_WHEN_GAME_STARTED:
-      'KI kann nicht hinzugefügt werden nachdem das Spiel gestartet wurde',
-    CANNOT_REMOVE_AI_WHEN_GAME_STARTED:
-      'KI kann nicht entfernt werden nachdem das Spiel gestartet wurde',
-    PLAYER_NOT_AI: 'Spieler ist kein KI-Spieler',
-    NO_AVAILABLE_SLOTS: 'Keine freien Plätze verfügbar',
-    NOT_HOST: 'Nur der Gastgeber kann diese Aktion ausführen',
     // Generic fallback
     UNKNOWN_ERROR: 'Unbekannter Fehler',
   },

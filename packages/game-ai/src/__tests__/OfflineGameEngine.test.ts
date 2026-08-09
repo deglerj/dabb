@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { OfflineGameEngine } from '../OfflineGameEngine.js';
+import { getMinBid } from '@dabb/game-logic';
 import type { GameState } from '@dabb/shared-types';
 
 describe('OfflineGameEngine', () => {
@@ -92,7 +93,8 @@ describe('OfflineGameEngine', () => {
     const beforeView = engine.getViewForPlayer(0);
     expect(beforeView.state.phase).toBe('bidding');
 
-    await engine.dispatch({ type: 'bid', amount: 150 });
+    // Must outbid whatever stands: in a 2-player game the AI opens, so 150 is already taken.
+    await engine.dispatch({ type: 'bid', amount: getMinBid(beforeView.state.currentBid) });
 
     const afterView = engine.getViewForPlayer(0);
     // After human bids, AI acts and the game is still in a valid state

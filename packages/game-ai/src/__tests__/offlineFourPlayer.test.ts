@@ -60,8 +60,10 @@ describe('offline 4-player going out', () => {
     expect(afterBidding.bidWinner).toBe(HUMAN);
 
     await engine.dispatch({ type: 'takeDabb' });
+    // Trump is declared before the layaway, so going out inherits it.
     const suit = engine.getViewForPlayer(HUMAN).state.hands.get(HUMAN)![0].suit;
-    await engine.dispatch({ type: 'goOut', suit });
+    await engine.dispatch({ type: 'declareTrump', suit });
+    await engine.dispatch({ type: 'goOut' });
 
     const events = engine.getViewForPlayer(HUMAN).events;
     const scored = events.find((e) => e.type === 'ROUND_SCORED');

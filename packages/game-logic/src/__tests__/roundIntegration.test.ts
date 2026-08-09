@@ -139,16 +139,17 @@ describe('Two-Player Round Integration', () => {
       card('bollen', 'koenig', 0),
       card('bollen', 'buabe', 0),
     ];
-    game.alice.discards(discardCards);
-
-    expect(game.state.phase).toBe('trump');
-    expect(game.state.hands.get(0 as PlayerIndex)).toHaveLength(18);
-
     // ===== TRUMP DECLARATION =====
+    // Trump is declared before the layaway, so burying a trump card is a real choice.
     game.alice.declaresTrump('herz');
 
-    expect(game.state.phase).toBe('melding');
+    expect(game.state.phase).toBe('discard');
     expect(game.state.trump).toBe('herz');
+
+    game.alice.discards(discardCards);
+
+    expect(game.state.phase).toBe('melding');
+    expect(game.state.hands.get(0 as PlayerIndex)).toHaveLength(18);
 
     // ===== MELD DECLARATION =====
     // Detect and declare melds for Alice

@@ -12,9 +12,8 @@ import {
   applyEvents,
   calculateMeldPoints,
   calculatePlayerTrickRawPoints,
-  detectMelds,
   getValidPlays,
-} from '@dabb/game-logic';
+} from '../index.js';
 import type { GameEvent, GameState, PlayerIndex, Team } from '@dabb/shared-types';
 import {
   createStartGameEvents,
@@ -26,11 +25,15 @@ import {
   createPlayCardEvents,
   createPlayerPassedEvents,
   createTakeDabbEvents,
-  SeqGen,
-} from '../gameEventFactory.js';
-import type { PlayerInfo } from '../gameEventFactory.js';
+} from '../engine/index.js';
+import type { NextContext, PlayerInfo } from '../engine/index.js';
 
 const SESSION = 'test-session';
+
+const makeNext = (start = 0): NextContext => {
+  let n = start;
+  return () => ({ sessionId: SESSION, sequence: ++n });
+};
 
 const PLAYERS_4: PlayerInfo[] = [
   { playerIndex: 0, nickname: 'Alice', isAI: false, team: null },
@@ -44,10 +47,10 @@ class Round {
   events: GameEvent[] = [];
   state: GameState;
   private n = 0;
-  private readonly seq: SeqGen = () => ++this.n;
+  private readonly next: NextContext = () => ({ sessionId: SESSION, sequence: ++this.n });
 
   constructor() {
-    this.push(createStartGameEvents(SESSION, this.seq, PLAYERS_4, 4, 1000));
+    this.push(createStartGameEvents(this.next, PLAYERS_4, 4, 1000));
     this.state = applyEvents(this.events);
   }
 
@@ -56,34 +59,32 @@ class Round {
     this.state = applyEvents(this.events);
   }
 
-  act(fn: (state: GameState, seq: SeqGen) => GameEvent[]): void {
-    this.push(fn(this.state, this.seq));
+  act(fn: (state: GameState, next: NextContext) => GameEvent[]): void {
+    this.push(fn(this.state, this.next));
   }
 
   /** Bidding: dealer is 3, so player 0 opens; everyone else passes. */
   bidWonByPlayer0(bid: number): void {
-    this.act((s, seq) => createBidPlacedEvents(SESSION, seq, s, 0, bid));
+    this.act((s, next) => createBidPlacedEvents(s, 0, bid, next));
     for (const p of [1, 2, 3] as PlayerIndex[]) {
-      this.act((s, seq) => createPlayerPassedEvents(SESSION, seq, s, p));
+      this.act((s, next) => createPlayerPassedEvents(s, p, next));
     }
   }
 
   takeDabb(): void {
-    this.act((s, seq) => createTakeDabbEvents(SESSION, seq, s, 0));
+    this.act((s, next) => createTakeDabbEvents(s, 0, next));
   }
 
-  discardAndDeclareTrump(): void {
-    this.act((s, seq) =>
+  /** Trump first, then the layaway — see GamePhase in shared-types. */
+  declareTrumpAndDiscard(): void {
+    this.act((s, next) => createDeclareTrumpEvents(s, 0, (s.hands.get(0) ?? [])[0].suit, next));
+    this.act((s, next) =>
       createDiscardCardsEvents(
-        SESSION,
-        seq,
         s,
         0,
-        (s.hands.get(0) ?? []).slice(0, 4).map((c) => c.id)
+        (s.hands.get(0) ?? []).slice(0, 4).map((c) => c.id),
+        next
       )
-    );
-    this.act((s, seq) =>
-      createDeclareTrumpEvents(SESSION, seq, s, 0, (s.hands.get(0) ?? [])[0].suit)
     );
   }
 
@@ -95,9 +96,7 @@ class Round {
       if (this.state.wentOut && this.state.bidWinner === p) {
         continue;
       }
-      this.act((s, seq) =>
-        createDeclareMeldsEvents(SESSION, seq, s, p, detectMelds(s.hands.get(p) ?? [], s.trump!))
-      );
+      this.act((s, next) => createDeclareMeldsEvents(s, p, next));
     }
   }
 
@@ -107,7 +106,7 @@ class Round {
       const p = this.state.currentPlayer!;
       const hand = this.state.hands.get(p) ?? [];
       const card = getValidPlays(hand, this.state.currentTrick, this.state.trump!)[0];
-      this.act((s, seq) => createPlayCardEvents(SESSION, seq, s, p, card.id));
+      this.act((s, next) => createPlayCardEvents(s, p, card.id, next));
     }
   }
 
@@ -138,7 +137,7 @@ class Round {
 
 describe('4-player team assignment', () => {
   it('pairs players sitting opposite each other (seat parity)', () => {
-    const state = applyEvents(createStartGameEvents(SESSION, () => 1, PLAYERS_4, 4, 1000));
+    const state = applyEvents(createStartGameEvents(makeNext(), PLAYERS_4, 4, 1000));
     const teamOf = (i: PlayerIndex) => state.players.find((p) => p.playerIndex === i)?.team;
     expect(teamOf(0)).toBe(0);
     expect(teamOf(2)).toBe(0);
@@ -147,9 +146,7 @@ describe('4-player team assignment', () => {
   });
 
   it('leaves teams unset for 3-player games', () => {
-    const state = applyEvents(
-      createStartGameEvents(SESSION, () => 1, PLAYERS_4.slice(0, 3), 3, 1000)
-    );
+    const state = applyEvents(createStartGameEvents(makeNext(), PLAYERS_4.slice(0, 3), 3, 1000));
     expect(state.players.every((p) => p.team === undefined)).toBe(true);
   });
 });
@@ -159,7 +156,7 @@ describe('4-player round scoring', () => {
     const round = new Round();
     round.bidWonByPlayer0(150);
     round.takeDabb();
-    round.discardAndDeclareTrump();
+    round.declareTrumpAndDiscard();
     round.declareAllMelds();
     round.playAllTricks();
     return round;
@@ -221,7 +218,7 @@ describe('4-player round scoring', () => {
     const round = new Round();
     round.bidWonByPlayer0(400); // unreachable for one team in a single round
     round.takeDabb();
-    round.discardAndDeclareTrump();
+    round.declareTrumpAndDiscard();
     round.declareAllMelds();
     round.playAllTricks();
 
@@ -240,7 +237,8 @@ describe('4-player going out', () => {
     const round = new Round();
     round.bidWonByPlayer0(150);
     round.takeDabb();
-    round.act((s, seq) => createGoOutEvents(SESSION, seq, s, 0, (s.hands.get(0) ?? [])[0].suit));
+    round.act((s, next) => createDeclareTrumpEvents(s, 0, (s.hands.get(0) ?? [])[0].suit, next));
+    round.act((s, next) => createGoOutEvents(s, 0, next));
     round.declareAllMelds();
     return round;
   }

@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 
 /** A single RN `transform: [{ translateY: 1 }, { scale: 2 }]` entry. */
-export type RNTransform = ReadonlyArray<Record<string, string | number>>;
+type RNTransform = ReadonlyArray<Record<string, string | number>>;
 
 /**
  * RN StyleSheet shape: mostly plain CSS (camelCase, same names), plus a handful of RN-only

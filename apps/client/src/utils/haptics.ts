@@ -12,11 +12,11 @@ type HapticName =
 
 let enabled = true;
 
-export async function loadHapticsPreferences(): Promise<void> {
+export function loadHapticsPreferences(): void {
   enabled = localStorage.getItem(HAPTICS_ENABLED_KEY) !== 'false';
 }
 
-export async function setHapticsEnabled(value: boolean): Promise<void> {
+export function setHapticsEnabled(value: boolean): void {
   enabled = value;
   localStorage.setItem(HAPTICS_ENABLED_KEY, String(value));
 }

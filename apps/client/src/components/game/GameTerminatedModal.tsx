@@ -1,6 +1,6 @@
 /**
  * GameTerminatedModal — shown when the game ends (someone reached the target score
- * or the session was terminated). Uses a centered card over a transparent backdrop.
+ * or the session was terminated). Uses a centered card over a  backdrop.
  */
 import { Modal, View, Text, Pressable, StyleSheet } from '@dabb/rn-compat';
 import { Colors, Fonts, Shadows } from '../../theme.js';
@@ -11,7 +11,7 @@ export interface GameTerminatedModalProps {
   winnerId: string | null;
   winnerNicknames: string[];
   isLocalWinner: boolean;
-  terminatedByNickname?: string | null;
+  terminatedBy?: { nickname: string | null } | null;
   onDone: () => void;
 }
 
@@ -20,14 +20,17 @@ export function GameTerminatedModal({
   winnerId,
   winnerNicknames,
   isLocalWinner,
-  terminatedByNickname,
+  terminatedBy,
   onDone,
 }: GameTerminatedModalProps) {
   const { t } = useTranslation();
 
   let title: string;
-  if (terminatedByNickname) {
-    title = t('game.playerEndedGame', { name: terminatedByNickname });
+  if (terminatedBy) {
+    // Falls back to the neutral wording when the session never said who ended it.
+    title = terminatedBy.nickname
+      ? t('game.playerEndedGame', { name: terminatedBy.nickname })
+      : t('game.gameEnded');
   } else if (!winnerId) {
     title = t('game.gameEnded');
   } else if (isLocalWinner) {
@@ -48,7 +51,7 @@ export function GameTerminatedModal({
   }
 
   return (
-    <Modal transparent animationType="fade" visible={visible}>
+    <Modal visible={visible}>
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <Text style={styles.title}>{title}</Text>

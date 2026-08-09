@@ -21,17 +21,17 @@
 | `packages/game-logic/src/__tests__/roundIntegration.test.ts` | Full round integration test                                                     |
 | `packages/ui-shared/src/useGameState.ts`                     | Game state React hook (applies event sourcing reducer)                          |
 | `packages/ui-shared/src/useRoundHistory.ts`                  | Round history for scoreboard                                                    |
-| `packages/ui-shared/src/useGameLog.ts`                       | Game log entries hook                                                           |
+| `packages/ui-shared/src/useGameLog.ts`                       | Turns events into game-log display lines                                        |
 | `packages/ui-shared/src/useActionRequired.ts`                | Your-turn detection hook                                                        |
 | `packages/ui-shared/src/useCelebration.ts`                   | Win celebration effects hook                                                    |
 | `packages/ui-shared/src/useTrickAnimationState.ts`           | Trick animation phase state machine                                             |
 | `apps/client/src/firebase/config.ts`                         | Firebase app initialization                                                     |
 | `apps/client/src/firebase/events.ts`                         | Firebase RTDB event read/write (subscribeToEvents, pushEvents, getAllEvents)    |
 | `apps/client/src/firebase/session.ts`                        | Firebase RTDB session management (create, join, presence, status)               |
-| `apps/client/src/firebase/gameEventFactory.ts`               | Client-side game action validation + event creation                             |
+| `packages/game-logic/src/engine/actions.ts`                  | Action validation + event cascades (shared by all three engines)                |
+| `packages/game-logic/src/engine/scoring.ts`                  | Round scoring, game-over check, next deal                                       |
 | `apps/client/src/firebase/secretId.ts`                       | secretId generation and SHA-256 hashing                                         |
 | `apps/client/src/hooks/useFirebaseGame.ts`                   | Main game hook (Firebase subscriptions, state, reconnection)                    |
-| `apps/client/src/hooks/useStorage.ts`                        | Session credential persistence (localStorage)                                   |
 | `apps/client/e2e/startup-create-join.spec.ts`                | Playwright E2E smoke test (app startup, create/join session)                    |
 | `firebase.json`                                              | Firebase Local Emulator Suite config (RTDB emulator, port 9000)                 |
 | `packages/game-canvas/src/cards/cardPositions.ts`            | Single source of truth for all card positions (trick, hand, won-pile, opponent) |

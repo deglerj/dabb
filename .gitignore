@@ -11,7 +11,6 @@ node_modules/
 dist/
 dev-dist/
 build/
-.next/
 out/
 
 # Turbo
@@ -55,20 +54,6 @@ memory/
 
 # Simulation output
 simulation-results/
-
-# Deploy scripts with secrets
-deploy/oci-instance-grabber.sh
-
-# OpenTofu / Terraform state and provider cache
-tofu/.terraform/
-tofu/terraform.tfstate*
-
-# Certbot certificates and data (generated on server, not committed)
-deploy/nginx/certbot/conf/accounts/
-deploy/nginx/certbot/conf/archive/
-deploy/nginx/certbot/conf/live/
-deploy/nginx/certbot/conf/renewal/
-deploy/nginx/certbot/www/
 
 # Claude Code sandbox artifacts
 .bashrc

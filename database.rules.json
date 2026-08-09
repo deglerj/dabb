@@ -1,6 +1,29 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true
+    "sessions": {
+      "$code": {
+        ".read": "auth == null",
+        "meta": {
+          "status": { ".write": "auth == null" },
+          "playerCount": { ".write": "!data.exists()" },
+          "targetScore": { ".write": "!data.exists()" },
+          "createdAt": { ".write": "!data.exists()" },
+          "players": {
+            "$playerIndex": { ".write": "!data.exists()" }
+          }
+        },
+        "events": {
+          "$eventId": {
+            ".write": "root.child('sessions/' + $code + '/meta/players').child('0/secretHash').val() === newData.child('authorHash').val() || root.child('sessions/' + $code + '/meta/players').child('1/secretHash').val() === newData.child('authorHash').val() || root.child('sessions/' + $code + '/meta/players').child('2/secretHash').val() === newData.child('authorHash').val() || root.child('sessions/' + $code + '/meta/players').child('3/secretHash').val() === newData.child('authorHash').val()"
+          }
+        },
+        "presence": {
+          "$playerIndex": { ".write": "auth == null" }
+        },
+        "aiClaims": {
+          "$claimId": { ".write": "auth == null" }
+        }
+      }
+    }
   }
 }

@@ -15,9 +15,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@dabb/i18n';
 import type { PlayerCount } from '@dabb/shared-types';
+import { GameError } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import { Colors, Fonts } from '../../theme.js';
-import { storageGet, storageSet } from '../../hooks/useStorage.js';
 import { createSession, joinSession } from '../../firebase/session.js';
 import { APP_VERSION } from '../../constants.js';
 import { OptionsButton } from './OptionsButton.js';
@@ -26,6 +26,19 @@ import { useInstallPrompt } from '../../hooks/useInstallPrompt.js';
 import { InstallInstructionsDialog } from './InstallInstructionsDialog.js';
 
 type Mode = 'menu' | 'create' | 'join' | 'offline';
+
+/**
+ * Session failures carry a GAME_ERROR_CODES value, which has a `serverErrors.*` translation.
+ * Anything else is a bug rather than a rejected action, so it falls back to the generic text
+ * instead of putting a raw exception message on screen.
+ */
+function sessionErrorText(err: unknown, t: (key: string) => string): string {
+  if (err instanceof GameError) {
+    return t(`serverErrors.${err.code}`);
+  }
+  return t('errors.unknownError');
+}
+
 type GamePhaseString = string;
 
 export default function HomeScreen() {
@@ -46,33 +59,27 @@ export default function HomeScreen() {
 
   // Restore nickname from storage on mount
   useEffect(() => {
-    storageGet('dabb-nickname')
-      .then((saved) => {
-        if (saved) {
-          setNickname(saved);
-        }
-      })
-      .catch(() => undefined);
+    const saved = localStorage.getItem('dabb-nickname');
+    if (saved) {
+      setNickname(saved);
+    }
   }, []);
 
   // Check for a resumable offline game on mount
   useEffect(() => {
-    storageGet('dabb-offline-game')
-      .then((raw) => {
-        if (!raw) {
-          return;
-        }
-        try {
-          const payload = JSON.parse(raw) as { phase?: GamePhaseString };
-          const phase = payload.phase;
-          if (phase && phase !== 'finished' && phase !== 'terminated') {
-            setResumableGame(true);
-          }
-        } catch {
-          // Corrupt storage — ignore
-        }
-      })
-      .catch(() => undefined);
+    const raw = localStorage.getItem('dabb-offline-game');
+    if (!raw) {
+      return;
+    }
+    try {
+      const payload = JSON.parse(raw) as { phase?: GamePhaseString };
+      const phase = payload.phase;
+      if (phase && phase !== 'finished' && phase !== 'terminated') {
+        setResumableGame(true);
+      }
+    } catch {
+      // Corrupt storage — ignore
+    }
   }, []);
 
   const handleCreate = async () => {
@@ -88,7 +95,7 @@ export default function HomeScreen() {
     setError('');
     try {
       const result = await createSession(nickname.trim(), playerCount);
-      await storageSet(
+      localStorage.setItem(
         `dabb-${result.sessionCode}`,
         JSON.stringify({
           secretId: result.secretId,
@@ -96,10 +103,10 @@ export default function HomeScreen() {
           playerCount,
         })
       );
-      await storageSet('dabb-nickname', nickname.trim());
+      localStorage.setItem('dabb-nickname', nickname.trim());
       navigate(`/waiting-room/${result.sessionCode}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.unknownError'));
+      setError(sessionErrorText(err, t));
     } finally {
       setLoading(false);
     }
@@ -123,17 +130,17 @@ export default function HomeScreen() {
     try {
       const result = await joinSession(joinCode.trim(), nickname.trim());
       const code = joinCode.trim().toLowerCase();
-      await storageSet(
+      localStorage.setItem(
         `dabb-${code}`,
         JSON.stringify({
           secretId: result.secretId,
           playerIndex: result.playerIndex,
         })
       );
-      await storageSet('dabb-nickname', nickname.trim());
+      localStorage.setItem('dabb-nickname', nickname.trim());
       navigate(`/waiting-room/${code}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.unknownError'));
+      setError(sessionErrorText(err, t));
     } finally {
       setLoading(false);
     }
@@ -148,7 +155,7 @@ export default function HomeScreen() {
       setError(t('errors.nicknameTooLong'));
       return;
     }
-    await storageSet('dabb-nickname', nickname.trim());
+    localStorage.setItem('dabb-nickname', nickname.trim());
     const params = new URLSearchParams({
       playerCount: String(playerCount),
       difficulty,

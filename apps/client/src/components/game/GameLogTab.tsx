@@ -7,21 +7,10 @@ import { useRef, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from '@dabb/rn-compat';
 import type { NativeScrollEvent, NativeSyntheticEvent, ScrollViewHandle } from '@dabb/rn-compat';
 import { useTranslation } from '@dabb/i18n';
-
-export interface MeldDetail {
-  name: string; // e.g. "Herz-Paar", "Binokel"
-  cards: string[]; // e.g. ["Herz König", "Herz Ober"] — formatCard returns suit then rank
-  points: number;
-}
-
-export interface RichLogEntry {
-  key: string;
-  text: string;
-  detail?: MeldDetail[]; // Only set for melds_declared entries
-}
+import type { LogLine } from '@dabb/ui-shared';
 
 export interface GameLogTabProps {
-  entries: RichLogEntry[];
+  entries: LogLine[];
   isExpanded: boolean;
   onToggle: () => void;
   collapsedSummary?: string;

@@ -21,7 +21,7 @@ import type {
   Suit,
   Trick,
 } from '@dabb/shared-types';
-import { RANK_POINTS, SUITS } from '@dabb/shared-types';
+import { CARDS_PER_PLAYER, RANK_POINTS, SUITS } from '@dabb/shared-types';
 import {
   calculateMeldPoints,
   canPass,
@@ -293,8 +293,6 @@ function filterDoubleAces(cards: Card[], hand: Card[]): Card[] {
 
 export class BinokelAIPlayer implements AIPlayer {
   private readonly mistakeProbability: number;
-  /** Pre-computed trump suit from dabb phase analysis */
-  private precomputedTrump: Suit | null = null;
   /** Round number when instance state was last reset */
   private lastSeenRound: number = -1;
   /**
@@ -329,16 +327,17 @@ export class BinokelAIPlayer implements AIPlayer {
     if (gameState.round !== this.lastSeenRound) {
       this.lastSeenRound = gameState.round;
       this.voidPlayers = new Map();
-      this.precomputedTrump = null;
     }
 
     switch (gameState.phase) {
       case 'bidding':
         return this.decideBidding(context);
       case 'dabb':
-        return this.decideDabb(context);
+        return { type: 'takeDabb' };
       case 'trump':
         return this.decideTrump(context);
+      case 'discard':
+        return this.decideDiscard(context);
       case 'melding':
         return this.decideMelding(context);
       case 'tricks':
@@ -402,30 +401,29 @@ export class BinokelAIPlayer implements AIPlayer {
     }
   }
 
-  private decideDabb(context: AIDecisionContext): AIAction {
+  /**
+   * Lay four cards away, or go out if the hand can't carry the bid.
+   *
+   * Trump is already declared by this point, so the discard is scored against the real trump
+   * rather than a guess — and any trump that still gets buried is announced to the table.
+   */
+  private decideDiscard(context: AIDecisionContext): AIAction {
     const { gameState, playerIndex } = context;
     const hand = gameState.hands.get(playerIndex) ?? [];
-
-    // Step 1: Take dabb if not taken yet
-    if (gameState.dabb.length > 0) {
-      return { type: 'takeDabb' };
-    }
+    const trump = gameState.trump ?? 'herz';
+    const discardCount = hand.length - CARDS_PER_PLAYER[gameState.playerCount];
 
     try {
-      // Step 2: Evaluate best suit and whether to go out
-      const { bestSuit, estimatedTotal } = evaluateBestSuit(hand, gameState.playerCount);
+      const meldPoints = calculateMeldPoints(detectMelds(hand, trump));
+      const estimatedTotal = meldPoints + estimateTrickPoints(hand, trump, gameState.playerCount);
       const currentBid = gameState.currentBid || 150;
 
       if (estimatedTotal < currentBid * 0.7) {
         // Hand too weak — go out
-        return { type: 'goOut', suit: bestSuit };
+        return { type: 'goOut' };
       }
 
-      // Step 3: Discard strategically and store best trump for later
-      this.precomputedTrump = bestSuit;
-      const discardCount =
-        hand.length - (gameState.playerCount === 2 ? 18 : gameState.playerCount === 3 ? 12 : 9);
-      const cardIds = chooseCardsToDiscardStrategic(hand, bestSuit, discardCount);
+      const cardIds = chooseCardsToDiscardStrategic(hand, trump, discardCount);
 
       const optimalDiscard: AIAction = { type: 'discard', cardIds };
       const shuffledHand = [...hand].sort(() => Math.random() - 0.5);
@@ -436,10 +434,7 @@ export class BinokelAIPlayer implements AIPlayer {
       return this.maybeBlunder(optimalDiscard, [alternativeDiscard]);
     } catch {
       // Fallback: discard last N cards
-      const discardCount =
-        hand.length - (gameState.playerCount === 2 ? 18 : gameState.playerCount === 3 ? 12 : 9);
-      const cardIds = hand.slice(-discardCount).map((c) => c.id);
-      return { type: 'discard', cardIds };
+      return { type: 'discard', cardIds: hand.slice(-discardCount).map((c) => c.id) };
     }
   }
 
@@ -447,18 +442,8 @@ export class BinokelAIPlayer implements AIPlayer {
     const { gameState, playerIndex } = context;
 
     try {
-      let bestSuit: Suit;
-
-      // Use pre-computed trump from dabb phase if available
-      if (this.precomputedTrump) {
-        bestSuit = this.precomputedTrump;
-        this.precomputedTrump = null;
-      } else {
-        // Fallback: compute best trump now
-        const hand = gameState.hands.get(playerIndex) ?? [];
-        bestSuit = evaluateBestSuit(hand, gameState.playerCount).bestSuit;
-      }
-
+      const hand = gameState.hands.get(playerIndex) ?? [];
+      const bestSuit = evaluateBestSuit(hand, gameState.playerCount).bestSuit;
       const otherSuits = SUITS.filter((s) => s !== bestSuit);
       return { type: 'declareTrump', suit: this.maybeBlunder(bestSuit, otherSuits) };
     } catch {
@@ -466,17 +451,10 @@ export class BinokelAIPlayer implements AIPlayer {
     }
   }
 
-  private decideMelding(context: AIDecisionContext): AIAction {
-    const { gameState, playerIndex } = context;
-
-    try {
-      const hand = gameState.hands.get(playerIndex) ?? [];
-      const trump = gameState.trump!;
-      const melds = detectMelds(hand, trump);
-      return { type: 'declareMelds', melds };
-    } catch {
-      return { type: 'declareMelds', melds: [] };
-    }
+  private decideMelding(_context: AIDecisionContext): AIAction {
+    // Melding offers no choice — every meld in the hand is always declared, and the engine
+    // derives them itself. Nothing left to decide.
+    return { type: 'declareMelds' };
   }
 
   private decideTricks(context: AIDecisionContext): AIAction {

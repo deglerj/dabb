@@ -8,10 +8,10 @@ describe('BinokelAIPlayer - 4-player team-aware bidding', () => {
       phase: 'bidding',
       playerCount: 4,
       players: [
-        { id: 'p0', nickname: 'Alice', playerIndex: 0, team: 0, connected: true },
-        { id: 'p1', nickname: 'Bob', playerIndex: 1, team: 1, connected: true },
-        { id: 'p2', nickname: 'Carol', playerIndex: 2, team: 0, connected: true },
-        { id: 'p3', nickname: 'Dave', playerIndex: 3, team: 1, connected: true },
+        { id: 'p0', nickname: 'Alice', playerIndex: 0, team: 0 },
+        { id: 'p1', nickname: 'Bob', playerIndex: 1, team: 1 },
+        { id: 'p2', nickname: 'Carol', playerIndex: 2, team: 0 },
+        { id: 'p3', nickname: 'Dave', playerIndex: 3, team: 1 },
       ],
       hands: new Map([
         [0 as PlayerIndex, []],

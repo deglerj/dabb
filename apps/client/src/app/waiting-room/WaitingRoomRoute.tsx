@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from '@dabb/rn-compat';
 import { useNavigate, useParams } from 'react-router-dom';
 import WaitingRoomScreen from '../../components/ui/WaitingRoomScreen.js';
-import { storageDelete, storageGet } from '../../hooks/useStorage.js';
+import { AI_NAMES } from '@dabb/shared-types';
 import type { PlayerIndex } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import {
@@ -16,17 +16,14 @@ import {
 } from '../../firebase/session.js';
 import { pushEvents } from '../../firebase/events.js';
 import { hashSecretId } from '../../firebase/secretId.js';
-import {
-  createStartGameEvents,
-  createTerminateGameEvents,
-} from '../../firebase/gameEventFactory.js';
-import type { PlayerInfo } from '../../firebase/gameEventFactory.js';
-import { applyEvents } from '@dabb/game-logic';
+import { applyEvents, createStartGameEvents, createTerminateGameEvents } from '@dabb/game-logic';
+import type { PlayerInfo } from '@dabb/game-logic';
 
 type PlayerEntry = {
   nickname: string;
   connected: boolean;
   isAI: boolean;
+  aiDifficulty?: AIDifficulty;
 };
 
 type StoredSession = {
@@ -34,9 +31,6 @@ type StoredSession = {
   playerIndex: PlayerIndex;
   playerCount?: number;
 };
-
-const AI_NAMES = ['Bot Fritz', 'Bot Hilde', 'Bot Klaus', 'Bot Liesel'];
-let aiNameIndex = 0;
 
 export default function WaitingRoomRoute() {
   const { code } = useParams<{ code: string }>();
@@ -56,11 +50,9 @@ export default function WaitingRoomRoute() {
     }
     void (async () => {
       try {
-        const [sessionRaw, storedNickname, meta] = await Promise.all([
-          storageGet(`dabb-${code}`),
-          storageGet('dabb-nickname'),
-          getSessionMeta(code),
-        ]);
+        const sessionRaw = localStorage.getItem(`dabb-${code}`);
+        const storedNickname = localStorage.getItem('dabb-nickname');
+        const meta = await getSessionMeta(code);
         if (!sessionRaw || !meta) {
           navigate('/', { replace: true });
           return;
@@ -96,8 +88,13 @@ export default function WaitingRoomRoute() {
       setFirebasePlayers(infos);
 
       const newMap = new Map<PlayerIndex, PlayerEntry>();
-      infos.forEach((p) => {
-        newMap.set(p.playerIndex, { nickname: p.nickname, connected: true, isAI: p.isAI });
+      Object.entries(fbPlayers).forEach(([idx, p]) => {
+        newMap.set(Number(idx) as PlayerIndex, {
+          nickname: p.nickname,
+          connected: true,
+          isAI: p.isAI,
+          ...(p.aiDifficulty ? { aiDifficulty: p.aiDifficulty } : {}),
+        });
       });
       setPlayers(newMap);
     });
@@ -140,11 +137,10 @@ export default function WaitingRoomRoute() {
       }
 
       let seq = 0;
-      const seqGen = () => ++seq;
+      const next = () => ({ sessionId: code, sequence: ++seq });
 
       const events = createStartGameEvents(
-        code,
-        seqGen,
+        next,
         firebasePlayers,
         meta.playerCount,
         meta.targetScore
@@ -164,26 +160,17 @@ export default function WaitingRoomRoute() {
       const secretHash = await hashSecretId(credentialsSecretId);
       const meta = await getSessionMeta(code);
       if (meta && meta.status === 'active') {
-        const emptyState = applyEvents([]);
-        const termEvents = createTerminateGameEvents(
-          code,
-          (() => {
-            let n = 0;
-            return () => ++n;
-          })(),
-          emptyState,
-          playerIndex
-        );
+        let n = 0;
+        const termEvents = createTerminateGameEvents(applyEvents([]), playerIndex, () => ({
+          sessionId: code,
+          sequence: ++n,
+        }));
         await pushEvents(code, termEvents, secretHash);
       }
     } catch {
       // Ignore errors on leave
     }
-    try {
-      await storageDelete(`dabb-${code}`);
-    } catch {
-      // Ignore — leaving regardless
-    }
+    localStorage.removeItem(`dabb-${code}`);
     navigate('/', { replace: true });
   };
 
@@ -197,9 +184,11 @@ export default function WaitingRoomRoute() {
       if (!meta) {
         return;
       }
-      const aiName = AI_NAMES[aiNameIndex % AI_NAMES.length];
-      aiNameIndex++;
-      await addAIPlayer(code, meta.players, meta.playerCount, aiName);
+      // Picked against the table rather than a running counter: the counter was module
+      // state, so it kept climbing across sessions and could hand out the same name twice.
+      const taken = new Set(Object.values(meta.players).map((p) => p.nickname));
+      const aiName = AI_NAMES.find((name) => !taken.has(name)) ?? AI_NAMES[0];
+      await addAIPlayer(code, meta.players, meta.playerCount, aiName, selectedAIDifficulty);
     } catch (err) {
       window.alert(err instanceof Error ? err.message : 'Failed to add AI player');
     } finally {

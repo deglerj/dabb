@@ -7,7 +7,6 @@
 export interface LayoutDimensions {
   width: number;
   height: number;
-  playerCount: 3 | 4;
 }
 
 export interface CardPosition {
@@ -17,14 +16,10 @@ export interface CardPosition {
   zIndex: number;
 }
 
-export interface TrickCardEntry {
-  cardId: string;
-  seatIndex: number; // which player seat played this card
-}
-
 export interface CardPositionsInput {
   handCards: { id: string; suit: string }[];
-  trickCardIds: TrickCardEntry[];
+  /** Trick cards in play order — position on the felt follows that order, not the seat. */
+  trickCardIds: string[];
   wonPilePlayerIds: string[]; // ordered list of player IDs (determines corner assignment)
   opponentCardCounts: Record<string, number>; // playerId → remaining card count
 }
@@ -200,7 +195,7 @@ export function deriveCardPositions(
   const trickStartX =
     width * TRICK_CENTER_X_FRACTION - ((tc - 1) * scaledSpread + CARD_WIDTH * tableScale) / 2;
   const trickCards: Record<string, CardPosition> = {};
-  input.trickCardIds.forEach(({ cardId }, i) => {
+  input.trickCardIds.forEach((cardId, i) => {
     trickCards[cardId] = {
       x: trickStartX + i * scaledSpread,
       y: height * TRICK_CENTER_Y_FRACTION,

@@ -3,80 +3,25 @@
  */
 
 import { useMemo, useRef, useEffect } from 'react';
+import { isWaitingOn } from '@dabb/game-logic';
 import type { GameState, PlayerIndex } from '@dabb/shared-types';
 
-export interface ActionRequiredResult {
-  /** Whether the player needs to perform an action right now */
-  actionRequired: boolean;
-  /** The type of action required, if any */
-  actionType:
-    | 'bid'
-    | 'take_dabb'
-    | 'discard'
-    | 'declare_trump'
-    | 'declare_melds'
-    | 'play_card'
-    | null;
-}
-
 /**
- * Determines if the current player needs to perform an action
+ * Whether the game is currently waiting on this player.
+ *
+ * Defers to isWaitingOn rather than switching on the phase here: a second copy of the
+ * turn rules silently goes stale when the phase order changes, which is how this hook
+ * came to miss the discard phase entirely.
  */
 export function useActionRequired(
   state: GameState | null,
   currentPlayerIndex: PlayerIndex | null
-): ActionRequiredResult {
+): boolean {
   return useMemo(() => {
     if (!state || currentPlayerIndex === null) {
-      return { actionRequired: false, actionType: null };
+      return false;
     }
-
-    switch (state.phase) {
-      case 'bidding':
-        // Player's turn to bid
-        if (state.currentBidder === currentPlayerIndex) {
-          return { actionRequired: true, actionType: 'bid' };
-        }
-        break;
-
-      case 'dabb':
-        // Bid winner needs to take dabb or discard
-        if (state.bidWinner === currentPlayerIndex) {
-          if (state.dabb.length > 0) {
-            return { actionRequired: true, actionType: 'take_dabb' };
-          } else {
-            return { actionRequired: true, actionType: 'discard' };
-          }
-        }
-        break;
-
-      case 'trump':
-        // Bid winner needs to declare trump
-        if (state.bidWinner === currentPlayerIndex) {
-          return { actionRequired: true, actionType: 'declare_trump' };
-        }
-        break;
-
-      case 'melding':
-        // Player needs to confirm melds (if not already declared). A bid winner who went
-        // out never melds, so they must not be prompted for the rest of the phase.
-        if (
-          !state.declaredMelds.has(currentPlayerIndex) &&
-          !(state.wentOut && state.bidWinner === currentPlayerIndex)
-        ) {
-          return { actionRequired: true, actionType: 'declare_melds' };
-        }
-        break;
-
-      case 'tricks':
-        // Player's turn to play a card
-        if (state.currentPlayer === currentPlayerIndex) {
-          return { actionRequired: true, actionType: 'play_card' };
-        }
-        break;
-    }
-
-    return { actionRequired: false, actionType: null };
+    return isWaitingOn(state, currentPlayerIndex);
   }, [state, currentPlayerIndex]);
 }
 
@@ -88,8 +33,8 @@ export function useActionRequiredCallback(
   state: GameState | null,
   currentPlayerIndex: PlayerIndex | null,
   onActionRequired: () => void
-): ActionRequiredResult {
-  const result = useActionRequired(state, currentPlayerIndex);
+): boolean {
+  const actionRequired = useActionRequired(state, currentPlayerIndex);
   const prevActionRequired = useRef(false);
   const hasInitialized = useRef(false);
 
@@ -97,17 +42,17 @@ export function useActionRequiredCallback(
     // Skip the initial render to avoid playing sound on page load
     if (!hasInitialized.current) {
       hasInitialized.current = true;
-      prevActionRequired.current = result.actionRequired;
+      prevActionRequired.current = actionRequired;
       return;
     }
 
     // Trigger callback when action becomes required (transition from false to true)
-    if (result.actionRequired && !prevActionRequired.current) {
+    if (actionRequired && !prevActionRequired.current) {
       onActionRequired();
     }
 
-    prevActionRequired.current = result.actionRequired;
-  }, [result.actionRequired, onActionRequired]);
+    prevActionRequired.current = actionRequired;
+  }, [actionRequired, onActionRequired]);
 
-  return result;
+  return actionRequired;
 }
