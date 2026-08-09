@@ -19,6 +19,7 @@ export function whoActsNext(state: GameState): PlayerIndex | null {
 
     case 'dabb':
     case 'trump':
+    case 'discard':
       return state.bidWinner ?? null;
 
     case 'melding': {

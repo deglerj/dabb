@@ -30,6 +30,7 @@ import {
   createTrickWonEvent,
   createTrumpDeclaredEvent,
   dealCards,
+  detectMelds,
   determineTrickWinner,
   getBiddingWinner,
   isBiddingComplete,
@@ -174,6 +175,9 @@ export class SimulationEngine {
       case 'trump':
         await this.handleTrump();
         break;
+      case 'discard':
+        await this.handleDiscard();
+        break;
       case 'melding':
         await this.handleMelding();
         break;
@@ -228,16 +232,20 @@ export class SimulationEngine {
     const ai = this.getAI(playerIndex);
     const action = await ai.decide(this.context(playerIndex));
 
-    switch (action.type) {
-      case 'takeDabb':
-        this.emit(createDabbTakenEvent(this.ctx(), playerIndex, this.state.dabb));
-        break;
-      case 'discard':
-        this.emit(createCardsDiscardedEvent(this.ctx(), playerIndex, action.cardIds));
-        break;
-      case 'goOut':
-        this.emit(createGoingOutEvent(this.ctx(), playerIndex, action.suit));
-        break;
+    if (action.type === 'takeDabb') {
+      this.emit(createDabbTakenEvent(this.ctx(), playerIndex, this.state.dabb));
+    }
+  }
+
+  private async handleDiscard(): Promise<void> {
+    const playerIndex = this.state.bidWinner!;
+    const ai = this.getAI(playerIndex);
+    const action = await ai.decide(this.context(playerIndex));
+
+    if (action.type === 'discard') {
+      this.emit(createCardsDiscardedEvent(this.ctx(), playerIndex, action.cardIds));
+    } else if (action.type === 'goOut') {
+      this.emit(createGoingOutEvent(this.ctx(), playerIndex, this.state.trump!));
     }
   }
 
@@ -273,8 +281,9 @@ export class SimulationEngine {
     const action = await ai.decide(this.context(activePlayer));
 
     if (action.type === 'declareMelds') {
-      const totalPoints = calculateMeldPoints(action.melds);
-      this.emit(createMeldsDeclaredEvent(this.ctx(), activePlayer, action.melds, totalPoints));
+      const melds = detectMelds(this.state.hands.get(activePlayer) ?? [], this.state.trump!);
+      const totalPoints = calculateMeldPoints(melds);
+      this.emit(createMeldsDeclaredEvent(this.ctx(), activePlayer, melds, totalPoints));
 
       // Check if all players have declared
       const expectedMeldCount = this.state.wentOut

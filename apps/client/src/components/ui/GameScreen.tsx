@@ -93,6 +93,17 @@ function computeOpponentPositions(
   return positions;
 }
 
+/** Rebuild a Card from its `suit-rank-copy` ID, for log entries that carry only IDs. */
+function cardFromId(cardId: string): Card {
+  const [suit, rank, copy] = cardId.split('-');
+  return {
+    id: cardId,
+    suit: suit as Suit,
+    rank: rank as Rank,
+    copy: Number(copy) as 0 | 1,
+  };
+}
+
 /**
  * Format a GameLogEntry into a human-readable string.
  */
@@ -120,6 +131,11 @@ function formatLogEntryText(
       return t('gameLog.biddingWon', { name, bid: d.winningBid });
     case 'dabb_taken':
       return t('gameLog.dabbTaken', { name });
+    case 'trump_discarded':
+      return t('gameLog.trumpDiscarded', {
+        name,
+        cards: d.cards.map((cardId) => formatCard(cardFromId(cardId))).join(', '),
+      });
     case 'going_out':
       return t('gameLog.goingOut', { name, suit: formatSuit(d.suit) });
     case 'trump_declared':
@@ -201,15 +217,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
           e.data.kind === 'melds_declared'
             ? e.data.melds.map((meld) => ({
                 name: formatMeldName(meld, SUIT_NAMES),
-                cards: meld.cards.map((cardId) => {
-                  const [suit, rank, copy] = cardId.split('-');
-                  return formatCard({
-                    id: cardId,
-                    suit: suit as Suit,
-                    rank: rank as Rank,
-                    copy: Number(copy) as 0 | 1,
-                  });
-                }),
+                cards: meld.cards.map((cardId) => formatCard(cardFromId(cardId))),
                 points: meld.points,
               }))
             : undefined,
@@ -367,8 +375,8 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   );
 
   const handleConfirmMelds = useCallback(() => {
-    onDeclareMelds(detectedMelds);
-  }, [onDeclareMelds, detectedMelds]);
+    onDeclareMelds();
+  }, [onDeclareMelds]);
 
   // Celebration: show confetti for round win, fireworks for game win
   const { confettiRound, showFireworks } = useCelebration(events, playerIndex);
@@ -474,8 +482,9 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   // Phase overlay
   const showBidding = state.phase === 'bidding';
   const showDabbTake = state.phase === 'dabb' && isBidWinner && state.dabb.length > 0;
-  const showDiscard = state.phase === 'dabb' && isBidWinner && state.dabb.length === 0;
   const showTrump = state.phase === 'trump' && isBidWinner;
+  // Trump is already declared here, so the layaway is made knowing what counts as trump.
+  const showDiscard = state.phase === 'discard' && isBidWinner;
 
   // Reset slotted cards if discard phase exits unexpectedly (reconnect, phase advance)
   useEffect(() => {
@@ -598,6 +607,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               visible={showDiscard}
               discardCount={discardCount}
               slottedCount={slottedCardIds.length}
+              trump={state.trump ?? 'herz'}
               onDiscard={handleDiscard}
               onGoOut={onGoOut}
             />

@@ -3,7 +3,14 @@
  */
 
 import { useMemo } from 'react';
-import type { GameEvent, GameLogEntry, GameState, PlayerIndex, Team } from '@dabb/shared-types';
+import type {
+  GameEvent,
+  GameLogEntry,
+  GameState,
+  PlayerIndex,
+  Suit,
+  Team,
+} from '@dabb/shared-types';
 
 const DEFAULT_VISIBLE_ENTRIES = 5;
 
@@ -28,7 +35,8 @@ export interface GameLogResult {
 
 /**
  * Converts game events to displayable log entries
- * Skips secret events (CARDS_DEALT, CARDS_DISCARDED, MELDING_COMPLETE)
+ * Skips secret events (CARDS_DEALT, MELDING_COMPLETE). CARDS_DISCARDED is logged only for
+ * the trump cards the bid winner buried — those must be announced, the rest stay face down.
  */
 export function useGameLog(
   events: GameEvent[],
@@ -38,6 +46,7 @@ export function useGameLog(
   return useMemo(() => {
     const entries: GameLogEntry[] = [];
     const playerTeamData = new Map<PlayerIndex, { nickname: string; team: Team }>();
+    let trump: Suit | null = null;
 
     for (const event of events) {
       // Track player team data from PLAYER_JOINED events
@@ -75,7 +84,13 @@ export function useGameLog(
         continue;
       }
 
-      const logEntry = eventToLogEntry(event);
+      if (event.type === 'TRUMP_DECLARED' || event.type === 'GOING_OUT') {
+        trump = event.payload.suit;
+      } else if (event.type === 'NEW_ROUND_STARTED') {
+        trump = null;
+      }
+
+      const logEntry = eventToLogEntry(event, trump);
       if (logEntry) {
         entries.push(logEntry);
       }
@@ -176,7 +191,7 @@ function synthesizeLastImportantEntry(entries: GameLogEntry[]): GameLogEntry | n
  * Converts a single game event to a log entry
  * Returns null for secret events that shouldn't be logged
  */
-function eventToLogEntry(event: GameEvent): GameLogEntry | null {
+function eventToLogEntry(event: GameEvent, trump: Suit | null): GameLogEntry | null {
   switch (event.type) {
     case 'GAME_STARTED':
       return {
@@ -335,9 +350,27 @@ function eventToLogEntry(event: GameEvent): GameLogEntry | null {
         },
       };
 
+    // The layaway is face down, but buried trump has to be announced. filterCardsDiscarded
+    // leaves exactly those card IDs readable and replaces the rest with 'hidden'.
+    case 'CARDS_DISCARDED': {
+      const trumpCards =
+        trump === null
+          ? []
+          : event.payload.discardedCards.filter((id) => id.startsWith(`${trump}-`));
+      if (trumpCards.length === 0) {
+        return null;
+      }
+      return {
+        id: event.id,
+        timestamp: event.timestamp,
+        type: 'trump_discarded',
+        playerIndex: event.payload.playerIndex,
+        data: { kind: 'trump_discarded', cards: trumpCards },
+      };
+    }
+
     // Secret events that shouldn't be logged
     case 'CARDS_DEALT':
-    case 'CARDS_DISCARDED':
     case 'MELDING_COMPLETE':
     case 'PLAYER_JOINED':
     case 'PLAYER_LEFT':

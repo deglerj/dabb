@@ -12,7 +12,6 @@ import {
   applyEvents,
   calculateMeldPoints,
   calculatePlayerTrickRawPoints,
-  detectMelds,
   getValidPlays,
 } from '@dabb/game-logic';
 import type { GameEvent, GameState, PlayerIndex, Team } from '@dabb/shared-types';
@@ -72,7 +71,11 @@ class Round {
     this.act((s, seq) => createTakeDabbEvents(SESSION, seq, s, 0));
   }
 
-  discardAndDeclareTrump(): void {
+  /** Trump first, then the layaway — see GamePhase in shared-types. */
+  declareTrumpAndDiscard(): void {
+    this.act((s, seq) =>
+      createDeclareTrumpEvents(SESSION, seq, s, 0, (s.hands.get(0) ?? [])[0].suit)
+    );
     this.act((s, seq) =>
       createDiscardCardsEvents(
         SESSION,
@@ -81,9 +84,6 @@ class Round {
         0,
         (s.hands.get(0) ?? []).slice(0, 4).map((c) => c.id)
       )
-    );
-    this.act((s, seq) =>
-      createDeclareTrumpEvents(SESSION, seq, s, 0, (s.hands.get(0) ?? [])[0].suit)
     );
   }
 
@@ -95,9 +95,7 @@ class Round {
       if (this.state.wentOut && this.state.bidWinner === p) {
         continue;
       }
-      this.act((s, seq) =>
-        createDeclareMeldsEvents(SESSION, seq, s, p, detectMelds(s.hands.get(p) ?? [], s.trump!))
-      );
+      this.act((s, seq) => createDeclareMeldsEvents(SESSION, seq, s, p));
     }
   }
 
@@ -159,7 +157,7 @@ describe('4-player round scoring', () => {
     const round = new Round();
     round.bidWonByPlayer0(150);
     round.takeDabb();
-    round.discardAndDeclareTrump();
+    round.declareTrumpAndDiscard();
     round.declareAllMelds();
     round.playAllTricks();
     return round;
@@ -221,7 +219,7 @@ describe('4-player round scoring', () => {
     const round = new Round();
     round.bidWonByPlayer0(400); // unreachable for one team in a single round
     round.takeDabb();
-    round.discardAndDeclareTrump();
+    round.declareTrumpAndDiscard();
     round.declareAllMelds();
     round.playAllTricks();
 
@@ -240,7 +238,10 @@ describe('4-player going out', () => {
     const round = new Round();
     round.bidWonByPlayer0(150);
     round.takeDabb();
-    round.act((s, seq) => createGoOutEvents(SESSION, seq, s, 0, (s.hands.get(0) ?? [])[0].suit));
+    round.act((s, seq) =>
+      createDeclareTrumpEvents(SESSION, seq, s, 0, (s.hands.get(0) ?? [])[0].suit)
+    );
+    round.act((s, seq) => createGoOutEvents(SESSION, seq, s, 0));
     round.declareAllMelds();
     return round;
   }

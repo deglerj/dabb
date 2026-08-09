@@ -2,7 +2,7 @@
  * Game log types for displaying player actions
  */
 
-import type { Card, Suit } from './cards.js';
+import type { Card, CardId, Suit } from './cards.js';
 import type { Meld, PlayerIndex, Team } from './game.js';
 
 /**
@@ -16,6 +16,7 @@ export type GameLogEntryType =
   | 'player_passed'
   | 'bidding_won'
   | 'dabb_taken'
+  | 'trump_discarded'
   | 'going_out'
   | 'trump_declared'
   | 'melds_declared'
@@ -81,6 +82,16 @@ export interface BiddingWonLogData {
 export interface DabbTakenLogData {
   kind: 'dabb_taken';
   cards: Card[];
+}
+
+/**
+ * Data for trump_discarded log entry — the trump the bid winner buried in the layaway.
+ * Burying trump is legal but must be announced, so this is public even though the rest of
+ * the layaway stays face down. Only emitted when at least one trump card was buried.
+ */
+export interface TrumpDiscardedLogData {
+  kind: 'trump_discarded';
+  cards: CardId[];
 }
 
 /**
@@ -176,6 +187,7 @@ export type GameLogEntryData =
   | PlayerPassedLogData
   | BiddingWonLogData
   | DabbTakenLogData
+  | TrumpDiscardedLogData
   | GoingOutLogData
   | TrumpDeclaredLogData
   | MeldsDeclaredLogData

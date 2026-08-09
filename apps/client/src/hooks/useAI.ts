@@ -83,11 +83,11 @@ export function useAI({ sessionCode, secretId, rawEvents, aiPlayerIndices }: Use
             action.cardIds
           );
         } else if (action.type === 'goOut') {
-          evts = createGoOutEvents(sessionCode, seq, fullState, currentPlayer, action.suit);
+          evts = createGoOutEvents(sessionCode, seq, fullState, currentPlayer);
         } else if (action.type === 'declareTrump') {
           evts = createDeclareTrumpEvents(sessionCode, seq, fullState, currentPlayer, action.suit);
         } else if (action.type === 'declareMelds') {
-          evts = createDeclareMeldsEvents(sessionCode, seq, fullState, currentPlayer, action.melds);
+          evts = createDeclareMeldsEvents(sessionCode, seq, fullState, currentPlayer);
         } else if (action.type === 'playCard') {
           evts = createPlayCardEvents(sessionCode, seq, fullState, currentPlayer, action.cardId);
         }

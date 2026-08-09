@@ -31,6 +31,7 @@ import {
   createTrumpDeclaredEvent,
   createDeck,
   dealCards,
+  detectMelds,
   determineTrickWinner,
   getBiddingWinner,
   isBiddingComplete,
@@ -235,6 +236,9 @@ export class OfflineGameEngine {
       case 'trump':
         this.applyTrumpAction(playerIndex, action);
         break;
+      case 'discard':
+        this.applyDiscardAction(playerIndex, action);
+        break;
       case 'melding':
         this.applyMeldingAction(playerIndex, action);
         break;
@@ -263,16 +267,16 @@ export class OfflineGameEngine {
   }
 
   private applyDabbAction(playerIndex: PlayerIndex, action: AIAction): void {
-    switch (action.type) {
-      case 'takeDabb':
-        this.emit(createDabbTakenEvent(this.ctx(), playerIndex, this.state.dabb));
-        break;
-      case 'discard':
-        this.emit(createCardsDiscardedEvent(this.ctx(), playerIndex, action.cardIds));
-        break;
-      case 'goOut':
-        this.emit(createGoingOutEvent(this.ctx(), playerIndex, action.suit));
-        break;
+    if (action.type === 'takeDabb') {
+      this.emit(createDabbTakenEvent(this.ctx(), playerIndex, this.state.dabb));
+    }
+  }
+
+  private applyDiscardAction(playerIndex: PlayerIndex, action: AIAction): void {
+    if (action.type === 'discard') {
+      this.emit(createCardsDiscardedEvent(this.ctx(), playerIndex, action.cardIds));
+    } else if (action.type === 'goOut') {
+      this.emit(createGoingOutEvent(this.ctx(), playerIndex, this.state.trump!));
     }
   }
 
@@ -286,8 +290,9 @@ export class OfflineGameEngine {
     if (action.type !== 'declareMelds') {
       return;
     }
-    const totalPoints = calculateMeldPoints(action.melds);
-    this.emit(createMeldsDeclaredEvent(this.ctx(), playerIndex, action.melds, totalPoints));
+    const melds = detectMelds(this.state.hands.get(playerIndex) ?? [], this.state.trump!);
+    const totalPoints = calculateMeldPoints(melds);
+    this.emit(createMeldsDeclaredEvent(this.ctx(), playerIndex, melds, totalPoints));
 
     const expectedCount = this.state.wentOut ? this.state.playerCount - 1 : this.state.playerCount;
 

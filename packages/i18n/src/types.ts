@@ -127,7 +127,6 @@ export interface TranslationKeys {
     backToHome: string;
     goOut: string;
     goOutIn: string;
-    orGoOut: string;
     goOutConfirmTitle: string;
     goOutConfirmMessage: string;
     goOutLink: string;
@@ -185,6 +184,7 @@ export interface TranslationKeys {
     goingOut: string;
     trumpDeclared: string;
     dabbTaken: string;
+    trumpDiscarded: string;
     meldsDeclared: string;
     meldsNone: string;
     cardPlayed: string;

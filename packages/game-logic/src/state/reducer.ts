@@ -253,6 +253,7 @@ function handleDabbTaken(
 
   return {
     ...state,
+    phase: 'trump', // Trump is declared before the layaway, not after
     hands: newHands,
     dabb: [], // Dabb is now empty
     dabbCardIds: event.payload.dabbCards.map((c) => c.id),
@@ -285,9 +286,10 @@ function handleCardsDiscarded(
 
   return {
     ...state,
-    phase: 'trump',
+    phase: 'melding',
     hands: newHands,
     tricksTaken: newTricksTaken,
+    declaredMelds: new Map(),
   };
 }
 
@@ -310,9 +312,8 @@ function handleTrumpDeclared(
 ): GameState {
   return {
     ...state,
-    phase: 'melding',
+    phase: 'discard',
     trump: event.payload.suit,
-    declaredMelds: new Map(),
   };
 }
 

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OfflineGameEngine } from '../OfflineGameEngine.js';
 import type { PlayerIndex } from '@dabb/shared-types';
-import { detectMelds } from '@dabb/game-logic';
 
 // Advance fake time enough to clear all AI delays (card plays: 700ms, tricks: 4500ms)
 const ADVANCE_MS = 60_000;
@@ -59,9 +58,7 @@ async function dispatchOneHumanAction(
     if (state.declaredMelds.has(humanPlayerIndex)) {
       return false;
     }
-    const hand = state.hands.get(humanPlayerIndex) || [];
-    const melds = detectMelds(hand, state.trump ?? 'herz');
-    const p = engine.dispatch({ type: 'declareMelds', melds });
+    const p = engine.dispatch({ type: 'declareMelds' });
     await advanceFakeTime();
     await p;
     return true;

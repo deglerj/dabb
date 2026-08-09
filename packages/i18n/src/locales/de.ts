@@ -117,7 +117,6 @@ const de: TranslationKeys = {
     goOut: 'Abgehen',
     goOutLink: 'Abgehen...',
     goOutIn: 'Ab in {{suit}}',
-    orGoOut: 'Oder abgehen:',
     goOutConfirmTitle: 'Abgehen?',
     goOutConfirmMessage:
       'Du verlierst dein Gebot und bekommst keine Meldungen. Die anderen Spieler bekommen ihre Meldungen plus 40 Punkte.',
@@ -175,6 +174,7 @@ const de: TranslationKeys = {
     goingOut: '{{name}} geht ab in {{suit}}',
     trumpDeclared: '{{name}} wählt {{suit}} als Trumpf',
     dabbTaken: '{{name}} nimmt den Dabb auf',
+    trumpDiscarded: '{{name}} legt {{cards}} ab (Trumpf)',
     meldsDeclared: '{{name}} meldet {{points}} Punkte',
     meldsNone: '{{name}} hat keine Meldungen',
     cardPlayed: '{{name}} spielt {{card}}',

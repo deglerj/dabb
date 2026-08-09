@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGameState } from '@dabb/ui-shared';
 import type { GameInterface } from '@dabb/ui-shared';
 import { applyEvents } from '@dabb/game-logic';
-import type { CardId, GameEvent, GameState, Meld, PlayerIndex, Suit } from '@dabb/shared-types';
+import type { CardId, GameEvent, GameState, PlayerIndex, Suit } from '@dabb/shared-types';
 import { GameError } from '@dabb/shared-types';
 import { subscribeToEvents, pushEvents, getAllEvents } from '../firebase/events.js';
 import { hashSecretId } from '../firebase/secretId.js';
@@ -174,8 +174,7 @@ export function useFirebaseGame({
   );
 
   const onGoOut = useCallback(
-    (suit: Suit) =>
-      pushAction((s, seq) => createGoOutEvents(sessionCode, seq, s, playerIndex, suit)),
+    () => pushAction((s, seq) => createGoOutEvents(sessionCode, seq, s, playerIndex)),
     [pushAction, sessionCode, playerIndex]
   );
 
@@ -186,8 +185,7 @@ export function useFirebaseGame({
   );
 
   const onDeclareMelds = useCallback(
-    (melds: Meld[]) =>
-      pushAction((s, seq) => createDeclareMeldsEvents(sessionCode, seq, s, playerIndex, melds)),
+    () => pushAction((s, seq) => createDeclareMeldsEvents(sessionCode, seq, s, playerIndex)),
     [pushAction, sessionCode, playerIndex]
   );
 

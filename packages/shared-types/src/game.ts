@@ -8,12 +8,18 @@ export type PlayerCount = 2 | 3 | 4;
 export type PlayerIndex = 0 | 1 | 2 | 3;
 export type Team = 0 | 1;
 
+/**
+ * Phase order for the bid winner is: `dabb` (take it) → `trump` (declare it) → `discard`
+ * (lay four away). Trump comes first so that burying a trump card is a real decision the
+ * player has to announce — see `filterCardsDiscarded` in game-logic/state/views.ts.
+ */
 export type GamePhase =
   | 'waiting'
   | 'dealing'
   | 'bidding'
   | 'dabb'
   | 'trump'
+  | 'discard'
   | 'melding'
   | 'tricks'
   | 'scoring'

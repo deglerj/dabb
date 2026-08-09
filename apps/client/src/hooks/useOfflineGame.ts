@@ -10,7 +10,6 @@ import type {
   CardId,
   GameEvent,
   GameState,
-  Meld,
   PlayerIndex,
   Suit,
   PlayerCount,
@@ -159,24 +158,18 @@ export function useOfflineGame({
     },
     [dispatch]
   );
-  const onGoOut = useCallback(
-    (suit: Suit) => {
-      void dispatch({ type: 'goOut', suit });
-    },
-    [dispatch]
-  );
+  const onGoOut = useCallback(() => {
+    void dispatch({ type: 'goOut' });
+  }, [dispatch]);
   const onDeclareTrump = useCallback(
     (suit: Suit) => {
       void dispatch({ type: 'declareTrump', suit });
     },
     [dispatch]
   );
-  const onDeclareMelds = useCallback(
-    (melds: Meld[]) => {
-      void dispatch({ type: 'declareMelds', melds });
-    },
-    [dispatch]
-  );
+  const onDeclareMelds = useCallback(() => {
+    void dispatch({ type: 'declareMelds' });
+  }, [dispatch]);
   const onPlayCard = useCallback(
     (cardId: CardId) => {
       void dispatch({ type: 'playCard', cardId });

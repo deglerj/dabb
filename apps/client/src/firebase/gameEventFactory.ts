@@ -24,6 +24,7 @@ import {
   createTrickWonEvent,
   createTrumpDeclaredEvent,
   dealCards,
+  detectMelds,
   determineTrickWinner,
   getBiddingWinner,
   isBiddingComplete,
@@ -37,7 +38,6 @@ import type {
   CardId,
   GameEvent,
   GameState,
-  Meld,
   PlayerCount,
   PlayerIndex,
   Suit,
@@ -172,7 +172,7 @@ export function createDiscardCardsEvents(
   playerIndex: PlayerIndex,
   cardIds: CardId[]
 ): GameEvent[] {
-  if (state.phase !== 'dabb') {
+  if (state.phase !== 'discard') {
     throw new GameError(GAME_ERROR_CODES.NOT_IN_DABB_PHASE);
   }
   if (state.bidWinner !== playerIndex) {
@@ -195,14 +195,14 @@ export function createDiscardCardsEvents(
   return [createCardsDiscardedEvent(ctx(sessionCode, seq), playerIndex, cardIds)];
 }
 
+/** Going out replaces the layaway, so it happens in the discard phase with trump already set. */
 export function createGoOutEvents(
   sessionCode: string,
   seq: SeqGen,
   state: GameState,
-  playerIndex: PlayerIndex,
-  suit: Suit
+  playerIndex: PlayerIndex
 ): GameEvent[] {
-  if (state.phase !== 'dabb') {
+  if (state.phase !== 'discard') {
     throw new GameError(GAME_ERROR_CODES.NOT_IN_DABB_PHASE);
   }
   if (state.bidWinner !== playerIndex) {
@@ -211,7 +211,7 @@ export function createGoOutEvents(
   if (state.dabb.length > 0) {
     throw new GameError(GAME_ERROR_CODES.MUST_TAKE_DABB_BEFORE_GOING_OUT);
   }
-  return [createGoingOutEvent(ctx(sessionCode, seq), playerIndex, suit)];
+  return [createGoingOutEvent(ctx(sessionCode, seq), playerIndex, state.trump!)];
 }
 
 export function createDeclareTrumpEvents(
@@ -230,12 +230,16 @@ export function createDeclareTrumpEvents(
   return [createTrumpDeclaredEvent(ctx(sessionCode, seq), playerIndex, suit)];
 }
 
+/**
+ * Melds are derived here from the player's own hand rather than accepted from the caller —
+ * the UI and the AI both declare every meld they hold, so a caller-supplied list could only
+ * ever disagree with the hand it claims to describe.
+ */
 export function createDeclareMeldsEvents(
   sessionCode: string,
   seq: SeqGen,
   state: GameState,
-  playerIndex: PlayerIndex,
-  melds: Meld[]
+  playerIndex: PlayerIndex
 ): GameEvent[] {
   if (state.phase !== 'melding') {
     throw new GameError(GAME_ERROR_CODES.NOT_IN_MELDING_PHASE);
@@ -248,6 +252,7 @@ export function createDeclareMeldsEvents(
   }
 
   const events: GameEvent[] = [];
+  const melds = detectMelds(state.hands.get(playerIndex) ?? [], state.trump!);
   const totalPoints = calculateMeldPoints(melds);
   events.push(createMeldsDeclaredEvent(ctx(sessionCode, seq), playerIndex, melds, totalPoints));
 

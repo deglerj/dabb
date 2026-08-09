@@ -3,7 +3,7 @@
  */
 
 import type { CardId, Suit } from './cards.js';
-import type { GameState, Meld, PlayerIndex } from './game.js';
+import type { GameState, PlayerIndex } from './game.js';
 
 /**
  * AI action types - each corresponds to a game action
@@ -26,9 +26,9 @@ export interface AIDiscardAction {
   cardIds: CardId[];
 }
 
+/** No suit: going out happens after trump is declared, so the engine reads it from state. */
 export interface AIGoOutAction {
   type: 'goOut';
-  suit: Suit;
 }
 
 export interface AIDeclareTrumpAction {
@@ -36,9 +36,13 @@ export interface AIDeclareTrumpAction {
   suit: Suit;
 }
 
+/**
+ * Melds carry no payload: the acting engine derives them from the player's own hand with
+ * `detectMelds()`. Nothing ever declares a subset, so letting the caller supply a meld list
+ * only creates a way for hand and declaration to disagree.
+ */
 export interface AIDeclareMeldsAction {
   type: 'declareMelds';
-  melds: Meld[];
 }
 
 export interface AIPlayCardAction {
