@@ -4,11 +4,14 @@ import { generateSessionCode } from './sessionCode.js';
 import { getOrCreateSecretId, hashSecretId } from './secretId.js';
 import type { PlayerCount, PlayerIndex } from '@dabb/shared-types';
 import { GameError, GAME_ERROR_CODES } from '@dabb/shared-types';
+import type { AIDifficulty } from '@dabb/game-ai';
 
 export interface SessionPlayer {
   nickname: string;
   secretHash: string | null;
   isAI: boolean;
+  /** Only set for AI players; absent for humans and for AI added before this was stored. */
+  aiDifficulty?: AIDifficulty;
 }
 
 export interface SessionMeta {
@@ -101,7 +104,8 @@ export async function addAIPlayer(
   sessionCode: string,
   players: Record<string, SessionPlayer>,
   playerCount: PlayerCount,
-  aiNickname: string
+  aiNickname: string,
+  aiDifficulty: AIDifficulty
 ): Promise<PlayerIndex> {
   const takenSlots = Object.keys(players).map(Number);
   let playerIndex: PlayerIndex | null = null;
@@ -119,6 +123,7 @@ export async function addAIPlayer(
     nickname: aiNickname,
     secretHash: null,
     isAI: true,
+    aiDifficulty,
   });
 
   return playerIndex;

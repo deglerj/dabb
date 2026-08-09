@@ -51,7 +51,7 @@ export default function GameRoute() {
     sessionCode: code ?? '',
     secretId: credentials?.secretId ?? '',
     rawEvents: game.rawEvents ?? [],
-    aiPlayerIndices: game.aiPlayerIndices ?? [],
+    aiSeats: game.aiSeats ?? [],
   });
 
   if (!credentials) {

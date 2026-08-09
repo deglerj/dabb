@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { applyEvents, whoActsNext } from '@dabb/game-logic';
 import { createAIPlayer } from '@dabb/game-ai';
-import type { GameEvent, PlayerIndex } from '@dabb/shared-types';
+import type { GameEvent } from '@dabb/shared-types';
 import { pushEvents, claimCascade } from '../firebase/events.js';
 import { hashSecretId } from '../firebase/secretId.js';
 import {
@@ -15,19 +15,20 @@ import {
   createPlayCardEvents,
 } from '../firebase/gameEventFactory.js';
 import type { SeqGen } from '../firebase/gameEventFactory.js';
+import type { AISeat } from './useFirebaseGame.js';
 
 interface UseAIOptions {
   sessionCode: string;
   secretId: string;
   rawEvents: GameEvent[];
-  aiPlayerIndices: PlayerIndex[];
+  aiSeats: AISeat[];
 }
 
-export function useAI({ sessionCode, secretId, rawEvents, aiPlayerIndices }: UseAIOptions): void {
+export function useAI({ sessionCode, secretId, rawEvents, aiSeats }: UseAIOptions): void {
   const processingRef = useRef(false);
 
   useEffect(() => {
-    if (aiPlayerIndices.length === 0) {
+    if (aiSeats.length === 0) {
       return;
     }
     if (processingRef.current) {
@@ -39,7 +40,8 @@ export function useAI({ sessionCode, secretId, rawEvents, aiPlayerIndices }: Use
     if (currentPlayer === null) {
       return;
     }
-    if (!aiPlayerIndices.includes(currentPlayer)) {
+    const seat = aiSeats.find((s) => s.playerIndex === currentPlayer);
+    if (!seat) {
       return;
     }
 
@@ -54,7 +56,7 @@ export function useAI({ sessionCode, secretId, rawEvents, aiPlayerIndices }: Use
           return;
         }
 
-        const aiPlayer = createAIPlayer();
+        const aiPlayer = createAIPlayer(seat.difficulty);
         const action = await aiPlayer.decide({
           gameState: fullState,
           playerIndex: currentPlayer,
@@ -99,5 +101,5 @@ export function useAI({ sessionCode, secretId, rawEvents, aiPlayerIndices }: Use
         processingRef.current = false;
       }
     })();
-  }, [rawEvents.length, aiPlayerIndices, sessionCode, secretId]);
+  }, [rawEvents.length, aiSeats, sessionCode, secretId]);
 }

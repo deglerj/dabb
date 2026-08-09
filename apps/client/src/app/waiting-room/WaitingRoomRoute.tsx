@@ -27,6 +27,7 @@ type PlayerEntry = {
   nickname: string;
   connected: boolean;
   isAI: boolean;
+  aiDifficulty?: AIDifficulty;
 };
 
 type StoredSession = {
@@ -96,8 +97,13 @@ export default function WaitingRoomRoute() {
       setFirebasePlayers(infos);
 
       const newMap = new Map<PlayerIndex, PlayerEntry>();
-      infos.forEach((p) => {
-        newMap.set(p.playerIndex, { nickname: p.nickname, connected: true, isAI: p.isAI });
+      Object.entries(fbPlayers).forEach(([idx, p]) => {
+        newMap.set(Number(idx) as PlayerIndex, {
+          nickname: p.nickname,
+          connected: true,
+          isAI: p.isAI,
+          ...(p.aiDifficulty ? { aiDifficulty: p.aiDifficulty } : {}),
+        });
       });
       setPlayers(newMap);
     });
@@ -199,7 +205,7 @@ export default function WaitingRoomRoute() {
       }
       const aiName = AI_NAMES[aiNameIndex % AI_NAMES.length];
       aiNameIndex++;
-      await addAIPlayer(code, meta.players, meta.playerCount, aiName);
+      await addAIPlayer(code, meta.players, meta.playerCount, aiName, selectedAIDifficulty);
     } catch (err) {
       window.alert(err instanceof Error ? err.message : 'Failed to add AI player');
     } finally {

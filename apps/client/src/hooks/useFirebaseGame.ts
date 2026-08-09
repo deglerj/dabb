@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGameState } from '@dabb/ui-shared';
 import type { GameInterface } from '@dabb/ui-shared';
 import { applyEvents } from '@dabb/game-logic';
@@ -8,6 +8,7 @@ import { subscribeToEvents, pushEvents, getAllEvents } from '../firebase/events.
 import { hashSecretId } from '../firebase/secretId.js';
 import { getSessionMeta, setupPresence, subscribeToSessionStatus } from '../firebase/session.js';
 import type { PlayerInfo } from '../firebase/gameEventFactory.js';
+import type { AIDifficulty } from '@dabb/game-ai';
 import {
   createBidPlacedEvents,
   createDeclareMeldsEvents,
@@ -26,10 +27,16 @@ export interface UseFirebaseGameOptions {
   playerIndex: PlayerIndex;
 }
 
+/** An AI seat and the difficulty the host added it with. */
+export interface AISeat {
+  playerIndex: PlayerIndex;
+  difficulty: AIDifficulty;
+}
+
 export interface FirebaseGameResult extends GameInterface {
   rawEvents: GameEvent[];
   players: PlayerInfo[];
-  aiPlayerIndices: PlayerIndex[];
+  aiSeats: AISeat[];
 }
 
 export function useFirebaseGame({
@@ -42,6 +49,7 @@ export function useFirebaseGame({
   const [connected, setConnected] = useState(false);
   const [secretHash, setSecretHash] = useState<string>('');
   const [players, setPlayers] = useState<PlayerInfo[]>([]);
+  const [aiSeats, setAiSeats] = useState<AISeat[]>([]);
 
   const rawEventsRef = useRef<GameEvent[]>([]);
   const fullStateRef = useRef<GameState>(applyEvents([]));
@@ -67,6 +75,16 @@ export function useFirebaseGame({
         team: null,
       }));
       setPlayers(infos);
+      // Sessions created before the difficulty was stored have no aiDifficulty on the
+      // player record; those AI seats keep the previous behaviour of playing at medium.
+      setAiSeats(
+        Object.entries(meta.players)
+          .filter(([, p]) => p.isAI)
+          .map(([idx, p]) => ({
+            playerIndex: Number(idx) as PlayerIndex,
+            difficulty: p.aiDifficulty ?? 'medium',
+          }))
+      );
       const nickMap = new Map<PlayerIndex, string>();
       infos.forEach((p) => nickMap.set(p.playerIndex, p.nickname));
       setNicknames(nickMap);
@@ -200,11 +218,6 @@ export function useFirebaseGame({
     [pushAction, sessionCode, playerIndex]
   );
 
-  const aiPlayerIndices = useMemo(
-    () => players.filter((p) => p.isAI).map((p) => p.playerIndex),
-    [players]
-  );
-
   return {
     state,
     events,
@@ -223,6 +236,6 @@ export function useFirebaseGame({
     onExit,
     rawEvents: rawEventsRef.current,
     players,
-    aiPlayerIndices,
+    aiSeats,
   };
 }
