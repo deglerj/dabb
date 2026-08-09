@@ -1,21 +1,18 @@
 /**
  * Game error codes for internationalization.
- * Thrown client-side in gameEventFactory; clients translate them via i18n key `serverErrors.*`.
+ * Thrown client-side in gameEventFactory and firebase/session; clients translate them via
+ * the i18n key `serverErrors.*`.
  */
 export const GAME_ERROR_CODES = {
   // Session errors
   SESSION_NOT_FOUND: 'SESSION_NOT_FOUND',
   SESSION_FULL: 'SESSION_FULL',
-  SESSION_CODE_GENERATION_FAILED: 'SESSION_CODE_GENERATION_FAILED',
-  NICKNAME_TOO_LONG: 'NICKNAME_TOO_LONG',
 
   // Game start errors
-  NOT_ENOUGH_PLAYERS: 'NOT_ENOUGH_PLAYERS',
   GAME_ALREADY_STARTED: 'GAME_ALREADY_STARTED',
 
   // General game errors
   NOT_YOUR_TURN: 'NOT_YOUR_TURN',
-  GAME_STATE_NOT_INITIALIZED: 'GAME_STATE_NOT_INITIALIZED',
 
   // Bidding phase errors
   NOT_IN_BIDDING_PHASE: 'NOT_IN_BIDDING_PHASE',
@@ -49,13 +46,6 @@ export const GAME_ERROR_CODES = {
 
   // Game termination errors
   CANNOT_TERMINATE_IN_CURRENT_PHASE: 'CANNOT_TERMINATE_IN_CURRENT_PHASE',
-
-  // AI player errors
-  CANNOT_ADD_AI_WHEN_GAME_STARTED: 'CANNOT_ADD_AI_WHEN_GAME_STARTED',
-  CANNOT_REMOVE_AI_WHEN_GAME_STARTED: 'CANNOT_REMOVE_AI_WHEN_GAME_STARTED',
-  PLAYER_NOT_AI: 'PLAYER_NOT_AI',
-  NO_AVAILABLE_SLOTS: 'NO_AVAILABLE_SLOTS',
-  NOT_HOST: 'NOT_HOST',
 
   // Generic fallback
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',

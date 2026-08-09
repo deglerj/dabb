@@ -142,10 +142,3 @@ function createHiddenCards(count: number): Card[] {
       copy: 0 as const,
     }));
 }
-
-/**
- * Check if a card is hidden (placeholder)
- */
-export function isHiddenCard(card: Card): boolean {
-  return card.id.startsWith('hidden-');
-}

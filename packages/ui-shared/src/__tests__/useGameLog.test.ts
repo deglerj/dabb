@@ -51,43 +51,41 @@ const gameFinishedEvent = makeEvent({
 
 describe('useGameLog — lastImportantEntry', () => {
   it('is null when no events', () => {
-    const { result } = renderHook(() => useGameLog([], null, null));
+    const { result } = renderHook(() => useGameLog([]));
     expect(result.current.lastImportantEntry).toBeNull();
   });
 
   it('is null when only non-important events exist', () => {
-    const { result } = renderHook(() => useGameLog([startedEvent, bidPlacedEvent], null, null));
+    const { result } = renderHook(() => useGameLog([startedEvent, bidPlacedEvent]));
     expect(result.current.lastImportantEntry).toBeNull();
   });
 
   it('returns the most recent important entry (trick_won)', () => {
-    const { result } = renderHook(() => useGameLog([startedEvent, trickWonEvent], null, null));
+    const { result } = renderHook(() => useGameLog([startedEvent, trickWonEvent]));
     expect(result.current.lastImportantEntry?.type).toBe('trick_won');
   });
 
   it('returns the most recent important entry even when newer non-important events follow', () => {
-    const { result } = renderHook(() =>
-      useGameLog([startedEvent, trickWonEvent, bidPlacedEvent], null, null)
-    );
+    const { result } = renderHook(() => useGameLog([startedEvent, trickWonEvent, bidPlacedEvent]));
     // bidPlaced is the newest event but non-important; trickWon is the most recent important entry
     expect(result.current.lastImportantEntry?.type).toBe('trick_won');
   });
 
   it('returns the latest of multiple important entries', () => {
     const { result } = renderHook(() =>
-      useGameLog([startedEvent, trickWonEvent, meldsDeclaredEvent], null, null)
+      useGameLog([startedEvent, trickWonEvent, meldsDeclaredEvent])
     );
     expect(result.current.lastImportantEntry?.type).toBe('melds_declared');
   });
 
   it('returns game_finished when game is over', () => {
     const { result } = renderHook(() =>
-      useGameLog([startedEvent, trickWonEvent, gameFinishedEvent], null, null)
+      useGameLog([startedEvent, trickWonEvent, gameFinishedEvent])
     );
     expect(result.current.lastImportantEntry?.type).toBe('game_finished');
   });
 
-  it('works when important entry is outside the top-5 latestEntries window', () => {
+  it('works when important entry is far behind the newest entries', () => {
     const manyBids = Array.from({ length: 6 }, (_, i) =>
       makeEvent({
         id: `bid-${i}`,
@@ -96,10 +94,8 @@ describe('useGameLog — lastImportantEntry', () => {
         payload: { playerIndex: 0, amount: 150 + i * 10 },
       })
     );
-    const { result } = renderHook(() =>
-      useGameLog([startedEvent, trickWonEvent, ...manyBids], null, null)
-    );
-    // trickWon is 7th from end — outside latestEntries window of 5
+    const { result } = renderHook(() => useGameLog([startedEvent, trickWonEvent, ...manyBids]));
+    // trickWon is 7th from the end — the scan must not stop at a recency window
     expect(result.current.lastImportantEntry?.type).toBe('trick_won');
   });
 });
@@ -107,30 +103,10 @@ describe('useGameLog — lastImportantEntry', () => {
 describe('useGameLog — entry ordering', () => {
   it('entries are in chronological order (oldest first)', () => {
     // sequences 1, 2, 3 match insertion order — no sorting, just pass-through
-    const { result } = renderHook(() =>
-      useGameLog([startedEvent, trickWonEvent, bidPlacedEvent], null, null)
-    );
+    const { result } = renderHook(() => useGameLog([startedEvent, trickWonEvent, bidPlacedEvent]));
     expect(result.current.entries[0].type).toBe('game_started');
     expect(result.current.entries[1].type).toBe('trick_won');
     expect(result.current.entries[2].type).toBe('bid_placed');
-  });
-
-  it('latestEntries are the last N entries in chronological order', () => {
-    const manyBids = Array.from({ length: 6 }, (_, i) =>
-      makeEvent({
-        id: `bid-${i}`,
-        sequence: 10 + i,
-        type: 'BID_PLACED',
-        payload: { playerIndex: 0, amount: 150 + i * 10 },
-      })
-    );
-    const { result } = renderHook(() => useGameLog([startedEvent, ...manyBids], null, null));
-    expect(result.current.latestEntries).toHaveLength(5);
-    // Last 5 of 7 entries = bids 1–5, oldest-first (ascending amounts)
-    const amounts = result.current.latestEntries.map((e) =>
-      e.data.kind === 'bid_placed' ? e.data.amount : null
-    );
-    expect(amounts).toEqual([160, 170, 180, 190, 200]);
   });
 
   it('merges consecutive melds_declared into melds_summary in chronological order', () => {
@@ -146,7 +122,7 @@ describe('useGameLog — entry ordering', () => {
       type: 'MELDS_DECLARED',
       payload: { playerIndex: 1, melds: [], totalPoints: 60 },
     });
-    const { result } = renderHook(() => useGameLog([melds1, melds2], null, null));
+    const { result } = renderHook(() => useGameLog([melds1, melds2]));
     const entry = result.current.lastImportantEntry;
     expect(entry?.type).toBe('melds_summary');
     if (entry?.data.kind === 'melds_summary') {
@@ -167,7 +143,7 @@ describe('useGameLog — event type coverage', () => {
       type: 'GOING_OUT',
       payload: { playerIndex: 1, suit: 'herz' },
     });
-    const { result } = renderHook(() => useGameLog([event], null, null));
+    const { result } = renderHook(() => useGameLog([event]));
     expect(result.current.entries[0]).toMatchObject({
       type: 'going_out',
       playerIndex: 1,
@@ -185,7 +161,7 @@ describe('useGameLog — event type coverage', () => {
         card: { id: 'kreuz-ass-0', suit: 'kreuz', rank: 'ass', copy: 0 },
       },
     });
-    const { result } = renderHook(() => useGameLog([event], null, null));
+    const { result } = renderHook(() => useGameLog([event]));
     expect(result.current.entries[0]).toMatchObject({
       type: 'card_played',
       playerIndex: 0,
@@ -208,7 +184,7 @@ describe('useGameLog — event type coverage', () => {
         totalScores: { 0: 100, 1: 20, 2: 50, 3: 0 },
       },
     });
-    const { result } = renderHook(() => useGameLog([event], null, null));
+    const { result } = renderHook(() => useGameLog([event]));
     expect(result.current.entries[0]).toMatchObject({
       type: 'round_scored',
       playerIndex: null,
@@ -223,7 +199,7 @@ describe('useGameLog — event type coverage', () => {
       type: 'GAME_TERMINATED',
       payload: { terminatedBy: 1, reason: 'player_exit' },
     });
-    const { result } = renderHook(() => useGameLog([event], null, null));
+    const { result } = renderHook(() => useGameLog([event]));
     expect(result.current.entries[0]).toMatchObject({
       type: 'game_terminated',
       playerIndex: 1,
@@ -241,7 +217,7 @@ describe('useGameLog — event type coverage', () => {
         dabbCards: [{ id: 'kreuz-ass-0', suit: 'kreuz', rank: 'ass', copy: 0 as const }],
       },
     });
-    const { result } = renderHook(() => useGameLog([event], null, null));
+    const { result } = renderHook(() => useGameLog([event]));
     expect(result.current.entries[0]).toMatchObject({
       type: 'dabb_taken',
       playerIndex: 0,
@@ -262,7 +238,7 @@ describe('useGameLog — event type coverage', () => {
       type: 'CARDS_DISCARDED',
       payload: { playerIndex: 0, discardedCards: [] },
     });
-    const { result } = renderHook(() => useGameLog([dealt, discarded], null, null));
+    const { result } = renderHook(() => useGameLog([dealt, discarded]));
     expect(result.current.entries).toHaveLength(0);
   });
 
@@ -298,9 +274,7 @@ describe('useGameLog — event type coverage', () => {
       payload: { playerCount: 4, targetScore: 1500, dealer: 0 },
     });
 
-    const { result } = renderHook(() =>
-      useGameLog([joined0, joined1, joined2, joined3, started], null, null)
-    );
+    const { result } = renderHook(() => useGameLog([joined0, joined1, joined2, joined3, started]));
 
     const teamsEntry = result.current.entries.find((e) => e.type === 'teams_announced');
     expect(teamsEntry?.data).toMatchObject({
@@ -308,47 +282,5 @@ describe('useGameLog — event type coverage', () => {
       team0: expect.arrayContaining(['Alice', 'Carol']),
       team1: expect.arrayContaining(['Bob', 'Dave']),
     });
-  });
-});
-
-describe('useGameLog — isYourTurn', () => {
-  it('is true when it is your turn in bidding phase', () => {
-    const state = {
-      phase: 'bidding',
-      currentPlayer: 0,
-    } as unknown as import('@dabb/shared-types').GameState;
-    const { result } = renderHook(() =>
-      useGameLog([], state, 0 as import('@dabb/shared-types').PlayerIndex)
-    );
-    expect(result.current.isYourTurn).toBe(true);
-  });
-
-  it('is true when it is your turn in tricks phase', () => {
-    const state = {
-      phase: 'tricks',
-      currentPlayer: 1,
-    } as unknown as import('@dabb/shared-types').GameState;
-    const { result } = renderHook(() =>
-      useGameLog([], state, 1 as import('@dabb/shared-types').PlayerIndex)
-    );
-    expect(result.current.isYourTurn).toBe(true);
-  });
-
-  it('is false in melding phase even when player index matches currentPlayer', () => {
-    const state = {
-      phase: 'melding',
-      currentPlayer: 0,
-    } as unknown as import('@dabb/shared-types').GameState;
-    const { result } = renderHook(() =>
-      useGameLog([], state, 0 as import('@dabb/shared-types').PlayerIndex)
-    );
-    expect(result.current.isYourTurn).toBe(false);
-  });
-
-  it('is false when state is null', () => {
-    const { result } = renderHook(() =>
-      useGameLog([], null, 0 as import('@dabb/shared-types').PlayerIndex)
-    );
-    expect(result.current.isYourTurn).toBe(false);
   });
 });

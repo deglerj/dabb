@@ -40,7 +40,6 @@ import { DABB_SIZE, SUIT_NAMES, formatMeldName } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
 import { useGameDimensions, MAX_GAME_WIDTH } from '../../hooks/useGameDimensions.js';
-import { useTurnNotification } from '../../hooks/useTurnNotification.js';
 import { useTurnHaptic } from '../../hooks/useTurnHaptic.js';
 import { playSound } from '../../utils/sounds.js';
 import { triggerHaptic } from '../../utils/haptics.js';
@@ -207,7 +206,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const { rounds, currentRound } = useRoundHistory(events);
 
   // Game log
-  const { entries: logEntries, lastImportantEntry } = useGameLog(events, state, playerIndex);
+  const { entries: logEntries, lastImportantEntry } = useGameLog(events);
   const richLogEntries = useMemo(
     (): RichLogEntry[] =>
       logEntries.map((e) => ({
@@ -249,7 +248,6 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     state.players
   );
 
-  useTurnNotification(state, playerIndex, isInitialLoad);
   useTurnHaptic(state, playerIndex, isInitialLoad);
 
   // Sound effects: play on new events, suppressed during initial load on reconnect.

@@ -25,14 +25,6 @@ export type {
   LayoutDimensions,
 } from './src/cards/cardPositions.js';
 
-// Animations
-export { interpolateArc } from './src/animations/arcPath.js';
-export type { Point } from './src/animations/arcPath.js';
-export { computeDealSchedule } from './src/animations/dealSequence.js';
-export type { DealEntry } from './src/animations/dealSequence.js';
-export { computeSweepSchedule } from './src/animations/trickSweep.js';
-export type { SweepEntry } from './src/animations/trickSweep.js';
-
 // Overlays
 export { PhaseOverlay } from './src/overlays/PhaseOverlay.js';
 export type { PhaseOverlayProps } from './src/overlays/PhaseOverlay.js';

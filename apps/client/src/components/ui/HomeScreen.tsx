@@ -15,6 +15,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@dabb/i18n';
 import type { PlayerCount } from '@dabb/shared-types';
+import { GameError } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import { Colors, Fonts } from '../../theme.js';
 import { storageGet, storageSet } from '../../hooks/useStorage.js';
@@ -26,6 +27,19 @@ import { useInstallPrompt } from '../../hooks/useInstallPrompt.js';
 import { InstallInstructionsDialog } from './InstallInstructionsDialog.js';
 
 type Mode = 'menu' | 'create' | 'join' | 'offline';
+
+/**
+ * Session failures carry a GAME_ERROR_CODES value, which has a `serverErrors.*` translation.
+ * Anything else is a bug rather than a rejected action, so it falls back to the generic text
+ * instead of putting a raw exception message on screen.
+ */
+function sessionErrorText(err: unknown, t: (key: string) => string): string {
+  if (err instanceof GameError) {
+    return t(`serverErrors.${err.code}`);
+  }
+  return t('errors.unknownError');
+}
+
 type GamePhaseString = string;
 
 export default function HomeScreen() {
@@ -99,7 +113,7 @@ export default function HomeScreen() {
       await storageSet('dabb-nickname', nickname.trim());
       navigate(`/waiting-room/${result.sessionCode}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.unknownError'));
+      setError(sessionErrorText(err, t));
     } finally {
       setLoading(false);
     }
@@ -133,7 +147,7 @@ export default function HomeScreen() {
       await storageSet('dabb-nickname', nickname.trim());
       navigate(`/waiting-room/${code}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.unknownError'));
+      setError(sessionErrorText(err, t));
     } finally {
       setLoading(false);
     }

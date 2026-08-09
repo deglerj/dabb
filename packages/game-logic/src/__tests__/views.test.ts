@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Card, CardId, GameEvent, PlayerIndex } from '@dabb/shared-types';
-import { filterEventForPlayer, filterEventsForPlayer, isHiddenCard } from '../state/views.js';
+import { filterEventForPlayer, filterEventsForPlayer } from '../state/views.js';
 
 // Helper to make a visible card
 function visibleCard(suit: Card['suit'], rank: Card['rank'], copy: 0 | 1 = 0): Card {
@@ -293,27 +293,5 @@ describe('filterEventsForPlayer', () => {
     const filtered = filterEventsForPlayer(events, 1 as PlayerIndex);
     const discard = filtered[2] as Extract<GameEvent, { type: 'CARDS_DISCARDED' }>;
     expect(discard.payload.discardedCards).toEqual(['hidden']);
-  });
-});
-
-describe('isHiddenCard', () => {
-  it('returns true for cards with hidden- prefix', () => {
-    const hidden: Card = { id: 'hidden-0', suit: 'kreuz', rank: 'buabe', copy: 0 };
-    expect(isHiddenCard(hidden)).toBe(true);
-  });
-
-  it('returns true for hidden-1 etc.', () => {
-    const hidden: Card = { id: 'hidden-1', suit: 'kreuz', rank: 'buabe', copy: 0 };
-    expect(isHiddenCard(hidden)).toBe(true);
-  });
-
-  it('returns false for real card IDs', () => {
-    const real: Card = visibleCard('herz', 'ass');
-    expect(isHiddenCard(real)).toBe(false);
-  });
-
-  it('returns false for a card whose ID contains "hidden" elsewhere', () => {
-    const real: Card = { id: 'kreuz-ass-hidden', suit: 'kreuz', rank: 'ass', copy: 0 };
-    expect(isHiddenCard(real)).toBe(false);
   });
 });

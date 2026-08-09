@@ -3,16 +3,7 @@
  */
 
 import { useMemo } from 'react';
-import type {
-  GameEvent,
-  GameLogEntry,
-  GameState,
-  PlayerIndex,
-  Suit,
-  Team,
-} from '@dabb/shared-types';
-
-const DEFAULT_VISIBLE_ENTRIES = 5;
+import type { GameEvent, GameLogEntry, PlayerIndex, Suit, Team } from '@dabb/shared-types';
 
 const IMPORTANT_ENTRY_TYPES = new Set<GameLogEntry['type']>([
   'going_out',
@@ -25,12 +16,8 @@ const IMPORTANT_ENTRY_TYPES = new Set<GameLogEntry['type']>([
 export interface GameLogResult {
   /** All log entries in chronological order (oldest first) */
   entries: GameLogEntry[];
-  /** The latest N entries for collapsed view (last N, chronological order) */
-  latestEntries: GameLogEntry[];
   /** The most recent entry considered important (going out, trick/meld/round/game won) */
   lastImportantEntry: GameLogEntry | null;
-  /** Whether it's the current player's turn */
-  isYourTurn: boolean;
 }
 
 /**
@@ -38,11 +25,7 @@ export interface GameLogResult {
  * Skips secret events (CARDS_DEALT, MELDING_COMPLETE). CARDS_DISCARDED is logged only for
  * the trump cards the bid winner buried — those must be announced, the rest stay face down.
  */
-export function useGameLog(
-  events: GameEvent[],
-  state: GameState | null,
-  currentPlayerIndex: PlayerIndex | null
-): GameLogResult {
+export function useGameLog(events: GameEvent[]): GameLogResult {
   return useMemo(() => {
     const entries: GameLogEntry[] = [];
     const playerTeamData = new Map<PlayerIndex, { nickname: string; team: Team }>();
@@ -115,22 +98,11 @@ export function useGameLog(
       }
     }
 
-    // Determine if it's the current player's turn
-    const isYourTurn =
-      currentPlayerIndex !== null &&
-      state !== null &&
-      state.currentPlayer === currentPlayerIndex &&
-      (state.phase === 'bidding' || state.phase === 'tricks');
-
-    const lastImportantEntry = synthesizeLastImportantEntry(entries);
-
     return {
       entries,
-      latestEntries: entries.slice(-DEFAULT_VISIBLE_ENTRIES),
-      lastImportantEntry,
-      isYourTurn,
+      lastImportantEntry: synthesizeLastImportantEntry(entries),
     };
-  }, [events, state, currentPlayerIndex]);
+  }, [events]);
 }
 
 /**

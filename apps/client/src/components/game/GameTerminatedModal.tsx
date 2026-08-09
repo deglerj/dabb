@@ -1,6 +1,6 @@
 /**
  * GameTerminatedModal — shown when the game ends (someone reached the target score
- * or the session was terminated). Uses a centered card over a transparent backdrop.
+ * or the session was terminated). Uses a centered card over a  backdrop.
  */
 import { Modal, View, Text, Pressable, StyleSheet } from '@dabb/rn-compat';
 import { Colors, Fonts, Shadows } from '../../theme.js';
@@ -48,7 +48,7 @@ export function GameTerminatedModal({
   }
 
   return (
-    <Modal transparent animationType="fade" visible={visible}>
+    <Modal visible={visible}>
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <Text style={styles.title}>{title}</Text>

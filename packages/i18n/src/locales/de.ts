@@ -250,14 +250,10 @@ const de: TranslationKeys = {
     // Session errors
     SESSION_NOT_FOUND: 'Sitzung nicht gefunden',
     SESSION_FULL: 'Sitzung ist voll',
-    SESSION_CODE_GENERATION_FAILED: 'Spielcode konnte nicht erstellt werden',
-    NICKNAME_TOO_LONG: 'Der Spitzname darf maximal 10 Zeichen lang sein',
     // Game start errors
-    NOT_ENOUGH_PLAYERS: 'Es werden {{required}} Spieler benötigt',
     GAME_ALREADY_STARTED: 'Spiel hat bereits begonnen',
     // General game errors
     NOT_YOUR_TURN: 'Du bist nicht am Zug',
-    GAME_STATE_NOT_INITIALIZED: 'Spielzustand nicht initialisiert',
     // Bidding phase errors
     NOT_IN_BIDDING_PHASE: 'Nicht in der Reizphase',
     NOT_YOUR_TURN_TO_BID: 'Du bist nicht am Reizen',
@@ -285,13 +281,6 @@ const de: TranslationKeys = {
     // Game termination errors
     CANNOT_TERMINATE_IN_CURRENT_PHASE: 'Spiel kann in dieser Phase nicht beendet werden',
     // AI player errors
-    CANNOT_ADD_AI_WHEN_GAME_STARTED:
-      'KI kann nicht hinzugefügt werden nachdem das Spiel gestartet wurde',
-    CANNOT_REMOVE_AI_WHEN_GAME_STARTED:
-      'KI kann nicht entfernt werden nachdem das Spiel gestartet wurde',
-    PLAYER_NOT_AI: 'Spieler ist kein KI-Spieler',
-    NO_AVAILABLE_SLOTS: 'Keine freien Plätze verfügbar',
-    NOT_HOST: 'Nur der Gastgeber kann diese Aktion ausführen',
     // Generic fallback
     UNKNOWN_ERROR: 'Unbekannter Fehler',
   },

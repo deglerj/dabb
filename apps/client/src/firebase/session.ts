@@ -3,6 +3,7 @@ import { db } from './config.js';
 import { generateSessionCode } from './sessionCode.js';
 import { getOrCreateSecretId, hashSecretId } from './secretId.js';
 import type { PlayerCount, PlayerIndex } from '@dabb/shared-types';
+import { GameError, GAME_ERROR_CODES } from '@dabb/shared-types';
 
 export interface SessionPlayer {
   nickname: string;
@@ -62,13 +63,13 @@ export async function joinSession(
   const snapshot = await get(metaRef);
 
   if (!snapshot.exists()) {
-    throw new Error('SESSION_NOT_FOUND');
+    throw new GameError(GAME_ERROR_CODES.SESSION_NOT_FOUND);
   }
 
   const meta = snapshot.val() as SessionMeta;
 
   if (meta.status !== 'waiting') {
-    throw new Error('GAME_STARTED');
+    throw new GameError(GAME_ERROR_CODES.GAME_ALREADY_STARTED);
   }
 
   const takenSlots = Object.keys(meta.players).map(Number);
@@ -81,7 +82,7 @@ export async function joinSession(
   }
 
   if (playerIndex === null) {
-    throw new Error('SESSION_FULL');
+    throw new GameError(GAME_ERROR_CODES.SESSION_FULL);
   }
 
   const secretId = await getOrCreateSecretId(code);
@@ -111,7 +112,7 @@ export async function addAIPlayer(
     }
   }
   if (playerIndex === null) {
-    throw new Error('SESSION_FULL');
+    throw new GameError(GAME_ERROR_CODES.SESSION_FULL);
   }
 
   await set(ref(db, `sessions/${sessionCode}/meta/players/${playerIndex}`), {

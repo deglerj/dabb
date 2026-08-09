@@ -16,7 +16,6 @@ interface UseGameStateReturn {
   events: GameEvent[];
   isInitialLoad: boolean;
   processEvents: (newEvents: GameEvent[]) => void;
-  reset: () => void;
 }
 
 export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
@@ -66,18 +65,10 @@ export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
     }
   }, [events]);
 
-  const reset = useCallback(() => {
-    setRawEvents([]);
-    setEvents([]);
-    setState(createInitialState(initialPlayerCount));
-    setIsInitialLoad(true);
-  }, [initialPlayerCount]);
-
   return {
     state,
     events,
     isInitialLoad,
     processEvents,
-    reset,
   };
 }

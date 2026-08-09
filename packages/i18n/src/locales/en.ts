@@ -249,14 +249,10 @@ const en: TranslationKeys = {
     // Session errors
     SESSION_NOT_FOUND: 'Session not found',
     SESSION_FULL: 'Session is full',
-    SESSION_CODE_GENERATION_FAILED: 'Failed to generate game code',
-    NICKNAME_TOO_LONG: 'Nickname must be 10 characters or fewer',
     // Game start errors
-    NOT_ENOUGH_PLAYERS: '{{required}} players are required',
     GAME_ALREADY_STARTED: 'Game has already started',
     // General game errors
     NOT_YOUR_TURN: "It's not your turn",
-    GAME_STATE_NOT_INITIALIZED: 'Game state not initialized',
     // Bidding phase errors
     NOT_IN_BIDDING_PHASE: 'Not in bidding phase',
     NOT_YOUR_TURN_TO_BID: "It's not your turn to bid",
@@ -284,11 +280,6 @@ const en: TranslationKeys = {
     // Game termination errors
     CANNOT_TERMINATE_IN_CURRENT_PHASE: 'Game cannot be terminated in current phase',
     // AI player errors
-    CANNOT_ADD_AI_WHEN_GAME_STARTED: 'Cannot add AI after the game has started',
-    CANNOT_REMOVE_AI_WHEN_GAME_STARTED: 'Cannot remove AI after the game has started',
-    PLAYER_NOT_AI: 'Player is not an AI player',
-    NO_AVAILABLE_SLOTS: 'No available slots',
-    NOT_HOST: 'Only the host can perform this action',
     // Generic fallback
     UNKNOWN_ERROR: 'Unknown error',
   },

@@ -55,19 +55,11 @@ export {
   createInitialState,
   filterEventForPlayer,
   filterEventsForPlayer,
-  isHiddenCard,
   resetForNewRound,
   whoActsNext,
   determineGameWinner,
 } from './state/index.js';
 
 // Export
-export {
-  formatCard,
-  formatCards,
-  formatSuit,
-  formatMeld,
-  formatMelds,
-  formatEventLog,
-} from './export/index.js';
+export { formatCard, formatSuit, formatEventLog } from './export/index.js';
 export type { PlayerInfo, EventLogOptions } from './export/index.js';

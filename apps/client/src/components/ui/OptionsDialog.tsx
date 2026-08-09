@@ -55,7 +55,7 @@ export function OptionsDialog({ visible, onClose, onExitGame }: OptionsDialogPro
   }, []);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} onRequestClose={onClose}>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity style={styles.card} activeOpacity={1} onPress={() => undefined}>
           {/* Header */}

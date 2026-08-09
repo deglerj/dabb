@@ -255,14 +255,10 @@ export interface TranslationKeys {
     // Session errors
     SESSION_NOT_FOUND: string;
     SESSION_FULL: string;
-    SESSION_CODE_GENERATION_FAILED: string;
-    NICKNAME_TOO_LONG: string;
     // Game start errors
-    NOT_ENOUGH_PLAYERS: string;
     GAME_ALREADY_STARTED: string;
     // General game errors
     NOT_YOUR_TURN: string;
-    GAME_STATE_NOT_INITIALIZED: string;
     // Bidding phase errors
     NOT_IN_BIDDING_PHASE: string;
     NOT_YOUR_TURN_TO_BID: string;
@@ -290,11 +286,6 @@ export interface TranslationKeys {
     // Game termination errors
     CANNOT_TERMINATE_IN_CURRENT_PHASE: string;
     // AI player errors
-    CANNOT_ADD_AI_WHEN_GAME_STARTED: string;
-    CANNOT_REMOVE_AI_WHEN_GAME_STARTED: string;
-    PLAYER_NOT_AI: string;
-    NO_AVAILABLE_SLOTS: string;
-    NOT_HOST: string;
     // Generic fallback
     UNKNOWN_ERROR: string;
   };

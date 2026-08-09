@@ -317,10 +317,8 @@ export function ActivityIndicator({
 // Modal — native <dialog>, gets ESC-to-close and focus trapping for free.
 // ---------------------------------------------------------------------------
 
-export interface ModalProps {
+interface ModalProps {
   visible?: boolean;
-  transparent?: boolean;
-  animationType?: 'none' | 'fade';
   onRequestClose?: () => void;
   children?: ReactNode;
 }
