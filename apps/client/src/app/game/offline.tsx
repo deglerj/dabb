@@ -12,7 +12,7 @@ export default function OfflineGameRoute() {
   const isResume = searchParams.get('resume') === 'true';
 
   const game = useOfflineGame({
-    playerCount: (Number(playerCount) || 2) as PlayerCount,
+    playerCount: (Number(playerCount) || 3) as PlayerCount,
     difficulty: (difficulty as AIDifficulty) || 'medium',
     nickname: nickname || 'Ich',
     resume: isResume,

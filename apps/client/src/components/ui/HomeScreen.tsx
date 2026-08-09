@@ -49,7 +49,7 @@ export default function HomeScreen() {
 
   const [mode, setMode] = useState<Mode>('menu');
   const [nickname, setNickname] = useState('');
-  const [playerCount, setPlayerCount] = useState<PlayerCount>(2);
+  const [playerCount, setPlayerCount] = useState<PlayerCount>(3);
   const [difficulty, setDifficulty] = useState<AIDifficulty>('medium');
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
