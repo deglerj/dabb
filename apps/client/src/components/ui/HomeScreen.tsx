@@ -290,6 +290,7 @@ export default function HomeScreen() {
               {([2, 3, 4] as PlayerCount[]).map((count) => (
                 <TouchableOpacity
                   key={count}
+                  testID={`home-player-count-${count}`}
                   style={[
                     styles.countButton,
                     playerCount === count ? styles.countButtonActive : styles.countButtonInactive,

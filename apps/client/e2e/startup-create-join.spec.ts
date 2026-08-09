@@ -11,6 +11,8 @@ test('create a session and join it from a second browser context', async ({ page
 
   await page.getByTestId('home-create-online-button').click();
   await page.getByTestId('home-nickname-input').fill('Host');
+  // Pick 2 explicitly so the test doesn't depend on the default player count.
+  await page.getByTestId('home-player-count-2').click();
   await page.getByTestId('home-submit-button').click();
 
   await expect(page.getByTestId('waiting-room-session-code')).toBeVisible();
