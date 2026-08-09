@@ -26,17 +26,9 @@ import {
   useRoundHistory,
   useCelebration,
 } from '@dabb/ui-shared';
-import { detectMelds, formatCard, formatSuit } from '@dabb/game-logic';
-import type {
-  PlayerIndex,
-  Card,
-  GameLogEntry,
-  Suit,
-  Rank,
-  Team,
-  TeamScoreEntry,
-} from '@dabb/shared-types';
-import { DABB_SIZE, SUIT_NAMES, formatMeldName } from '@dabb/shared-types';
+import { detectMelds } from '@dabb/game-logic';
+import type { PlayerIndex, Card, Team, TeamScoreEntry } from '@dabb/shared-types';
+import { DABB_SIZE } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
 import { useGameDimensions, MAX_GAME_WIDTH } from '../../hooks/useGameDimensions.js';
@@ -49,7 +41,6 @@ import { PlayerHand } from '../game/PlayerHand.js';
 import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
 import { ScoreboardStrip } from '../game/ScoreboardStrip.js';
 import { GameLogTab } from '../game/GameLogTab.js';
-import type { RichLogEntry } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
 import { deriveWinnerInfo } from '../game/winnerInfo.js';
@@ -93,86 +84,6 @@ function computeOpponentPositions(
   return positions;
 }
 
-/** Rebuild a Card from its `suit-rank-copy` ID, for log entries that carry only IDs. */
-function cardFromId(cardId: string): Card {
-  const [suit, rank, copy] = cardId.split('-');
-  return {
-    id: cardId,
-    suit: suit as Suit,
-    rank: rank as Rank,
-    copy: Number(copy) as 0 | 1,
-  };
-}
-
-/**
- * Format a GameLogEntry into a human-readable string.
- */
-function formatLogEntryText(
-  entry: GameLogEntry,
-  nicknames: Map<PlayerIndex, string>,
-  t: (key: string, options?: Record<string, unknown>) => string
-): string {
-  const name =
-    entry.playerIndex !== null ? (nicknames.get(entry.playerIndex) ?? `P${entry.playerIndex}`) : '';
-  const d = entry.data;
-
-  switch (d.kind) {
-    case 'game_started':
-      return t('gameLog.gameStarted', { playerCount: d.playerCount, targetScore: d.targetScore });
-    case 'teams_announced':
-      return t('gameLog.teamsAnnounced', { team0: d.team0.join(', '), team1: d.team1.join(', ') });
-    case 'round_started':
-      return t('gameLog.roundStarted', { round: d.round });
-    case 'bid_placed':
-      return t('gameLog.bidPlaced', { name, amount: d.amount });
-    case 'player_passed':
-      return t('gameLog.playerPassed', { name });
-    case 'bidding_won':
-      return t('gameLog.biddingWon', { name, bid: d.winningBid });
-    case 'dabb_taken':
-      return t('gameLog.dabbTaken', { name });
-    case 'trump_discarded':
-      return t('gameLog.trumpDiscarded', {
-        name,
-        cards: d.cards.map((cardId) => formatCard(cardFromId(cardId))).join(', '),
-      });
-    case 'going_out':
-      return t('gameLog.goingOut', { name, suit: formatSuit(d.suit) });
-    case 'trump_declared':
-      return t('gameLog.trumpDeclared', { name, suit: formatSuit(d.suit) });
-    case 'melds_declared':
-      return d.totalPoints === 0
-        ? t('gameLog.meldsNone', { name })
-        : t('gameLog.meldsDeclared', { name, points: d.totalPoints });
-    case 'melds_summary':
-      return d.playerMelds
-        .map((pm) => {
-          const pmName = nicknames.get(pm.playerIndex) ?? `P${pm.playerIndex}`;
-          return pm.totalPoints === 0
-            ? t('gameLog.meldsNone', { name: pmName })
-            : t('gameLog.meldsDeclared', { name: pmName, points: pm.totalPoints });
-        })
-        .join(', ');
-    case 'card_played':
-      return t('gameLog.cardPlayed', { name, card: formatCard(d.card) });
-    case 'trick_won':
-      return t('gameLog.trickWon', { name, points: d.points });
-    case 'round_scored':
-      return t('gameLog.roundScored');
-    case 'game_finished':
-      return t('gameLog.gameFinished', {
-        name: d.winnerNames.join(' & '),
-      });
-    case 'game_terminated':
-      return t('gameLog.gameTerminated', { name });
-    default: {
-      const _exhaustive: never = d;
-      void _exhaustive;
-      return entry.type;
-    }
-  }
-}
-
 export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -208,27 +119,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const { rounds, currentRound } = useRoundHistory(events);
 
   // Game log
-  const { entries: logEntries, lastImportantEntry } = useGameLog(events);
-  const richLogEntries = useMemo(
-    (): RichLogEntry[] =>
-      logEntries.map((e) => ({
-        key: e.id,
-        text: formatLogEntryText(e, nicknames, t),
-        detail:
-          e.data.kind === 'melds_declared'
-            ? e.data.melds.map((meld) => ({
-                name: formatMeldName(meld, SUIT_NAMES),
-                cards: meld.cards.map((cardId) => formatCard(cardFromId(cardId))),
-                points: meld.points,
-              }))
-            : undefined,
-      })),
-    [logEntries, nicknames, t]
-  );
-  const collapsedSummary = useMemo(
-    () => (lastImportantEntry ? formatLogEntryText(lastImportantEntry, nicknames, t) : undefined),
-    [lastImportantEntry, nicknames, t]
-  );
+  const { entries: logEntries, collapsedSummary } = useGameLog(events, nicknames, t);
 
   // Opponent positions
   const opponentPositions = useMemo(
@@ -639,7 +530,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
             {/* Game log */}
             <View style={styles.logContainer}>
               <GameLogTab
-                entries={richLogEntries}
+                entries={logEntries}
                 collapsedSummary={collapsedSummary}
                 isExpanded={logExpanded}
                 onToggle={() => setLogExpanded((v) => !v)}

@@ -74,28 +74,6 @@ export type {
   AITakeDabbAction,
 } from './ai.js';
 
-// Game log types
-export type {
-  GameLogEntry,
-  GameLogEntryData,
-  GameLogEntryType,
-  GameStartedLogData,
-  TeamsAnnouncedLogData,
-  RoundStartedLogData,
-  BidPlacedLogData,
-  PlayerPassedLogData,
-  BiddingWonLogData,
-  DabbTakenLogData,
-  GoingOutLogData,
-  TrumpDeclaredLogData,
-  MeldsDeclaredLogData,
-  CardPlayedLogData,
-  TrickWonLogData,
-  RoundScoredLogData,
-  GameFinishedLogData,
-  GameTerminatedLogData,
-} from './gameLog.js';
-
 // Error types
 export type { ServerErrorCode } from './errors.js';
 export { GameError, GAME_ERROR_CODES } from './errors.js';
