@@ -52,6 +52,7 @@ import { GameLogTab } from '../game/GameLogTab.js';
 import type { RichLogEntry } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
+import { deriveWinnerInfo } from '../game/winnerInfo.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
 import { OptionsButton } from './OptionsButton.js';
@@ -382,51 +383,10 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   // Termination — derive winner info for 4-player (team) and 2/3-player (individual)
   const isTerminated = state.phase === 'terminated' || state.phase === 'finished';
 
-  const winnerInfo = useMemo(() => {
-    if (state.phase !== 'finished') {
-      return null;
-    }
-    if (state.playerCount === 4) {
-      // 4-player: totalScores keyed by Team
-      const winningTeam =
-        ([0, 1] as Team[]).find((t) => (state.totalScores.get(t) ?? 0) >= state.targetScore) ??
-        null;
-      if (winningTeam === null) {
-        return null;
-      }
-      const myPlayer = state.players.find((p) => p.playerIndex === playerIndex);
-      const isLocalWinner = myPlayer?.team === winningTeam;
-      const winnerNicknames = state.players
-        .filter((p) => p.team === winningTeam)
-        .sort((a, b) => a.playerIndex - b.playerIndex)
-        .map((p) => nicknames.get(p.playerIndex) ?? p.nickname);
-      const winnerId = state.players.find((p) => p.team === winningTeam)?.id ?? null;
-      return { winnerId, winnerNicknames, isLocalWinner };
-    } else {
-      // 2/3-player: totalScores keyed by PlayerIndex
-      const winnerPlayer =
-        state.players.find((p) => {
-          const score = state.totalScores.get(p.playerIndex);
-          return score !== undefined && score >= state.targetScore;
-        }) ?? null;
-      if (!winnerPlayer) {
-        return null;
-      }
-      return {
-        winnerId: winnerPlayer.id,
-        winnerNicknames: [nicknames.get(winnerPlayer.playerIndex) ?? winnerPlayer.nickname],
-        isLocalWinner: winnerPlayer.playerIndex === playerIndex,
-      };
-    }
-  }, [
-    state.phase,
-    state.playerCount,
-    state.totalScores,
-    state.targetScore,
-    state.players,
-    playerIndex,
-    nicknames,
-  ]);
+  const winnerInfo = useMemo(
+    () => deriveWinnerInfo(state, nicknames, playerIndex),
+    [state, nicknames, playerIndex]
+  );
 
   // Block accidental navigation (browser back button, closing the tab) while a game is in
   // progress — the explicit exit/done/reload paths below set skipBlockRef first, since they
