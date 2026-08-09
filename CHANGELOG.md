@@ -2,6 +2,30 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.0.0] - 2026-08-09
+
+### Breaking Changes
+
+- **Bitte alle Mitspieler die Seite neu laden lassen, bevor ihr eine neue Runde startet.** Der Reizgewinner sagt jetzt zuerst Trumpf an und drückt erst danach — der Ablauf einer Runde hat sich also geändert. Wer noch die alte Version im Browser hat, kann einer Runde aus der neuen Version nicht mehr folgen. Dabb fragt beim Start selbst nach, sobald eine neue Version bereitsteht; ein laufendes Spiel solltet ihr vorher zu Ende spielen. Auch ein gespeichertes Offline-Spiel aus der alten Version lässt sich nicht fortsetzen — startet es bitte neu.
+
+### Neues
+
+- **Trumpf ansagen kommt jetzt vor dem Drücken.** Der Reizgewinner nimmt den Dabb, sagt Trumpf an und legt erst dann vier Karten ab. So ist das Drücken eine echte Entscheidung: Ihr wisst beim Ablegen, was Trumpf ist.
+- **Gedrückte Trümpfe werden angesagt.** Wer beim Drücken einen Trumpf wegwirft, muss das ansagen — im Spielverlauf steht dann zum Beispiel "Anna legt Herz-Ass ab (Trumpf)". Die übrigen abgelegten Karten bleiben wie bisher verdeckt.
+- **Die Regelseite erklärt jetzt auch das Zählen.** Neu dazugekommen sind die Abschnitte "Punkte" und "Abgehen": Was die gedrückten Karten und der letzte Stich bringen, was ein verfehltes Gebot kostet und was beim Abgehen passiert.
+
+### Behoben
+
+- **Ein verfehltes Gebot ist im Punktestand nachvollziehbar.** Die Rundenübersicht zeigte Meldungen und Stiche an und darunter eine Zahl, die zu beidem nicht passte. Jetzt steht dort, woher sie kommt: "Gebot 160 × 2".
+- **Die Kartenzahl des Reizgewinners stimmt wieder.** Für die Mitspieler sah es so aus, als behalte er den Dabb die ganze Runde über auf der Hand — bei zwei Spielern also 22 statt 18 Karten.
+- **Gleichstand beim Sieg geht an den Reizgewinner.** Erreichen mehrere in derselben Runde die 1000 und stehen exakt gleich, gewinnt jetzt, wer gereizt hat — vorher entschied schlicht die Sitzreihenfolge.
+- **Meldungen lassen sich nicht mehr fälschen.** Was gemeldet wird, ermittelt das Spiel jetzt selbst aus der Hand, statt es vom Client entgegenzunehmen.
+- Abgehen fragt nicht mehr nach einer Farbe — Trumpf ist zu diesem Zeitpunkt bereits angesagt.
+
+### Sonstiges
+
+- Die Regeln, nach denen Dabb rechnet, stehen jetzt vollständig in der README: Kartenverteilung je Spielerzahl, Reizen, Punkte, Abgehen und welche Karten in mehreren Meldungen zählen dürfen.
+
 ## [3.1.0] - 2026-08-08
 
 ### Neues
