@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.3.2] - 2026-08-10
+
+### Behoben
+
+- Ein fertiger Stich verschwand manchmal sofort vom Tisch, wenn die nächste Karte gleich danach gespielt wurde. Jetzt bleibt er immer mindestens eine Sekunde liegen, damit man ihn in Ruhe ansehen kann.
+
 ## [4.3.1] - 2026-08-10
 
 ### Verbessert

@@ -158,6 +158,13 @@ describe('useTrickAnimationState', () => {
       rerender({ trick: trickWith1, completed: completedTrick3 });
     });
 
+    // Held for the 1s minimum first — the completed trick is still the one on the table
+    expect(result.current.animPhase).toBe('paused');
+    expect(result.current.displayCards).toHaveLength(3);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
     expect(result.current.animPhase).toBe('showing');
     expect(result.current.displayCards).toHaveLength(1);
 
@@ -166,6 +173,38 @@ describe('useTrickAnimationState', () => {
       vi.advanceTimersByTime(3500);
     });
     expect(result.current.animPhase).toBe('showing');
+  });
+
+  it('holds a completed trick for 1s even when the winner leads instantly (regression)', () => {
+    const { result, rerender } = renderHook(
+      ({ trick, completed }) => useTrickAnimationState(trick, completed, 'tricks', players, false),
+      { initialProps: { trick: trickWith3, completed: null as CompletedTrick | null } }
+    );
+
+    act(() => {
+      rerender({ trick: emptyTrick, completed: completedTrick3 });
+    });
+
+    // Human winner clicks their next card straight away
+    act(() => {
+      rerender({ trick: trickWith1, completed: completedTrick3 });
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(999);
+    });
+    expect(result.current.animPhase).toBe('paused');
+    expect(result.current.displayCards.map((c) => c.cardId)).toEqual([
+      'card-a',
+      'card-b',
+      'card-c',
+    ]);
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(result.current.animPhase).toBe('showing');
+    expect(result.current.displayCards.map((c) => c.cardId)).toEqual(['card-a']);
   });
 
   it('does not trigger pause on initial load with stale lastCompletedTrick', () => {
