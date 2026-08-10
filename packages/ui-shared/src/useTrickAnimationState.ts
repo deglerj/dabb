@@ -11,6 +11,13 @@ import type {
 const PAUSE_DURATION = 3000;
 const SWEEP_ARRIVAL_GAP = 200;
 const SWEEP_CARD_DURATION = 400;
+/**
+ * Floor on how long a completed trick stays on the table, even when the next card is played
+ * immediately. The pause is cancelled early so play never feels blocked, but a human winner
+ * who leads instantly used to wipe the trick before anyone could read it. Bots pace themselves
+ * (AI_TRICK_COMPLETE_DELAY_MS) and so never hit this.
+ */
+const MIN_TRICK_HOLD_MS = 1000;
 
 export type TrickAnimPhase = 'idle' | 'showing' | 'paused' | 'sweeping';
 
@@ -45,6 +52,7 @@ export function useTrickAnimationState(
 
   const prevTrickKeyRef = useRef<string | null>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const pauseStartRef = useRef(0);
 
   const clearAllTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);
@@ -107,6 +115,7 @@ export function useTrickAnimationState(
     clearAllTimers();
 
     const winner = players.find((p) => p.playerIndex === lastCompletedTrick.winnerIndex);
+    pauseStartRef.current = Date.now();
     setAnimPhase('paused');
     setDisplayCards(lastCompletedTrick.cards);
     setWinnerIndex(lastCompletedTrick.winnerIndex);
@@ -144,16 +153,28 @@ export function useTrickAnimationState(
     timersRef.current.push(pauseTimer);
   }, [lastCompletedTrick, players, clearAllTimers, isInitialLoad]);
 
-  // Cancel pause early if next card is played while paused
+  // Cancel pause early if next card is played while paused — but never before the completed
+  // trick has been on the table for MIN_TRICK_HOLD_MS.
+  const cards = currentTrick.cards;
   useEffect(() => {
-    if (animPhase === 'paused' && currentTrick.cards.length > 0) {
-      clearAllTimers();
+    if (animPhase !== 'paused' || cards.length === 0) {
+      return;
+    }
+    const showNext = () => {
       setAnimPhase('showing');
-      setDisplayCards(currentTrick.cards);
+      setDisplayCards(cards);
       setWinnerIndex(null);
       setWinnerPlayerId(null);
+    };
+    // Drops the pending sweep timers; the hold timer is pushed after, so it survives.
+    clearAllTimers();
+    const remaining = MIN_TRICK_HOLD_MS - (Date.now() - pauseStartRef.current);
+    if (remaining <= 0) {
+      showNext();
+      return;
     }
-  }, [animPhase, currentTrick.cards.length, clearAllTimers]);
+    timersRef.current.push(setTimeout(showNext, remaining));
+  }, [animPhase, cards, clearAllTimers]);
 
   // Cleanup on unmount
   useEffect(() => {
