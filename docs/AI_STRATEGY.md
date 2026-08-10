@@ -8,6 +8,37 @@ This document describes the decision logic used by `BinokelAIPlayer`, the AI imp
 - **medium** (0.15): occasional mistakes
 - **easy** (0.35): frequent mistakes
 
+## Rubber Band (easy & medium)
+
+A leading AI is handicapped so the game stays close. Cheating in the other direction is not
+available to a card AI — it cannot be given cards it did not draw — so the handicap is simply a
+higher mistake rate:
+
+```
+lead = clamp((myScore - bestOtherScore) / RUBBER_BAND_SPAN, 0, 1)   // RUBBER_BAND_SPAN = 200
+p    = base + strength * lead
+```
+
+`strength` equals the base rate of the level (easy 0.35, medium 0.15), so a full-span lead
+doubles it: **easy 0.35 … 0.70**, **medium 0.15 … 0.30**, **hard 0** (no band at any lead).
+
+Three properties are deliberate:
+
+- **The base rate is a floor.** Falling behind restores the difficulty the player picked and
+  goes no further — an easy bot never plays like a hard one because the human is winning.
+- **It is measured against the best other side**, not the average, so leading one opponent
+  while trailing another does not trigger it.
+- **It moves once per round.** `totalScores` only changes when a round is scored, so the rate
+  is constant for a whole round instead of drifting between two cards of one trick.
+
+4-player games compare **team** totals (`totalScores` is keyed by `Team` there, not by seat).
+A bot sitting opposite a human is exempt entirely (`partnersHuman` in `AIPlayer.ts`): it shares
+the human's score, so banding it would sabotage the human's own teammate for being ahead. The
+simulation (`apps/simulate`) also runs with the band off — it measures strategy, and a band
+would pull every bot-vs-bot game towards a tie.
+
+See `effectiveMistakeProbability` in `BinokelAIPlayer.ts`.
+
 ## Per-Round State Tracking
 
 The AI tracks state across decisions within a round:

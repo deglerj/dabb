@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { applyEvents, createEventsForAction, whoActsNext } from '@dabb/game-logic';
-import { createAIPlayer, AI_CARD_PLAY_DELAY_MS, AI_TRICK_COMPLETE_DELAY_MS } from '@dabb/game-ai';
+import {
+  createAIPlayer,
+  partnersHuman,
+  AI_CARD_PLAY_DELAY_MS,
+  AI_TRICK_COMPLETE_DELAY_MS,
+} from '@dabb/game-ai';
 import type { GameEvent } from '@dabb/shared-types';
 import { pushEvents, claimCascade } from '../firebase/events.js';
 import { hashSecretId } from '../firebase/secretId.js';
@@ -81,7 +86,14 @@ export function useAI({ sessionCode, secretId, rawEvents, aiSeats }: UseAIOption
           return;
         }
 
-        const aiPlayer = createAIPlayer(seat.difficulty);
+        // A bot partnering a human shares their score, so the rubber band would handicap the
+        // human's own teammate for being ahead.
+        const exempt = partnersHuman(
+          fullState.playerCount,
+          currentPlayer,
+          (index) => !aiSeats.some((s) => s.playerIndex === index)
+        );
+        const aiPlayer = createAIPlayer(seat.difficulty, !exempt);
         const action = await aiPlayer.decide({
           gameState: fullState,
           playerIndex: currentPlayer,
