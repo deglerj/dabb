@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.3.1] - 2026-08-10
+
+### Verbessert
+
+- Dabb lässt sich jetzt über Suchmaschinen finden: Die Seite hat einen aussagekräftigen Titel und eine Beschreibung, und beim Teilen eines Links in Messengern oder sozialen Netzwerken erscheint eine Vorschau mit Namen, Kurzbeschreibung und Logo.
+
 ## [4.3.0] - 2026-08-10
 
 ### Neu
