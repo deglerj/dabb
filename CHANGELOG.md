@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.2.2] - 2026-08-10
+
+### Intern
+
+- Reste der alten React-Native-Version (React Native, Metro und deren Abhängigkeiten) fliegen aus der Installation. Sie wurden nie ausgeliefert, brachten aber zwei als hoch eingestufte Sicherheitsmeldungen mit.
+
 ## [4.2.1] - 2026-08-10
 
 ### Behoben
