@@ -1,7 +1,11 @@
 export { pickAIEmote } from './emotes.js';
 export type { AIPlayer, AIDifficulty } from './AIPlayer.js';
-export { createAIPlayer } from './AIPlayer.js';
-export { BinokelAIPlayer } from './BinokelAIPlayer.js';
+export { createAIPlayer, partnersHuman } from './AIPlayer.js';
+export {
+  BinokelAIPlayer,
+  effectiveMistakeProbability,
+  RUBBER_BAND_SPAN,
+} from './BinokelAIPlayer.js';
 export {
   OfflineGameEngine,
   AI_CARD_PLAY_DELAY_MS,

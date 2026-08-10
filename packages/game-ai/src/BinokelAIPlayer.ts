@@ -6,6 +6,10 @@
  *   medium (0.15): occasional mistakes
  *   easy (0.35): frequent mistakes
  *
+ * On easy and medium a rubber band raises that rate while the AI is ahead (see
+ * effectiveMistakeProbability). The base rate stays the floor — the band only ever makes the
+ * AI worse, never better than the difficulty the player chose.
+ *
  * See docs/AI_STRATEGY.md for human-readable strategy documentation.
  */
 
@@ -19,6 +23,7 @@ import type {
   PlayerIndex,
   Rank,
   Suit,
+  Team,
   Trick,
 } from '@dabb/shared-types';
 import { CARDS_PER_PLAYER, RANK_POINTS, SUITS } from '@dabb/shared-types';
@@ -33,6 +38,56 @@ import {
 } from '@dabb/game-logic';
 
 import type { AIPlayer } from './AIPlayer.js';
+
+/**
+ * Score lead at which the rubber band is fully applied. Roughly one strong round on the
+ * default target of 1000.
+ */
+export const RUBBER_BAND_SPAN = 200;
+
+/**
+ * The mistake rate this AI plays at right now: the base rate of its difficulty, plus up to
+ * `strength` more while it is ahead of the best other side.
+ *
+ * Only ever adds. Being behind restores the picked difficulty and no more — an easy bot never
+ * turns into a hard one because the human is winning.
+ *
+ * `totalScores` only moves when a round is scored, so the rate holds steady for a whole round
+ * instead of drifting between two cards of the same trick.
+ */
+export function effectiveMistakeProbability(
+  base: number,
+  strength: number,
+  state: GameState,
+  playerIndex: PlayerIndex
+): number {
+  if (strength <= 0) {
+    return base;
+  }
+  // 4-player scores are keyed by Team, everything else by PlayerIndex — and team 0/1 collide
+  // numerically with seats 0/1, so the branch has to happen before any lookup.
+  const isTeamGame = state.playerCount === 4;
+  const myKey: PlayerIndex | Team = isTeamGame ? ((playerIndex % 2) as Team) : playerIndex;
+
+  let bestOther = 0;
+  let sawOther = false;
+  for (const [key, score] of state.totalScores) {
+    if (key === myKey) {
+      continue;
+    }
+    if (!sawOther || score > bestOther) {
+      bestOther = score;
+      sawOther = true;
+    }
+  }
+  if (!sawOther) {
+    return base;
+  }
+
+  const myScore = state.totalScores.get(myKey) ?? 0;
+  const lead = Math.min(1, Math.max(0, (myScore - bestOther) / RUBBER_BAND_SPAN));
+  return base + strength * lead;
+}
 
 /** Card strength ordering (higher = stronger), matching tricks.ts */
 const CARD_STRENGTH: Record<Rank, number> = {
@@ -293,6 +348,9 @@ function filterDoubleAces(cards: Card[], hand: Card[]): Card[] {
 
 export class BinokelAIPlayer implements AIPlayer {
   private readonly mistakeProbability: number;
+  private readonly rubberBandStrength: number;
+  /** Mistake rate for the decision in flight, recomputed once per decide() */
+  private currentMistakeProbability: number;
   /** Round number when instance state was last reset */
   private lastSeenRound: number = -1;
   /**
@@ -301,19 +359,21 @@ export class BinokelAIPlayer implements AIPlayer {
    */
   private voidPlayers: Map<PlayerIndex, Set<Suit>> = new Map();
 
-  constructor(mistakeProbability: number = 0) {
+  constructor(mistakeProbability: number = 0, rubberBandStrength: number = 0) {
     this.mistakeProbability = mistakeProbability;
+    this.rubberBandStrength = rubberBandStrength;
+    this.currentMistakeProbability = mistakeProbability;
   }
 
   /**
    * Randomly replace the optimal choice with an alternative to simulate mistakes.
-   * Only triggers when mistakeProbability > 0 and alternatives exist.
+   * Only triggers when the current mistake rate is > 0 and alternatives exist.
    */
   private maybeBlunder<T>(optimal: T, alternatives: T[]): T {
     if (
-      this.mistakeProbability > 0 &&
+      this.currentMistakeProbability > 0 &&
       alternatives.length > 0 &&
-      Math.random() < this.mistakeProbability
+      Math.random() < this.currentMistakeProbability
     ) {
       return alternatives[Math.floor(Math.random() * alternatives.length)];
     }
@@ -322,6 +382,13 @@ export class BinokelAIPlayer implements AIPlayer {
 
   async decide(context: AIDecisionContext): Promise<AIAction> {
     const { gameState, playerIndex } = context;
+
+    this.currentMistakeProbability = effectiveMistakeProbability(
+      this.mistakeProbability,
+      this.rubberBandStrength,
+      gameState,
+      playerIndex
+    );
 
     // Reset per-round state when a new round starts
     if (gameState.round !== this.lastSeenRound) {

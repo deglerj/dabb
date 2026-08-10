@@ -2,6 +2,13 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.3.0] - 2026-08-10
+
+### Neu
+
+- Auf den Schwierigkeitsgraden „Einfach“ und „Mittel“ lassen die Computergegner jetzt nach, wenn sie deutlich in Führung liegen: Sie verspielen dann häufiger Stiche, reizen unpassend oder wählen den falschen Trumpf. Je größer der Vorsprung, desto mehr Fehler — bei einem Rückstand spielen sie wieder ganz normal, aber nie besser als der gewählte Schwierigkeitsgrad. Auf „Schwer“ ändert sich nichts.
+- Bei vier Spielern zählt dafür der Punktestand des Teams. Der Computer-Partner eines Menschen ist ausgenommen und spielt immer gleich stark — er soll nicht dafür bestraft werden, dass sein eigenes Team führt.
+
 ## [4.2.2] - 2026-08-10
 
 ### Intern

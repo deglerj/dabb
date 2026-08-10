@@ -99,7 +99,9 @@ export class SimulationEngine {
 
     const difficulty = this.options.difficulty ?? 'medium';
     for (let i = 0; i < playerCount; i++) {
-      this.aiPlayers.set(i as PlayerIndex, createAIPlayer(difficulty));
+      // Rubber band off: the simulation measures strategy, and a band that handicaps whoever
+      // is ahead would pull every bot-vs-bot game towards a tie and hide exactly that.
+      this.aiPlayers.set(i as PlayerIndex, createAIPlayer(difficulty, false));
     }
 
     const initEvents: GameEvent[] = [];

@@ -27,7 +27,7 @@ import type {
   PlayerIndex,
   Team,
 } from '@dabb/shared-types';
-import { createAIPlayer, type AIPlayer, type AIDifficulty } from './AIPlayer.js';
+import { createAIPlayer, partnersHuman, type AIPlayer, type AIDifficulty } from './AIPlayer.js';
 
 export interface OfflineGameEngineOptions {
   playerCount: PlayerCount;
@@ -146,7 +146,14 @@ export class OfflineGameEngine {
     this.aiPlayers.clear();
     for (let i = 0; i < this.options.playerCount; i++) {
       if (i !== this.options.humanPlayerIndex) {
-        this.aiPlayers.set(i as PlayerIndex, createAIPlayer(this.options.difficulty));
+        // The human's partner shares their score, so rubber-banding it would hobble the
+        // human's own teammate for being ahead.
+        const exempt = partnersHuman(
+          this.options.playerCount,
+          i,
+          (index) => index === this.options.humanPlayerIndex
+        );
+        this.aiPlayers.set(i as PlayerIndex, createAIPlayer(this.options.difficulty, !exempt));
       }
     }
   }
