@@ -1,7 +1,7 @@
 // ponytail: rn-compat exists to let ~200 RN-shaped JSX sites migrate off react-native-web
 // unchanged. Ceiling: new components still inherit RN flex-column box defaults via .rn-box.
 // Upgrade path: delete this package when the last StyleSheet.create() call is gone. Not scheduled.
-const CSS = `
+export const CSS = `
 :root {
   --rn-safe-area-top: env(safe-area-inset-top, 0px);
   --rn-safe-area-right: env(safe-area-inset-right, 0px);
@@ -24,6 +24,10 @@ const CSS = `
   display: block;
   color: inherit;
   font-family: inherit;
+  /* RN sizes every node border-box. Without this a Text with both a width and
+   * horizontal padding is wider than a View with the same style, which pulls
+   * table-like rows of Text headers out of line with their View columns. */
+  box-sizing: border-box;
 }
 .rn-box-none { pointer-events: none; }
 .rn-box-none > * { pointer-events: auto; }

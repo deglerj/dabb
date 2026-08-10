@@ -34,6 +34,15 @@ export function ScoreboardModal({
   const { t } = useTranslation();
   const playerIndices = Array.from({ length: playerCount }, (_, i) => i as PlayerIndex);
 
+  /**
+   * The table's columns, declared once for every row. Each row is its own grid (the header sits
+   * outside the ScrollView, so a single grid around all of them is not an option) — which lines
+   * up only as long as every track is fixed or fr, never content-sized.
+   */
+  const columns = {
+    gridTemplateColumns: `28px minmax(0, 1fr) repeat(${teamScores?.length ?? playerCount}, 94px)`,
+  };
+
   function name(pi: PlayerIndex) {
     return nicknames.get(pi) ?? `P${pi}`;
   }
@@ -132,7 +141,7 @@ export function ScoreboardModal({
           </View>
 
           {/* Column headers */}
-          <View style={styles.row}>
+          <View style={[styles.row, columns]}>
             <Text style={[styles.cell, styles.roundCell, styles.headerText]}>
               {t('game.roundAbbr')}
             </Text>
@@ -155,7 +164,7 @@ export function ScoreboardModal({
           <ScrollView>
             {/* Completed rounds */}
             {rounds.map((round) => (
-              <View key={round.round} style={styles.row}>
+              <View key={round.round} style={[styles.row, columns]}>
                 <Text style={[styles.cell, styles.roundCell]}>{round.round}</Text>
                 <View
                   style={[
@@ -195,7 +204,7 @@ export function ScoreboardModal({
 
             {/* Current in-progress round */}
             {currentRound && (
-              <View style={[styles.row, styles.currentRow]}>
+              <View style={[styles.row, columns, styles.currentRow]}>
                 <Text style={[styles.cell, styles.roundCell]}>{currentRound.round}</Text>
                 <View
                   style={[
@@ -238,7 +247,7 @@ export function ScoreboardModal({
             )}
 
             {/* Totals row */}
-            <View style={[styles.row, styles.totalsRow]}>
+            <View style={[styles.row, columns, styles.totalsRow]}>
               <Text style={[styles.cell, styles.roundCell, styles.totalsLabel]}>{'='}</Text>
               <Text style={[styles.cell, styles.bidCell]} />
               {teamScores
@@ -303,7 +312,7 @@ const styles = StyleSheet.create({
     color: '#c8b090',
   },
   row: {
-    flexDirection: 'row',
+    display: 'grid',
     paddingVertical: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#3a2a1a',
@@ -322,19 +331,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   roundCell: {
-    width: 28,
     color: '#c8b090',
     fontSize: 12,
     textAlign: 'center',
   },
   bidCell: {
-    flex: 1,
     color: '#c8b090',
     fontSize: 11,
   },
   playerCell: {
-    width: 94,
     alignItems: 'center',
+    textAlign: 'center',
   },
   headerText: {
     color: '#f2e8d0',

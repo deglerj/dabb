@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.2.1] - 2026-08-10
+
+### Behoben
+
+- In der Punkteübersicht stehen die Spalten jetzt genau unter ihren Überschriften. Vorher rutschten die Namen in der Kopfzeile nach rechts, je weiter rechts die Spalte stand.
+
 ## [4.2.0] - 2026-08-09
 
 ### Neu
