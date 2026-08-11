@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.5.1] - 2026-08-11
+
+### Behoben
+
+- Das ausgeklappte Spielprotokoll lässt sich wieder scrollen — vorher waren bei längeren Runden nur die obersten Einträge sichtbar, am Handy wie am Rechner. Auch die Rundenübersicht und die Einblendungen mitten im Spiel scrollen jetzt zuverlässig, wenn ihr Inhalt zu lang wird.
+
 ## [4.5.0] - 2026-08-11
 
 ### Neu

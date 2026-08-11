@@ -36,6 +36,10 @@ export const CSS = `
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* A scroller must shrink below its content, otherwise .rn-box's flex-shrink: 0 makes it grow
+ * to full content height inside a maxHeight parent and it never overflows — so it never
+ * scrolls. min-height: 0 (from .rn-box) is what lets the shrink actually happen. */
+.rn-scroll { flex-shrink: 1; }
 .rn-scroll-hide { scrollbar-width: none; -ms-overflow-style: none; }
 .rn-scroll-hide::-webkit-scrollbar { display: none; }
 .rn-pressable {

@@ -243,7 +243,7 @@ export const ScrollView = forwardRef<ScrollViewHandle, ScrollViewProps>(function
     [horizontal]
   );
 
-  const classes = ['rn-box', showsScrollIndicator ? '' : 'rn-scroll-hide']
+  const classes = ['rn-box', 'rn-scroll', showsScrollIndicator ? '' : 'rn-scroll-hide']
     .filter(Boolean)
     .join(' ');
 
