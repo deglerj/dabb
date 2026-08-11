@@ -293,8 +293,30 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     onDeclareMelds();
   }, [onDeclareMelds]);
 
-  // Celebration: show confetti for round win, fireworks for game win
-  const { confettiRound, showFireworks } = useCelebration(events, playerIndex);
+  // End-of-round announcement for every outcome (confetti only on a local win),
+  // fireworks for a game win.
+  const { roundOutcome, showFireworks } = useCelebration(events, playerIndex);
+  const isTeamGame = state.playerCount === 4;
+  const roundAnnouncement = useMemo(() => {
+    if (!roundOutcome) {
+      return null;
+    }
+    const { round, bidMet, isLocalSide, bidWinner } = roundOutcome;
+    let message: string;
+    if (isTeamGame) {
+      if (isLocalSide) {
+        message = bidMet ? t('game.teamWonRound') : t('game.teamLostRound');
+      } else {
+        message = bidMet ? t('game.otherTeamWonRound') : t('game.otherTeamLostRound');
+      }
+    } else if (isLocalSide) {
+      message = bidMet ? t('game.youWonRound') : t('game.youLostRound');
+    } else {
+      const name = nicknames.get(bidWinner) ?? '';
+      message = bidMet ? t('game.playerWonRound', { name }) : t('game.playerLostRound', { name });
+    }
+    return { round, message, confetti: isLocalSide && bidMet };
+  }, [roundOutcome, isTeamGame, nicknames, t]);
 
   // Termination — derive winner info for 4-player (team) and 2/3-player (individual)
   const isTerminated = state.phase === 'terminated' || state.phase === 'finished';
@@ -561,9 +583,9 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
 
             {/* Celebration layer */}
             <CelebrationLayer
-              confettiRound={confettiRound}
+              roundAnnouncement={roundAnnouncement}
               showFireworks={showFireworks}
-              isTeamGame={state.playerCount === 4}
+              isTeamGame={isTeamGame}
             />
 
             {/* Scoreboard history modal */}

@@ -1,21 +1,34 @@
 /**
- * Hook to determine when to show celebration animations
+ * Hook to determine what to announce at the end of a round or game.
  *
- * - Confetti: When the current player wins a round (was bid winner AND met their bid)
+ * - roundOutcome: how the last scored round ended, for every player — the bid winner's side
+ *   met the bid or missed it, and whether that side is the local player's. Only the local
+ *   win gets confetti; the other three outcomes are announced as plain overlay text.
  * - Fireworks: When the current player wins the game
  *
  * Note: ROUND_SCORED and NEW_ROUND_STARTED events arrive in the same batch from the server,
- * so we track which round triggered the confetti and only clear it when a NEW round is scored.
+ * so we track which round produced the outcome and only clear it when a NEW round is scored.
  *
- * confettiRound is exposed as a number (not boolean) so consumers can detect a NEW win even
- * when the player wins consecutive rounds (boolean true→true would not trigger effects).
+ * The round number is part of the result so consumers can detect a NEW outcome even when two
+ * rounds in a row end the same way (an unchanged value would not re-trigger effects).
  */
 
 import { useMemo } from 'react';
 import type { GameEvent, PlayerIndex, Team } from '@dabb/shared-types';
 
+export interface RoundOutcome {
+  /** Round this outcome belongs to; changes on every newly scored round. */
+  round: number;
+  /** True if the bid winner's side made their bid. */
+  bidMet: boolean;
+  /** True if the local player (or, in a 4-player game, their team) held the bid. */
+  isLocalSide: boolean;
+  /** Seat of the bid winner, for naming them in the announcement. */
+  bidWinner: PlayerIndex;
+}
+
 export interface CelebrationResult {
-  confettiRound: number; // 0 = no confetti, >0 = round that triggered it (changes each win)
+  roundOutcome: RoundOutcome | null;
   showFireworks: boolean;
 }
 
@@ -25,10 +38,10 @@ export function useCelebration(
 ): CelebrationResult {
   return useMemo(() => {
     if (playerIndex === null) {
-      return { confettiRound: 0, showFireworks: false };
+      return { roundOutcome: null, showFireworks: false };
     }
 
-    let confettiRound = 0; // Track which round triggered confetti (0 = none)
+    let roundOutcome: RoundOutcome | null = null;
     let showFireworks = false;
     let lastBidWinner: PlayerIndex | null = null;
     let lastBidWinnerTeam: Team | null = null;
@@ -50,7 +63,7 @@ export function useCelebration(
           lastBidWinner = null;
           lastBidWinnerTeam = null;
           gameFinished = false;
-          confettiRound = 0;
+          roundOutcome = null;
           currentRound = 1;
           break;
 
@@ -58,10 +71,10 @@ export function useCelebration(
           currentRound = event.payload.round;
           lastBidWinner = null;
           lastBidWinnerTeam = null;
-          // Only clear confetti if it was triggered in a previous round
+          // Only clear the announcement if it came from a previous round
           // (not the current scoring → new round transition)
-          if (confettiRound > 0 && confettiRound < currentRound - 1) {
-            confettiRound = 0;
+          if (roundOutcome !== null && roundOutcome.round < currentRound - 1) {
+            roundOutcome = null;
           }
           break;
 
@@ -71,35 +84,44 @@ export function useCelebration(
           break;
 
         case 'ROUND_SCORED': {
-          // Clear any previous round's confetti before checking this round
-          if (confettiRound > 0 && confettiRound < currentRound) {
-            confettiRound = 0;
+          // Drop any previous round's announcement before checking this round
+          if (roundOutcome !== null && roundOutcome.round < currentRound) {
+            roundOutcome = null;
+          }
+
+          if (lastBidWinner === null || gameFinished) {
+            break;
           }
 
           const currentPlayerTeam = playerTeams.get(playerIndex) ?? null;
 
-          // Determine if current player is on the winning side
-          const isOnWinningSide =
+          // Is the local player on the side that held the bid?
+          const isLocalSide =
             currentPlayerTeam !== null
-              ? currentPlayerTeam === lastBidWinnerTeam // 4-player: team wins
-              : lastBidWinner === playerIndex; // 2/3-player: individual wins
+              ? currentPlayerTeam === lastBidWinnerTeam // 4-player: team holds the bid
+              : lastBidWinner === playerIndex; // 2/3-player: individual holds it
 
-          const sideKey =
-            currentPlayerTeam !== null
-              ? (currentPlayerTeam as PlayerIndex | Team)
-              : (playerIndex as PlayerIndex | Team);
-          const sideScore = event.payload.scores[sideKey];
-
-          if (isOnWinningSide && sideScore?.bidMet && !gameFinished) {
-            confettiRound = currentRound;
+          // bidMet is only meaningful on the bid winner's own score entry — everyone
+          // else is scored with bidMet: true regardless of how the round went.
+          const bidSideKey: PlayerIndex | Team | null =
+            currentPlayerTeam !== null ? lastBidWinnerTeam : lastBidWinner;
+          if (bidSideKey === null) {
+            break;
           }
+
+          roundOutcome = {
+            round: currentRound,
+            bidMet: event.payload.scores[bidSideKey]?.bidMet ?? false,
+            isLocalSide,
+            bidWinner: lastBidWinner,
+          };
           break;
         }
 
         case 'GAME_FINISHED': {
           // Check if the current player won the game
-          // Stop confetti if game ends (fireworks take over)
-          confettiRound = 0;
+          // Stop the round announcement if the game ends (the game result takes over)
+          roundOutcome = null;
           const currentPlayerTeam = playerTeams.get(playerIndex) ?? null;
           const playerWon =
             currentPlayerTeam !== null
@@ -113,13 +135,13 @@ export function useCelebration(
         }
 
         case 'GAME_TERMINATED':
-          // Game terminated, stop all celebrations
+          // Game terminated, stop all announcements
           showFireworks = false;
-          confettiRound = 0;
+          roundOutcome = null;
           break;
       }
     }
 
-    return { confettiRound, showFireworks };
+    return { roundOutcome, showFireworks };
   }, [events, playerIndex]);
 }

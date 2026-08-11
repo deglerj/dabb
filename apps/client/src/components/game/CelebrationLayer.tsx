@@ -1,8 +1,9 @@
 /**
- * CelebrationLayer — full-screen particle overlay for round/game wins.
+ * CelebrationLayer — full-screen overlay announcing the end of a round or the game.
  * Always mounted; visibility controlled via opacity per CLAUDE.md rule 2.
  *
- * - showConfetti: local player won the round bid (confetti + "You won the round!")
+ * - roundAnnouncement: how the round ended, for every player. Only the local win brings
+ *   confetti along; the other outcomes are text only.
  * - showFireworks: local player won the game (fireworks + "You won the game!")
  */
 import { useRef, useState, useEffect, useCallback } from 'react';
@@ -11,8 +12,15 @@ import { computeCanvasBackingSize } from '@dabb/game-canvas';
 import { useTranslation } from '@dabb/i18n';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 
+export interface RoundAnnouncement {
+  /** Round it belongs to — re-announces even when two rounds in a row read the same. */
+  round: number;
+  message: string;
+  confetti: boolean;
+}
+
 export interface CelebrationLayerProps {
-  confettiRound: number; // 0 = no confetti, >0 = round that triggered it
+  roundAnnouncement: RoundAnnouncement | null;
   showFireworks: boolean;
   isTeamGame?: boolean;
 }
@@ -33,6 +41,7 @@ interface Particle {
 const CONFETTI_COLORS = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#c77dff', '#ff9f40'];
 const FIREWORK_COLORS = ['#ffd93d', '#ff6b6b', '#4d96ff', '#c77dff', '#6bcb77', '#ffffff'];
 const PARTICLE_LIFETIME_MS = 3000;
+const EMPTY_ANNOUNCEMENT: RoundAnnouncement = { round: 0, message: '', confetti: false };
 
 function createConfetti(width: number, _height: number): Particle[] {
   return Array.from({ length: 60 }, () => ({
@@ -100,7 +109,7 @@ function drawParticles(ctx: CanvasRenderingContext2D, particles: Particle[]): vo
 }
 
 export function CelebrationLayer({
-  confettiRound,
+  roundAnnouncement,
   showFireworks,
   isTeamGame,
 }: CelebrationLayerProps) {
@@ -152,21 +161,22 @@ export function CelebrationLayer({
     setMessage('');
   }, [width, height]);
 
-  const startAnimation = useCallback(
-    (isConfetti: boolean) => {
+  const announce = useCallback(
+    (msg: string, kind: 'confetti' | 'fireworks' | null) => {
       stopAnimation();
+      setMessage(msg);
+
+      if (kind === null) {
+        // Text-only outcome: no particles, but it still disappears on its own.
+        timerRef.current = setTimeout(stopAnimation, PARTICLE_LIFETIME_MS);
+        return;
+      }
+
+      const isConfetti = kind === 'confetti';
       particles.current = isConfetti
         ? createConfetti(width, height)
         : createFireworks(width, height);
       const gravity = isConfetti ? 0.12 : 0.05;
-
-      let msg: string;
-      if (isConfetti) {
-        msg = isTeamGame ? t('game.teamWonRound') : t('game.youWonRound');
-      } else {
-        msg = isTeamGame ? t('game.teamWonGame') : t('game.youWonGame');
-      }
-      setMessage(msg);
 
       const animate = () => {
         stepParticles(particles.current, gravity);
@@ -181,19 +191,22 @@ export function CelebrationLayer({
 
       timerRef.current = setTimeout(stopAnimation, PARTICLE_LIFETIME_MS);
     },
-    [width, height, stopAnimation, t, isTeamGame]
+    [width, height, stopAnimation]
   );
 
+  // Spread out so the effect re-runs on a new round even when two rounds read the same.
+  const { round, message: roundMessage, confetti } = roundAnnouncement ?? EMPTY_ANNOUNCEMENT;
+
   useEffect(() => {
-    if (confettiRound > 0) {
-      startAnimation(true);
-    } else if (showFireworks) {
-      startAnimation(false);
+    if (showFireworks) {
+      announce(isTeamGame ? t('game.teamWonGame') : t('game.youWonGame'), 'fireworks');
+    } else if (round > 0) {
+      announce(roundMessage, confetti ? 'confetti' : null);
     } else {
       stopAnimation();
     }
     return stopAnimation;
-  }, [confettiRound, showFireworks, startAnimation, stopAnimation]);
+  }, [round, roundMessage, confetti, showFireworks, isTeamGame, announce, stopAnimation, t]);
 
   const visible = message !== '';
 
