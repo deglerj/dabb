@@ -7,6 +7,7 @@ import {
   AI_TRICK_COMPLETE_DELAY_MS,
 } from '@dabb/game-ai';
 import type { GameEvent } from '@dabb/shared-types';
+import { MELD_SHOWCASE_DURATION_MS } from '@dabb/shared-types';
 import { pushEvents, claimCascade } from '../firebase/events.js';
 import { hashSecretId } from '../firebase/secretId.js';
 import type { AISeat } from './useFirebaseGame.js';
@@ -35,7 +36,31 @@ function pacingDelayMs(rawEvents: GameEvent[]): number {
   if (last?.type === 'CARD_PLAYED') {
     return AI_CARD_PLAY_DELAY_MS;
   }
+  if (last?.type === 'MELDING_COMPLETE') {
+    return meldShowcaseDelayMs(rawEvents);
+  }
   return 0;
+}
+
+/**
+ * How long the first trick card waits for the meld showcase (useMeldShowcase) to finish.
+ *
+ * ponytail: the queue length is per-client — each one skips its own melds — while this delay is
+ * global, so a client holding no melds of its own waits one slot too long. Gating trick play on
+ * a client-side animation instead would mean the engine knowing about the UI.
+ */
+function meldShowcaseDelayMs(rawEvents: GameEvent[]): number {
+  let withMelds = 0;
+  for (let i = rawEvents.length - 1; i >= 0; i--) {
+    const event = rawEvents[i]!;
+    if (event.type === 'CARDS_DEALT') {
+      break;
+    }
+    if (event.type === 'MELDS_DECLARED' && event.payload.melds.length > 0) {
+      withMelds++;
+    }
+  }
+  return Math.max(0, withMelds - 1) * MELD_SHOWCASE_DURATION_MS;
 }
 
 export function useAI({ sessionCode, secretId, rawEvents, aiSeats }: UseAIOptions): void {

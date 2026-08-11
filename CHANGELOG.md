@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.6.0] - 2026-08-11
+
+### Neu
+
+- Nach dem Melden legen die Mitspieler ihre Meldungen nacheinander offen auf den Tisch: Die Karten fliegen von ihrem Platz in die Tischmitte, bleiben kurz liegen und wandern dann wieder zurück. Wer wie viel gemeldet hat, steht dabei über den Karten — man muss dafür also nicht mehr das Spielprotokoll aufklappen. Der erste Stich beginnt erst danach.
+
 ## [4.5.1] - 2026-08-11
 
 ### Behoben

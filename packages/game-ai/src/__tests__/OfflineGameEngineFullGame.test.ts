@@ -265,6 +265,33 @@ describe('OfflineGameEngine — full game paths (fake timers)', () => {
     expect(view.events.length).toBeGreaterThan(3);
   });
 
+  it('flushes melding before the first card of the trick phase (regression)', async () => {
+    // The meld showcase lays the other players' melds on the table between MELDING_COMPLETE and
+    // the first card. Batched together — which is what happens without the flush in act() — the
+    // melds and the opening card reach the UI in the same render and the showcase never shows.
+    const engine = new OfflineGameEngine({
+      playerCount: 3,
+      difficulty: 'hard',
+      humanPlayerIndex: 0,
+    });
+
+    const batches: string[][] = [];
+    engine.onStateChange = (_state, newEvents) => {
+      batches.push(newEvents.map((e) => e.type));
+    };
+
+    const startP = engine.start();
+    await advanceFakeTime();
+    await startP;
+    await playToCompletion(engine, 0, 60);
+
+    const meldingBatches = batches.filter((b) => b.includes('MELDING_COMPLETE'));
+    expect(meldingBatches.length).toBeGreaterThan(0);
+    for (const batch of meldingBatches) {
+      expect(batch).not.toContain('CARD_PLAYED');
+    }
+  });
+
   it('human at index 1 with 2-player game — AI leads bidding', async () => {
     const engine = new OfflineGameEngine({
       playerCount: 2,

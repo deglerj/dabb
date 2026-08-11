@@ -22,6 +22,7 @@ import {
 } from '@dabb/game-canvas';
 import {
   useGameLog,
+  useMeldShowcase,
   useTrickAnimationState,
   useRoundHistory,
   useCelebration,
@@ -40,6 +41,7 @@ import { gameActivity } from '../../gameActivity.js';
 import { OpponentZone } from '../game/OpponentZone.js';
 import { PlayerHand } from '../game/PlayerHand.js';
 import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
+import { MeldShowcaseLayer } from '../game/MeldShowcaseLayer.js';
 import { ScoreboardStrip } from '../game/ScoreboardStrip.js';
 import { GameLogTab } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
@@ -146,6 +148,9 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     state.players,
     isInitialLoad
   );
+
+  // Other players' melds, laid out on the table one player at a time once melding completes.
+  const meldShowcase = useMeldShowcase(events, playerIndex);
 
   useTurnHaptic(state, playerIndex, isInitialLoad);
 
@@ -471,6 +476,22 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               nicknames={nicknames}
               effects={effects}
               localPlayerDropOrigin={lastDropPos}
+            />
+
+            {/* Other players' melds on the table */}
+            <MeldShowcaseLayer
+              showcase={meldShowcase}
+              nickname={
+                meldShowcase
+                  ? (nicknames.get(meldShowcase.playerIndex) ??
+                    state.players.find((p) => p.playerIndex === meldShowcase.playerIndex)
+                      ?.nickname ??
+                    `P${meldShowcase.playerIndex}`)
+                  : ''
+              }
+              seatPosition={
+                meldShowcase ? opponentPositions.get(meldShowcase.playerIndex) : undefined
+              }
             />
 
             {/* Player hand */}

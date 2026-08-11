@@ -6,6 +6,8 @@ export type { GameLogResult, LogLine, MeldDetail, Translate } from './useGameLog
 export { useActionRequiredCallback } from './useActionRequired.js';
 export { useCelebration } from './useCelebration.js';
 export type { CelebrationResult, RoundOutcome } from './useCelebration.js';
+export { useMeldShowcase } from './useMeldShowcase.js';
+export type { MeldShowcase } from './useMeldShowcase.js';
 export { useTrickAnimationState } from './useTrickAnimationState.js';
 export type { TrickAnimationResult, TrickAnimPhase } from './useTrickAnimationState.js';
 export type { GameInterface } from './GameInterface.js';
