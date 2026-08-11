@@ -139,12 +139,18 @@ export interface TranslationKeys {
     wentOut: string;
     gameEnded: string;
     youWonRound: string;
+    youLostRound: string;
+    playerWonRound: string; // 2/3-player: "{{name}} hat die Runde gewonnen."
+    playerLostRound: string; // 2/3-player: "{{name}} hat die Runde verloren."
     youWonGame: string;
     playerWonGame: string;
     playerEndedGame: string;
     youAndTeammateWonGame: string; // 4-player: "Du und {{name}} habt gewonnen! 🎉"
     playersWonGame: string; // 4-player: "{{name1}} und {{name2}} haben gewonnen."
     teamWonRound: string; // 4-player celebration: "Dein Team hat die Runde gewonnen! 🎉"
+    teamLostRound: string; // 4-player: "Dein Team hat die Runde verloren."
+    otherTeamWonRound: string; // 4-player: "Das gegnerische Team hat die Runde gewonnen."
+    otherTeamLostRound: string; // 4-player: "Das gegnerische Team hat die Runde verloren."
     teamWonGame: string; // 4-player celebration: "Dein Team hat gewonnen! 🎉"
   };
   phases: {

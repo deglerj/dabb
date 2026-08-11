@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.4.0] - 2026-08-11
+
+### Neu
+
+- Am Ende jeder Runde wird jetzt für alle eingeblendet, wie sie ausgegangen ist: ob du dein Gebot geschafft oder verfehlt hast und ob ein Mitspieler seines geschafft oder verfehlt hat. Bisher gab es die Einblendung nur beim eigenen Gewinn. Konfetti gibt es weiterhin nur für den eigenen Rundengewinn.
+
 ## [4.3.3] - 2026-08-11
 
 ### Behoben
