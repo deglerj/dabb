@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.3.3] - 2026-08-11
+
+### Behoben
+
+- Der letzte Stich einer Runde verschwand sofort vom Tisch, sobald die Runde abgerechnet wurde. Jetzt bleibt er genauso lange liegen wie jeder andere Stich und wandert danach sichtbar zum Gewinner.
+
 ## [4.3.2] - 2026-08-10
 
 ### Behoben

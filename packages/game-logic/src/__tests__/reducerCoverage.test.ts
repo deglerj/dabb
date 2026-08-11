@@ -19,6 +19,9 @@ import {
   createDabbTakenEvent,
   createTrumpDeclaredEvent,
   createCardsDiscardedEvent,
+  createTrickWonEvent,
+  createNewRoundStartedEvent,
+  createCardPlayedEvent,
 } from '../events/generators.js';
 import type { Card, GameEvent } from '@dabb/shared-types';
 
@@ -60,6 +63,45 @@ describe('reducer: error paths', () => {
     expect(() =>
       applyEvents([createPlayerPassedEvent(ctx(), 1 as PlayerIndex)], corruptState as typeof state)
     ).toThrow('firstBidder is null during bidding');
+  });
+});
+
+describe('reducer: NEW_ROUND_STARTED and the last trick', () => {
+  it('keeps the last completed trick across the round reset (regression)', () => {
+    // The final card of a round arrives as one cascade (CARD_PLAYED, TRICK_WON, ROUND_SCORED,
+    // NEW_ROUND_STARTED, CARDS_DEALT), so a client only ever sees the state after the reset.
+    // Clearing lastCompletedTrick there wiped the round's last trick off the table instantly
+    // instead of holding and sweeping it like every other trick.
+    const events: GameEvent[] = [
+      createPlayerJoinedEvent(ctx(), 'player-alice', 0 as PlayerIndex, 'Alice'),
+      createPlayerJoinedEvent(ctx(), 'player-bob', 1 as PlayerIndex, 'Bob'),
+      createGameStartedEvent(ctx(), 2, 1000, 0 as PlayerIndex),
+    ];
+    const { hands, dabb } = dealCards(shuffleDeck(createDeck()), 2);
+    const handsRecord = {} as Record<PlayerIndex, Card[]>;
+    hands.forEach((cards, idx) => {
+      handsRecord[idx as PlayerIndex] = cards;
+    });
+    events.push(createCardsDealtEvent(ctx(), handsRecord, dabb));
+
+    const aliceCard = handsRecord[0 as PlayerIndex][0];
+    const bobCard = handsRecord[1 as PlayerIndex][0];
+    events.push(createCardPlayedEvent(ctx(), 0 as PlayerIndex, aliceCard));
+    events.push(createCardPlayedEvent(ctx(), 1 as PlayerIndex, bobCard));
+    events.push(createTrickWonEvent(ctx(), 0 as PlayerIndex, [aliceCard, bobCard], 20));
+
+    const afterTrick = applyEvents(events);
+    expect(afterTrick.lastCompletedTrick?.round).toBe(afterTrick.round);
+
+    events.push(createNewRoundStartedEvent(ctx(), afterTrick.round + 1, 1 as PlayerIndex));
+    const afterReset = applyEvents(events);
+
+    expect(afterReset.lastCompletedTrick?.cards.map((c) => c.cardId)).toEqual([
+      aliceCard.id,
+      bobCard.id,
+    ]);
+    // ...but it is stamped with the round it was played in, so consumers can tell it is stale.
+    expect(afterReset.lastCompletedTrick?.round).toBe(afterReset.round - 1);
   });
 });
 

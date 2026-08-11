@@ -590,6 +590,11 @@ export class BinokelAIPlayer implements AIPlayer {
     if (!lastTrick || lastTrick.cards.length === 0) {
       return;
     }
+    // It survives the round reset for the trick animation, so a trick from the previous round
+    // would otherwise mark voids against the new round's hands and trump.
+    if (lastTrick.round !== state.round) {
+      return;
+    }
 
     // Lead suit is inferred from the first card played
     const leadSuit = lastTrick.cards[0].card.suit;
