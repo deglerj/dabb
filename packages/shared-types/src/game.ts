@@ -49,6 +49,11 @@ export interface CompletedTrick {
   cards: PlayedCard[];
   winnerIndex: PlayerIndex;
   points: number;
+  /**
+   * Round the trick was played in. It survives into the next round (the trick animation needs
+   * it — see resetForNewRound), so anything that reasons about the *current* round must check.
+   */
+  round: number;
 }
 
 export interface RoundScore {

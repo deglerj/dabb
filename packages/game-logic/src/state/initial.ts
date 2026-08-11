@@ -110,7 +110,10 @@ export function resetForNewRound(state: GameState): GameState {
     // Reset dabb card IDs
     dabbCardIds: [],
 
-    // Reset last completed trick
-    lastCompletedTrick: null,
+    // lastCompletedTrick is deliberately NOT reset. The final card of a round arrives as one
+    // cascade — CARD_PLAYED, TRICK_WON, ROUND_SCORED, NEW_ROUND_STARTED, CARDS_DEALT — so a
+    // client only ever sees the state after all of them. Clearing it here meant the last trick
+    // of every round vanished off the table instantly instead of being held and swept like any
+    // other. It carries its own `round`, so consumers that care read that (see BinokelAIPlayer).
   };
 }

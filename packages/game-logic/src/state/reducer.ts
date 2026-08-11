@@ -379,6 +379,7 @@ function handleTrickWon(
       cards: state.currentTrick.cards,
       winnerIndex: event.payload.winnerIndex,
       points: event.payload.points,
+      round: state.round,
     },
     tricksTaken: newTricksTaken,
     currentTrick: {
