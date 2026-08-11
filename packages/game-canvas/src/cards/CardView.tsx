@@ -27,6 +27,7 @@ export interface CardViewProps {
   selected?: boolean;
   highlighted?: boolean;
   isTrump?: boolean;
+  isMeld?: boolean;
 }
 
 const DEFAULT_W = 70;
@@ -70,6 +71,7 @@ export function CardView({
   selected = false,
   highlighted = false,
   isTrump = false,
+  isMeld = false,
 }: CardViewProps) {
   const viewRef = useRef<HTMLDivElement>(null);
   const xRef = useRef(initialX ?? targetX);
@@ -288,7 +290,14 @@ export function CardView({
       }}
     >
       {card !== null ? (
-        <CardFace card={card} width={width} height={height} dimmed={dimmed} isTrump={isTrump} />
+        <CardFace
+          card={card}
+          width={width}
+          height={height}
+          dimmed={dimmed}
+          isTrump={isTrump}
+          isMeld={isMeld}
+        />
       ) : (
         <CardBack width={width} height={height} />
       )}

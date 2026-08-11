@@ -45,6 +45,7 @@ import { GameLogTab } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
 import { deriveWinnerInfo } from '../game/winnerInfo.js';
+import { computeMeldCardIds } from '../game/meldHighlighting.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
 import { OptionsButton } from './OptionsButton.js';
@@ -275,6 +276,12 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     onDiscard(slottedCardIds);
     setSlottedCardIds([]);
   }, [onDiscard, slottedCardIds]);
+
+  // Same tint the hand uses, so a card keeps its marking after it is dropped into a discard slot.
+  const meldCardIds = useMemo(
+    () => computeMeldCardIds(state.phase, myCards, state.trump),
+    [state.phase, myCards, state.trump]
+  );
 
   // Melds detection for melding overlay
   const detectedMelds = useMemo(() => {
@@ -545,6 +552,8 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
                         width={CARD_W}
                         height={CARD_H}
                         draggable={true}
+                        isTrump={state.trump !== null && cardId.startsWith(`${state.trump}-`)}
+                        isMeld={meldCardIds.has(cardId)}
                         onTap={() => {
                           triggerHaptic('card-select');
                           handleRemoveFromSlot(cardId);

@@ -2,6 +2,14 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.5.0] - 2026-08-11
+
+### Neu
+
+- Karten, die zu einer Meldung gehören, werden jetzt beim Reizen, beim Dabb, beim Trumpf-Ansagen, beim Weglegen und beim Melden rosa eingefärbt. So siehst du auf einen Blick, welche Karten Punkte bringen — und legst nicht versehentlich eine davon weg. Beim Stechen bleiben die Karten normal. Karten, die gleichzeitig Trumpf und Teil einer Meldung sind, mischen beide Farben.
+- Trumpfkarten sind jetzt ab dem Moment eingefärbt, in dem der Trumpf angesagt ist — also auch beim Weglegen. Bisher erst ab dem Melden.
+- Karten, die du zum Weglegen auf den Tisch gelegt hast, behalten ihre Einfärbung. So siehst du weiterhin, ob du gerade einen Trumpf oder eine Meldung vergräbst.
+
 ## [4.4.0] - 2026-08-11
 
 ### Neu

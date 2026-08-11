@@ -20,6 +20,7 @@ export interface CardFaceProps {
   y?: number;
   dimmed?: boolean;
   isTrump?: boolean;
+  isMeld?: boolean;
 }
 
 const FACE_RANKS = new Set<Rank>(['koenig', 'ober', 'buabe']);
@@ -37,6 +38,7 @@ export function CardFace({
   y = 0,
   dimmed = false,
   isTrump = false,
+  isMeld = false,
 }: CardFaceProps) {
   const { suit, rank } = parseCardId(card);
   const symbol = SUIT_SYMBOLS[suit];
@@ -95,6 +97,13 @@ export function CardFace({
           style={[StyleSheet.absoluteFill, rnStyles.trumpOverlay, { borderRadius: width * 0.06 }]}
         />
       )}
+      {/* Stacks on top of the trump overlay — a card that is both simply shows the two tints
+          composited (amber + rose = coral), no blend maths needed. */}
+      {isMeld && (
+        <View
+          style={[StyleSheet.absoluteFill, rnStyles.meldOverlay, { borderRadius: width * 0.06 }]}
+        />
+      )}
     </View>
   );
 }
@@ -113,4 +122,5 @@ const rnStyles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   dimOverlay: { backgroundColor: 'rgba(0,0,0,0.6)' },
   trumpOverlay: { backgroundColor: 'rgba(255,200,50,0.15)' },
+  meldOverlay: { backgroundColor: 'rgba(215,60,120,0.16)' },
 });
