@@ -27,6 +27,7 @@ import type {
   PlayerIndex,
   Team,
 } from '@dabb/shared-types';
+import { MELD_SHOWCASE_DURATION_MS } from '@dabb/shared-types';
 import { createAIPlayer, partnersHuman, type AIPlayer, type AIDifficulty } from './AIPlayer.js';
 
 export interface OfflineGameEngineOptions {
@@ -129,9 +130,20 @@ export class OfflineGameEngine {
   private async act(playerIndex: PlayerIndex, action: AIAction): Promise<void> {
     const isTrickCardPlay = this.state.phase === 'tricks' && action.type === 'playCard';
     const lastTrickBefore = this.state.lastCompletedTrick;
+    let meldingCompleted = false;
 
     for (const event of createEventsForAction(this.state, playerIndex, action, this.next)) {
       this.emit(event);
+      meldingCompleted ||= event.type === 'MELDING_COMPLETE';
+    }
+
+    // The meld showcase (useMeldShowcase) lays the other players' melds on the table between
+    // MELDING_COMPLETE and the first card. Without this flush all of it reaches the UI in one
+    // batch and the showcase is never seen.
+    if (meldingCompleted) {
+      this.flush();
+      const withMelds = [...this.state.declaredMelds.values()].filter((m) => m.length > 0).length;
+      await sleep(Math.max(0, withMelds - 1) * MELD_SHOWCASE_DURATION_MS);
     }
 
     if (!isTrickCardPlay) {

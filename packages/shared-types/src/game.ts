@@ -204,6 +204,16 @@ export const DABB_SIZE: Record<PlayerCount, number> = {
 export const MIN_BID = 150;
 export const BID_INCREMENT = 10;
 
+/**
+ * How long one player's melds are laid out on the table after melding completes, arc-in and
+ * retraction included (see useMeldShowcase in ui-shared).
+ *
+ * Lives here because both AI drivers — useAI online, OfflineGameEngine offline — have to hold
+ * the first trick card back for the length of the whole showcase, and neither may depend on
+ * a UI package.
+ */
+export const MELD_SHOWCASE_DURATION_MS = 3750;
+
 /** Used by ScoreboardStrip and ScoreboardModal in 4-player team games */
 export interface TeamScoreEntry {
   team: Team;

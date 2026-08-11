@@ -28,6 +28,7 @@ export {
   formatMeldName,
   MELD_BASE_POINTS,
   MELD_NAMES,
+  MELD_SHOWCASE_DURATION_MS,
   MELD_TRUMP_BONUS,
   MIN_BID,
 } from './game.js';
