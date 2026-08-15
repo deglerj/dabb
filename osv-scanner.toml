@@ -12,14 +12,6 @@ reason = "Only affects uuid v3/v5/v6 with buf parameter. Project uses only v4 (g
 # no upstream fix available yet. Re-check on firebase-tools upgrade.
 
 [[IgnoredVulns]]
-id = "CVE-2025-71330"
-reason = "image-size (ICNS parser DoS) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2025-71329"
-reason = "image-size (JXL/HEIF parser DoS) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
 id = "CVE-2026-69152"
 reason = "brace-expansion (DoS via unbounded arrays) — transitive via firebase-tools, CLI-only."
 
