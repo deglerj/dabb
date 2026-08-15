@@ -59,6 +59,7 @@ export function createInitialState(
 
     // Last completed trick
     lastCompletedTrick: null,
+    trickHistory: [],
   };
 }
 
@@ -109,6 +110,10 @@ export function resetForNewRound(state: GameState): GameState {
 
     // Reset dabb card IDs
     dabbCardIds: [],
+
+    // Reset the round's deduction material. Note this is the opposite of lastCompletedTrick
+    // below: a void deduced last round says nothing about the hand just dealt.
+    trickHistory: [],
 
     // lastCompletedTrick is deliberately NOT reset. The final card of a round arrives as one
     // cascade — CARD_PLAYED, TRICK_WON, ROUND_SCORED, NEW_ROUND_STARTED, CARDS_DEALT — so a

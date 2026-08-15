@@ -4,6 +4,7 @@
 
 import {
   Card,
+  type CompletedTrick,
   GameEvent,
   GameState,
   PlayerIndex,
@@ -373,14 +374,17 @@ function handleTrickWon(
   newTricksTaken.set(event.payload.winnerIndex, [...winnerTricks, event.payload.cards]);
 
   // Save completed trick before clearing, then reset trick
+  const completed: CompletedTrick = {
+    cards: state.currentTrick.cards,
+    winnerIndex: event.payload.winnerIndex,
+    points: event.payload.points,
+    round: state.round,
+  };
+
   return {
     ...state,
-    lastCompletedTrick: {
-      cards: state.currentTrick.cards,
-      winnerIndex: event.payload.winnerIndex,
-      points: event.payload.points,
-      round: state.round,
-    },
+    lastCompletedTrick: completed,
+    trickHistory: [...state.trickHistory, completed],
     tricksTaken: newTricksTaken,
     currentTrick: {
       cards: [],

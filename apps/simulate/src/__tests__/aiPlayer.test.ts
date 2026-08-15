@@ -39,6 +39,7 @@ describe('BinokelAIPlayer - 4-player team-aware bidding', () => {
       wentOut: false,
       dabbCardIds: [],
       lastCompletedTrick: null,
+      trickHistory: [],
     };
     return { ...base, ...overrides };
   }
