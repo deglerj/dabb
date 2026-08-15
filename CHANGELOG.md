@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.7.0] - 2026-08-15
+
+### Geändert
+
+- Die Computergegner reizen jetzt realistischer. Bisher haben sie nur gezählt, was sie bereits auf der Hand hatten, und dabei übersehen, dass der Gewinner des Reizens noch den Dabb bekommt — vier zusätzliche Karten, die oft genau die Meldung vollständig machen, an der eine Karte fehlt. Jetzt schätzen sie mit ein, wie wahrscheinlich der Dabb ihre Hand ergänzt, und lassen sich eine gute Hand entsprechend mehr kosten. Besonders im Spiel zu zweit wird deutlich höher gereizt.
+
 ## [4.6.2] - 2026-08-15
 
 ### Behoben

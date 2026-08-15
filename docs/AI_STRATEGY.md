@@ -50,9 +50,29 @@ State is reset automatically when the round number changes.
 
 ## Bidding
 
-Uses a per-suit trick estimate instead of a flat guess:
+`estimatedTotal = expected melds after taking the dabb + trick estimate`, compared against the
+next bid.
 
-**`estimateTrickPoints(hand, trump, playerCount)`**:
+**`evaluateBestSuitWithDabb(hand, playerCount)`** — the meld half. The bid winner picks up the
+four dabb cards, so the melds on the table understate the hand: one card short of a Familie is
+worth far more than the Paar it currently shows. Monte Carlo over the cards the bidder cannot
+see (every one of them is equally likely to be in the dabb, since the opponents' hands are
+unknown too): draw a dabb, score `detectMelds(hand + dabb, suit)` per suit, average over
+`DABB_SAMPLES` (24) draws, keep the best suit.
+
+The sampled gain is shaded by `DABB_CONFIDENCE` (0.7) because the sampler scores all 22 cards
+while four are laid away again before melding. Measured over 400 games per player count: the
+average winning bid rises from 228 to 325 (2p), 159 to 178 (3p) and 152 to 155 (4p), while the
+missed-bid rate stays below 2% everywhere. At full confidence (1.0) the 2-player missed-bid
+rate triples to 2.7% for another 40 points of bid.
+
+The plain `evaluateBestSuit(hand)` — melds on the table only, no sampling — is what the **trump
+declaration** uses, because by then the dabb is already in hand and sampling it would count it
+twice.
+
+**`estimateTrickPoints(hand, trump, playerCount)`** — the trick half. Always fed the original
+hand, never `hand + dabb`: the trump-count table saturates at 6 and 22 cards would peg every
+hand at the maximum.
 
 - Base estimate from trump count in hand: 0→20, 1→30, 2→40, 3→55, 4→65, 5→75, 6+→85.
 - +10 for each non-trump lonely ace (only card of that suit in hand).

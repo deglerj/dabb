@@ -20,16 +20,18 @@ import type {
   CardId,
   GameState,
   PlayedCard,
+  PlayerCount,
   PlayerIndex,
   Rank,
   Suit,
   Team,
   Trick,
 } from '@dabb/shared-types';
-import { CARDS_PER_PLAYER, RANK_POINTS, SUITS } from '@dabb/shared-types';
+import { CARDS_PER_PLAYER, DABB_SIZE, RANK_POINTS, SUITS } from '@dabb/shared-types';
 import {
   calculateMeldPoints,
   canPass,
+  createDeck,
   detectMelds,
   getMinBid,
   getPartnerIndex,
@@ -237,14 +239,14 @@ function estimateTrickPoints(hand: Card[], trump: Suit, playerCount: number): nu
 }
 
 /**
- * Evaluate the best trump suit using combined meld + trick estimate.
+ * Evaluate the best trump suit from the melds already in the hand.
  * Tiebreaker: prefer suit with more trump cards in hand.
  * Score = meldPoints * 100 + trumpCount
+ *
+ * For the trump declaration, which happens after the dabb is already in hand. During bidding
+ * the dabb is still unknown — use `evaluateBestSuitWithDabb` there instead.
  */
-function evaluateBestSuit(
-  hand: Card[],
-  playerCount: number
-): { meldPoints: number; bestSuit: Suit; estimatedTotal: number } {
+export function evaluateBestSuit(hand: Card[]): { meldPoints: number; bestSuit: Suit } {
   let bestSuit: Suit = 'herz';
   let bestScore = -1;
   let bestMeld = 0;
@@ -261,8 +263,99 @@ function evaluateBestSuit(
     }
   }
 
-  const trickEstimate = estimateTrickPoints(hand, bestSuit, playerCount);
-  return { meldPoints: bestMeld, bestSuit, estimatedTotal: bestMeld + trickEstimate };
+  return { meldPoints: bestMeld, bestSuit };
+}
+
+/**
+ * Default number of dabbs sampled by `evaluateBestSuitWithDabb`. Traded off against decision
+ * cost: every sample costs one `detectMelds` per suit.
+ */
+const DABB_SAMPLES = 24;
+
+/**
+ * How much of the sampled dabb gain to trust. The sampler scores all `hand + dabb` cards, but
+ * four of them are laid away again before melding, so a meld it counted can still break. A bid
+ * that misses costs -2x, so the estimate is deliberately shaded down.
+ *
+ * Calibrated on 400-game runs per player count: at 1.0 the 2-player missed-bid rate is 2.7%,
+ * at 0.7 it is 0.9% (0.0% with no dabb estimate at all) for all but 40 points of the same
+ * bidding gain.
+ */
+const DABB_CONFIDENCE = 0.7;
+
+/**
+ * Evaluate the best trump suit during **bidding**, when the dabb is still face down.
+ *
+ * The bid winner picks up all four dabb cards, so a hand one card short of a Familie is worth
+ * far more than its melds on the table say. Monte Carlo over the unseen cards: draw a dabb,
+ * score the melds of hand + dabb per suit, average.
+ *
+ * Every card the bidder cannot see is equally likely to be in the dabb — the opponents' hands
+ * are unknown too, so no distinction between "in a hand" and "in the dabb" is possible or
+ * needed here.
+ *
+ * `meldPoints` is the expected meld total *after* taking the dabb, so it is fed to the bid
+ * comparison in place of the hand's current melds. The returned `bestSuit` is only the most
+ * likely trump — the real declaration happens later, on the real dabb, via `evaluateBestSuit`.
+ */
+export function evaluateBestSuitWithDabb(
+  hand: Card[],
+  playerCount: PlayerCount,
+  samples: number = DABB_SAMPLES,
+  rng: () => number = Math.random
+): { meldPoints: number; bestSuit: Suit } {
+  const base = evaluateBestSuit(hand);
+
+  const handIds = new Set(hand.map((c) => c.id));
+  const unseen = createDeck().filter((c) => !handIds.has(c.id));
+  const dabbSize = DABB_SIZE[playerCount];
+  if (unseen.length < dabbSize || samples < 1) {
+    return base;
+  }
+
+  const meldTotals = new Map<Suit, number>(SUITS.map((suit) => [suit, 0]));
+
+  for (let s = 0; s < samples; s++) {
+    // Partial Fisher-Yates: only the first `dabbSize` slots need to be settled.
+    const pool = [...unseen];
+    for (let i = 0; i < dabbSize; i++) {
+      const j = i + Math.floor(rng() * (pool.length - i));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    // ponytail: scores all hand + dabb cards, though four are laid away again before melding.
+    // DABB_CONFIDENCE shades that overcount off; run the discard heuristic per sample if the
+    // bias ever shows up in the missed-bid rate.
+    const withDabb = [...hand, ...pool.slice(0, dabbSize)];
+
+    for (const suit of SUITS) {
+      const points = calculateMeldPoints(detectMelds(withDabb, suit));
+      meldTotals.set(suit, (meldTotals.get(suit) ?? 0) + points);
+    }
+  }
+
+  let bestSuit: Suit = base.bestSuit;
+  let bestScore = -1;
+  let bestMeld = 0;
+
+  for (const suit of SUITS) {
+    const expectedMeld = (meldTotals.get(suit) ?? 0) / samples;
+    // Trump count from the original hand — the dabb's trump is already priced into the melds,
+    // and the tiebreaker is about the hand the AI is committing to the bid with.
+    const trumpCount = hand.filter((c) => c.suit === suit).length;
+    const score = expectedMeld * 100 + trumpCount;
+    if (score > bestScore) {
+      bestScore = score;
+      bestSuit = suit;
+      bestMeld = expectedMeld;
+    }
+  }
+
+  // The sampled total can only be >= the hand's own melds (adding cards never removes a meld),
+  // so this shades the *gain* down, never below what the hand already holds.
+  return {
+    meldPoints: base.meldPoints + DABB_CONFIDENCE * (bestMeld - base.meldPoints),
+    bestSuit,
+  };
 }
 
 // ---- Discard helper ----
@@ -427,8 +520,9 @@ export class BinokelAIPlayer implements AIPlayer {
         return { type: 'bid', amount: minBid };
       }
 
-      // Evaluate best suit and estimate total score
-      const { meldPoints, bestSuit } = evaluateBestSuit(hand, gameState.playerCount);
+      // Evaluate best suit and estimate total score. The bid winner gets the dabb, so the meld
+      // estimate has to price in the melds it is likely to complete.
+      const { meldPoints, bestSuit } = evaluateBestSuitWithDabb(hand, gameState.playerCount);
       const estimatedTotal =
         meldPoints + estimateTrickPoints(hand, bestSuit, gameState.playerCount);
       const diff = estimatedTotal - minBid;
@@ -510,7 +604,8 @@ export class BinokelAIPlayer implements AIPlayer {
 
     try {
       const hand = gameState.hands.get(playerIndex) ?? [];
-      const bestSuit = evaluateBestSuit(hand, gameState.playerCount).bestSuit;
+      // The dabb is already in hand at this point, so no dabb estimate here.
+      const bestSuit = evaluateBestSuit(hand).bestSuit;
       const otherSuits = SUITS.filter((s) => s !== bestSuit);
       return { type: 'declareTrump', suit: this.maybeBlunder(bestSuit, otherSuits) };
     } catch {
