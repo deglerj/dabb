@@ -3,7 +3,7 @@ import { db } from './config.js';
 import { generateSessionCode } from './sessionCode.js';
 import { getOrCreateSecretId, hashSecretId } from './secretId.js';
 import type { PlayerCount, PlayerIndex } from '@dabb/shared-types';
-import { GameError, GAME_ERROR_CODES } from '@dabb/shared-types';
+import { GameError, GAME_ERROR_CODES, availableAINames, sameNickname } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 
 export interface SessionPlayer {
@@ -101,6 +101,19 @@ export async function joinSession(
     secretHash,
     isAI: false,
   });
+
+  // A bot may already carry this nickname — it was free when the host added it. The human keeps
+  // the name they typed; the bot is the one that moves.
+  const clashingSeat = Object.entries(meta.players).find(
+    ([, player]) => player.isAI && sameNickname(player.nickname, nickname)
+  );
+  if (clashingSeat) {
+    const taken = [nickname, ...Object.values(meta.players).map((p) => p.nickname)];
+    const [freeName] = availableAINames(taken);
+    if (freeName) {
+      await set(ref(db, `sessions/${code}/meta/players/${clashingSeat[0]}/nickname`), freeName);
+    }
+  }
 
   return { secretId, playerIndex };
 }

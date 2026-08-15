@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AI_NAMES } from '@dabb/shared-types';
+import type { PlayerIndex } from '@dabb/shared-types';
 import { renderHook, act } from '@testing-library/react';
 import { useOfflineGame } from '../useOfflineGame.js';
 
@@ -100,6 +101,21 @@ describe('useOfflineGame', () => {
     expect(result.current.nicknames.get(0)).toBe('Hans');
     // AI players get a name from the shared AI_NAMES list
     expect(AI_NAMES).toContain(result.current.nicknames.get(1));
+  });
+
+  // 'hans' is itself in AI_NAMES, so a player using it used to end up at a table with a
+  // second Hans (regression).
+  it('never gives an AI the human player name', async () => {
+    const { result } = renderHook(() =>
+      useOfflineGame({ playerCount: 4, difficulty: 'medium', nickname: 'hans', resume: false })
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const names = [1, 2, 3].map((i) => result.current.nicknames.get(i as PlayerIndex));
+    expect(names).not.toContain('Hans');
+    expect(new Set(names).size).toBe(3);
   });
 
   it('onBid calls engine.dispatch with bid action', async () => {

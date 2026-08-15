@@ -94,6 +94,21 @@ export const AI_NAMES = [
   'Lieselotte',
 ] as const;
 
+/** Nicknames compare trimmed and case-insensitively, so "hans " and "Hans" are the same name. */
+export function sameNickname(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
+/**
+ * AI names nobody at the table uses yet, in list order. Every mode that hands a bot a name goes
+ * through this so a bot never shares a human's nickname (a table holds at most four players, so
+ * the list can never run dry).
+ */
+export function availableAINames(taken: Iterable<string>): string[] {
+  const used = [...taken];
+  return AI_NAMES.filter((name) => !used.some((t) => sameNickname(t, name)));
+}
+
 /**
  * Context provided to AI for making decisions
  */

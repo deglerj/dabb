@@ -63,7 +63,7 @@ export type { EmoteKey, EmoteSignal } from './emotes.js';
 export { EMOTE_GLYPH, EMOTE_KEYS, EMOTE_TTL_MS } from './emotes.js';
 
 // AI types
-export { AI_NAMES } from './ai.js';
+export { AI_NAMES, availableAINames, sameNickname } from './ai.js';
 export type {
   AIAction,
   AIBidAction,

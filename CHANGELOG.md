@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.8.2] - 2026-08-15
+
+### Behoben
+
+- Computergegner konnten den gleichen Namen tragen wie ein Mitspieler am Tisch — im Offline-Spiel oder wenn jemand erst nach dem Hinzufügen des Computergegners beitrat. Computergegner suchen sich jetzt immer einen freien Namen; tritt ein Mitspieler mit dem Namen eines Computergegners bei, wird der Computergegner umbenannt.
+
 ## [4.8.1] - 2026-08-15
 
 ### Behoben

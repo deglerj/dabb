@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OfflineGameEngine } from '@dabb/game-ai';
 import { createInitialState } from '@dabb/game-logic';
 import type { GameInterface } from '@dabb/ui-shared';
-import { AI_NAMES } from '@dabb/shared-types';
+import { availableAINames } from '@dabb/shared-types';
 import type {
   CardId,
   EmoteKey,
@@ -36,7 +36,7 @@ function buildNicknames(
   humanNickname: string,
   humanIndex: PlayerIndex
 ): Map<PlayerIndex, string> {
-  const shuffled = [...AI_NAMES].sort(() => Math.random() - 0.5);
+  const shuffled = availableAINames([humanNickname]).sort(() => Math.random() - 0.5);
   const map = new Map<PlayerIndex, string>();
   let aiNameIndex = 0;
   for (let i = 0; i < playerCount; i++) {
