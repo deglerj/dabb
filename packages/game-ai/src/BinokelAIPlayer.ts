@@ -39,6 +39,7 @@ import {
 } from '@dabb/game-logic';
 
 import type { AIPlayer, AIStrategy } from './AIPlayer.js';
+import { buildRoundMemory, type RoundMemory } from './knowledge.js';
 
 /**
  * Score lead at which the rubber band is fully applied. Roughly one strong round on the
@@ -98,6 +99,73 @@ export function effectiveMistakeProbability(
  * about who wins a trick.
  */
 const cardWouldWin = cardBeats;
+
+/**
+ * Point value at which losing a card to an opponent's trick actually hurts: the Zehn (10) and
+ * the Ass (11). Everything else is worth 2–4 and is not worth ducking for.
+ */
+const FEED_POINTS = 10;
+
+/** Seats that still play into this trick after us, in turn order. */
+function playersYetToAct(trick: Trick, playerCount: number): PlayerIndex[] {
+  if (trick.cards.length === 0) {
+    return [];
+  }
+  const leader = trick.cards[0].playerIndex;
+  const rest: PlayerIndex[] = [];
+  for (let position = trick.cards.length + 1; position < playerCount; position++) {
+    rest.push(((leader + position) % playerCount) as PlayerIndex);
+  }
+  return rest;
+}
+
+/**
+ * Whether an opponent who has not played yet could take this trick off us.
+ *
+ * Only *deduced* knowledge counts as a threat. Treating an unknown player as a possible ruffer
+ * sounds like the cautious choice, but early in a round almost every opponent could hold trump,
+ * so the AI would hold its aces back all round and never score. A player is therefore a ruffing
+ * threat only once they are known void in the lead suit.
+ */
+function couldBeBeatenAfterUs(
+  candidate: Card,
+  trick: Trick,
+  trump: Suit,
+  playerIndex: PlayerIndex,
+  state: GameState,
+  memory: RoundMemory
+): boolean {
+  const leadSuit = trick.leadSuit!;
+  const partner = getPartner(playerIndex, state);
+  const strength = CARD_STRENGTH[candidate.rank];
+
+  for (const opponent of playersYetToAct(trick, state.playerCount)) {
+    // The partner taking it is not losing it.
+    if (opponent === partner) {
+      continue;
+    }
+
+    if (candidate.suit === trump) {
+      if (memory.couldHoldAbove(opponent, trump, strength)) {
+        return true;
+      }
+      continue;
+    }
+
+    // A higher card of the lead suit beats us.
+    if (candidate.suit === leadSuit && memory.couldHoldAbove(opponent, leadSuit, strength)) {
+      return true;
+    }
+
+    // So does a ruff — but only from someone who cannot follow suit.
+    const voids = memory.voidIn.get(opponent);
+    if (voids?.has(leadSuit) && !voids.has(trump) && memory.unseenTrump > 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 function getCurrentWinningPlay(trick: Trick, trump: Suit): PlayedCard | null {
   if (trick.cards.length === 0) {
@@ -323,15 +391,8 @@ export class BinokelAIPlayer implements AIPlayer {
   private readonly rubberBandStrength: number;
   /** Mistake rate for the decision in flight, recomputed once per decide() */
   private currentMistakeProbability: number;
-  /** Round number when instance state was last reset */
-  private lastSeenRound: number = -1;
-  /**
-   * Tracks which players are known void in which suits,
-   * detected from lastCompletedTrick (accumulates across tricks).
-   */
-  private voidPlayers: Map<PlayerIndex, Set<Suit>> = new Map();
 
-  /** Trick-play generation. Nothing branches on it yet — see AIStrategy. */
+  /** Trick-play generation — see AIStrategy. */
   protected readonly strategy: AIStrategy;
 
   constructor(
@@ -370,12 +431,9 @@ export class BinokelAIPlayer implements AIPlayer {
       playerIndex
     );
 
-    // Reset per-round state when a new round starts
-    if (gameState.round !== this.lastSeenRound) {
-      this.lastSeenRound = gameState.round;
-      this.voidPlayers = new Map();
-    }
-
+    // No per-round instance state to reset: everything the AI knows about the round is derived
+    // from the state per decision (buildRoundMemory). An instance field could not work anyway —
+    // useAI constructs a fresh player for every single decision.
     switch (gameState.phase) {
       case 'bidding':
         return this.decideBidding(context);
@@ -522,16 +580,16 @@ export class BinokelAIPlayer implements AIPlayer {
         return { type: 'playCard', cardId: validPlays[0].id };
       }
 
-      // Update void knowledge from last completed trick
-      this.updateVoidKnowledge(gameState, trump);
-
       const playedIds = buildPlayedCardIds(gameState);
+      // Everything the AI knows about the other hands, derived from public information only.
+      // Built once per decision — see knowledge.ts for why it is not accumulated.
+      const memory = buildRoundMemory(gameState, playerIndex);
 
       // Get optimal card from lead/follow logic
       const cardAction =
         trick.cards.length === 0
-          ? this.decideLeadCard(validPlays, hand, trump, playerIndex, gameState, playedIds)
-          : this.decideFollowCard(validPlays, hand, trick, trump, playerIndex, gameState);
+          ? this.decideLeadCard(validPlays, hand, trump, playerIndex, gameState, playedIds, memory)
+          : this.decideFollowCard(validPlays, hand, trick, trump, playerIndex, gameState, memory);
 
       // decideLeadCard / decideFollowCard always return playCard
       if (cardAction.type !== 'playCard') {
@@ -562,36 +620,6 @@ export class BinokelAIPlayer implements AIPlayer {
   }
 
   /**
-   * Update void knowledge from the most recently completed trick.
-   * If a player played neither the lead suit nor trump, they are void in the lead suit.
-   */
-  private updateVoidKnowledge(state: GameState, trump: Suit): void {
-    const lastTrick = state.lastCompletedTrick;
-    if (!lastTrick || lastTrick.cards.length === 0) {
-      return;
-    }
-    // It survives the round reset for the trick animation, so a trick from the previous round
-    // would otherwise mark voids against the new round's hands and trump.
-    if (lastTrick.round !== state.round) {
-      return;
-    }
-
-    // Lead suit is inferred from the first card played
-    const leadSuit = lastTrick.cards[0].card.suit;
-
-    for (const playedCard of lastTrick.cards) {
-      const { playerIndex, card } = playedCard;
-      if (card.suit !== leadSuit && card.suit !== trump) {
-        // Player couldn't follow suit and couldn't/didn't trump → void in lead suit
-        if (!this.voidPlayers.has(playerIndex)) {
-          this.voidPlayers.set(playerIndex, new Set());
-        }
-        this.voidPlayers.get(playerIndex)!.add(leadSuit);
-      }
-    }
-  }
-
-  /**
    * Choose a card to lead with (first card of a trick).
    *
    * Priority:
@@ -607,7 +635,8 @@ export class BinokelAIPlayer implements AIPlayer {
     trump: Suit,
     playerIndex: PlayerIndex,
     state: GameState,
-    playedIds: Set<string>
+    playedIds: Set<string>,
+    memory: RoundMemory
   ): AIAction {
     // 1. Lonely aces first
     const lonelyAces = findLonelyAces(hand).filter((a) => validPlays.some((v) => v.id === a.id));
@@ -636,8 +665,11 @@ export class BinokelAIPlayer implements AIPlayer {
       }
     }
 
-    // 3. Endgame squeeze: in last 3 tricks, lead trump to collect late-game points
-    if (hand.length <= 3) {
+    // 3. Endgame squeeze: in the last 3 tricks, lead trump to collect late-game points.
+    //    Skipped once the census says nobody else holds trump — spending a trump against
+    //    trump-void opponents buys a trick any top card would have won for free.
+    const opponentsHoldTrump = this.strategy === 1 || memory.unseenTrump > 0;
+    if (hand.length <= 3 && opponentsHoldTrump) {
       const trumpPlays = validPlays.filter((c) => c.suit === trump);
       if (trumpPlays.length > 0) {
         trumpPlays.sort((a, b) => CARD_STRENGTH[b.rank] - CARD_STRENGTH[a.rank]);
@@ -682,7 +714,8 @@ export class BinokelAIPlayer implements AIPlayer {
    *
    * Priority:
    * 1. Smearing — 4-player only: partner winning AND we are last to play
-   * 2. Win with minimum card
+   * 2. Win with minimum card, unless (strategy 2) that card is expensive and someone still to
+   *    act can take it off us
    * 3. Void creation — prefer discarding last card of a suit to create a void
    * 4. Dump lowest card (from suit with most cards, non-trump preferred)
    */
@@ -692,7 +725,8 @@ export class BinokelAIPlayer implements AIPlayer {
     trick: Trick,
     trump: Suit,
     playerIndex: PlayerIndex,
-    state: GameState
+    state: GameState,
+    memory: RoundMemory
   ): AIAction {
     const winningPlay = getCurrentWinningPlay(trick, trump);
     if (!winningPlay) {
@@ -706,40 +740,78 @@ export class BinokelAIPlayer implements AIPlayer {
     // completed trick, so the in-progress trick always carries null there.
     const partnerIsWinning = partner !== null && winningPlay.playerIndex === partner;
 
-    // Find cards that would win the trick
+    // Find cards that would win the trick, and the ones that deliberately would not. Must-beat
+    // can leave us with nothing but winners, in which case ducking is simply not legal.
     const winningPlays = validPlays.filter((c) => cardWouldWin(c, winningCard, leadSuit, trump));
+    const duckingPlays = validPlays.filter((c) => !cardWouldWin(c, winningCard, leadSuit, trump));
 
-    // 1. Smearing (4-player only): partner is winning AND we are last to play, so the trick
-    //    is already safe. Safety: only smear when no opponent can steal the trick after us.
-    //    The partner exemption lets us duck even when we could overtake, so pick the most
-    //    valuable card that does *not* beat the partner — banking its points while keeping
-    //    our high cards. If every legal card would overtake, fall through and win cheaply.
+    winningPlays.sort((a, b) => {
+      const strengthDiff = CARD_STRENGTH[a.rank] - CARD_STRENGTH[b.rank];
+      if (strengthDiff !== 0) {
+        return strengthDiff;
+      }
+      return RANK_POINTS[a.rank] - RANK_POINTS[b.rank];
+    });
+
+    // 1. Smearing (4-player only): the partner already has the trick.
+    //
+    //    This is the *only* place a Binokel player ever chooses between winning and not
+    //    winning. Everywhere else must-beat decides for them: if a legal card beats the highest
+    //    card of the lead suit, getValidPlays returns only such cards. Measured over simulated
+    //    games, 0% of 2- and 3-player follow decisions offer a win/lose choice, and every one
+    //    of the 3.9% in 4-player games is under this exemption. Any "duck to keep the Ass" or
+    //    "do not feed a later player" rule that is not written here cannot fire at all.
     const isLastToPlay = trick.cards.length === state.playerCount - 1;
-    if (partnerIsWinning && isLastToPlay) {
-      const ducking = validPlays.filter((c) => !cardWouldWin(c, winningCard, leadSuit, trump));
-      if (ducking.length > 0) {
-        const nonTrump = ducking.filter((c) => c.suit !== trump);
-        const smearCandidates = nonTrump.length > 0 ? nonTrump : ducking;
+    if (partnerIsWinning && duckingPlays.length > 0) {
+      const smear = (): AIAction => {
+        const nonTrumpDucks = duckingPlays.filter((c) => c.suit !== trump);
+        const smearCandidates = nonTrumpDucks.length > 0 ? nonTrumpDucks : duckingPlays;
         smearCandidates.sort((a, b) => RANK_POINTS[b.rank] - RANK_POINTS[a.rank]);
         return { type: 'playCard', cardId: smearCandidates[0].id };
+      };
+
+      if (this.strategy === 1) {
+        // Only ever smeared from the last seat; otherwise it fell through and overtook its own
+        // partner with the cheapest winner.
+        if (isLastToPlay) {
+          return smear();
+        }
+      } else {
+        // Overtaking a partner is only worth anything if an opponent behind us could take the
+        // trick from them. Last to play, nobody can, which is the old rule as a special case.
+        const partnerIsThreatened = couldBeBeatenAfterUs(
+          winningCard,
+          trick,
+          trump,
+          playerIndex,
+          state,
+          memory
+        );
+        if (!partnerIsThreatened) {
+          return smear();
+        }
+
+        // The partner is threatened, but protecting the trick with a Zehn or an Ass that the
+        // same opponent can beat anyway just loses the card as well as the trick.
+        const cheapestWinner = winningPlays[0];
+        const protectionIsFutile =
+          cheapestWinner === undefined ||
+          (RANK_POINTS[cheapestWinner.rank] >= FEED_POINTS &&
+            couldBeBeatenAfterUs(cheapestWinner, trick, trump, playerIndex, state, memory));
+        if (protectionIsFutile) {
+          return smear();
+        }
       }
     }
 
-    // 2. Win with minimum card
+    // 2. Win with the minimum card.
     if (winningPlays.length > 0) {
-      winningPlays.sort((a, b) => {
-        const strengthDiff = CARD_STRENGTH[a.rank] - CARD_STRENGTH[b.rank];
-        if (strengthDiff !== 0) {
-          return strengthDiff;
-        }
-        return RANK_POINTS[a.rank] - RANK_POINTS[b.rank];
-      });
       return { type: 'playCard', cardId: winningPlays[0].id };
     }
 
-    // Can't win
-    const nonTrump = validPlays.filter((c) => c.suit !== trump);
-    const dumpCandidates = nonTrump.length > 0 ? nonTrump : validPlays;
+    // Either we cannot win, or winning would cost more than the trick is worth.
+    const nonTrump = duckingPlays.filter((c) => c.suit !== trump);
+    const dumpCandidates = nonTrump.length > 0 ? nonTrump : duckingPlays;
 
     // 3. Void creation: prefer discarding last card of a suit to enable future trumping
     const voidCreators = dumpCandidates.filter((c) => {

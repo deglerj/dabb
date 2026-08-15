@@ -91,6 +91,35 @@ Deduction should therefore live behind a single entry point that is the only cod
 touch `state`, with a test that its output is unchanged when other players' hands are replaced
 with garbage.
 
+## Correction: must-beat makes most of the "duck" family unreachable
+
+**Found during P2, and it invalidates part of what follows.** S2 and S3 below were written as if
+a player normally chooses whether to win a trick. They almost never do.
+
+`getValidPlays` returns _only_ the cards that beat the highest card of the lead suit, whenever
+any of them do. So when following suit the legal set is either all winners or all losers, never
+a mix; the same holds for a forced ruff. The one exception is the partner exemption, which
+returns the whole lead suit and lets a 4-player hand choose.
+
+Measured by replaying simulated games and checking every follow decision for a legal set
+containing both a winning and a losing card:
+
+| Players | Follow decisions | Offering a win/lose choice                          |
+| ------- | ---------------- | --------------------------------------------------- |
+| 2       | 1854             | 0 (0.00%)                                           |
+| 3       | 4440             | 0 (0.00%)                                           |
+| 4       | 4347             | 169 (3.89%) — every one under the partner exemption |
+
+Consequences:
+
+- **S2 as written cannot fire at all**, and was reimplemented in the only slot that exists: a
+  4-player hand deciding whether to overtake its own partner. See the revised entry below.
+- **S3 (ducking, phase P4) is dead for the same reason** and is dropped from the plan. It is the
+  same decision as the revised S2, in the same slot, so it is already covered.
+- The premise that S2 would be "the largest single win" was wrong. Rules that fire on a _lead_
+  are unaffected by any of this, since leading is always a free choice — which moves S4 from a
+  nice-to-have to the main event.
+
 ## The strategies
 
 ### S1 — Trump census
@@ -107,40 +136,35 @@ Two immediate consequences with no further logic:
   `unseenTrump > 0`. Leading trump against trump-void opponents spends a trump on a trick the
   Ass would have won for free.
 
-### S2 — Don't feed: look at who has yet to act
+### S2 — Overtaking the partner (revised; 4-player only)
 
-Replaces the unconditional "win with minimum" of `decideFollowCard` rule 2.
+_Originally "don't feed a high card to a later player", which the correction above showed cannot
+fire. This is what survives of it._
 
-Before spending a high card to take a trick, ask whether any player still to act can beat it.
-A player can beat my candidate if they are not deduced void in the lead suit and a higher card
-of it is unaccounted for, or (candidate is not trump) they are not deduced void in trump and
-trump is unaccounted for.
+When the partner already has the trick, a 4-player hand may follow suit with any card, so it
+genuinely chooses between banking points on the partner's trick and taking it off them. The old
+rule only smeared from the last seat; from any earlier seat it fell through and overtook its own
+partner with the cheapest winner.
 
-- **Nobody can beat it** → take the trick as today, cheapest winner.
-- **Somebody can** and my cheapest winner is expensive (Ass or Zehn, 11 or 10 points) → do not
-  play it. Dump the cheapest card instead and let the trick go.
-- **Somebody can** but my cheapest winner is cheap (Buabe/Ober/König) → still take it; the
-  downside is 2–4 points.
+- **No opponent behind us can beat the partner's card** -> smear. Last to play is this case, so
+  the old `isLastToPlay` rule becomes a special case rather than a separate branch.
+- **An opponent behind us is a threat, and our cheapest overtake is a Zehn or an Ass that the
+  same opponent beats anyway** -> smear. Protecting is futile and would lose the card too.
+- **Otherwise** -> overtake and protect the trick.
 
-This is the strictly-defensive half of the ask and probably the largest single win, because it
-fires several times per round and costs nothing when the census is uncertain (an unknown
-defaults to "somebody can", i.e. to caution).
+"Threat" counts only _deduced_ knowledge: a player known void in the lead suit who is not known
+void in trump. Treating an unknown opponent as a possible ruffer sounds cautious but would make
+the AI hold its aces back all round and never score.
 
-### S3 — Ducking (hold-up)
+**Measured: no significant effect.** It fires on roughly 1-2% of decisions, below what the
+harness can resolve. Retained because overtaking your own partner with an Ass from a non-final
+seat is bad play whether or not it moves a win rate.
 
-A deliberate refusal to win a trick I could win, to keep the winning card for a richer one.
+### S3 — Ducking (hold-up) — DROPPED
 
-Duck when all hold:
-
-- the points on the table are low (threshold ~7, i.e. below a König plus change),
-- my cheapest winning card is an Ass or a Zehn, or a trump I would rather keep for S4,
-- and I hold, or the census says I will get, a later opportunity: at least one more card of a
-  suit where I still hold a top card, or trump while `unseenTrump` is small.
-
-Skip the whole rule when defending a bid I am about to break (see S5) — denying the bid winner
-a cheap trick is worth more than the card.
-
-Note this is distinct from S2: S2 avoids a losing play, S3 declines a _winning_ one.
+Declining a trick you could win is not a decision Binokel offers: must-beat takes it away
+everywhere except the partner exemption, which the revised S2 already covers. Phase P4 is
+removed from the plan. See the correction section above for the measurement.
 
 ### S4 — Sacrifice leads
 
@@ -311,29 +335,31 @@ that cheats invisibly.
 Done when: `buildRoundMemory` is covered, the cheat test passes, and no AI decision reads it
 yet.
 
-## P2 — S1 census + S2 don't-feed
+## P2 — S1 census + S2 (DONE)
 
-First behaviour change, and the expected big win.
+- `decideTricks` builds the memory once per decision and passes it to both lead and follow.
+- **Deleted `updateVoidKnowledge` and the `voidPlayers` instance state.** They turned out to be
+  write-only: `voidPlayers` was populated every trick and never read by any decision, so the
+  per-round tracking documented in `AI_STRATEGY.md` fed nothing at all. (`precomputedTrump`,
+  also named in that doc, no longer exists.) Deleting it changed no behaviour in any driver.
+- `decideFollowCard` gained the revised S2 partner-overtake rule.
+- The endgame trump lead is gated on `unseenTrump > 0`.
 
-- `decideTricks` builds the memory once and passes it down, replacing the ad-hoc
-  `buildPlayedCardIds` (`:150`) and the instance field `this.voidPlayers`.
-- **Delete `updateVoidKnowledge` (`:588`) and the `voidPlayers` / `precomputedTrump` instance
-  state.** It never worked online — `useAI.ts:121` constructs a fresh `BinokelAIPlayer` inside
-  the per-turn effect, so the map was discarded after every single decision. The stateless fold
-  replaces it and fixes online play as a side effect.
-  `precomputedTrump` has the same lifetime bug but is a dabb/trump-phase concern; leave its
-  fallback path (`AI_STRATEGY.md`, "Trump Declaration") alone in this phase and note it.
-- `decideFollowCard` rule 2 (`:749`) gains the "can anyone still to act beat this?" test:
-  players after me in the trick who are not deduced void in the lead suit with a higher card
-  unaccounted for, or not trump-void with trump unaccounted for. Unknown resolves to
-  "yes they can" — uncertainty must fall towards caution or the AI will feed aces on a hunch.
-- Gate the endgame trump lead (`:660`) on `unseenTrump > 0`.
+**Measured at n=8000 per configuration** (one standard error is 0.56 pp):
 
-Tests: unit tests on `decideFollowCard` with a hand-built state — second to play, Ass would win
-what is on the table, one trump unaccounted for among the two players still to act, assert it
-dumps instead. Plus the mirror case with `unseenTrump === 0`, assert it takes the trick.
+| Setup                        | Strategy 2 win rate  | Delta   | Significance |
+| ---------------------------- | -------------------- | ------- | ------------ |
+| 2 players — only S1 can fire | 51.2%                | +1.2 pp | 2.1 SE       |
+| 3 players — only S1 can fire | 33.5% (even = 33.3%) | +0.2 pp | 0.4 SE       |
+| 4 players — S1 and S2        | 50.5%                | +0.5 pp | 0.9 SE       |
 
-Measure against v1 before starting P3.
+**Honest reading: P2 did not deliver.** The endgame trump gate is marginally positive in
+two-player games and invisible everywhere else; the partner-overtake rule is unmeasurable. The
+phase is kept because it is a small amount of code, it deletes more than it adds, and both rules
+are individually sound — but it should not be described as an improvement to the AI's strength.
+
+The plan expected this phase to be the big win. It was wrong for a structural reason (see the
+correction section), and the expectation now moves to P3, whose rules fire on every lead.
 
 ## P3 — S4 sacrifice leads
 
@@ -356,15 +382,11 @@ same with both aces accounted for, assert it leads the Ass.
 Measure. **Watch for a regression here specifically**: leading low gives away tempo, and if the
 census is wrong the AI simply hands over cheap tricks for nothing.
 
-## P4 — S3 ducking
+## P4 — S3 ducking — DROPPED
 
-Smallest code, largest chance of not paying for itself.
-
-- New branch in `decideFollowCard` ahead of rule 2: decline a winnable trick when the table is
-  cheap (start at 7 points), the cheapest winner is an Ass or Zehn, and the census says a
-  richer opportunity remains.
-- The threshold is a constant to fit, not a fact. Sweep it (0, 5, 7, 10, 14) in the harness and
-  take the measured optimum, or delete the rule if the curve is flat.
+Removed: must-beat means a player almost never gets to decline a winnable trick, and the one
+slot where they do is the partner exemption, which the revised S2 already occupies. See the
+correction section for the measurement that established this.
 
 ## P5 — S5 contract awareness
 
@@ -400,18 +422,16 @@ Measure per player count — the denial calculus differs between 2-player and te
 
 ## Sequencing summary
 
-| Phase | Content                              | Behaviour change | Blocked by |
-| ----- | ------------------------------------ | ---------------- | ---------- |
-| P0    | Per-seat sim config, mirrored runs   | none             | —          |
-| P1a   | `trickHistory` in reducer            | none             | —          |
-| P1b   | `buildRoundMemory` + anti-cheat test | none             | P1a        |
-| P2    | S1 census, S2 don't-feed             | yes              | P0, P1     |
-| P3    | S4b lead inversion, S4a trump pull   | yes              | P2         |
-| P4    | S3 ducking + threshold sweep         | yes              | P0, P2     |
-| P5    | S5 contract awareness                | yes              | P1a, P2    |
-| P6    | Recalibrate, delete v1, docs         | yes              | all        |
-
-P0, P1a and P1b are independent of each other and can land in any order or in parallel.
+| Phase | Content                              | Behaviour change | Status                  |
+| ----- | ------------------------------------ | ---------------- | ----------------------- |
+| P0    | Per-seat sim config, rotated seats   | none             | done                    |
+| P1a   | `trickHistory` in reducer            | none             | done                    |
+| P1b   | `buildRoundMemory` + anti-cheat test | none             | done                    |
+| P2    | S1 census, revised S2                | yes              | done — no measured gain |
+| P3    | S4b lead inversion, S4a trump pull   | yes              | next                    |
+| P4    | S3 ducking                           | —                | dropped, unreachable    |
+| P5    | S5 contract awareness                | yes              | pending                 |
+| P6    | Recalibrate, delete v1, docs         | yes              | pending                 |
 
 ## Deliberately not in this plan
 
