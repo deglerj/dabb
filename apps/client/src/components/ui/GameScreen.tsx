@@ -410,7 +410,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   }, [onExit, leaveToHome]);
 
   // Phase overlay
-  const showBidding = state.phase === 'bidding';
+  const showBidding = state.phase === 'bidding' && !trickAnimState.holdsRoundStart;
   const showDabbTake = state.phase === 'dabb' && isBidWinner && state.dabb.length > 0;
   const showTrump = state.phase === 'trump' && isBidWinner;
   // Trump is already declared here, so the layaway is made knowing what counts as trump.
@@ -486,7 +486,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
                   key={opIdx}
                   playerIndex={opIdx}
                   nickname={nicknames.get(opIdx) ?? player?.nickname ?? `P${opIdx}`}
-                  cardCount={opCards?.length ?? 0}
+                  cardCount={trickAnimState.holdsRoundStart ? 0 : (opCards?.length ?? 0)}
                   isConnected={connectedPlayers.has(opIdx)}
                   isTeammate={isTeammate}
                   position={pos}
@@ -525,7 +525,9 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
             <PlayerHand
               gameState={state}
               playerIndex={playerIndex}
-              cards={myCards}
+              // Empty while the round's last trick sweeps off the table — the next round's
+              // deal is in the same event cascade and would land under the animation.
+              cards={trickAnimState.holdsRoundStart ? [] : myCards}
               onPlayCard={(cardId, dropPos) => {
                 if (dropPos) {
                   setLastDropPos(dropPos);

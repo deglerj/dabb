@@ -34,6 +34,7 @@ const completedTrick3: CompletedTrick = {
   cards: [pc('card-a', 0), pc('card-b', 1), pc('card-c', 2)],
   winnerIndex: 1,
   points: 20,
+  round: 1,
 };
 
 // --- Tests ---
@@ -273,6 +274,47 @@ describe('useTrickAnimationState', () => {
       vi.advanceTimersByTime(800);
     });
     expect(result.current.animPhase).toBe('idle');
+  });
+
+  it('holds the next round back until the final sweep is done (regression)', () => {
+    // The round-end cascade deals the next hand and opens bidding while the last trick is
+    // still on the table, so the sweep used to play under a fresh hand and the bid dialog.
+    const { result, rerender } = renderHook(
+      ({
+        trick,
+        completed,
+        phase,
+      }: {
+        trick: Trick;
+        completed: CompletedTrick | null;
+        phase: GamePhase;
+      }) => useTrickAnimationState(trick, completed, phase, players, false),
+      {
+        initialProps: {
+          trick: trickWith3,
+          completed: null as CompletedTrick | null,
+          phase: 'tricks' as GamePhase,
+        },
+      }
+    );
+    // Mid-round sweeps never hold anything back — the hand must stay visible.
+    expect(result.current.holdsRoundStart).toBe(false);
+
+    act(() => {
+      rerender({ trick: emptyTrick, completed: completedTrick3, phase: 'bidding' as GamePhase });
+    });
+    expect(result.current.holdsRoundStart).toBe(true);
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(result.current.holdsRoundStart).toBe(true);
+
+    act(() => {
+      vi.advanceTimersByTime(800);
+    });
+    expect(result.current.animPhase).toBe('idle');
+    expect(result.current.holdsRoundStart).toBe(false);
   });
 
   it('returns idle when phase is not tricks', () => {

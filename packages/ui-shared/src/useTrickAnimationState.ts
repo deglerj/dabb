@@ -34,6 +34,13 @@ export interface TrickAnimationResult {
    * Cards at index < sweepingCardCount should animate to the winner's corner.
    */
   sweepingCardCount: number;
+  /**
+   * True while the last trick of a round is still on the table but the game state has already
+   * moved on. The round's final CARD_PLAYED, TRICK_WON, ROUND_SCORED, NEW_ROUND_STARTED and
+   * CARDS_DEALT arrive as one cascade, so the next round's hand and bidding dialog would
+   * otherwise appear under the sweep. Consumers hold those back until this clears.
+   */
+  holdsRoundStart: boolean;
 }
 
 export function useTrickAnimationState(
@@ -181,5 +188,12 @@ export function useTrickAnimationState(
     return () => clearAllTimers();
   }, [clearAllTimers]);
 
-  return { animPhase, displayCards, winnerIndex, winnerPlayerId, sweepingCardCount };
+  return {
+    animPhase,
+    displayCards,
+    winnerIndex,
+    winnerPlayerId,
+    sweepingCardCount,
+    holdsRoundStart: animPhase !== 'idle' && phase !== 'tricks',
+  };
 }

@@ -6,6 +6,7 @@ All notable changes to Dabb are documented here.
 
 ### Behoben
 
+- Nach dem letzten Stich einer Runde wurden die neuen Karten und das Reizen schon eingeblendet, während die Karten noch zum Gewinner wanderten. Die neue Runde erscheint jetzt erst, wenn die Stich-Animation fertig ist.
 - Computergegner konnten den gleichen Namen tragen wie ein Mitspieler am Tisch — im Offline-Spiel oder wenn jemand erst nach dem Hinzufügen des Computergegners beitrat. Computergegner suchen sich jetzt immer einen freien Namen; tritt ein Mitspieler mit dem Namen eines Computergegners bei, wird der Computergegner umbenannt.
 
 ## [4.8.1] - 2026-08-15
