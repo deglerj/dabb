@@ -1,18 +1,8 @@
-import { TouchableOpacity, type TouchableOpacityProps } from '@dabb/rn-compat';
+import { TouchableOpacity, triggerHaptic, type TouchableOpacityProps } from '@dabb/rn-compat';
 
-interface HapticTouchableOpacityProps extends TouchableOpacityProps {
-  hapticsEnabled?: boolean;
-}
-
-export function HapticTouchableOpacity({
-  hapticsEnabled = true,
-  onPress,
-  ...props
-}: HapticTouchableOpacityProps) {
+export function HapticTouchableOpacity({ onPress, ...props }: TouchableOpacityProps) {
   const handlePress: TouchableOpacityProps['onPress'] = (event) => {
-    if (hapticsEnabled && 'vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
+    triggerHaptic('card-select');
     onPress?.(event);
   };
 

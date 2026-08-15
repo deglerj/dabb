@@ -5,7 +5,13 @@
  */
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import type { GameInterface } from '@dabb/ui-shared';
-import { View, ActivityIndicator, StyleSheet, useSafeAreaInsets } from '@dabb/rn-compat';
+import {
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  useSafeAreaInsets,
+  triggerHaptic,
+} from '@dabb/rn-compat';
 import { useNavigate, useBlocker } from 'react-router-dom';
 import {
   GameTable,
@@ -36,7 +42,6 @@ import { useGameDimensions, MAX_GAME_WIDTH } from '../../hooks/useGameDimensions
 import { TOP_RIGHT_CONTROLS_RIGHT, TOP_RIGHT_CONTROLS_TOP } from '../../constants.js';
 import { useTurnHaptic } from '../../hooks/useTurnHaptic.js';
 import { playSound } from '../../utils/sounds.js';
-import { triggerHaptic } from '../../utils/haptics.js';
 import { gameActivity } from '../../gameActivity.js';
 import { OpponentZone } from '../game/OpponentZone.js';
 import { PlayerHand } from '../game/PlayerHand.js';

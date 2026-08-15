@@ -2,11 +2,18 @@
  * Options dialog — sound toggle, vibration toggle (native only), language selector.
  */
 import { useState, useCallback, useEffect } from 'react';
-import { View, Text, Switch, TouchableOpacity, StyleSheet } from '@dabb/rn-compat';
+import {
+  View,
+  Text,
+  Switch,
+  TouchableOpacity,
+  StyleSheet,
+  isHapticsEnabled,
+  setHapticsEnabled,
+} from '@dabb/rn-compat';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation, i18n, persistLanguage, type SupportedLanguage } from '@dabb/i18n';
 import { isMuted, setMuted } from '../../utils/sounds.js';
-import { isHapticsEnabled, setHapticsEnabled } from '../../utils/haptics.js';
 import { Colors, Fonts } from '../../theme.js';
 import { Dialog } from './Dialog.js';
 

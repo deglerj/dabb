@@ -8,7 +8,7 @@
 import { useCallback } from 'react';
 import type { GameState, PlayerIndex } from '@dabb/shared-types';
 import { useActionRequiredCallback } from '@dabb/ui-shared';
-import { triggerHaptic } from '../utils/haptics.js';
+import { triggerHaptic } from '@dabb/rn-compat';
 
 export function useTurnHaptic(
   state: GameState | null,

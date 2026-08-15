@@ -1,11 +1,10 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet, useRouteError } from 'react-router-dom';
-import { ActivityIndicator, View } from '@dabb/rn-compat';
+import { ActivityIndicator, View, loadHapticsPreferences } from '@dabb/rn-compat';
 import { I18nProvider } from '@dabb/i18n';
 import AppErrorBoundary from './components/ui/AppErrorBoundary.js';
 import ErrorBoundaryScreen from './components/ui/ErrorBoundaryScreen.js';
 import { loadSoundPreferences } from './utils/sounds.js';
-import { loadHapticsPreferences } from './utils/haptics.js';
 
 // React Router's data router gives every route its own default error boundary, which would
 // otherwise intercept render errors (e.g. Firebase init failures) before AppErrorBoundary — a

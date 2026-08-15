@@ -79,6 +79,11 @@ version of this app) implemented by `packages/rn-compat`, not `react-native`/`re
 011 for why, and `packages/rn-compat/src/index.tsx`'s top-of-file comment for the shim's
 documented ceiling before reaching for a new component or style property it doesn't cover.
 
+Haptics live here too (`packages/rn-compat/src/haptics.ts`, RN's `Vibration` equivalent),
+because the client _and_ `game-canvas` fire them and only `rn-compat` is a dependency of both.
+`triggerHaptic` is the only place allowed to call `navigator.vibrate` — it is what reads the
+options toggle, so a direct call bypasses the switch (that was the `HapticTouchableOpacity` bug).
+
 ### Swabian Terminology
 
 Suits: Kreuz (♣), Schippe (♠), Herz (♥), Bollen (♦). Ranks: Ass, Zehn, König, Ober, **Buabe** (not Unter).

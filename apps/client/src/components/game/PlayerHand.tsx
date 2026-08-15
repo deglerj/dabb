@@ -1,4 +1,4 @@
-import { View, StyleSheet } from '@dabb/rn-compat';
+import { View, StyleSheet, triggerHaptic } from '@dabb/rn-compat';
 import {
   CardView,
   deriveCardPositions,
@@ -11,7 +11,6 @@ import { getValidPlays, isPartnerWinning, sortHand } from '@dabb/game-logic';
 import type { GameState, PlayerIndex, Card } from '@dabb/shared-types';
 import { playSound } from '../../utils/sounds.js';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
-import { triggerHaptic } from '../../utils/haptics.js';
 import { computeHighlightedDabbIds } from './dabbHighlighting.js';
 import { computeMeldCardIds } from './meldHighlighting.js';
 

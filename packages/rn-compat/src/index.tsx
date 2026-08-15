@@ -8,6 +8,12 @@ export type { Style, StyleProp } from './styles.js';
 export type { Style as ViewStyle, Style as TextStyle } from './styles.js';
 export { useWindowDimensions, useSafeAreaInsets } from './hooks.js';
 export type { SafeAreaInsets } from './hooks.js';
+export {
+  loadHapticsPreferences,
+  setHapticsEnabled,
+  isHapticsEnabled,
+  triggerHaptic,
+} from './haptics.js';
 
 // ---------------------------------------------------------------------------
 // View / Text

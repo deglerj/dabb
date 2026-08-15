@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.6.2] - 2026-08-15
+
+### Behoben
+
+- Wer die Vibration in den Optionen abschaltet, spürt jetzt auch bei den Knöpfen zum Reizen, Dabb aufnehmen, Trumpf ansagen, Melden und Weglegen nichts mehr. Diese Knöpfe haben bisher als einzige weiter vibriert.
+
 ## [4.6.1] - 2026-08-15
 
 ### Behoben
