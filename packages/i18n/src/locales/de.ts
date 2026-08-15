@@ -22,6 +22,7 @@ const de: TranslationKeys = {
     players: 'Spieler',
     you: 'Du',
     done: 'Fertig',
+    updateAvailable: 'Eine neue Version von Dabb ist verfügbar. Jetzt neu laden?',
   },
   home: {
     title: 'Dabb',

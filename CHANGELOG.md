@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.8.1] - 2026-08-15
+
+### Behoben
+
+- Der Hinweis auf eine neue Version erschien immer auf Englisch. Er erscheint jetzt in der eingestellten Sprache.
+
 ## [4.8.0] - 2026-08-15
 
 ### Geändert

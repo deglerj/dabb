@@ -33,6 +33,7 @@ export interface TranslationKeys {
     players: string;
     you: string;
     done: string;
+    updateAvailable: string;
   };
   home: {
     title: string;

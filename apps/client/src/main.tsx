@@ -2,6 +2,7 @@ import './global.css';
 import './assets/fonts/fonts.css';
 import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
+import { i18n } from '@dabb/i18n';
 import App from './App.js';
 import { gameActivity } from './gameActivity.js';
 
@@ -16,11 +17,12 @@ createRoot(container).render(<App />);
 const updateSW = registerSW({
   onNeedRefresh() {
     const tryPrompt = () => {
-      if (gameActivity.inProgress) {
+      // i18n is initialized by I18nProvider in an effect, so it may not be ready yet.
+      if (gameActivity.inProgress || !i18n.isInitialized) {
         setTimeout(tryPrompt, 30_000);
         return;
       }
-      if (window.confirm('A new version of Dabb is available. Reload now?')) {
+      if (window.confirm(i18n.t('common.updateAvailable'))) {
         void updateSW(true);
       }
     };
