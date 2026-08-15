@@ -152,6 +152,50 @@ function parseArgs(): RunnerOptions {
   return options;
 }
 
+/**
+ * Bidding health across the simulated games — the metric to watch when tuning how aggressively
+ * the AI bids. A change that raises the average winning bid but tanks the met rate is a loss:
+ * a missed bid costs -2x, going out only -1x.
+ *
+ * `bidMet: false` also marks a round the bid winner deliberately went out of, so those rounds
+ * are counted separately instead of being blamed on a bad bid.
+ */
+function biddingStats(results: SimulationResult[]): {
+  rounds: number;
+  avgWinningBid: number;
+  missedRate: number;
+  wentOutRate: number;
+} {
+  let rounds = 0;
+  let bidSum = 0;
+  let bids = 0;
+  let missedOrWentOut = 0;
+  let wentOut = 0;
+
+  for (const result of results) {
+    for (const event of result.events) {
+      if (event.type === 'BIDDING_WON') {
+        bidSum += event.payload.winningBid;
+        bids++;
+      } else if (event.type === 'GOING_OUT') {
+        wentOut++;
+      } else if (event.type === 'ROUND_SCORED') {
+        rounds++;
+        if (Object.values(event.payload.scores).some((s) => !s.bidMet)) {
+          missedOrWentOut++;
+        }
+      }
+    }
+  }
+
+  return {
+    rounds,
+    avgWinningBid: bids > 0 ? bidSum / bids : 0,
+    missedRate: rounds > 0 ? (missedOrWentOut - wentOut) / rounds : 0,
+    wentOutRate: rounds > 0 ? wentOut / rounds : 0,
+  };
+}
+
 function formatGameNumber(n: number, total: number): string {
   const digits = String(total).length;
   return String(n).padStart(digits, '0');
@@ -292,6 +336,14 @@ async function main(): Promise<void> {
     console.log(`Avg Rounds:   ${avgRounds.toFixed(1)}`);
     console.log(`Avg Duration: ${avgDuration.toFixed(0)}ms`);
     console.log(`Avg Actions:  ${avgActions.toFixed(0)}`);
+
+    const bidding = biddingStats(successful);
+    console.log('');
+    console.log('Bidding:');
+    console.log(`  Rounds:          ${bidding.rounds}`);
+    console.log(`  Avg Winning Bid: ${bidding.avgWinningBid.toFixed(1)}`);
+    console.log(`  Missed Bids:     ${(bidding.missedRate * 100).toFixed(1)}%`);
+    console.log(`  Went Out:        ${(bidding.wentOutRate * 100).toFixed(1)}%`);
 
     // Win distribution. In 4-player games GAME_FINISHED carries a Team, not a seat, so there
     // are only ever two winners — listing four names put a flat 0 next to Charlie and Diana.

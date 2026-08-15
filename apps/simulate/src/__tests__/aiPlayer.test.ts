@@ -44,17 +44,21 @@ describe('BinokelAIPlayer - 4-player team-aware bidding', () => {
     return { ...base, ...overrides };
   }
 
-  // A weak hand: no melds, few low cards → estimatedTotal well below 160+60
+  // A weak hand: no melds at all → estimatedTotal well below 160+60.
+  //
+  // It used to hold one Ober and one Buabe of every suit, which is Vier Ober + Vier Buaben +
+  // a Paar — 180 meld points, and only 3 points short of bidding. It passed for the wrong
+  // reason. No four of a kind, no Paar and no Familie here, so the margin is not a knife edge.
   const weakHand = [
-    { id: 'kreuz-buabe-1', suit: 'kreuz' as Suit, rank: 'buabe' as Rank, copy: 0 as const },
-    { id: 'kreuz-ober-1', suit: 'kreuz' as Suit, rank: 'ober' as Rank, copy: 0 as const },
-    { id: 'schippe-buabe-1', suit: 'schippe' as Suit, rank: 'buabe' as Rank, copy: 0 as const },
-    { id: 'schippe-ober-1', suit: 'schippe' as Suit, rank: 'ober' as Rank, copy: 0 as const },
-    { id: 'herz-buabe-1', suit: 'herz' as Suit, rank: 'buabe' as Rank, copy: 0 as const },
-    { id: 'herz-ober-1', suit: 'herz' as Suit, rank: 'ober' as Rank, copy: 0 as const },
-    { id: 'bollen-buabe-1', suit: 'bollen' as Suit, rank: 'buabe' as Rank, copy: 0 as const },
-    { id: 'bollen-ober-1', suit: 'bollen' as Suit, rank: 'ober' as Rank, copy: 0 as const },
-    { id: 'bollen-koenig-1', suit: 'bollen' as Suit, rank: 'koenig' as Rank, copy: 0 as const },
+    { id: 'kreuz-buabe-0', suit: 'kreuz' as Suit, rank: 'buabe' as Rank, copy: 0 as const },
+    { id: 'kreuz-ober-0', suit: 'kreuz' as Suit, rank: 'ober' as Rank, copy: 0 as const },
+    { id: 'kreuz-10-0', suit: 'kreuz' as Suit, rank: '10' as Rank, copy: 0 as const },
+    { id: 'schippe-buabe-0', suit: 'schippe' as Suit, rank: 'buabe' as Rank, copy: 0 as const },
+    { id: 'schippe-10-0', suit: 'schippe' as Suit, rank: '10' as Rank, copy: 0 as const },
+    { id: 'herz-buabe-0', suit: 'herz' as Suit, rank: 'buabe' as Rank, copy: 0 as const },
+    { id: 'herz-10-0', suit: 'herz' as Suit, rank: '10' as Rank, copy: 0 as const },
+    { id: 'bollen-10-0', suit: 'bollen' as Suit, rank: '10' as Rank, copy: 0 as const },
+    { id: 'bollen-koenig-0', suit: 'bollen' as Suit, rank: 'koenig' as Rank, copy: 0 as const },
   ];
 
   // A strong hand: Familie in Herz (100 pts melds) + lots of trump → diff well above 60

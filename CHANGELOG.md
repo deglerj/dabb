@@ -6,6 +6,7 @@ All notable changes to Dabb are documented here.
 
 ### Geändert
 
+- Die Computergegner reizen jetzt realistischer. Bisher haben sie nur gezählt, was sie bereits auf der Hand hatten, und dabei übersehen, dass der Gewinner des Reizens noch den Dabb bekommt — vier zusätzliche Karten, die oft genau die Meldung vollständig machen, an der eine Karte fehlt. Jetzt schätzen sie mit ein, wie wahrscheinlich der Dabb ihre Hand ergänzt, und lassen sich eine gute Hand entsprechend mehr kosten. Besonders im Spiel zu zweit wird deutlich höher gereizt.
 - Die Mitspieler geben deutlich seltener auf. Bisher sind sie fast bei jeder dritten Runde abgegangen, auch mit Blättern, die den Reizwert locker geschafft hätten — Abgehen kostet den Reizwert sicher, Weiterspielen nur dann das Doppelte, wenn es wirklich schiefgeht. In Viererrunden gewinnen sie dadurch deutlich häufiger. Bei einem aussichtslosen Blatt gehen sie weiterhin ab.
 - Die Mitspieler merken sich jetzt, was gespielt wurde, und ziehen daraus Schlüsse: wer eine Farbe nicht mehr hat, wer keinen Trumpf mehr halten kann, und welche hohen Karten noch draußen sind. Sie spielen zum Beispiel eine niedrige Karte an, um den letzten Trumpf des Gegners herauszulocken, und werfen beim Anspielen die billigste Karte, wenn die Runde ohnehin verloren ist.
 - In Online-Partien hatten die Mitspieler bisher überhaupt kein Gedächtnis für die laufende Runde. Das ist behoben.
