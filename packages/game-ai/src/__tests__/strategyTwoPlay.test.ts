@@ -1,5 +1,6 @@
 /**
- * Tests for the strategy-2 trick-play rules (S1 census, S2 don't-feed).
+ * Tests for the strategy-2 trick-play rules: overtaking a partner (S2) and the sacrifice leads
+ * (S4). See docs/design/AI_STRATEGY_V2.md.
  *
  * Every case is played out through `decide`, with mistakes off, so what is asserted is the card
  * the AI actually plays rather than the output of a helper.
@@ -173,49 +174,124 @@ describe('S2 — overtaking the partner', () => {
   });
 });
 
-describe('S1 — endgame trump lead is gated on the census', () => {
-  /** Last three cards, leading, holding trump plus a plain Ass. */
-  function endgameState(trumpAllPlayed: boolean): GameState {
-    const spentTrump: CompletedTrick[] = [];
-    if (trumpAllPlayed) {
-      // Every Herz except the two in our own hand goes through the trick history.
-      const ranks: Rank[] = ['ass', '10', 'koenig', 'ober'];
-      for (const rank of ranks) {
-        for (const copy of [0, 1] as const) {
-          spentTrump.push(
-            trick([play(1, card('herz', rank, copy)), play(0, card('kreuz', 'buabe', copy))], 1)
-          );
-        }
+/**
+ * Leading is the one decision Binokel never constrains, which is why the card counting pays off
+ * here and barely anywhere else.
+ */
+describe('S4 — leads', () => {
+  /** Every trump but our own Buabe has been played, so nothing can be ruffed. */
+  function noTrumpLeftState(): GameState {
+    const spent: CompletedTrick[] = [];
+    for (const rank of ['ass', '10', 'koenig', 'ober'] as Rank[]) {
+      for (const copy of [0, 1] as const) {
+        spent.push(
+          trick([play(1, card('herz', rank, copy)), play(0, card('kreuz', 'buabe', copy))], 1)
+        );
       }
-      spentTrump.push(
-        trick([play(1, card('herz', 'buabe', 1)), play(0, card('schippe', 'buabe'))], 1)
-      );
     }
+    spent.push(trick([play(1, card('herz', 'buabe', 1)), play(0, card('schippe', 'buabe'))], 1));
 
     return tricksState(2, {
-      // No ace: rule 1 leads a lonely ace before the endgame rule is ever reached, which would
-      // decide the test instead of the rule under it.
       hands: new Map([
         [
           0 as PlayerIndex,
-          [card('herz', 'buabe'), card('bollen', 'koenig'), card('schippe', 'koenig')],
+          [card('herz', 'buabe'), card('bollen', 'ass'), card('schippe', 'koenig')],
         ],
       ]),
-      trickHistory: spentTrump,
+      trickHistory: spent,
       currentTrick: { cards: [], leadSuit: null, winnerIndex: null },
       currentPlayer: 0 as PlayerIndex,
     });
   }
 
-  it('leads trump while opponents can still ruff', async () => {
-    expect(await playedCard(endgameState(false), 0, 2)).toBe('herz-buabe-0');
+  it('cashes the lonely ace rather than spending a trump on the same trick', async () => {
+    // Both strategies agree here, via the lonely-ace rule they share. A census-based "lead
+    // whatever cannot be beaten" rule was tried in place of it and measured 2.7 percentage
+    // points *worse* over 8000 games, so it was dropped — see the P3 notes in
+    // docs/design/AI_STRATEGY_V2.md.
+    expect(await playedCard(noTrumpLeftState(), 0, 2)).toBe('bollen-ass-0');
+    expect(await playedCard(noTrumpLeftState(), 0, 1)).toBe('bollen-ass-0');
   });
 
-  it('does not spend trump once no trump is left outside our hand', async () => {
-    expect(await playedCard(endgameState(true), 0, 2)).not.toBe('herz-buabe-0');
+  /**
+   * The inversion. Bob is known void in Kreuz and may still hold trump, so our Kreuz Ass can be
+   * ruffed and no lead of ours is safe. Strategy 1 leads its dearest card into that; strategy 2
+   * loses the trick as cheaply as it can.
+   *
+   * Bob's void has to come from a trick where the must-trump rule was not in force, or the same
+   * discard would prove him out of trump and remove the threat. In a two-player game there is no
+   * partner exemption, so the void is established by a *ruff* instead: he could not follow Kreuz
+   * and trumped, which proves the Kreuz void while leaving his remaining trump unknown.
+   */
+  function nothingIsSafeState(): GameState {
+    return tricksState(2, {
+      hands: new Map([
+        [
+          0 as PlayerIndex,
+          [card('kreuz', 'ass'), card('kreuz', 'buabe'), card('schippe', 'koenig')],
+        ],
+      ]),
+      trickHistory: [
+        trick([play(0, card('kreuz', 'koenig')), play(1, card('herz', 'ober'))], 1),
+        // And a Schippe Ass is still out there, so the Schippe König is no refuge either.
+        trick([play(0, card('bollen', 'koenig')), play(1, card('bollen', 'ass'))], 1),
+      ],
+      currentTrick: { cards: [], leadSuit: null, winnerIndex: null },
+      currentPlayer: 0 as PlayerIndex,
+    });
+  }
+
+  it('leads low when nothing in hand is safe (strategy 2)', async () => {
+    expect(await playedCard(nothingIsSafeState(), 0, 2)).not.toBe('kreuz-ass-0');
   });
 
-  it('strategy 1 spends the trump either way, which is the leak', async () => {
-    expect(await playedCard(endgameState(true), 0, 1)).toBe('herz-buabe-0');
+  it('leads its dearest card into the same position under strategy 1', async () => {
+    expect(await playedCard(nothingIsSafeState(), 0, 1)).toBe('kreuz-ass-0');
+  });
+
+  /**
+   * S4a — the sacrifice. One trump is unaccounted for, only Bob can hold it, and he is known
+   * void in Schippe. Leading our cheapest Schippe forces the ruff for two points and clears the
+   * way for the Kreuz Ass.
+   *
+   * The void has to be established by a **ruff**, not by a discard. An off-suit discard proves a
+   * trump void as well (must-trump was in force), which would remove the very threat the pull
+   * exists to remove — so outside 4-player games, where the partner exemption offers a third
+   * way, a ruff is the only evidence that leaves an opponent both void in a suit and possibly
+   * still holding trump.
+   */
+  it('sacrifices a cheap card to force out the last trump', async () => {
+    const spent: CompletedTrick[] = [];
+
+    // Eight trump spent on tricks Bob led, so nothing is deduced about anyone from them.
+    const trumpLeads = (['ass', '10', 'koenig', 'ober'] as Rank[]).flatMap((rank) =>
+      ([0, 1] as const).map((copy) => card('herz', rank, copy))
+    );
+    const filler = (['ass', '10', 'koenig', 'ober'] as Rank[]).flatMap((rank) =>
+      ([0, 1] as const).map((copy) => card('bollen', rank, copy))
+    );
+    trumpLeads.forEach((trumpCard, i) => {
+      spent.push(trick([play(1, trumpCard), play(0, filler[i])], 1));
+    });
+
+    // The ninth: Bob could not follow Schippe and ruffed. Void in Schippe, and the Herz Buabe
+    // he did not play is the one trump still unaccounted for.
+    spent.push(trick([play(0, card('schippe', 'ass')), play(1, card('herz', 'buabe', 0))], 1));
+
+    const state = tricksState(2, {
+      hands: new Map([
+        [
+          0 as PlayerIndex,
+          [card('kreuz', 'ass'), card('schippe', 'buabe'), card('schippe', 'koenig')],
+        ],
+      ]),
+      trickHistory: spent,
+      currentTrick: { cards: [], leadSuit: null, winnerIndex: null },
+      currentPlayer: 0 as PlayerIndex,
+    });
+
+    expect(await playedCard(state, 0, 2)).toBe('schippe-buabe-0');
+    // Strategy 1 cannot express the idea at all and cashes the Ass into the waiting ruff.
+    expect(await playedCard(state, 0, 1)).toBe('kreuz-ass-0');
   });
 });

@@ -1,7 +1,13 @@
 # AI Strategy v2 — Deduction, Ducking and Sacrifice Leads
 
-Status: **design draft**. No code written yet. The strategies are formulated below; the
-implementation plan is at the end of this document.
+Status: **in progress**. P0 through P3 have landed. The strategies are formulated below, the
+implementation plan is at the end, and the sequencing table there carries the current status of
+each phase.
+
+**Read the measurements before the prose.** Several sections were written before the code and
+are now known to be wrong: the **Correction** section supersedes leaks 2 and 3 in "Why", and the
+P2 and P3 results supersede the claim that any of this makes the AI stronger. Measured over
+8000 games per configuration, strategy 2 does not beat strategy 1 outside the noise floor.
 
 Companion to `docs/AI_STRATEGY.md`, which describes what `BinokelAIPlayer` does today.
 
@@ -361,26 +367,52 @@ are individually sound — but it should not be described as an improvement to t
 The plan expected this phase to be the big win. It was wrong for a structural reason (see the
 correction section), and the expectation now moves to P3, whose rules fire on every lead.
 
-## P3 — S4 sacrifice leads
+## P3 — S4 sacrifice leads (DONE)
 
-- **S4b first, it is four lines.** `decideLeadCard` step 4 (`:669`) already computes the suits
-  where no opponent ace remains, and step 5 (`:696`) then sorts points-descending in the suits
-  it just called unsafe. Invert: lead high only in census-safe suits, lowest-point card
-  everywhere else. Widen "safe" from the current aces-only check to the full census (no higher
-  card of the suit unaccounted for, and every opponent trump-void or trump exhausted).
-- **S4a trump pull.** When 1–2 trump are unaccounted for and a void deduction pins them to a
-  specific opponent, lead the lowest-point card of a suit that opponent is void in. Buabe is
-  2 points — the cheapest possible price for their last trump.
-- Reconcile with the existing trump-exhaustion rule (`:643`), which leads _highest trump_ for a
-  bid winner with 3+ trump. Both aim to strip opponent trump; S4a is the version that does not
-  spend a trump to do it. Keep `:643` only where I hold enough trump that the exchange is
-  clearly favourable, otherwise prefer S4a.
+Shipped:
 
-Tests: hand-built lead positions — Ass held with an opponent ace floating, assert it leads low;
-same with both aces accounted for, assert it leads the Ass.
+- **S4a, the trump pull.** When one or two trump are unaccounted for, they are pinned to a
+  single opponent, that opponent is deduced void in a suit we hold, and we hold a side ace worth
+  protecting, lead our cheapest card of that suit. Must-trump then takes their last trump for the
+  price of a Buabe. This runs _before_ anything is cashed: a side ace only looks safe because no
+  opponent is deduced void in its suit, and the trump this removes is exactly what would ruff it.
+- **S4b, the lead inversion.** When no lead is safe, lose the trick with the cheapest card
+  instead of the dearest.
 
-Measure. **Watch for a regression here specifically**: leading low gives away tempo, and if the
-census is wrong the AI simply hands over cheap tricks for nothing.
+Dropped after measuring:
+
+- **The census-based safe lead.** Replacing "does an opponent ace remain in this suit" with "can
+  anything an opponent could still hold beat this exact card" cost **2.7 percentage points**
+  (4.8 SE) over 8000 two-player games. Restricting it to non-trump — the old rule never led trump
+  — recovered most of it but still did not beat the rule it replaced. Deleted rather than tuned.
+
+**Ablation, 2 players, n=8000, one standard error 0.56 pp:**
+
+| Configuration           | Strategy 2 win rate |
+| ----------------------- | ------------------- |
+| P2 only, no P3 rules    | 50.2%               |
+| + lead inversion only   | 50.5%               |
+| + trump pull only       | 50.6%               |
+| + census safe lead only | **47.5%**           |
+| all three               | 47.2%               |
+
+**Final measurement with the losing rule removed:**
+
+| Players | Strategy 2           | Delta   | Significance |
+| ------- | -------------------- | ------- | ------------ |
+| 2       | 51.0%                | +1.0 pp | 1.8 SE       |
+| 3       | 33.5% (even = 33.3%) | +0.2 pp | 0.4 SE       |
+| 4       | 49.8%                | −0.2 pp | 0.4 SE       |
+
+**Honest reading: strategy 2 is not measurably stronger than strategy 1.** Nothing in P2 or P3
+clears the noise floor. The trump pull is the sacrifice play this work set out to add and it
+does not lose, but it does not win either — it fires too rarely, because it needs a trump count
+of one or two _and_ a pinned holder _and_ a deduced void in a suit we hold.
+
+A structural note that came out of writing its test, and which explains the rarity: outside
+4-player games there is only one way to know an opponent is void in a suit **and** may still
+hold trump, and that is a ruff — an off-suit discard proves a trump void too, and a ruff spends
+one of the very trump the pull is counting. The evidence and the opportunity consume each other.
 
 ## P4 — S3 ducking — DROPPED
 
