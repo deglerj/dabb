@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.6.1] - 2026-08-15
+
+### Behoben
+
+- Auf Android hat Dabb Musik oder Podcasts, die im Hintergrund liefen, bei jedem Spielgeräusch angehalten. Die Wiedergabe läuft jetzt weiter — im schlimmsten Fall wird sie für einen Moment leiser.
+
 ## [4.6.0] - 2026-08-11
 
 ### Neu

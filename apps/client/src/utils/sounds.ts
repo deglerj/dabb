@@ -42,13 +42,56 @@ export function isMuted() {
   return muted;
 }
 
+// Sound effects go through the Web Audio API rather than `new Audio()`: Chrome on
+// Android gives a media element exclusive audio focus, which pauses whatever the
+// user has playing in the background. Web Audio only ever ducks.
+let context: AudioContext | null = null;
+const buffers = new Map<SoundName, AudioBuffer>();
+
+function getContext(): AudioContext {
+  if (!context) {
+    context = new AudioContext();
+    // Safari: mix with other apps' audio instead of interrupting it.
+    const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+    if (session) {
+      session.type = 'ambient';
+    }
+  }
+  return context;
+}
+
+function play(ctx: AudioContext, buffer: AudioBuffer) {
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.6;
+  source.connect(gain).connect(ctx.destination);
+  source.start();
+}
+
 export function playSound(name: SoundName) {
   if (muted) {
     return;
   }
-  const audio = new Audio(SOUND_FILES[name]);
-  audio.volume = 0.6;
-  audio.play().catch(() => {
-    // Ignore autoplay policy errors (NotAllowedError before user interaction)
+  const ctx = getContext();
+  void ctx.resume().catch(() => {
+    // Ignore autoplay policy errors (before user interaction)
   });
+
+  const cached = buffers.get(name);
+  if (cached) {
+    play(ctx, cached);
+    return;
+  }
+
+  void fetch(SOUND_FILES[name])
+    .then((response) => response.arrayBuffer())
+    .then((data) => ctx.decodeAudioData(data))
+    .then((buffer) => {
+      buffers.set(name, buffer);
+      play(ctx, buffer);
+    })
+    .catch(() => {
+      // Ignore fetch/decode failures — sound effects are cosmetic
+    });
 }
