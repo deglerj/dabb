@@ -1,7 +1,7 @@
 # AI Strategy v2 — Deduction, Ducking and Sacrifice Leads
 
-Status: **P0 through P5 landed; P6 pending.** The strategies are formulated below, the
-implementation plan is at the end, and the sequencing table there carries the status of each
+Status: **complete.** All phases landed; shipped in 4.7.0. The strategies are formulated below,
+the implementation plan is at the end, and the sequencing table there carries the status of each
 phase.
 
 **Read the measurements before the prose.** Most of this document was written before the code
@@ -485,19 +485,25 @@ estimators.
 Anything further should start with `estimateTrickPoints` and the bidding thresholds, not with
 trick play.
 
-## P6 — Recalibrate and clean up
+## P6 — Recalibrate and clean up (DONE)
 
-- Flip the `strategy` default to `2`, delete the v1 branches and the flag itself. Keeping both
-  paths forever is how the rules engine drifted before.
-- **Re-fit `MISTAKE_PROBABILITIES` and `RUBBER_BAND_STRENGTH` (`AIPlayer.ts:21`, `:33`).** They
-  are calibrated against today's strength. The blunder injection sits after the card choice
-  (`BinokelAIPlayer.ts:562`) so the mechanism itself survives untouched, but a stronger `hard`
-  means `easy` at 0.35 is no longer as easy as it was. Fit by win rate against a v1 `hard` bot,
-  which is a stable reference point for exactly this.
-- Rewrite `docs/AI_STRATEGY.md` to describe v2, and fold this document into it or mark it
-  superseded.
-- `CHANGELOG.md` + version bump: MINOR. User-facing text should say the bots got better at
-  reading the table, not name the heuristics.
+- The `AIStrategy` flag and every `strategy === 1` branch are gone; the new behaviour is the
+  only behaviour. Keeping both paths forever is how the rules engine drifted before.
+- The simulation's per-seat knob is now **difficulty** rather than strategy
+  (`--difficulties hard,easy`), which is the version of the harness that stays useful. Seats
+  still rotate one place per game.
+- **No recalibration was needed.** `MISTAKE_PROBABILITIES` and `RUBBER_BAND_STRENGTH` were
+  expected to need refitting against a stronger `hard`, but the tiers still separate cleanly:
+  over 4000 two-player games, hard beats medium 76.5/23.5 and easy 89.9/10.1. The blunder
+  injection sits after the card choice, so it was never coupled to the policy.
+- `vitest` in `apps/simulate` was collecting the compiled copies of every test out of `dist/`
+  as well as the sources — every test ran twice, and a renamed file kept failing from its stale
+  build output. The config now includes `src/` only.
+- `docs/AI_STRATEGY.md` rewritten; version bumped to 4.7.0 with a changelog entry.
+
+**Open, and a judgement call rather than a measurement:** whether `easy` at a 90% loss rate
+against `hard` still feels like the right rung to a human player. The simulation can only say
+how bots fare against each other.
 
 ## Sequencing summary
 

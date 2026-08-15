@@ -13,7 +13,6 @@ import type { Card, GameState, PlayerIndex, Rank, Suit } from '@dabb/shared-type
 import { createInitialState } from '@dabb/game-logic';
 
 import { BinokelAIPlayer } from '../BinokelAIPlayer.js';
-import type { AIStrategy } from '../AIPlayer.js';
 
 function card(suit: Suit, rank: Rank, copy: 0 | 1 = 0): Card {
   return { id: `${suit}-${rank}-${copy}`, suit, rank, copy };
@@ -64,21 +63,22 @@ function discardState(currentBid: number): GameState {
   };
 }
 
-async function decide(state: GameState, strategy: AIStrategy) {
-  const ai = new BinokelAIPlayer(0, 0, strategy);
+async function decide(state: GameState) {
+  const ai = new BinokelAIPlayer(0, 0);
   return ai.decide({ gameState: state, playerIndex: 0, sessionId: 'test' });
 }
 
 describe('going out', () => {
-  it('plays on where the old threshold would have bailed out (regression)', async () => {
-    const state = discardState(200);
-
-    expect((await decide(state, 1)).type).toBe('goOut');
-    expect((await decide(state, 2)).type).toBe('discard');
+  it('plays on where the old 0.7 threshold would have bailed out (regression)', async () => {
+    // The estimator scores this hand around 47. Under the old threshold 0.7 * 200 = 140 sent it
+    // out; under 0.2 * 200 = 40 it plays the round, which is what was worth 16 points of win
+    // rate in four-player games.
+    expect((await decide(discardState(200))).type).toBe('discard');
   });
 
   it('still goes out when even the lower threshold is not met', async () => {
     // Abgehen stays available: 0.2 rather than 0 exists so a dead hand can still use it.
-    expect((await decide(discardState(250), 2)).type).toBe('goOut');
+    // 0.2 * 250 = 50, just above this hand's estimate.
+    expect((await decide(discardState(250))).type).toBe('goOut');
   });
 });

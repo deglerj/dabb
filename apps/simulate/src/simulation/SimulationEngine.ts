@@ -19,11 +19,10 @@ import type { NextContext } from '@dabb/game-logic';
 import type { GameEvent, GameState, PlayerCount, PlayerIndex, Team } from '@dabb/shared-types';
 import { AI_NAMES } from '@dabb/shared-types';
 
-import { createAIPlayer, type AIPlayer, type AIDifficulty, type AIStrategy } from '@dabb/game-ai';
+import { createAIPlayer, type AIPlayer, type AIDifficulty } from '@dabb/game-ai';
 
 export interface SeatConfig {
   difficulty?: AIDifficulty;
-  strategy?: AIStrategy;
 }
 
 export interface SimulationOptions {
@@ -35,11 +34,11 @@ export interface SimulationOptions {
   /** AI difficulty for all players in the simulation (default: 'medium') */
   difficulty?: AIDifficulty;
   /**
-   * Per-seat AI configuration, indexed by seat. Anything left out falls back to `difficulty`
-   * and strategy 1, so omitting this entirely keeps the old "same bot in every seat" behaviour.
+   * Per-seat AI configuration, indexed by seat. Anything left out falls back to `difficulty`,
+   * so omitting this entirely keeps the "same bot in every seat" behaviour.
    *
-   * This is what makes a strategy measurable: without it every seat is identical and v1 cannot
-   * be played against v2.
+   * This is what makes a change measurable: with one setting for the whole table every seat is
+   * identical and there is nothing to compare.
    */
   seats?: SeatConfig[];
 }
@@ -54,8 +53,8 @@ export interface SimulationResult {
   durationMs: number;
   error?: string;
   errorStack?: string;
-  /** Which strategy sat in which seat, so results can be aggregated by strategy, not by seat. */
-  seatStrategies: AIStrategy[];
+  /** Which difficulty sat in which seat, so results aggregate by bot rather than by seat. */
+  seatDifficulties: AIDifficulty[];
 }
 
 export class SimulationEngine {
@@ -64,7 +63,7 @@ export class SimulationEngine {
   private sequence = 0;
   private aiPlayers: Map<PlayerIndex, AIPlayer> = new Map();
   private actionCount = 0;
-  private seatStrategies: AIStrategy[] = [];
+  private seatDifficulties: AIDifficulty[] = [];
 
   constructor(private readonly options: SimulationOptions) {}
 
@@ -116,13 +115,10 @@ export class SimulationEngine {
     const difficulty = this.options.difficulty ?? 'medium';
     for (let i = 0; i < playerCount; i++) {
       const seat = this.options.seats?.[i];
-      this.seatStrategies[i] = seat?.strategy ?? 1;
+      this.seatDifficulties[i] = seat?.difficulty ?? difficulty;
       // Rubber band off: the simulation measures strategy, and a band that handicaps whoever
       // is ahead would pull every bot-vs-bot game towards a tie and hide exactly that.
-      this.aiPlayers.set(
-        i as PlayerIndex,
-        createAIPlayer(seat?.difficulty ?? difficulty, false, this.seatStrategies[i])
-      );
+      this.aiPlayers.set(i as PlayerIndex, createAIPlayer(this.seatDifficulties[i], false));
     }
 
     const initEvents: GameEvent[] = [];
@@ -191,7 +187,7 @@ export class SimulationEngine {
       scores,
       actionCount: this.actionCount,
       durationMs: Date.now() - startTime,
-      seatStrategies: [...this.seatStrategies],
+      seatDifficulties: [...this.seatDifficulties],
       ...(error && { error: error.message, errorStack: error.stack }),
     };
   }

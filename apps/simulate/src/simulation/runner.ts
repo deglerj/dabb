@@ -12,7 +12,7 @@ import { formatEventLog } from '@dabb/game-logic';
 import type { PlayerCount } from '@dabb/shared-types';
 
 import { SimulationEngine, type SimulationResult } from './SimulationEngine.js';
-import type { AIDifficulty, AIStrategy } from '@dabb/game-ai';
+import type { AIDifficulty } from '@dabb/game-ai';
 
 interface RunnerOptions {
   players: PlayerCount;
@@ -23,19 +23,19 @@ interface RunnerOptions {
   timeout: number;
   outputDir: string;
   difficulty: AIDifficulty;
-  /** Strategy per seat, e.g. `--strategies 2,1`. Defaults to strategy 1 in every seat. */
-  strategies: AIStrategy[];
+  /** Difficulty per seat, e.g. `--difficulties hard,easy`. Defaults to `--difficulty` in all. */
+  difficulties: AIDifficulty[];
 }
 
 /**
- * Which strategy sits in which seat for game `gameIndex`.
+ * Which bot sits in which seat for game `gameIndex`.
  *
  * The seats rotate by one per game so that seat-order advantage and deal luck are shared
- * evenly between the strategies instead of being attributed to one of them. This is why the
+ * evenly between the bots instead of being attributed to one of them. This is why the
  * simulation needs no seeded decks: `shuffleDeck` uses bare Math.random(), and threading a
  * seeded RNG through the deal is real work to buy variance reduction that rotation gives away.
  */
-function rotateStrategies(pattern: AIStrategy[], gameIndex: number): AIStrategy[] {
+function rotateSeats(pattern: AIDifficulty[], gameIndex: number): AIDifficulty[] {
   const n = pattern.length;
   const offset = gameIndex % n;
   return pattern.map((_, seat) => pattern[(seat + offset) % n]);
@@ -52,7 +52,7 @@ function parseArgs(): RunnerOptions {
     timeout: 30000,
     outputDir: 'simulation-results',
     difficulty: 'hard',
-    strategies: [],
+    difficulties: [],
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -98,13 +98,15 @@ function parseArgs(): RunnerOptions {
         options.difficulty = next as AIDifficulty;
         i++;
         break;
-      case '--strategies': {
-        const parsed = (next ?? '').split(',').map((s) => Number(s.trim()));
-        if (parsed.length === 0 || parsed.some((s) => s !== 1 && s !== 2)) {
-          console.error(`Invalid strategies: ${next}. Comma-separated 1 or 2, e.g. "2,1".`);
+      case '--difficulties': {
+        const parsed = (next ?? '').split(',').map((s) => s.trim());
+        if (parsed.length === 0 || parsed.some((d) => !['easy', 'medium', 'hard'].includes(d))) {
+          console.error(
+            `Invalid difficulties: ${next}. Comma-separated easy/medium/hard, e.g. "hard,easy".`
+          );
           process.exit(1);
         }
-        options.strategies = parsed as AIStrategy[];
+        options.difficulties = parsed as AIDifficulty[];
         i++;
         break;
       }
@@ -124,25 +126,25 @@ function parseArgs(): RunnerOptions {
     process.exit(1);
   }
 
-  if (options.strategies.length === 0) {
-    options.strategies = Array<AIStrategy>(options.players).fill(1);
+  if (options.difficulties.length === 0) {
+    options.difficulties = Array<AIDifficulty>(options.players).fill(options.difficulty);
   }
-  if (options.strategies.length !== options.players) {
+  if (options.difficulties.length !== options.players) {
     console.error(
-      `--strategies needs one entry per player (${options.players}), got ${options.strategies.length}.`
+      `--difficulties needs one entry per player (${options.players}), got ${options.difficulties.length}.`
     );
     process.exit(1);
   }
   // 4-player games are scored per team, and the winner is a Team, not a seat. A team split
-  // between two strategies would make "which strategy won" unanswerable, so require partners
-  // (seats 0/2 and 1/3) to share one.
+  // between two bots would make "which bot won" unanswerable, so require partners (seats 0/2
+  // and 1/3) to share one.
   if (
     options.players === 4 &&
-    (options.strategies[0] !== options.strategies[2] ||
-      options.strategies[1] !== options.strategies[3])
+    (options.difficulties[0] !== options.difficulties[2] ||
+      options.difficulties[1] !== options.difficulties[3])
   ) {
     console.error(
-      'In 4-player games partners must share a strategy: seats 0 and 2, and seats 1 and 3.'
+      'In 4-player games partners must share a difficulty: seats 0 and 2, and seats 1 and 3.'
     );
     process.exit(1);
   }
@@ -206,7 +208,7 @@ async function main(): Promise<void> {
   console.log(`Max Actions:  ${options.maxActions}`);
   console.log(`Timeout:      ${options.timeout}ms`);
   console.log(`Difficulty:   ${options.difficulty}`);
-  console.log(`Strategies:   ${options.strategies.join(',')} (rotated one seat per game)`);
+  console.log(`Difficulties: ${options.difficulties.join(',')} (rotated one seat per game)`);
   console.log(`Output Dir:   ${options.outputDir}`);
   console.log('');
 
@@ -230,7 +232,7 @@ async function main(): Promise<void> {
         maxActions: options.maxActions,
         timeoutMs: options.timeout,
         difficulty: options.difficulty,
-        seats: rotateStrategies(options.strategies, gameIndex).map((strategy) => ({ strategy })),
+        seats: rotateSeats(options.difficulties, gameIndex).map((difficulty) => ({ difficulty })),
       });
       batch.push(engine.run());
     }
@@ -255,7 +257,7 @@ async function main(): Promise<void> {
           scores: {},
           actionCount: 0,
           durationMs: 0,
-          seatStrategies: rotateStrategies(options.strategies, gameIndex),
+          seatDifficulties: rotateSeats(options.difficulties, gameIndex),
           error: String(outcome.reason),
         };
       }
@@ -314,28 +316,28 @@ async function main(): Promise<void> {
       console.log(`  ${sides[i]}: ${wins[i]} wins (${pct}%)`);
     }
 
-    // The number that actually matters when comparing strategies. Seats rotate per game, so
-    // this is aggregated over the seat assignment rather than by seat.
-    const distinct = [...new Set(options.strategies)];
+    // The number that actually matters when comparing bots. Seats rotate per game, so this is
+    // aggregated over the seat assignment rather than by seat.
+    const distinct = [...new Set(options.difficulties)];
     if (distinct.length > 1) {
-      const strategyWins = new Map<AIStrategy, number>(distinct.map((s) => [s, 0]));
+      const difficultyWins = new Map<AIDifficulty, number>(distinct.map((d) => [d, 0]));
 
       for (const r of successful) {
         if (r.winner === null) {
           continue;
         }
-        // In 4-player games `winner` is a Team (0 or 1) and partners share a strategy, so seat
+        // In 4-player games `winner` is a Team (0 or 1) and partners share a difficulty, so seat
         // `winner` is on the winning team either way — for 2 and 3 players it *is* the seat.
-        const strategy = r.seatStrategies[r.winner];
-        strategyWins.set(strategy, (strategyWins.get(strategy) ?? 0) + 1);
+        const difficulty = r.seatDifficulties[r.winner];
+        difficultyWins.set(difficulty, (difficultyWins.get(difficulty) ?? 0) + 1);
       }
 
       console.log('');
-      console.log('Win Rate by Strategy:');
-      for (const strategy of distinct) {
-        const won = strategyWins.get(strategy) ?? 0;
+      console.log('Win Rate by Difficulty:');
+      for (const difficulty of distinct) {
+        const won = difficultyWins.get(difficulty) ?? 0;
         const pct = ((won / successful.length) * 100).toFixed(1);
-        console.log(`  Strategy ${strategy}: ${won} wins (${pct}%)`);
+        console.log(`  ${difficulty}: ${won} wins (${pct}%)`);
       }
     }
   }

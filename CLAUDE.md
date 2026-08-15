@@ -169,7 +169,11 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 **Partner exemption**: In 4-player games, when your partner is currently winning the trick, "must beat" and "must trump" are lifted (following suit still applies). Pass `isPartnerWinning(...)` as the 4th argument to `getValidPlays`/`isValidPlay` — it defaults to `false`, so any new call site silently enforces the strict rules.
 
-**AI Simulation**: `pnpm simulate` runs AI-only games in-memory (no Firebase). See `docs/AI_STRATEGY.md`. CLI flags: `--players`, `--games`, `--concurrency`, `--target-score`, `--max-actions`, `--timeout`, `--output-dir`.
+**AI Simulation**: `pnpm simulate` runs AI-only games in-memory (no Firebase). See `docs/AI_STRATEGY.md`. CLI flags: `--players`, `--games`, `--concurrency`, `--target-score`, `--max-actions`, `--timeout`, `--output-dir`, `--difficulty`, `--difficulties`.
+
+`--difficulties hard,easy` puts a different bot in each seat and reports the win rate by bot rather than by seat; seats rotate one place per game so deal luck and seat order cancel. This is the only way to measure an AI change — with one setting for the whole table every seat is identical and there is nothing to compare. Deals are unseeded (`shuffleDeck` uses bare `Math.random()`); the rotation is what replaces seeding. Resolution is roughly 3pp at 1000 games, 1pp at 8000.
+
+**AI knowledge is derived, never accumulated.** `buildRoundMemory` (`packages/game-ai/src/knowledge.ts`) rebuilds everything the AI knows from `GameState` on each decision, because `useAI` constructs a fresh `BinokelAIPlayer` per decision and any instance field is discarded immediately. It is also the _only_ place in the AI allowed to read `GameState`: all three drivers pass an unfiltered state, so `state.hands` holds every opponent's cards and `tricksTaken` holds the bid winner's layaway. `knowledge.test.ts` scrambles the hidden parts and asserts the output is unchanged — read state elsewhere and that guard is bypassed.
 
 ## Available Skills / Slash Commands
 

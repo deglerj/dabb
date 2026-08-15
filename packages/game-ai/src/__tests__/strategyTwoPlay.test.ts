@@ -1,6 +1,6 @@
 /**
- * Tests for the strategy-2 trick-play rules: overtaking a partner (S2) and the sacrifice leads
- * (S4). See docs/design/AI_STRATEGY_V2.md.
+ * Tests for the card-counting trick-play rules: overtaking a partner (S2) and the sacrifice
+ * leads (S4). See docs/design/AI_STRATEGY_V2.md.
  *
  * Every case is played out through `decide`, with mistakes off, so what is asserted is the card
  * the AI actually plays rather than the output of a helper.
@@ -19,7 +19,6 @@ import type {
 import { createInitialState } from '@dabb/game-logic';
 
 import { BinokelAIPlayer } from '../BinokelAIPlayer.js';
-import type { AIStrategy } from '../AIPlayer.js';
 
 function card(suit: Suit, rank: Rank, copy: 0 | 1 = 0): Card {
   return { id: `${suit}-${rank}-${copy}`, suit, rank, copy };
@@ -56,9 +55,9 @@ function tricksState(playerCount: 2 | 4, overrides: Partial<GameState> = {}): Ga
   };
 }
 
-async function playedCard(state: GameState, seat: PlayerIndex, strategy: AIStrategy) {
+async function playedCard(state: GameState, seat: PlayerIndex) {
   // Mistake probability 0, rubber band 0: the choice under test, never a blunder.
-  const ai = new BinokelAIPlayer(0, 0, strategy);
+  const ai = new BinokelAIPlayer(0, 0);
   const action = await ai.decide({ gameState: state, playerIndex: seat, sessionId: 'test' });
   if (action.type !== 'playCard') {
     throw new Error(`Expected playCard, got ${action.type}`);
@@ -124,20 +123,16 @@ describe('S2 — overtaking the partner', () => {
   it('smears onto the partner instead of overtaking when nobody behind is a threat', async () => {
     // Bob is void in Kreuz and in trump, so Carol's trick is safe. Alice banks points on it
     // rather than spending her Ass to take it off her own partner.
-    expect(await playedCard(partnerWinningState(false), 0, 2)).toBe('kreuz-buabe-0');
+    expect(await playedCard(partnerWinningState(false), 0)).toBe('kreuz-buabe-0');
   });
 
   it('does not protect with an expensive card the threat can beat anyway', async () => {
     // Bob can ruff. Alice's only overtake is the Ass, which the ruff beats too — so spending it
     // would lose the Ass as well as the trick.
-    expect(await playedCard(partnerWinningState(true), 0, 2)).toBe('kreuz-buabe-0');
+    expect(await playedCard(partnerWinningState(true), 0)).toBe('kreuz-buabe-0');
   });
 
-  it('strategy 1 overtakes its own partner from a non-final seat, which is the leak', async () => {
-    expect(await playedCard(partnerWinningState(false), 0, 1)).toBe('kreuz-ass-0');
-  });
-
-  it('still smears from the last seat under strategy 1', async () => {
+  it('smears from the last seat, where nobody can answer at all', async () => {
     const state = tricksState(4, {
       hands: new Map([[3 as PlayerIndex, [card('kreuz', 'ass'), card('kreuz', 'buabe')]]]),
       currentTrick: {
@@ -152,9 +147,10 @@ describe('S2 — overtaking the partner', () => {
       currentPlayer: 3 as PlayerIndex,
     });
 
-    // Seat 3's partner is seat 1, who is winning, and seat 3 is last — both strategies smear.
-    expect(await playedCard(state, 3, 1)).toBe('kreuz-buabe-0');
-    expect(await playedCard(state, 3, 2)).toBe('kreuz-buabe-0');
+    // Seat 3's partner is seat 1, who is winning, and seat 3 is last. This used to be its own
+    // branch; it now falls out of the threat test, since an empty list of players yet to act
+    // means the partner cannot be beaten.
+    expect(await playedCard(state, 3)).toBe('kreuz-buabe-0');
   });
 
   it('never ducks when must-beat leaves only winning cards', async () => {
@@ -170,7 +166,7 @@ describe('S2 — overtaking the partner', () => {
       currentPlayer: 1 as PlayerIndex,
     });
 
-    expect(await playedCard(state, 1, 2)).toBe('kreuz-10-0');
+    expect(await playedCard(state, 1)).toBe('kreuz-10-0');
   });
 });
 
@@ -205,12 +201,10 @@ describe('S4 — leads', () => {
   }
 
   it('cashes the lonely ace rather than spending a trump on the same trick', async () => {
-    // Both strategies agree here, via the lonely-ace rule they share. A census-based "lead
-    // whatever cannot be beaten" rule was tried in place of it and measured 2.7 percentage
-    // points *worse* over 8000 games, so it was dropped — see the P3 notes in
-    // docs/design/AI_STRATEGY_V2.md.
-    expect(await playedCard(noTrumpLeftState(), 0, 2)).toBe('bollen-ass-0');
-    expect(await playedCard(noTrumpLeftState(), 0, 1)).toBe('bollen-ass-0');
+    // The lonely-ace rule handles this. A census-based "lead whatever cannot be beaten" rule was
+    // tried in place of it and measured 2.7 percentage points *worse* over 8000 games, so it was
+    // dropped — see the P3 notes in docs/design/AI_STRATEGY_V2.md.
+    expect(await playedCard(noTrumpLeftState(), 0)).toBe('bollen-ass-0');
   });
 
   /**
@@ -241,12 +235,9 @@ describe('S4 — leads', () => {
     });
   }
 
-  it('leads low when nothing in hand is safe (strategy 2)', async () => {
-    expect(await playedCard(nothingIsSafeState(), 0, 2)).not.toBe('kreuz-ass-0');
-  });
-
-  it('leads its dearest card into the same position under strategy 1', async () => {
-    expect(await playedCard(nothingIsSafeState(), 0, 1)).toBe('kreuz-ass-0');
+  it('leads low when nothing in hand is safe', async () => {
+    // This sort used to run the other way, leading the Ass straight into the waiting ruff.
+    expect(await playedCard(nothingIsSafeState(), 0)).not.toBe('kreuz-ass-0');
   });
 
   /**
@@ -290,8 +281,6 @@ describe('S4 — leads', () => {
       currentPlayer: 0 as PlayerIndex,
     });
 
-    expect(await playedCard(state, 0, 2)).toBe('schippe-buabe-0');
-    // Strategy 1 cannot express the idea at all and cashes the Ass into the waiting ruff.
-    expect(await playedCard(state, 0, 1)).toBe('kreuz-ass-0');
+    expect(await playedCard(state, 0)).toBe('schippe-buabe-0');
   });
 });

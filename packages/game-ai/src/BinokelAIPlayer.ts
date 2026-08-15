@@ -38,7 +38,7 @@ import {
   isPartnerWinning,
 } from '@dabb/game-logic';
 
-import type { AIPlayer, AIStrategy } from './AIPlayer.js';
+import type { AIPlayer } from './AIPlayer.js';
 import { buildRoundMemory, type RoundMemory } from './knowledge.js';
 
 /**
@@ -133,9 +133,6 @@ const MAX_PULLABLE_TRUMP = 2;
  * the value; recalibrating the estimator would be the real fix.
  */
 const GO_OUT_THRESHOLD = 0.2;
-
-/** The old threshold, kept so strategy 1 stays a fixed reference point until v1 is deleted. */
-const LEGACY_GO_OUT_THRESHOLD = 0.7;
 
 /** Every seat that is not us and not our partner. */
 function opponentSeats(playerIndex: PlayerIndex, state: GameState): PlayerIndex[] {
@@ -482,26 +479,10 @@ export class BinokelAIPlayer implements AIPlayer {
   /** Mistake rate for the decision in flight, recomputed once per decide() */
   private currentMistakeProbability: number;
 
-  /** Trick-play generation — see AIStrategy. */
-  protected readonly strategy: AIStrategy;
-
-  constructor(
-    mistakeProbability: number = 0,
-    rubberBandStrength: number = 0,
-    strategy: AIStrategy = 1
-  ) {
+  constructor(mistakeProbability: number = 0, rubberBandStrength: number = 0) {
     this.mistakeProbability = mistakeProbability;
     this.rubberBandStrength = rubberBandStrength;
     this.currentMistakeProbability = mistakeProbability;
-    this.strategy = strategy;
-  }
-
-  /**
-   * Fraction of the bid the hand must be estimated to carry, below which the AI goes out
-   * instead of playing the round. See GO_OUT_THRESHOLD for why strategy 2 lowered it.
-   */
-  private goOutThreshold(): number {
-    return this.strategy === 2 ? GO_OUT_THRESHOLD : LEGACY_GO_OUT_THRESHOLD;
   }
 
   /**
@@ -621,7 +602,7 @@ export class BinokelAIPlayer implements AIPlayer {
       const estimatedTotal = meldPoints + estimateTrickPoints(hand, trump, gameState.playerCount);
       const currentBid = gameState.currentBid || 150;
 
-      if (estimatedTotal < currentBid * this.goOutThreshold()) {
+      if (estimatedTotal < currentBid * GO_OUT_THRESHOLD) {
         // Hand too weak — go out
         return { type: 'goOut' };
       }
@@ -736,17 +717,13 @@ export class BinokelAIPlayer implements AIPlayer {
     playedIds: Set<string>,
     memory: RoundMemory
   ): AIAction {
-    // Strategy 2 replaces rules 1 and 4 below with one question — is this card unbeatable? —
-    // and inverts rule 5. See docs/design/AI_STRATEGY_V2.md (S4).
     // 0. Pull the last trump, before anything is cashed into it. A side ace counts as safe below
     //    only because no opponent is *deduced* void in its suit; the trump that could still ruff
     //    it is exactly what this gives away a trick to remove, so it has to run first or the ace
     //    it protects will already have been played.
-    if (this.strategy === 2) {
-      const pull = findTrumpPull(validPlays, hand, trump, playerIndex, state, memory);
-      if (pull) {
-        return { type: 'playCard', cardId: pull.id };
-      }
+    const pull = findTrumpPull(validPlays, hand, trump, playerIndex, state, memory);
+    if (pull) {
+      return { type: 'playCard', cardId: pull.id };
     }
 
     // 1. Lonely aces first
@@ -821,14 +798,10 @@ export class BinokelAIPlayer implements AIPlayer {
       candidates = filtered;
     }
 
-    if (this.strategy === 2) {
-      // Reaching here means nothing in hand is safe to lead, so this trick is probably lost.
-      // Lose it with the cheapest card rather than the dearest: leading the Ass into a suit an
-      // opponent can still beat or ruff is the single largest leak in the old lead logic.
-      candidates.sort((a, b) => RANK_POINTS[a.rank] - RANK_POINTS[b.rank]);
-    } else {
-      candidates.sort((a, b) => RANK_POINTS[b.rank] - RANK_POINTS[a.rank]);
-    }
+    // Reaching here means nothing in hand is safe to lead, so this trick is probably lost. Lose
+    // it with the cheapest card rather than the dearest — this used to sort the other way and
+    // led the Ass into suits an opponent could still beat or ruff.
+    candidates.sort((a, b) => RANK_POINTS[a.rank] - RANK_POINTS[b.rank]);
     return { type: 'playCard', cardId: candidates[0].id };
   }
 
@@ -884,7 +857,6 @@ export class BinokelAIPlayer implements AIPlayer {
     //    games, 0% of 2- and 3-player follow decisions offer a win/lose choice, and every one
     //    of the 3.9% in 4-player games is under this exemption. Any "duck to keep the Ass" or
     //    "do not feed a later player" rule that is not written here cannot fire at all.
-    const isLastToPlay = trick.cards.length === state.playerCount - 1;
     if (partnerIsWinning && duckingPlays.length > 0) {
       const smear = (): AIAction => {
         const nonTrumpDucks = duckingPlays.filter((c) => c.suit !== trump);
@@ -893,37 +865,30 @@ export class BinokelAIPlayer implements AIPlayer {
         return { type: 'playCard', cardId: smearCandidates[0].id };
       };
 
-      if (this.strategy === 1) {
-        // Only ever smeared from the last seat; otherwise it fell through and overtook its own
-        // partner with the cheapest winner.
-        if (isLastToPlay) {
-          return smear();
-        }
-      } else {
-        // Overtaking a partner is only worth anything if an opponent behind us could take the
-        // trick from them. Last to play, nobody can, which is the old rule as a special case.
-        const partnerIsThreatened = couldBeBeatenAfterUs(
-          winningCard,
-          trick,
-          trump,
-          playerIndex,
-          state,
-          memory
-        );
-        if (!partnerIsThreatened) {
-          return smear();
-        }
+      // Overtaking a partner is only worth anything if an opponent behind us could take the
+      // trick from them. Last to play nobody can, so the old "smear only from the last seat"
+      // rule falls out of this as a special case rather than needing its own branch.
+      const partnerIsThreatened = couldBeBeatenAfterUs(
+        winningCard,
+        trick,
+        trump,
+        playerIndex,
+        state,
+        memory
+      );
+      if (!partnerIsThreatened) {
+        return smear();
+      }
 
-        // The partner is threatened, but protecting the trick with a Zehn or an Ass that the
-        // same opponent can beat anyway just loses the card as well as the trick.
-        const cheapestWinner = winningPlays[0];
-        const protectionIsFutile =
-          cheapestWinner === undefined ||
-          (RANK_POINTS[cheapestWinner.rank] >= FEED_POINTS &&
-            couldBeBeatenAfterUs(cheapestWinner, trick, trump, playerIndex, state, memory));
-        if (protectionIsFutile) {
-          return smear();
-        }
+      // The partner is threatened, but protecting the trick with a Zehn or an Ass that the same
+      // opponent can beat anyway just loses the card as well as the trick.
+      const cheapestWinner = winningPlays[0];
+      const protectionIsFutile =
+        cheapestWinner === undefined ||
+        (RANK_POINTS[cheapestWinner.rank] >= FEED_POINTS &&
+          couldBeBeatenAfterUs(cheapestWinner, trick, trump, playerIndex, state, memory));
+      if (protectionIsFutile) {
+        return smear();
       }
     }
 

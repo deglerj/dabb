@@ -1,7 +1,7 @@
 export { pickAIEmote } from './emotes.js';
 export { buildRoundMemory } from './knowledge.js';
 export type { RoundMemory } from './knowledge.js';
-export type { AIPlayer, AIDifficulty, AIStrategy } from './AIPlayer.js';
+export type { AIPlayer, AIDifficulty } from './AIPlayer.js';
 export { createAIPlayer, partnersHuman } from './AIPlayer.js';
 export {
   BinokelAIPlayer,
