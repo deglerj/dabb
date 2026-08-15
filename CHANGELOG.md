@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.9.0] - 2026-08-15
+
+### Geändert
+
+- Zu Beginn einer Runde werden die Karten jetzt einzeln ausgeteilt: sie fliegen nacheinander vom Tisch in die eigene Hand, statt auf einen Schlag zu erscheinen. Das Reiz-Fenster erscheint erst, wenn alle Karten liegen, und verdeckt so nicht mehr das Austeilen. Wer mitten im Spiel neu lädt oder wieder beitritt, bekommt seine Hand weiterhin sofort zu sehen. Wer in den Systemeinstellungen weniger Animationen eingestellt hat, sieht das Austeilen nicht.
+
 ## [4.8.2] - 2026-08-15
 
 ### Behoben

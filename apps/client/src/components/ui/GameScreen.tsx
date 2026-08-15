@@ -163,6 +163,28 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     return true;
   }, [events, replayedEventIds]);
 
+  // The round's deal — its id keys PlayerHand, so every round remounts the hand and deals it
+  // out again. A deal we are only being caught up on appears in place.
+  const dealId = useMemo(() => {
+    for (let i = events.length - 1; i >= 0; i--) {
+      const event = events[i]!;
+      if (event.type === 'CARDS_DEALT') {
+        return event.id;
+      }
+    }
+    return null;
+  }, [events]);
+  const animateDeal = dealId !== null && !replayedEventIds.has(dealId);
+
+  // The bidding dialog waits for the hand to land — it would otherwise cover the cards on
+  // their way in. dealId is a dependency because the next round deals again with animateDeal
+  // unchanged; PlayerHand reports back even when it animates nothing, so this always resolves.
+  const [dealtHandLanded, setDealtHandLanded] = useState(!animateDeal);
+  useEffect(() => {
+    setDealtHandLanded(!animateDeal);
+  }, [dealId, animateDeal]);
+  const handleDealComplete = useCallback(() => setDealtHandLanded(true), []);
+
   // Trick animation state machine
   const trickAnimState = useTrickAnimationState(
     state.currentTrick,
@@ -410,7 +432,8 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   }, [onExit, leaveToHome]);
 
   // Phase overlay
-  const showBidding = state.phase === 'bidding' && !trickAnimState.holdsRoundStart;
+  const showBidding =
+    state.phase === 'bidding' && !trickAnimState.holdsRoundStart && dealtHandLanded;
   const showDabbTake = state.phase === 'dabb' && isBidWinner && state.dabb.length > 0;
   const showTrump = state.phase === 'trump' && isBidWinner;
   // Trump is already declared here, so the layaway is made knowing what counts as trump.
@@ -523,6 +546,9 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
 
             {/* Player hand */}
             <PlayerHand
+              key={dealId ?? 'hand'}
+              animateDeal={animateDeal}
+              onDealComplete={handleDealComplete}
               gameState={state}
               playerIndex={playerIndex}
               // Empty while the round's last trick sweeps off the table — the next round's
