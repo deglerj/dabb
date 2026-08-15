@@ -107,7 +107,8 @@ partner is already winning the trick. Card values: Ass 11, Zehn 10, König 4, Ob
 last trick is worth 10 extra.
 
 **Scoring.** Melds plus tricks. Make your bid and you keep the lot. **Miss it and you score nothing
-for the round and lose twice your bid.** First to 1000 wins — and since everyone scores their own
+for the round and lose twice your bid.** **Win no trick at all and your melds are forfeit** — in
+4-player games that counts per team, and the bid winner's layaway is not a trick. First to 1000 wins — and since everyone scores their own
 melds and tricks, more than one player can get there in the same round. The highest total takes it,
 and if two are exactly level, the player who won the bidding wins.
 

@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.8.0] - 2026-08-15
+
+### Geändert
+
+- Neue Regel: Wer in einer Runde keinen einzigen Stich macht, verliert seine Meldpunkte für diese Runde. Zu viert zählt das pro Team — macht der Partner einen Stich, behalten beide ihre Meldungen. Die abgedrückten Karten des Reizgewinners gelten dabei nicht als Stich, ihre Punkte zählen aber weiterhin. Die Regelseite im Spiel wurde entsprechend ergänzt.
+
 ## [4.7.0] - 2026-08-15
 
 ### Geändert

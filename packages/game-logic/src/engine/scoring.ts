@@ -93,6 +93,16 @@ function roundTrickPoints(raw: number): number {
   return Math.round(raw / 10) * 10;
 }
 
+/**
+ * Whether this seat won a trick this round. Read from `trickHistory`, not `tricksTaken`:
+ * CARDS_DISCARDED pushes the bid winner's layaway into `tricksTaken` as an extra entry, and
+ * laying cards away is not winning a trick — its points count, the melds still burn.
+ * `trickHistory` is cleared on every new round, so everything in it belongs to this one.
+ */
+function wonATrick(state: GameState, playerIndex: PlayerIndex): boolean {
+  return state.trickHistory.some((trick) => trick.winnerIndex === playerIndex);
+}
+
 function playerTrickRaw(state: GameState, playerIndex: PlayerIndex): number {
   return calculatePlayerTrickRawPoints(
     playerIndex,
@@ -120,8 +130,11 @@ function tallyPlayedRound(state: GameState): RoundScores {
         (sum, idx) => sum + playerTrickRaw(state, idx),
         0
       );
+      // A team that won no trick at all forfeits its melds. Per team, not per player: the
+      // partner of a trick winner keeps their melds.
+      const teamWonATrick = indices.some((idx) => wonATrick(state, idx));
       scores[team] = settle(
-        teamMelds,
+        teamWonATrick ? teamMelds : 0,
         roundTrickPoints(teamTricksRaw),
         team === bidWinnerTeam,
         winningBid
@@ -132,8 +145,9 @@ function tallyPlayedRound(state: GameState): RoundScores {
 
   for (let i = 0; i < state.playerCount; i++) {
     const idx = i as PlayerIndex;
+    // No trick, no melds.
     scores[idx] = settle(
-      calculateMeldPoints(state.declaredMelds.get(idx) ?? []),
+      wonATrick(state, idx) ? calculateMeldPoints(state.declaredMelds.get(idx) ?? []) : 0,
       roundTrickPoints(playerTrickRaw(state, idx)),
       idx === state.bidWinner,
       winningBid

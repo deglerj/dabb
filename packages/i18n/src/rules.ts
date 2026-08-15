@@ -106,6 +106,8 @@ Nach allen Stichen ergibt sich das Rundenergebnis jedes Spielers aus: **Meldpunk
 
 Der Reizgewinner **muss** mit Meld- und Stichpunkten (inkl. abgedrückter Karten) mindestens sein Gebot erreichen. Schafft er das nicht, werden ihm stattdessen Punkte in Höhe seines Gebots abgezogen.
 
+**Kein Stich, keine Meldung:** Wer in einer Runde keinen einzigen Stich macht, verliert seine Meldpunkte für diese Runde. Zu viert gilt das pro Team — macht der Partner einen Stich, zählen beide Meldungen. Die abgedrückten Karten des Reizgewinners sind kein Stich.
+
 ## Spielende
 
 Der erste Spieler (oder das erste Team), der **1000 Punkte** erreicht, gewinnt das Spiel.`;
@@ -210,6 +212,8 @@ The highest card wins the trick. Trump always beats non-trump. Within the same s
 After all tricks are played, each player's round score is: **meld points + trick points**.
 
 The bid winner **must** reach at least their bid amount with their combined melds and tricks (including discarded cards). If they fall short, they lose points equal to their bid instead of gaining any.
+
+**No trick, no melds:** A player who wins no trick at all in a round forfeits their meld points for that round. In 4-player games this counts per team — if your partner wins a trick, both players' melds count. The bid winner's discarded cards are not a trick.
 
 ## Winning
 
