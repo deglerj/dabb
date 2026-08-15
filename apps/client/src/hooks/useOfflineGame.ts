@@ -60,7 +60,8 @@ export function useOfflineGame({
 
   const [state, setState] = useState<GameState | null>(null);
   const [events, setEvents] = useState<GameEvent[]>([]);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  // Everything restored from storage is replay; anything the engine produces after that is live.
+  const [replayedEventIds, setReplayedEventIds] = useState<Set<string>>(() => new Set());
 
   const nicknames = useMemo(
     () => buildNicknames(playerCount, nickname, HUMAN_PLAYER_INDEX),
@@ -100,6 +101,8 @@ export function useOfflineGame({
         }
       }
 
+      setReplayedEventIds(new Set((existingEvents ?? []).map((e) => e.id)));
+
       const engine = new OfflineGameEngine({
         playerCount: resolvedPlayerCount,
         difficulty: resolvedDifficulty,
@@ -118,7 +121,6 @@ export function useOfflineGame({
           const fresh = view.events.filter((e) => !ids.has(e.id));
           return fresh.length > 0 ? [...prev, ...fresh] : prev;
         });
-        setIsInitialLoad(false);
 
         // Persist after every state change
         const payload = engine.getPersistPayload();
@@ -133,7 +135,6 @@ export function useOfflineGame({
         const view = engine.getViewForPlayer(HUMAN_PLAYER_INDEX);
         setState(view.state);
         setEvents(view.events);
-        setIsInitialLoad(false);
       }
     };
 
@@ -214,7 +215,7 @@ export function useOfflineGame({
   return {
     state: safeState,
     events,
-    isInitialLoad,
+    replayedEventIds,
     nicknames,
     connected: true,
     connectedPlayers,

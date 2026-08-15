@@ -48,7 +48,20 @@ Emotes are **not events** and must stay out of the append-only log — they woul
 - **Human emotes** go over their own Firebase path, `sessions/<code>/emotes/<playerIndex>` (`apps/client/src/firebase/emotes.ts`), at the same trust level as `presence`.
 - **AI emotes are derived, never transported.** `pickAIEmote` (`packages/game-ai/src/emotes.ts`) is a pure function of the event plus a hash of its id, so every client independently arrives at the same reaction — which is why bots need no Firebase write and no `claimCascade`. Keep it deterministic: a `Math.random()` in there makes every client show a different bot reaction at the same moment.
 
-The replay guard is the event's own **wall-clock age**, not `isInitialLoad`. `isInitialLoad` flips false after the first batch, and `onChildAdded` can beat `getAllEvents` and deliver old events as separate batches after that — age holds regardless of arrival order.
+Emotes have their own replay guard, the event's **wall-clock age** — an emote is only visible for `EMOTE_TTL_MS` anyway, so age _is_ its display window, not a heuristic. Everything else uses `replayedEventIds` (below).
+
+### Replay Guard: `replayedEventIds`
+
+Rejoining, reloading and resuming an offline game all replay the whole log. Nothing cosmetic may fire for those events — no sound, no haptic, no trick sweep, no meld showcase, no round announcement or confetti. The player is dropped into the current state.
+
+The signal is `GameInterface.replayedEventIds`: the ids of the events already in the log when this client joined. Only the driver knows it (`useFirebaseGame` takes it from the `getAllEvents` snapshot, `useOfflineGame` from the events restored from `localStorage`), and `GameScreen` hands it to every cosmetic consumer.
+
+Two guards this replaced, so they don't come back:
+
+- **`isInitialLoad`** flipped false after the first batch, and `onChildAdded` replays every existing child on attach — old events arrive in later batches and slipped through. `useFirebaseGame` now subscribes only _after_ the snapshot resolves, so that backlog is always inside the set.
+- **Event age** works for emotes but not here: `timestamp` comes from whichever client wrote the event, so a skewed device clock misclassifies, and a player on a slow connection would lose the sounds for their own live game. Membership in the join snapshot is exact.
+
+`useTrickAnimationState` is the one indirect case: `CompletedTrick` carries no event id, so `GameScreen` resolves the last `TRICK_WON` from the log and passes the boolean.
 
 ### Scoreboard & Game Log
 

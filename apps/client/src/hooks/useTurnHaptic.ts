@@ -1,8 +1,9 @@
 /**
  * Hook to trigger a haptic pulse when it's the player's turn.
- * Suppressed during initial state load on reconnect.
+ * Suppressed while the state we are looking at comes from replayed events (rejoin, reload) —
+ * being caught up on a turn that started without us is not worth a buzz.
  * Note: useActionRequiredCallback already guards the first render via hasInitialized;
- * isInitialLoad is defense-in-depth for edge cases.
+ * this is defense-in-depth for the renders after it, where the replayed log has landed.
  */
 import { useCallback } from 'react';
 import type { GameState, PlayerIndex } from '@dabb/shared-types';
@@ -12,14 +13,15 @@ import { triggerHaptic } from '../utils/haptics.js';
 export function useTurnHaptic(
   state: GameState | null,
   currentPlayerIndex: PlayerIndex | null,
-  isInitialLoad: boolean
+  /** True when the newest event is one we are only catching up on. */
+  isReplaying: boolean
 ): void {
   const triggerTurnHaptic = useCallback(async () => {
-    if (isInitialLoad) {
+    if (isReplaying) {
       return;
     }
     triggerHaptic('turn-notification');
-  }, [isInitialLoad]);
+  }, [isReplaying]);
 
   useActionRequiredCallback(state, currentPlayerIndex, triggerTurnHaptic);
 }

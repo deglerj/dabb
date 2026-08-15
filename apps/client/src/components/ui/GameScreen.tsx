@@ -28,7 +28,7 @@ import {
   useCelebration,
 } from '@dabb/ui-shared';
 import { detectMelds, isWaitingOn } from '@dabb/game-logic';
-import type { PlayerIndex, Card, Team, TeamScoreEntry } from '@dabb/shared-types';
+import type { PlayerIndex, Card, GameEvent, Team, TeamScoreEntry } from '@dabb/shared-types';
 import { DABB_SIZE } from '@dabb/shared-types';
 import { useTranslation } from '@dabb/i18n';
 
@@ -99,7 +99,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   const {
     state,
     events,
-    isInitialLoad,
+    replayedEventIds,
     nicknames,
     connected,
     connectedPlayers,
@@ -140,29 +140,51 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     [state.hands, playerIndex]
   );
 
+  // Everything cosmetic below hangs off this: an event that was already in the log when we
+  // joined is only being replayed, and gets no sound, no buzz and no animation.
+  const isReplayed = useCallback(
+    (event: GameEvent) => replayedEventIds.has(event.id),
+    [replayedEventIds]
+  );
+
+  // The completed trick in state carries no event id, so resolve it from the log instead.
+  const isReplayedTrick = useMemo(() => {
+    for (let i = events.length - 1; i >= 0; i--) {
+      const event = events[i]!;
+      if (event.type === 'TRICK_WON') {
+        return replayedEventIds.has(event.id);
+      }
+    }
+    return true;
+  }, [events, replayedEventIds]);
+
   // Trick animation state machine
   const trickAnimState = useTrickAnimationState(
     state.currentTrick,
     state.lastCompletedTrick,
     state.phase,
     state.players,
-    isInitialLoad
+    isReplayedTrick
   );
 
   // Other players' melds, laid out on the table one player at a time once melding completes.
-  const meldShowcase = useMeldShowcase(events, playerIndex);
+  const meldShowcase = useMeldShowcase(events, playerIndex, replayedEventIds);
 
-  useTurnHaptic(state, playerIndex, isInitialLoad);
+  // No turn buzz for a turn we are only being caught up on.
+  const lastEventIsReplayed =
+    events.length === 0 || replayedEventIds.has(events[events.length - 1]!.id);
+  useTurnHaptic(state, playerIndex, lastEventIsReplayed);
 
-  // Sound effects: play on new events, suppressed during initial load on reconnect.
+  // Sound effects: play on new events, skipping any that are only being replayed (rejoin,
+  // reload, resumed offline game).
   const lastSoundedEventIdx = useRef(events.length);
   useEffect(() => {
     const newEvents = events.slice(lastSoundedEventIdx.current);
     lastSoundedEventIdx.current = events.length;
-    if (isInitialLoad) {
-      return;
-    }
     for (const event of newEvents) {
+      if (isReplayed(event)) {
+        continue;
+      }
       switch (event.type) {
         case 'CARDS_DEALT':
           playSound('card-deal');
@@ -190,7 +212,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
           break;
       }
     }
-  }, [events, isInitialLoad]);
+  }, [events, isReplayed]);
 
   // Scoreboard data — always produce an entry per player (0 if not yet scored)
   const totalScores = useMemo(() => {
@@ -307,7 +329,7 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
 
   // End-of-round announcement for every outcome (confetti only on a local win),
   // fireworks for a game win.
-  const { roundOutcome, showFireworks } = useCelebration(events, playerIndex);
+  const { roundOutcome, showFireworks } = useCelebration(events, playerIndex, replayedEventIds);
   const isTeamGame = state.playerCount === 4;
   const roundAnnouncement = useMemo(() => {
     if (!roundOutcome) {

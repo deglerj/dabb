@@ -6,6 +6,8 @@ All notable changes to Dabb are documented here.
 
 ### Behoben
 
+- Wer eine laufende Partie neu betritt — nach einem Neuladen, einem Verbindungsabbruch oder beim Fortsetzen eines Spiels gegen den Computer —, landet jetzt direkt im aktuellen Spielstand. Vorher wurde beim Nachladen manchmal die halbe Runde nachgespielt: Kartengeräusche, Vibrationen, einfliegende Meldungen und der Jubel für eine längst gewertete Runde. Alles, was vor dem Einstieg passiert ist, bleibt jetzt still.
+
 - Auf Android hat Dabb Musik oder Podcasts, die im Hintergrund liefen, bei jedem Spielgeräusch angehalten. Die Wiedergabe läuft jetzt weiter — im schlimmsten Fall wird sie für einen Moment leiser.
 
 ## [4.6.0] - 2026-08-11
