@@ -256,6 +256,18 @@ bisect point.
 Done when: `pnpm simulate` can run v1 against v1 across 1000 games and report a win rate within
 noise of even — the harness's own null test.
 
+**Measured** (`--strategies 2,1` while strategy 2 is still identical to strategy 1):
+
+| Players | Games | Result        |
+| ------- | ----- | ------------- |
+| 2       | 1000  | 47.7% / 52.3% |
+| 4       | 1000  | 48.4% / 51.6% |
+
+Both within noise, but they also fix the harness's resolution: one standard error at n=1000 is
+1.6 pp, so **anything under about a 3 pp win-rate change is invisible at 1000 games**. A phase
+that measures +2 pp has not been shown to do anything — raise the game count or accept that the
+rule is unproven.
+
 ## P1 — Knowledge foundation
 
 **No AI behaviour change.** Two independent pieces; the reducer change can land first on its

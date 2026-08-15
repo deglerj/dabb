@@ -1,5 +1,5 @@
 export { pickAIEmote } from './emotes.js';
-export type { AIPlayer, AIDifficulty } from './AIPlayer.js';
+export type { AIPlayer, AIDifficulty, AIStrategy } from './AIPlayer.js';
 export { createAIPlayer, partnersHuman } from './AIPlayer.js';
 export {
   BinokelAIPlayer,

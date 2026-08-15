@@ -37,7 +37,7 @@ import {
   isPartnerWinning,
 } from '@dabb/game-logic';
 
-import type { AIPlayer } from './AIPlayer.js';
+import type { AIPlayer, AIStrategy } from './AIPlayer.js';
 
 /**
  * Score lead at which the rubber band is fully applied. Roughly one strong round on the
@@ -359,10 +359,18 @@ export class BinokelAIPlayer implements AIPlayer {
    */
   private voidPlayers: Map<PlayerIndex, Set<Suit>> = new Map();
 
-  constructor(mistakeProbability: number = 0, rubberBandStrength: number = 0) {
+  /** Trick-play generation. Nothing branches on it yet — see AIStrategy. */
+  protected readonly strategy: AIStrategy;
+
+  constructor(
+    mistakeProbability: number = 0,
+    rubberBandStrength: number = 0,
+    strategy: AIStrategy = 1
+  ) {
     this.mistakeProbability = mistakeProbability;
     this.rubberBandStrength = rubberBandStrength;
     this.currentMistakeProbability = mistakeProbability;
+    this.strategy = strategy;
   }
 
   /**
