@@ -10,6 +10,8 @@ export {
 export {
   calculatePlayerTrickRawPoints,
   calculateTrickPoints,
+  CARD_STRENGTH,
+  cardBeats,
   determineTrickWinner,
   getCurrentTrickWinner,
   getPartnerIndex,

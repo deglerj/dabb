@@ -21,7 +21,6 @@ import type {
   GameState,
   PlayedCard,
   PlayerIndex,
-  Rank,
   Suit,
   Team,
   Trick,
@@ -30,6 +29,8 @@ import { CARDS_PER_PLAYER, RANK_POINTS, SUITS } from '@dabb/shared-types';
 import {
   calculateMeldPoints,
   canPass,
+  CARD_STRENGTH,
+  cardBeats,
   detectMelds,
   getMinBid,
   getPartnerIndex,
@@ -89,43 +90,14 @@ export function effectiveMistakeProbability(
   return base + strength * lead;
 }
 
-/** Card strength ordering (higher = stronger), matching tricks.ts */
-const CARD_STRENGTH: Record<Rank, number> = {
-  buabe: 0,
-  ober: 1,
-  koenig: 2,
-  '10': 3,
-  ass: 4,
-};
-
 // ---- Card comparison helpers ----
 
-function cardWouldWin(cardA: Card, cardB: Card, leadSuit: Suit, trump: Suit): boolean {
-  const aIsTrump = cardA.suit === trump;
-  const bIsTrump = cardB.suit === trump;
-  const aIsLead = cardA.suit === leadSuit;
-  const bIsLead = cardB.suit === leadSuit;
-
-  if (aIsTrump && !bIsTrump) {
-    return true;
-  }
-  if (!aIsTrump && bIsTrump) {
-    return false;
-  }
-  if (aIsTrump && bIsTrump) {
-    return CARD_STRENGTH[cardA.rank] > CARD_STRENGTH[cardB.rank];
-  }
-  if (aIsLead && !bIsLead) {
-    return true;
-  }
-  if (!aIsLead && bIsLead) {
-    return false;
-  }
-  if (cardA.suit === cardB.suit) {
-    return CARD_STRENGTH[cardA.rank] > CARD_STRENGTH[cardB.rank];
-  }
-  return false;
-}
+/**
+ * `cardBeats` under its old local name. Both the strength table and this comparison used to be
+ * copied into this file; they now come from the rules engine, so the AI cannot disagree with it
+ * about who wins a trick.
+ */
+const cardWouldWin = cardBeats;
 
 function getCurrentWinningPlay(trick: Trick, trump: Suit): PlayedCard | null {
   if (trick.cards.length === 0) {
