@@ -1,13 +1,17 @@
 # AI Strategy v2 — Deduction, Ducking and Sacrifice Leads
 
-Status: **in progress**. P0 through P3 have landed. The strategies are formulated below, the
-implementation plan is at the end, and the sequencing table there carries the current status of
-each phase.
+Status: **P0 through P5 landed; P6 pending.** The strategies are formulated below, the
+implementation plan is at the end, and the sequencing table there carries the status of each
+phase.
 
-**Read the measurements before the prose.** Several sections were written before the code and
-are now known to be wrong: the **Correction** section supersedes leaks 2 and 3 in "Why", and the
-P2 and P3 results supersede the claim that any of this makes the AI stronger. Measured over
-8000 games per configuration, strategy 2 does not beat strategy 1 outside the noise floor.
+**Read the measurements before the prose.** Most of this document was written before the code
+and is now known to be wrong in its central claim. Card counting made no measurable difference
+at all: every rule in P2 and P3 came out inside the noise floor over 8000 games per
+configuration. The entire measured gain — **+16 percentage points in four-player games** — came
+from one constant, the going-out threshold, found by instrumenting the simulation rather than by
+any of the reasoning here. See "The lesson for any further work" at the end.
+
+The **Correction** section supersedes leaks 2 and 3 in "Why".
 
 Companion to `docs/AI_STRATEGY.md`, which describes what `BinokelAIPlayer` does today.
 
@@ -420,23 +424,66 @@ Removed: must-beat means a player almost never gets to decline a winnable trick,
 slot where they do is the partner exemption, which the revised S2 already occupies. See the
 correction section for the measurement that established this.
 
-## P5 — S5 contract awareness
+## P5 — contract awareness, replaced by the going-out threshold (DONE)
 
-Largest change; changes the objective function rather than the card choice, so it lands last
-and alone.
+**The planned rule had nothing to do.** S5 was built on the bid winner being short of their
+contract and the defenders pressing that. Instrumenting the simulation showed the situation
+barely exists, because the AI bails out via Abgehen long before it can happen:
 
-- Derive running trick points per side from `trickHistory` (P1a gives per-trick points) plus
-  `declaredMelds`, compare against `state.currentBid`.
-- Bid winner: contract already safe → duck freely, hold trump for the last trick's 10 points.
-  Short of it → take everything, S3 off.
-- Defender: bid winner short → denial mode. Never smear points onto their winning trick (the
-  current smear rule at `:738` checks only that the partner is winning, never whether the
-  points help), dump zero-value cards, spend trump on their rich tricks.
-- 4-player only for the smear part; 2- and 3-player get the denial dumping.
+| Players | Rounds | Missed bids | ...that went out | Genuine failed contracts |
+| ------- | ------ | ----------- | ---------------- | ------------------------ |
+| 2       | 514    | 1           | 1                | 0                        |
+| 3       | 991    | 65          | 51               | ~14 (1.4%)               |
+| 4       | 1198   | 355         | 354              | ~1 (0.08%)               |
 
-This is where a missed bid at −2 × bid (`game-logic/src/engine/scoring.ts`) gets weighed
-against a trick, so it is also where the AI can most easily talk itself into something stupid.
-Measure per player count — the denial calculus differs between 2-player and team play.
+The number that stood out instead: **the AI went out in 30% of four-player rounds.** Going out
+costs the bid once, guaranteed. Playing on costs twice the bid, but only when the hand actually
+misses — and these hands mostly did not miss. `decideDiscard` bailed whenever the hand was
+estimated to carry less than 70% of the bid, and that estimate is far too pessimistic.
+
+Swept over 6000 four-player games, one standard error 0.65 pp:
+
+| Threshold    | Strategy 2 win rate   |
+| ------------ | --------------------- |
+| 0.70 (old)   | 50.0% by construction |
+| 0.55         | 61.8%                 |
+| 0.40         | 64.4%                 |
+| 0.20         | 67.7%                 |
+| never go out | 68.5%                 |
+
+Set to **0.2**. The last 0.8 pp to "never" is inside the noise, and Abgehen is a real move that a
+genuinely dead hand should still be able to make. At 0.2 the AI goes out essentially never and
+misses only 1.5% of four-player rounds.
+
+The underlying fault is `estimateTrickPoints`, which claims a hand cannot carry 70% of a bid
+when it usually carries all of it. Lowering the threshold captures the value; recalibrating the
+estimator is the real fix and is not done here.
+
+## Final measurement
+
+All strategy-2 changes together, n=8000 per configuration:
+
+| Players | Strategy 2           | Delta    | Significance |
+| ------- | -------------------- | -------- | ------------ |
+| 2       | 49.9%                | −0.1 pp  | 0.2 SE       |
+| 3       | 34.1% (even = 33.3%) | +0.8 pp  | 1.5 SE       |
+| 4       | 66.0%                | +16.0 pp | 28 SE        |
+
+The effect tracks how often each format goes out — 30% of four-player rounds, 5% of three-player,
+0.2% of two-player — because that one threshold is the whole of the gain. Every card-counting
+rule in P2 and P3 measured zero.
+
+## The lesson for any further work
+
+Three phases of trick-play heuristics moved nothing, and one constant moved sixteen points. The
+reason is structural: Binokel's follow/beat/trump obligations leave a player almost no choice
+about which card to play, so there is little for a smarter policy to choose differently. The
+decisions that _are_ free — what to bid, whether to go out, which trump to name, which four cards
+to bury — are where the remaining value is, and they are governed by a handful of crude
+estimators.
+
+Anything further should start with `estimateTrickPoints` and the bidding thresholds, not with
+trick play.
 
 ## P6 — Recalibrate and clean up
 
