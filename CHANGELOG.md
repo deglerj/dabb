@@ -2,6 +2,35 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.8.0] - 2026-08-15
+
+### Geändert
+
+- Neue Regel: Wer in einer Runde keinen einzigen Stich macht, verliert seine Meldpunkte für diese Runde. Zu viert zählt das pro Team — macht der Partner einen Stich, behalten beide ihre Meldungen. Die abgedrückten Karten des Reizgewinners gelten dabei nicht als Stich, ihre Punkte zählen aber weiterhin. Die Regelseite im Spiel wurde entsprechend ergänzt.
+
+## [4.7.0] - 2026-08-15
+
+### Geändert
+
+- Die Computergegner reizen jetzt realistischer. Bisher haben sie nur gezählt, was sie bereits auf der Hand hatten, und dabei übersehen, dass der Gewinner des Reizens noch den Dabb bekommt — vier zusätzliche Karten, die oft genau die Meldung vollständig machen, an der eine Karte fehlt. Jetzt schätzen sie mit ein, wie wahrscheinlich der Dabb ihre Hand ergänzt, und lassen sich eine gute Hand entsprechend mehr kosten. Besonders im Spiel zu zweit wird deutlich höher gereizt.
+- Die Mitspieler geben deutlich seltener auf. Bisher sind sie fast bei jeder dritten Runde abgegangen, auch mit Blättern, die den Reizwert locker geschafft hätten — Abgehen kostet den Reizwert sicher, Weiterspielen nur dann das Doppelte, wenn es wirklich schiefgeht. In Viererrunden gewinnen sie dadurch deutlich häufiger. Bei einem aussichtslosen Blatt gehen sie weiterhin ab.
+- Die Mitspieler merken sich jetzt, was gespielt wurde, und ziehen daraus Schlüsse: wer eine Farbe nicht mehr hat, wer keinen Trumpf mehr halten kann, und welche hohen Karten noch draußen sind. Sie spielen zum Beispiel eine niedrige Karte an, um den letzten Trumpf des Gegners herauszulocken, und werfen beim Anspielen die billigste Karte, wenn die Runde ohnehin verloren ist.
+- In Online-Partien hatten die Mitspieler bisher überhaupt kein Gedächtnis für die laufende Runde. Das ist behoben.
+
+## [4.6.2] - 2026-08-15
+
+### Behoben
+
+- Wer die Vibration in den Optionen abschaltet, spürt jetzt auch bei den Knöpfen zum Reizen, Dabb aufnehmen, Trumpf ansagen, Melden und Weglegen nichts mehr. Diese Knöpfe haben bisher als einzige weiter vibriert.
+
+## [4.6.1] - 2026-08-15
+
+### Behoben
+
+- Wer eine laufende Partie neu betritt — nach einem Neuladen, einem Verbindungsabbruch oder beim Fortsetzen eines Spiels gegen den Computer —, landet jetzt direkt im aktuellen Spielstand. Vorher wurde beim Nachladen manchmal die halbe Runde nachgespielt: Kartengeräusche, Vibrationen, einfliegende Meldungen und der Jubel für eine längst gewertete Runde. Alles, was vor dem Einstieg passiert ist, bleibt jetzt still.
+
+- Auf Android hat Dabb Musik oder Podcasts, die im Hintergrund liefen, bei jedem Spielgeräusch angehalten. Die Wiedergabe läuft jetzt weiter — im schlimmsten Fall wird sie für einen Moment leiser.
+
 ## [4.6.0] - 2026-08-11
 
 ### Neu

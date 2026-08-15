@@ -41,8 +41,12 @@ export function useTrickAnimationState(
   lastCompletedTrick: CompletedTrick | null,
   phase: GamePhase,
   players: Player[],
-  /** True while the first batch of the event log is being replayed (mount or reconnect). */
-  isInitialLoad: boolean
+  /**
+   * True when the completed trick comes from a replayed TRICK_WON — one that was already in
+   * the log when this client joined. The caller resolves it (see GameScreen) because
+   * CompletedTrick carries no event id of its own.
+   */
+  isReplayedTrick: boolean
 ): TrickAnimationResult {
   const [animPhase, setAnimPhase] = useState<TrickAnimPhase>('idle');
   const [displayCards, setDisplayCards] = useState<PlayedCard[]>([]);
@@ -98,11 +102,7 @@ export function useTrickAnimationState(
     // so adopt it without animating. The previous guard was a ref spent on the first render,
     // which always has an empty state and therefore no completed trick — by the time the log
     // landed it was gone, and every reload replayed a stale sweep.
-    //
-    // ponytail: isInitialLoad is the only replay signal available here — CompletedTrick has no
-    // timestamp, so the wall-clock-age guard the emotes use is not an option. An onChildAdded
-    // event that beats getAllEvents can flip it early; the cost is one spurious sweep.
-    if (isInitialLoad) {
+    if (isReplayedTrick) {
       prevTrickKeyRef.current = trickKey;
       return;
     }
@@ -151,7 +151,7 @@ export function useTrickAnimationState(
     }, PAUSE_DURATION);
 
     timersRef.current.push(pauseTimer);
-  }, [lastCompletedTrick, players, clearAllTimers, isInitialLoad]);
+  }, [lastCompletedTrick, players, clearAllTimers, isReplayedTrick]);
 
   // Cancel pause early if next card is played while paused — but never before the completed
   // trick has been on the table for MIN_TRICK_HOLD_MS.

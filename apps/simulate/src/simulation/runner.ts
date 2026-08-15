@@ -23,6 +23,22 @@ interface RunnerOptions {
   timeout: number;
   outputDir: string;
   difficulty: AIDifficulty;
+  /** Difficulty per seat, e.g. `--difficulties hard,easy`. Defaults to `--difficulty` in all. */
+  difficulties: AIDifficulty[];
+}
+
+/**
+ * Which bot sits in which seat for game `gameIndex`.
+ *
+ * The seats rotate by one per game so that seat-order advantage and deal luck are shared
+ * evenly between the bots instead of being attributed to one of them. This is why the
+ * simulation needs no seeded decks: `shuffleDeck` uses bare Math.random(), and threading a
+ * seeded RNG through the deal is real work to buy variance reduction that rotation gives away.
+ */
+function rotateSeats(pattern: AIDifficulty[], gameIndex: number): AIDifficulty[] {
+  const n = pattern.length;
+  const offset = gameIndex % n;
+  return pattern.map((_, seat) => pattern[(seat + offset) % n]);
 }
 
 function parseArgs(): RunnerOptions {
@@ -36,6 +52,7 @@ function parseArgs(): RunnerOptions {
     timeout: 30000,
     outputDir: 'simulation-results',
     difficulty: 'hard',
+    difficulties: [],
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -81,6 +98,18 @@ function parseArgs(): RunnerOptions {
         options.difficulty = next as AIDifficulty;
         i++;
         break;
+      case '--difficulties': {
+        const parsed = (next ?? '').split(',').map((s) => s.trim());
+        if (parsed.length === 0 || parsed.some((d) => !['easy', 'medium', 'hard'].includes(d))) {
+          console.error(
+            `Invalid difficulties: ${next}. Comma-separated easy/medium/hard, e.g. "hard,easy".`
+          );
+          process.exit(1);
+        }
+        options.difficulties = parsed as AIDifficulty[];
+        i++;
+        break;
+      }
       default:
         console.error(`Unknown argument: ${arg}`);
         process.exit(1);
@@ -97,7 +126,74 @@ function parseArgs(): RunnerOptions {
     process.exit(1);
   }
 
+  if (options.difficulties.length === 0) {
+    options.difficulties = Array<AIDifficulty>(options.players).fill(options.difficulty);
+  }
+  if (options.difficulties.length !== options.players) {
+    console.error(
+      `--difficulties needs one entry per player (${options.players}), got ${options.difficulties.length}.`
+    );
+    process.exit(1);
+  }
+  // 4-player games are scored per team, and the winner is a Team, not a seat. A team split
+  // between two bots would make "which bot won" unanswerable, so require partners (seats 0/2
+  // and 1/3) to share one.
+  if (
+    options.players === 4 &&
+    (options.difficulties[0] !== options.difficulties[2] ||
+      options.difficulties[1] !== options.difficulties[3])
+  ) {
+    console.error(
+      'In 4-player games partners must share a difficulty: seats 0 and 2, and seats 1 and 3.'
+    );
+    process.exit(1);
+  }
+
   return options;
+}
+
+/**
+ * Bidding health across the simulated games — the metric to watch when tuning how aggressively
+ * the AI bids. A change that raises the average winning bid but tanks the met rate is a loss:
+ * a missed bid costs -2x, going out only -1x.
+ *
+ * `bidMet: false` also marks a round the bid winner deliberately went out of, so those rounds
+ * are counted separately instead of being blamed on a bad bid.
+ */
+function biddingStats(results: SimulationResult[]): {
+  rounds: number;
+  avgWinningBid: number;
+  missedRate: number;
+  wentOutRate: number;
+} {
+  let rounds = 0;
+  let bidSum = 0;
+  let bids = 0;
+  let missedOrWentOut = 0;
+  let wentOut = 0;
+
+  for (const result of results) {
+    for (const event of result.events) {
+      if (event.type === 'BIDDING_WON') {
+        bidSum += event.payload.winningBid;
+        bids++;
+      } else if (event.type === 'GOING_OUT') {
+        wentOut++;
+      } else if (event.type === 'ROUND_SCORED') {
+        rounds++;
+        if (Object.values(event.payload.scores).some((s) => !s.bidMet)) {
+          missedOrWentOut++;
+        }
+      }
+    }
+  }
+
+  return {
+    rounds,
+    avgWinningBid: bids > 0 ? bidSum / bids : 0,
+    missedRate: rounds > 0 ? (missedOrWentOut - wentOut) / rounds : 0,
+    wentOutRate: rounds > 0 ? wentOut / rounds : 0,
+  };
 }
 
 function formatGameNumber(n: number, total: number): string {
@@ -156,6 +252,7 @@ async function main(): Promise<void> {
   console.log(`Max Actions:  ${options.maxActions}`);
   console.log(`Timeout:      ${options.timeout}ms`);
   console.log(`Difficulty:   ${options.difficulty}`);
+  console.log(`Difficulties: ${options.difficulties.join(',')} (rotated one seat per game)`);
   console.log(`Output Dir:   ${options.outputDir}`);
   console.log('');
 
@@ -179,6 +276,7 @@ async function main(): Promise<void> {
         maxActions: options.maxActions,
         timeoutMs: options.timeout,
         difficulty: options.difficulty,
+        seats: rotateSeats(options.difficulties, gameIndex).map((difficulty) => ({ difficulty })),
       });
       batch.push(engine.run());
     }
@@ -203,6 +301,7 @@ async function main(): Promise<void> {
           scores: {},
           actionCount: 0,
           durationMs: 0,
+          seatDifficulties: rotateSeats(options.difficulties, gameIndex),
           error: String(outcome.reason),
         };
       }
@@ -238,9 +337,22 @@ async function main(): Promise<void> {
     console.log(`Avg Duration: ${avgDuration.toFixed(0)}ms`);
     console.log(`Avg Actions:  ${avgActions.toFixed(0)}`);
 
-    // Win distribution
+    const bidding = biddingStats(successful);
+    console.log('');
+    console.log('Bidding:');
+    console.log(`  Rounds:          ${bidding.rounds}`);
+    console.log(`  Avg Winning Bid: ${bidding.avgWinningBid.toFixed(1)}`);
+    console.log(`  Missed Bids:     ${(bidding.missedRate * 100).toFixed(1)}%`);
+    console.log(`  Went Out:        ${(bidding.wentOutRate * 100).toFixed(1)}%`);
+
+    // Win distribution. In 4-player games GAME_FINISHED carries a Team, not a seat, so there
+    // are only ever two winners — listing four names put a flat 0 next to Charlie and Diana.
+    const isTeamGame = options.players === 4;
+    const sides = isTeamGame ? ['Team 0', 'Team 1'] : ['Alice', 'Bob', 'Charlie', 'Diana'];
+    const sideCount = isTeamGame ? 2 : options.players;
+
     const wins: Record<number, number> = {};
-    for (let i = 0; i < options.players; i++) {
+    for (let i = 0; i < sideCount; i++) {
       wins[i] = 0;
     }
     for (const r of successful) {
@@ -249,12 +361,36 @@ async function main(): Promise<void> {
       }
     }
 
-    const names = ['Alice', 'Bob', 'Charlie', 'Diana'];
     console.log('');
     console.log('Win Distribution:');
-    for (let i = 0; i < options.players; i++) {
+    for (let i = 0; i < sideCount; i++) {
       const pct = ((wins[i] / successful.length) * 100).toFixed(1);
-      console.log(`  ${names[i]}: ${wins[i]} wins (${pct}%)`);
+      console.log(`  ${sides[i]}: ${wins[i]} wins (${pct}%)`);
+    }
+
+    // The number that actually matters when comparing bots. Seats rotate per game, so this is
+    // aggregated over the seat assignment rather than by seat.
+    const distinct = [...new Set(options.difficulties)];
+    if (distinct.length > 1) {
+      const difficultyWins = new Map<AIDifficulty, number>(distinct.map((d) => [d, 0]));
+
+      for (const r of successful) {
+        if (r.winner === null) {
+          continue;
+        }
+        // In 4-player games `winner` is a Team (0 or 1) and partners share a difficulty, so seat
+        // `winner` is on the winning team either way — for 2 and 3 players it *is* the seat.
+        const difficulty = r.seatDifficulties[r.winner];
+        difficultyWins.set(difficulty, (difficultyWins.get(difficulty) ?? 0) + 1);
+      }
+
+      console.log('');
+      console.log('Win Rate by Difficulty:');
+      for (const difficulty of distinct) {
+        const won = difficultyWins.get(difficulty) ?? 0;
+        const pct = ((won / successful.length) * 100).toFixed(1);
+        console.log(`  ${difficulty}: ${won} wins (${pct}%)`);
+      }
     }
   }
 

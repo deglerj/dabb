@@ -87,7 +87,8 @@ export function useFirebaseGame({
   const rawEventsRef = useRef<GameEvent[]>([]);
   const fullStateRef = useRef<GameState>(applyEvents([]));
 
-  const { state, events, isInitialLoad, processEvents } = useGameState({ playerIndex });
+  const { state, events, processEvents } = useGameState({ playerIndex });
+  const [replayedEventIds, setReplayedEventIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     void hashSecretId(secretId).then(setSecretHash);
@@ -179,30 +180,41 @@ export function useFirebaseGame({
     const cleanup = setupPresence(sessionCode, playerIndex);
     setConnected(true);
 
+    let cancelled = false;
+    let unsubEvents: (() => void) | null = null;
+
+    // Subscribe only once the snapshot is in. `onChildAdded` replays every existing child on
+    // attach, so subscribing first would deliver the backlog as if it were live play — which
+    // is exactly what the replayed-id set has to be able to tell apart.
     void getAllEvents(sessionCode).then((existingEvents) => {
+      if (cancelled) {
+        return;
+      }
       rawEventsRef.current = existingEvents;
       fullStateRef.current = applyEvents(existingEvents);
+      setReplayedEventIds(new Set(existingEvents.map((e) => e.id)));
       processEvents(existingEvents);
-    });
 
-    const unsubEvents = subscribeToEvents(sessionCode, (event) => {
-      const alreadyHave = rawEventsRef.current.some((e) => e.id === event.id);
-      if (!alreadyHave) {
-        rawEventsRef.current = [...rawEventsRef.current, event].sort(
-          (a, b) => a.sequence - b.sequence
-        );
-        fullStateRef.current = applyEvents(rawEventsRef.current);
-        processEvents([event]);
-      }
+      unsubEvents = subscribeToEvents(sessionCode, (event) => {
+        const alreadyHave = rawEventsRef.current.some((e) => e.id === event.id);
+        if (!alreadyHave) {
+          rawEventsRef.current = [...rawEventsRef.current, event].sort(
+            (a, b) => a.sequence - b.sequence
+          );
+          fullStateRef.current = applyEvents(rawEventsRef.current);
+          processEvents([event]);
+        }
 
-      if (event.type === 'GAME_TERMINATED') {
-        setTerminatedBy({ nickname: nicknames.get(event.payload.terminatedBy) ?? null });
-      }
+        if (event.type === 'GAME_TERMINATED') {
+          setTerminatedBy({ nickname: nicknames.get(event.payload.terminatedBy) ?? null });
+        }
+      });
     });
 
     return () => {
+      cancelled = true;
       cleanup();
-      unsubEvents();
+      unsubEvents?.();
       setConnected(false);
     };
   }, [sessionCode, secretId, playerIndex, processEvents, nicknames]);
@@ -272,7 +284,7 @@ export function useFirebaseGame({
   return {
     state,
     events,
-    isInitialLoad,
+    replayedEventIds,
     nicknames,
     connected,
     connectedPlayers,

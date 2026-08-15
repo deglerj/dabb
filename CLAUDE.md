@@ -48,7 +48,20 @@ Emotes are **not events** and must stay out of the append-only log — they woul
 - **Human emotes** go over their own Firebase path, `sessions/<code>/emotes/<playerIndex>` (`apps/client/src/firebase/emotes.ts`), at the same trust level as `presence`.
 - **AI emotes are derived, never transported.** `pickAIEmote` (`packages/game-ai/src/emotes.ts`) is a pure function of the event plus a hash of its id, so every client independently arrives at the same reaction — which is why bots need no Firebase write and no `claimCascade`. Keep it deterministic: a `Math.random()` in there makes every client show a different bot reaction at the same moment.
 
-The replay guard is the event's own **wall-clock age**, not `isInitialLoad`. `isInitialLoad` flips false after the first batch, and `onChildAdded` can beat `getAllEvents` and deliver old events as separate batches after that — age holds regardless of arrival order.
+Emotes have their own replay guard, the event's **wall-clock age** — an emote is only visible for `EMOTE_TTL_MS` anyway, so age _is_ its display window, not a heuristic. Everything else uses `replayedEventIds` (below).
+
+### Replay Guard: `replayedEventIds`
+
+Rejoining, reloading and resuming an offline game all replay the whole log. Nothing cosmetic may fire for those events — no sound, no haptic, no trick sweep, no meld showcase, no round announcement or confetti. The player is dropped into the current state.
+
+The signal is `GameInterface.replayedEventIds`: the ids of the events already in the log when this client joined. Only the driver knows it (`useFirebaseGame` takes it from the `getAllEvents` snapshot, `useOfflineGame` from the events restored from `localStorage`), and `GameScreen` hands it to every cosmetic consumer.
+
+Two guards this replaced, so they don't come back:
+
+- **`isInitialLoad`** flipped false after the first batch, and `onChildAdded` replays every existing child on attach — old events arrive in later batches and slipped through. `useFirebaseGame` now subscribes only _after_ the snapshot resolves, so that backlog is always inside the set.
+- **Event age** works for emotes but not here: `timestamp` comes from whichever client wrote the event, so a skewed device clock misclassifies, and a player on a slow connection would lose the sounds for their own live game. Membership in the join snapshot is exact.
+
+`useTrickAnimationState` is the one indirect case: `CompletedTrick` carries no event id, so `GameScreen` resolves the last `TRICK_WON` from the log and passes the boolean.
 
 ### Scoreboard & Game Log
 
@@ -65,6 +78,11 @@ version of this app) implemented by `packages/rn-compat`, not `react-native`/`re
 `flattenStyle()` in `packages/rn-compat/src/styles.ts` normalizes them to plain CSS. See ADR
 011 for why, and `packages/rn-compat/src/index.tsx`'s top-of-file comment for the shim's
 documented ceiling before reaching for a new component or style property it doesn't cover.
+
+Haptics live here too (`packages/rn-compat/src/haptics.ts`, RN's `Vibration` equivalent),
+because the client _and_ `game-canvas` fire them and only `rn-compat` is a dependency of both.
+`triggerHaptic` is the only place allowed to call `navigator.vibrate` — it is what reads the
+options toggle, so a direct call bypasses the switch (that was the `HapticTouchableOpacity` bug).
 
 ### Swabian Terminology
 
@@ -139,7 +157,7 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 **Bid winner phase order**: `dabb` (take it) → `trump` (declare it) → `discard` (lay four away) → `melding`. Trump is declared **before** the layaway so that burying a trump is a real decision. Buried trump must be announced: `filterCardsDiscarded` (views.ts) leaves trump-suited card IDs readable to everyone and replaces the rest with `'hidden'`, and `useGameLog` turns that into a `trump_discarded` entry. The reveal is derived per client from the card IDs, not reported by the discarder — so `filterEventsForPlayer` must be given the whole log (it folds the round's trump forward), never an isolated batch.
 
-**Scoring a round**: melds + trick points, with the bid winner's discarded cards counting towards their tricks and 10 for the last trick. Miss the bid and the whole round is discarded and replaced by **`-2 × winningBid`** (`bidMet: false`). Going out costs only `-1 × winningBid` — the 2:1 ratio is what makes Abgehen worth choosing, so don't "fix" one without the other. All of this lives once, in `game-logic/src/engine/scoring.ts`.
+**Scoring a round**: melds + trick points, with the bid winner's discarded cards counting towards their tricks and 10 for the last trick. A player who won no trick forfeits their melds (per _team_ in 4-player games) — `wonATrick` in `scoring.ts` reads `state.trickHistory`, never `tricksTaken`, because the layaway sits in `tricksTaken` as a fake trick entry and laying cards away must not save the melds. Miss the bid and the whole round is discarded and replaced by **`-2 × winningBid`** (`bidMet: false`). Going out costs only `-1 × winningBid` — the 2:1 ratio is what makes Abgehen worth choosing, so don't "fix" one without the other. All of this lives once, in `game-logic/src/engine/scoring.ts`.
 
 **Ending the game**: `determineGameWinner` (`game-logic/state/winner.ts`) is the single source of this rule — several players can cross the target in one round, so highest total wins, and an exact tie goes to the bid winner. Ties are common because every score component is a multiple of ten. If the tied players don't include the bid winner, the lowest seat index wins — arbitrary, and the known limitation. Every scoring path goes through the helper via `game-logic/src/engine/scoring.ts`; the call sites each used to inline the loop and drifted.
 
@@ -151,7 +169,11 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 **Partner exemption**: In 4-player games, when your partner is currently winning the trick, "must beat" and "must trump" are lifted (following suit still applies). Pass `isPartnerWinning(...)` as the 4th argument to `getValidPlays`/`isValidPlay` — it defaults to `false`, so any new call site silently enforces the strict rules.
 
-**AI Simulation**: `pnpm simulate` runs AI-only games in-memory (no Firebase). See `docs/AI_STRATEGY.md`. CLI flags: `--players`, `--games`, `--concurrency`, `--target-score`, `--max-actions`, `--timeout`, `--output-dir`.
+**AI Simulation**: `pnpm simulate` runs AI-only games in-memory (no Firebase). See `docs/AI_STRATEGY.md`. CLI flags: `--players`, `--games`, `--concurrency`, `--target-score`, `--max-actions`, `--timeout`, `--output-dir`, `--difficulty`, `--difficulties`.
+
+`--difficulties hard,easy` puts a different bot in each seat and reports the win rate by bot rather than by seat; seats rotate one place per game so deal luck and seat order cancel. This is the only way to measure an AI change — with one setting for the whole table every seat is identical and there is nothing to compare. Deals are unseeded (`shuffleDeck` uses bare `Math.random()`); the rotation is what replaces seeding. Resolution is roughly 3pp at 1000 games, 1pp at 8000.
+
+**AI knowledge is derived, never accumulated.** `buildRoundMemory` (`packages/game-ai/src/knowledge.ts`) rebuilds everything the AI knows from `GameState` on each decision, because `useAI` constructs a fresh `BinokelAIPlayer` per decision and any instance field is discarded immediately. It is also the _only_ place in the AI allowed to read `GameState`: all three drivers pass an unfiltered state, so `state.hands` holds every opponent's cards and `tricksTaken` holds the bid winner's layaway. `knowledge.test.ts` scrambles the hidden parts and asserts the output is unchanged — read state elsewhere and that guard is bypassed.
 
 ## Available Skills / Slash Commands
 

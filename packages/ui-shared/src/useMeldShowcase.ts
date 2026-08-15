@@ -17,13 +17,6 @@ import type { CardId, GameEvent, Meld, PlayerIndex } from '@dabb/shared-types';
 /** Matches CardView's default animationDuration — the retraction is its normal target-change move. */
 const RETRACT_MS = 400;
 
-/**
- * A MELDING_COMPLETE older than this is history, not news: a reconnect replays the whole log,
- * and onChildAdded can deliver old events as a late batch of their own, so `isInitialLoad`
- * would not catch them (same reasoning as the emote replay guard).
- */
-const MAX_EVENT_AGE_MS = 10_000;
-
 export interface MeldShowcase {
   playerIndex: PlayerIndex;
   /** Card ids across all of this player's melds, deduped — a König can pay in two melds. */
@@ -51,7 +44,9 @@ function meldsOfRound(events: GameEvent[], endIndex: number): Map<PlayerIndex, M
 
 export function useMeldShowcase(
   events: GameEvent[],
-  playerIndex: PlayerIndex | null
+  playerIndex: PlayerIndex | null,
+  /** Events already in the log when this client joined — those melds were shown without us. */
+  replayedEventIds: Set<string>
 ): MeldShowcase | null {
   const [queue, setQueue] = useState<QueueEntry[]>([]);
   const [retracting, setRetracting] = useState(false);
@@ -76,7 +71,8 @@ export function useMeldShowcase(
       return;
     }
     handledEventIdRef.current = complete.id;
-    if (Date.now() - complete.timestamp > MAX_EVENT_AGE_MS) {
+    // Melding that finished before we joined is history: those melds were already shown.
+    if (replayedEventIds.has(complete.id)) {
       return;
     }
 
@@ -96,7 +92,7 @@ export function useMeldShowcase(
     if (entries.length > 0) {
       setQueue(entries);
     }
-  }, [events, playerIndex]);
+  }, [events, playerIndex, replayedEventIds]);
 
   const current = queue[0];
 

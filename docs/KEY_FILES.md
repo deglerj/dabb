@@ -40,6 +40,7 @@
 | `apps/client/src/components/ui/GameScreen.tsx`               | Main game screen                                                                |
 | `packages/game-ai/src/AIPlayer.ts`                           | AI player interface & factory                                                   |
 | `packages/game-ai/src/BinokelAIPlayer.ts`                    | AI player decision logic (easy/medium/hard)                                     |
+| `packages/game-ai/src/knowledge.ts`                          | What the AI may know about a round — the only place it reads GameState          |
 | `packages/game-ai/src/OfflineGameEngine.ts`                  | Offline single-player game engine (human + AI)                                  |
 | `apps/client/src/hooks/useOfflineGame.ts`                    | Offline game state hook (wraps OfflineGameEngine for React)                     |
 | `apps/simulate/src/simulation/SimulationEngine.ts`           | In-memory AI game engine (`pnpm simulate`)                                      |

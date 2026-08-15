@@ -109,6 +109,16 @@ export interface GameState {
 
   // Last completed trick (for display pause)
   lastCompletedTrick: CompletedTrick | null;
+
+  /**
+   * Every trick completed in the **current** round, in play order.
+   *
+   * `tricksTaken` is keyed by winner and so loses who played which card — the AI's card
+   * counting needs the play order to deduce voids from the follow/beat/trump obligations.
+   * Unlike `lastCompletedTrick`, this is cleared on a new round: a deduction carried across
+   * rounds would be made against a dead hand and a dead trump.
+   */
+  trickHistory: CompletedTrick[];
 }
 
 // Meld types

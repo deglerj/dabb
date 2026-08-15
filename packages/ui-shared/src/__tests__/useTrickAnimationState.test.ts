@@ -207,10 +207,11 @@ describe('useTrickAnimationState', () => {
     expect(result.current.displayCards.map((c) => c.cardId)).toEqual(['card-a']);
   });
 
-  it('does not trigger pause on initial load with stale lastCompletedTrick', () => {
+  it('does not trigger pause for a replayed lastCompletedTrick', () => {
     // Reconnection: the replayed log carries a trick that finished before we got here. The
     // real client never has it on the very first render — state starts empty and the log
-    // lands a tick later — so the guard has to be isInitialLoad, not "is this render one".
+    // lands a tick later — so the guard has to name the trick as replayed, not "is this
+    // render one".
     const { result, rerender } = renderHook(
       ({ initial }) =>
         useTrickAnimationState(emptyTrick, completedTrick3, 'tricks', players, initial),

@@ -34,7 +34,9 @@ export interface CelebrationResult {
 
 export function useCelebration(
   events: GameEvent[],
-  playerIndex: PlayerIndex | null
+  playerIndex: PlayerIndex | null,
+  /** Events already in the log when this client joined — announcing those is replay. */
+  replayedEventIds: Set<string>
 ): CelebrationResult {
   return useMemo(() => {
     if (playerIndex === null) {
@@ -89,7 +91,8 @@ export function useCelebration(
             roundOutcome = null;
           }
 
-          if (lastBidWinner === null || gameFinished) {
+          // A round scored before we joined is history — no announcement for it.
+          if (lastBidWinner === null || gameFinished || replayedEventIds.has(event.id)) {
             break;
           }
 
@@ -127,7 +130,7 @@ export function useCelebration(
             currentPlayerTeam !== null
               ? event.payload.winner === currentPlayerTeam
               : event.payload.winner === playerIndex;
-          if (playerWon) {
+          if (playerWon && !replayedEventIds.has(event.id)) {
             showFireworks = true;
           }
           gameFinished = true;
@@ -143,5 +146,5 @@ export function useCelebration(
     }
 
     return { roundOutcome, showFireworks };
-  }, [events, playerIndex]);
+  }, [events, playerIndex, replayedEventIds]);
 }

@@ -4,6 +4,9 @@ import { MELD_SHOWCASE_DURATION_MS } from '@dabb/shared-types';
 import type { GameEvent, Meld, PlayerIndex } from '@dabb/shared-types';
 import { useMeldShowcase } from '../useMeldShowcase.js';
 
+/** Nothing was in the log when this client joined — every event is live. */
+const NO_REPLAY = new Set<string>();
+
 let sequence = 0;
 
 function event<T extends GameEvent['type']>(
@@ -52,7 +55,7 @@ describe('useMeldShowcase', () => {
       declared(0, [paar(['kreuz-ober-1', 'kreuz-koenig-1'])]),
       meldingComplete(),
     ];
-    const { result } = renderHook(() => useMeldShowcase(events, 0));
+    const { result } = renderHook(() => useMeldShowcase(events, 0, NO_REPLAY));
 
     expect(result.current?.playerIndex).toBe(1);
     expect(result.current?.cards).toEqual(['herz-ober-1', 'herz-koenig-1']);
@@ -72,7 +75,7 @@ describe('useMeldShowcase', () => {
       declared(2, [paar(['schippe-ober-1', 'schippe-koenig-1'])]),
       meldingComplete(),
     ];
-    const { result } = renderHook(() => useMeldShowcase(events, 0));
+    const { result } = renderHook(() => useMeldShowcase(events, 0, NO_REPLAY));
 
     expect(result.current?.retracting).toBe(false);
     act(() => vi.advanceTimersByTime(MELD_SHOWCASE_DURATION_MS - 100));
@@ -90,7 +93,7 @@ describe('useMeldShowcase', () => {
       { type: 'vier-koenig', cards: ['herz-koenig-1', 'kreuz-koenig-1'], points: 60 },
     ];
     const events = [declared(1, melds), meldingComplete()];
-    const { result } = renderHook(() => useMeldShowcase(events, 0));
+    const { result } = renderHook(() => useMeldShowcase(events, 0, NO_REPLAY));
 
     expect(result.current?.cards).toEqual(['herz-ober-1', 'herz-koenig-1', 'kreuz-koenig-1']);
     expect(result.current?.points).toBe(80);
@@ -98,7 +101,7 @@ describe('useMeldShowcase', () => {
 
   it('skips players who declared nothing', () => {
     const events = [declared(1, []), declared(2, [paar(['a', 'b'])]), meldingComplete()];
-    const { result } = renderHook(() => useMeldShowcase(events, 0));
+    const { result } = renderHook(() => useMeldShowcase(events, 0, NO_REPLAY));
 
     expect(result.current?.playerIndex).toBe(2);
   });
@@ -111,23 +114,24 @@ describe('useMeldShowcase', () => {
       declared(2, [paar(['new-1', 'new-2'])]),
       meldingComplete(),
     ];
-    const { result } = renderHook(() => useMeldShowcase(events, 0));
+    const { result } = renderHook(() => useMeldShowcase(events, 0, NO_REPLAY));
 
     expect(result.current?.playerIndex).toBe(2);
     expect(result.current?.cards).toEqual(['new-1', 'new-2']);
   });
 
   it('stays quiet for a replayed log (regression)', () => {
-    // A reconnect replays every event; a MELDING_COMPLETE from minutes ago is history, not news.
-    const events = [declared(1, [paar(['a', 'b'])], 60_000), meldingComplete(60_000)];
-    const { result } = renderHook(() => useMeldShowcase(events, 0));
+    // A reconnect replays every event; melding that completed before we joined is history.
+    const events = [declared(1, [paar(['a', 'b'])]), meldingComplete()];
+    const replayed = new Set(events.map((e) => e.id));
+    const { result } = renderHook(() => useMeldShowcase(events, 0, replayed));
 
     expect(result.current).toBeNull();
   });
 
   it('does not restart when unrelated events arrive afterwards', () => {
     const events: GameEvent[] = [declared(1, [paar(['a', 'b'])]), meldingComplete()];
-    const { result, rerender } = renderHook(({ evts }) => useMeldShowcase(evts, 0), {
+    const { result, rerender } = renderHook(({ evts }) => useMeldShowcase(evts, 0, NO_REPLAY), {
       initialProps: { evts: events },
     });
 

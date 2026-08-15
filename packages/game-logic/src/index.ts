@@ -31,6 +31,8 @@ export {
   calculatePlayerTrickRawPoints,
   calculateTrickPoints,
   canPass,
+  CARD_STRENGTH,
+  cardBeats,
   determineTrickWinner,
   getBiddingWinner,
   getCurrentTrickWinner,

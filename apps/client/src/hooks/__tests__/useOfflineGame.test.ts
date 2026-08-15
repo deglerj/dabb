@@ -66,7 +66,7 @@ describe('useOfflineGame', () => {
 
     expect(result.current).toHaveProperty('state');
     expect(result.current).toHaveProperty('events');
-    expect(result.current).toHaveProperty('isInitialLoad');
+    expect(result.current).toHaveProperty('replayedEventIds');
     expect(result.current).toHaveProperty('nicknames');
     expect(result.current).toHaveProperty('connected');
     expect(result.current).toHaveProperty('terminatedBy');

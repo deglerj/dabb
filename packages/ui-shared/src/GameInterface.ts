@@ -8,8 +8,17 @@ import type { CardId, EmoteKey, GameEvent, GameState, PlayerIndex, Suit } from '
 export interface GameInterface {
   state: GameState;
   events: GameEvent[];
-  /** True during the initial load / reconnect — suppresses sounds. */
-  isInitialLoad: boolean;
+  /**
+   * Ids of the events that were already in the log when this client joined — i.e. everything
+   * that is only being replayed. Sounds, haptics and animations skip them, so a rejoin drops
+   * the player into the current state instead of playing the round back at them.
+   *
+   * The driver knows this and nothing downstream can work it out: an "initial load" flag flips
+   * on the first batch and Firebase can deliver old events in later batches, and event
+   * timestamps come from whichever client wrote them, so a skewed clock or a slow connection
+   * would misclassify. Membership in the join snapshot is exact.
+   */
+  replayedEventIds: Set<string>;
   /** Map from player index to display nickname. */
   nicknames: Map<PlayerIndex, string>;
   /** Whether the transport is connected (always true offline). */

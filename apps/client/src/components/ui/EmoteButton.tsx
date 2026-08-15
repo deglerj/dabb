@@ -12,11 +12,10 @@
  * Render inside a View with position: 'absolute' applied externally, alongside OptionsButton.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from '@dabb/rn-compat';
+import { View, Text, TouchableOpacity, StyleSheet, triggerHaptic } from '@dabb/rn-compat';
 import { useTranslation } from '@dabb/i18n';
 import type { EmoteKey } from '@dabb/shared-types';
 import { EMOTE_GLYPH, EMOTE_KEYS } from '@dabb/shared-types';
-import { triggerHaptic } from '../../utils/haptics.js';
 import { TOP_RIGHT_CONTROLS_SIZE } from '../../constants.js';
 
 /**

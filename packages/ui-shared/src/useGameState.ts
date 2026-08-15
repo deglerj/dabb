@@ -2,7 +2,7 @@
  * Event-sourced game state hook
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import type { GameEvent, GameState, PlayerIndex } from '@dabb/shared-types';
 import { applyEvents, createInitialState, filterEventsForPlayer } from '@dabb/game-logic';
 
@@ -14,7 +14,6 @@ interface UseGameStateOptions {
 interface UseGameStateReturn {
   state: GameState;
   events: GameEvent[];
-  isInitialLoad: boolean;
   processEvents: (newEvents: GameEvent[]) => void;
 }
 
@@ -25,7 +24,6 @@ export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
   const [, setRawEvents] = useState<GameEvent[]>([]);
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [state, setState] = useState<GameState>(() => createInitialState(initialPlayerCount));
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const processEvents = useCallback(
     (newEvents: GameEvent[]) => {
@@ -53,22 +51,9 @@ export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
     [playerIndex]
   );
 
-  // Clear isInitialLoad after the first event batch settles.
-  // React state updates from within useEffect are applied after all effects in the
-  // current render finish — so isInitialLoad remains true for all sibling effects
-  // (e.g. the sound/haptic effect in GameScreen) during the render where events
-  // first arrive. Using the functional updater avoids adding isInitialLoad to the
-  // dependency array (which would cause an ESLint exhaustive-deps warning).
-  useEffect(() => {
-    if (events.length > 0) {
-      setIsInitialLoad((prev) => (prev ? false : prev));
-    }
-  }, [events]);
-
   return {
     state,
     events,
-    isInitialLoad,
     processEvents,
   };
 }

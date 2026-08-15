@@ -15,8 +15,11 @@ import {
 
 /**
  * Card strength ordering (higher index = stronger)
+ *
+ * Exported because the AI reasons about the same ordering when it counts cards. It used to
+ * keep its own copy, which is two tables that have to agree about who wins a trick.
  */
-const CARD_STRENGTH: Record<Rank, number> = {
+export const CARD_STRENGTH: Record<Rank, number> = {
   buabe: 0,
   ober: 1,
   koenig: 2,
@@ -52,7 +55,7 @@ export function determineTrickWinner(trick: Trick, trump: Suit): number {
 /**
  * Check if cardA beats cardB given lead suit and trump
  */
-function cardBeats(cardA: Card, cardB: Card, leadSuit: Suit, trump: Suit): boolean {
+export function cardBeats(cardA: Card, cardB: Card, leadSuit: Suit, trump: Suit): boolean {
   const aIsTrump = cardA.suit === trump;
   const bIsTrump = cardB.suit === trump;
   const aIsLead = cardA.suit === leadSuit;

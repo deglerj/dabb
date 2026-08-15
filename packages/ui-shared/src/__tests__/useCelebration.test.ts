@@ -8,6 +8,9 @@ const baseEvent = {
   timestamp: Date.now(),
 };
 
+/** Nothing was in the log when this client joined — every event is live. */
+const NO_REPLAY = new Set<string>();
+
 let seq = 0;
 function makeEvent(overrides: Partial<GameEvent> & { type: GameEvent['type'] }): GameEvent {
   return { ...baseEvent, id: `e${++seq}`, sequence: seq, ...overrides } as GameEvent;
@@ -51,14 +54,14 @@ function newRoundStarted(round: number) {
 
 describe('useCelebration', () => {
   it('returns no outcome when no rounds have been scored', () => {
-    const { result } = renderHook(() => useCelebration([gameStarted], 0));
+    const { result } = renderHook(() => useCelebration([gameStarted], 0, NO_REPLAY));
     expect(result.current.roundOutcome).toBeNull();
     expect(result.current.showFireworks).toBe(false);
   });
 
   it('reports a local win in round 1', () => {
     const events: GameEvent[] = [gameStarted, biddingWon(0), roundScored(true)];
-    const { result } = renderHook(() => useCelebration(events, 0));
+    const { result } = renderHook(() => useCelebration(events, 0, NO_REPLAY));
     expect(result.current.roundOutcome).toEqual({
       round: 1,
       bidMet: true,
@@ -69,7 +72,7 @@ describe('useCelebration', () => {
 
   it('reports another player winning their bid', () => {
     const events: GameEvent[] = [gameStarted, biddingWon(1), roundScored(true, 1)];
-    const { result } = renderHook(() => useCelebration(events, 0));
+    const { result } = renderHook(() => useCelebration(events, 0, NO_REPLAY));
     expect(result.current.roundOutcome).toEqual({
       round: 1,
       bidMet: true,
@@ -80,7 +83,7 @@ describe('useCelebration', () => {
 
   it('reports another player missing their bid', () => {
     const events: GameEvent[] = [gameStarted, biddingWon(1), roundScored(false, 1)];
-    const { result } = renderHook(() => useCelebration(events, 0));
+    const { result } = renderHook(() => useCelebration(events, 0, NO_REPLAY));
     expect(result.current.roundOutcome).toEqual({
       round: 1,
       bidMet: false,
@@ -91,7 +94,7 @@ describe('useCelebration', () => {
 
   it('reports the local player missing their own bid', () => {
     const events: GameEvent[] = [gameStarted, biddingWon(0), roundScored(false)];
-    const { result } = renderHook(() => useCelebration(events, 0));
+    const { result } = renderHook(() => useCelebration(events, 0, NO_REPLAY));
     expect(result.current.roundOutcome).toEqual({
       round: 1,
       bidMet: false,
@@ -104,7 +107,7 @@ describe('useCelebration', () => {
     // Everyone but the bid winner is scored with bidMet: true, so reading the local
     // player's entry announced a win for a round the bid winner actually missed.
     const events: GameEvent[] = [gameStarted, biddingWon(1), roundScored(false, 1)];
-    const { result } = renderHook(() => useCelebration(events, 2));
+    const { result } = renderHook(() => useCelebration(events, 2, NO_REPLAY));
     expect(result.current.roundOutcome?.bidMet).toBe(false);
   });
 
@@ -119,7 +122,7 @@ describe('useCelebration', () => {
       biddingWon(0),
       roundScored(true), // round 2 win → round should become 2 (not stay at 1)
     ];
-    const { result } = renderHook(() => useCelebration(events, 0));
+    const { result } = renderHook(() => useCelebration(events, 0, NO_REPLAY));
     expect(result.current.roundOutcome?.round).toBe(2);
   });
 
@@ -132,7 +135,7 @@ describe('useCelebration', () => {
       biddingWon(1),
       roundScored(false, 1),
     ];
-    const { result } = renderHook(() => useCelebration(events, 0));
+    const { result } = renderHook(() => useCelebration(events, 0, NO_REPLAY));
     expect(result.current.roundOutcome).toEqual({
       round: 2,
       bidMet: false,
@@ -156,7 +159,7 @@ describe('useCelebration', () => {
     );
     const events: GameEvent[] = [...joins, gameStarted, biddingWon(1), roundScored(false, 1)];
 
-    const { result: onBidTeam } = renderHook(() => useCelebration(events, 3));
+    const { result: onBidTeam } = renderHook(() => useCelebration(events, 3, NO_REPLAY));
     expect(onBidTeam.current.roundOutcome).toEqual({
       round: 1,
       bidMet: false,
@@ -164,7 +167,7 @@ describe('useCelebration', () => {
       bidWinner: 1,
     });
 
-    const { result: opponent } = renderHook(() => useCelebration(events, 2));
+    const { result: opponent } = renderHook(() => useCelebration(events, 2, NO_REPLAY));
     expect(opponent.current.roundOutcome?.isLocalSide).toBe(false);
     expect(opponent.current.roundOutcome?.bidMet).toBe(false);
   });
@@ -175,13 +178,27 @@ describe('useCelebration', () => {
       payload: { winner: 0, finalScores: { 0: 1050, 1: 200, 2: 300, 3: 0 } },
     });
     const events: GameEvent[] = [gameStarted, biddingWon(0), roundScored(true), gameFinished];
-    const { result } = renderHook(() => useCelebration(events, 0));
+    const { result } = renderHook(() => useCelebration(events, 0, NO_REPLAY));
     expect(result.current.showFireworks).toBe(true);
     expect(result.current.roundOutcome).toBeNull(); // round announcement cleared when game ends
   });
 
+  it('stays quiet for a round scored before we joined (regression)', () => {
+    // Rejoining replays the whole log; announcing a round that ended without us — and firing
+    // the confetti for it — used to happen on every reconnect.
+    const gameFinished = makeEvent({
+      type: 'GAME_FINISHED',
+      payload: { winner: 0, finalScores: { 0: 1050, 1: 200, 2: 300, 3: 0 } },
+    });
+    const events: GameEvent[] = [gameStarted, biddingWon(0), roundScored(true), gameFinished];
+    const replayed = new Set(events.map((e) => e.id));
+    const { result } = renderHook(() => useCelebration(events, 0, replayed));
+    expect(result.current.roundOutcome).toBeNull();
+    expect(result.current.showFireworks).toBe(false);
+  });
+
   it('returns no outcome for null playerIndex', () => {
-    const { result } = renderHook(() => useCelebration([gameStarted], null));
+    const { result } = renderHook(() => useCelebration([gameStarted], null, NO_REPLAY));
     expect(result.current.roundOutcome).toBeNull();
     expect(result.current.showFireworks).toBe(false);
   });
