@@ -122,6 +122,15 @@ describe('Bidding Logic', () => {
     it('accepts higher increments', () => {
       expect(isValidBid(200, 150)).toBe(true);
     });
+
+    it('rejects amounts off the ten-point grid (regression)', () => {
+      // These clear "at least currentBid + 10" and used to be accepted, so a hand-crafted
+      // event could set the winning bid to 165 — and -2 x 165 on a missed bid.
+      expect(isValidBid(165, 150)).toBe(false);
+      expect(isValidBid(155, 0)).toBe(false);
+      expect(isValidBid(150.5, 0)).toBe(false);
+      expect(isValidBid(170, 150)).toBe(true);
+    });
   });
 
   describe('getMinBid', () => {

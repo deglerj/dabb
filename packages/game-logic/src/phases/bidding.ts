@@ -59,9 +59,16 @@ export function getNextBidder(
 }
 
 /**
- * Check if a bid is valid
+ * Check if a bid is valid.
+ *
+ * Bids move on a ten-point grid: the UI only ever offers multiples of ten and the AI bids
+ * `getMinBid`, but the engine has to say no as well — every client accepts the events another
+ * client writes, so 165 (or 150.5) would otherwise stand as the winning bid everywhere.
  */
 export function isValidBid(amount: number, currentBid: number): boolean {
+  if (amount % BID_INCREMENT !== 0) {
+    return false;
+  }
   if (amount < MIN_BID) {
     return false;
   }
