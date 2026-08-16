@@ -50,6 +50,15 @@ Emotes are **not events** and must stay out of the append-only log — they woul
 
 Emotes have their own replay guard, the event's **wall-clock age** — an emote is only visible for `EMOTE_TTL_MS` anyway, so age _is_ its display window, not a heuristic. Everything else uses `replayedEventIds` (below).
 
+### Rematch (a second side channel, and a second session)
+
+After a regular finish every human is asked whether to play again; a unanimous yes starts a new game with the same seats. Offered only for `phase === 'finished'` with no `terminatedBy` — after an abort the player who ended the game is gone.
+
+- **The vote is not an event.** It lives at `sessions/<code>/rematch/votes/<playerIndex>` (`apps/client/src/firebase/rematch.ts`), next to `emotes` and `presence` and for the same reason: in the log it would replay on reconnect and travel through the reducer, the view filter and the game log.
+- **Bots agree without voting.** `resolveRematchStatus` (`apps/client/src/components/game/rematch.ts`) is only given the human seats; everyone missing from that list counts as yes. Same principle as `pickAIEmote`: an AI answer is derived on each client, never transported. An **empty** seat list is `pending`, not `agreed` — the seats arrive with the session meta a moment after the game screen mounts, and treating "nobody known" as "nobody objected" started a rematch before anyone was asked.
+- **A rematch is a new session, not a restart.** Seat 0 (always the human who created the original session) creates it, deals it and publishes its code at `sessions/<old>/rematch/code`; every client then claims _its own_ seat there. That is forced by the rules: `meta/players/$i` is writable exactly once and only the seat's owner can hash its own secret, so the host cannot seat the other humans. The new session is born `status: 'active'` so a stranger guessing the fresh code cannot `joinSession` into a seat still on its way. The finished game's log is left untouched.
+- **`GameRoute` keys `GameSession` by session code.** Navigating from one session to the next does not unmount the route, and every hook below it (`useGameState`, `useRoundHistory`, `useGameLog`) accumulates events for one session — without the key the two logs merge. Offline, `offline.tsx` keys on a `seed` query param for the same reason: `useOfflineGame` builds its engine once per mount.
+
 ### Replay Guard: `replayedEventIds`
 
 Rejoining, reloading and resuming an offline game all replay the whole log. Nothing cosmetic may fire for those events — no sound, no haptic, no trick sweep, no meld showcase, no round announcement or confetti. The player is dropped into the current state.

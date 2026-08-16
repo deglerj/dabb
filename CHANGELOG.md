@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.11.0] - 2026-08-16
+
+### Neu
+
+- Nach dem Spielende gibt es eine Revanche: Jeder wird gefragt, ob er nochmal spielen möchte. Sagen alle ja, startet automatisch ein neues Spiel mit denselben Mitspielern auf denselben Plätzen. Computergegner sind immer dabei. Sagt jemand nein oder verlässt das Spiel, sehen es die anderen sofort. Auch offline gegen den Computer lässt sich direkt eine neue Partie starten.
+
 ## [4.10.1] - 2026-08-16
 
 ### Behoben

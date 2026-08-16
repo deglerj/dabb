@@ -53,6 +53,7 @@ import { GameLogTab } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
 import { GameTerminatedModal } from '../game/GameTerminatedModal.js';
 import { deriveWinnerInfo } from '../game/winnerInfo.js';
+import type { RematchState } from '../game/rematch.js';
 import { computeMeldCardIds } from '../game/meldHighlighting.js';
 import { ScoreboardModal } from '../game/ScoreboardModal.js';
 import { ReconnectingBanner } from '../game/ReconnectingBanner.js';
@@ -63,6 +64,8 @@ import GameScreenErrorBoundary from './GameScreenErrorBoundary.js';
 export interface GameScreenProps {
   game: GameInterface;
   playerIndex: PlayerIndex;
+  /** Offered in the end-of-game modal after a regular finish. Omit for no rematch. */
+  rematch?: RematchState | null;
 }
 
 /**
@@ -95,7 +98,7 @@ function computeOpponentPositions(
   return positions;
 }
 
-export default function GameScreen({ game, playerIndex }: GameScreenProps) {
+export default function GameScreen({ game, playerIndex, rematch }: GameScreenProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { width, height } = useGameDimensions();
@@ -444,6 +447,16 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
     leaveToHome();
   }, [onExit, leaveToHome]);
 
+  // A rematch only makes sense after a regular finish — after an abort the player who ended
+  // the game is already gone.
+  const rematchOffer = state.phase === 'finished' && terminatedBy === null ? rematch : null;
+
+  /** Leaving the end-of-game modal is also an answer: the others stop waiting on this seat. */
+  const handleDone = useCallback(() => {
+    rematchOffer?.onDecline();
+    leaveToHome();
+  }, [rematchOffer, leaveToHome]);
+
   // Phase overlay
   const showBidding =
     state.phase === 'bidding' && !trickAnimState.holdsRoundStart && dealtHandLanded;
@@ -720,7 +733,8 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               winnerNicknames={winnerInfo?.winnerNicknames ?? []}
               isLocalWinner={winnerInfo?.isLocalWinner ?? false}
               terminatedBy={terminatedBy}
-              onDone={leaveToHome}
+              rematch={rematchOffer}
+              onDone={handleDone}
             />
             <View
               style={[

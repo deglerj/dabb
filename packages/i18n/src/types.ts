@@ -148,6 +148,11 @@ export interface TranslationKeys {
     playerEndedGame: string;
     youAndTeammateWonGame: string; // 4-player: "Du und {{name}} habt gewonnen! 🎉"
     playersWonGame: string; // 4-player: "{{name1}} und {{name2}} haben gewonnen."
+    rematchQuestion: string;
+    rematchYes: string;
+    rematchWaiting: string; // "Warte auf {{names}}..."
+    rematchStarting: string;
+    rematchDeclined: string; // "{{names}} möchte nicht nochmal spielen."
     teamWonRound: string; // 4-player celebration: "Dein Team hat die Runde gewonnen! 🎉"
     teamLostRound: string; // 4-player: "Dein Team hat die Runde verloren."
     otherTeamWonRound: string; // 4-player: "Das gegnerische Team hat die Runde gewonnen."

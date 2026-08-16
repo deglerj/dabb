@@ -25,6 +25,12 @@
         },
         "aiClaims": {
           "$claimId": { ".write": "auth == null" }
+        },
+        "rematch": {
+          "votes": {
+            "$playerIndex": { ".write": "auth == null" }
+          },
+          "code": { ".write": "auth == null" }
         }
       }
     }
