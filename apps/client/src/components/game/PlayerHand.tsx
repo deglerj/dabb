@@ -157,7 +157,10 @@ export function PlayerHand({
     x: feltBounds.x + feltBounds.width / 2 - scaledW / 2,
     y: feltBounds.y + feltBounds.height / 2 - scaledH / 2,
   };
-  const visibleCards = displayedCards.slice(0, revealedCount);
+  // Only the running deal hides cards. Once it has landed the whole hand shows, however it
+  // grows later — `revealedCount` stops at the dealt count, so slicing by it kept the four
+  // Dabb cards invisible until slotting cards for the layaway shortened the hand again.
+  const visibleCards = isDealing ? displayedCards.slice(0, revealedCount) : displayedCards;
 
   const handleDrop = (cardId: string) => (x: number, y: number) => {
     if (isWithinDropZone(x, y, feltBounds, handTopY) && validIds.has(cardId)) {

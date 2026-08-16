@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [4.10.1] - 2026-08-16
+
+### Behoben
+
+- Nach dem Aufnehmen des Dabbs fehlten die vier neuen Karten auf der Hand. Sie tauchten erst nach und nach auf, sobald Karten zum Ablegen ausgewählt wurden. Jetzt ist die ganze Hand sofort sichtbar.
+
 ## [4.10.0] - 2026-08-16
 
 ### Neu

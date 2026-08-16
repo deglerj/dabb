@@ -93,4 +93,30 @@ describe('PlayerHand deal animation', () => {
     act(() => void vi.advanceTimersByTime(4 * DEAL_STAGGER_MS));
     expect(cardCount(container)).toBe(CARDS.length);
   });
+
+  // Taking the Dabb adds four cards to a hand that was already dealt. Slicing by the dealt
+  // count hid them until slotting cards for the layaway shortened the hand again.
+  it('shows cards added after the deal, e.g. the Dabb (regression)', () => {
+    const { container, rerender } = renderHand(CARDS, true);
+
+    act(() => void vi.advanceTimersByTime(5 * DEAL_STAGGER_MS + DEAL_ARC_MS));
+    expect(cardCount(container)).toBe(CARDS.length);
+
+    const withDabb: Card[] = [
+      ...CARDS,
+      { id: 'schippe-ass-0', suit: 'schippe', rank: 'ass', copy: 0 },
+      { id: 'schippe-10-0', suit: 'schippe', rank: '10', copy: 0 },
+    ];
+    rerender(
+      <PlayerHand
+        gameState={biddingState(withDabb)}
+        playerIndex={0}
+        cards={withDabb}
+        onPlayCard={() => {}}
+        animateDeal={true}
+      />
+    );
+
+    expect(cardCount(container)).toBe(withDabb.length);
+  });
 });
