@@ -33,7 +33,7 @@ Achtung: Die Zehn ist stärker als der König, obwohl sie einen "niedrigeren" Ne
 
 ## Geben
 
-Die Karten werden an alle Spieler verteilt. 4 Karten gehen verdeckt in den **Dabb**. Die Anzahl der Karten pro Spieler hängt von der Spielerzahl ab:
+Die Karten werden an alle Spieler verteilt. 4 Karten gehen verdeckt in den **Dabb** — sie werden aufgedeckt, sobald das Reizen entschieden ist, und der ganze Tisch sieht sie. Die Anzahl der Karten pro Spieler hängt von der Spielerzahl ab:
 
 | Spieler | Karten | Dabb |
 | ------- | ------ | ---- |
@@ -49,23 +49,23 @@ Der Spieler nach dem Geber beginnt das Reizen. Geboten wird in 10er-Schritten, a
 
 1. Den Dabb aufnehmen
 2. Die Trumpffarbe bestimmen
+3. Vier Karten abdrücken
 
 ## Der Dabb
 
-Der Reizgewinner nimmt die 4 Dabb-Karten auf die Hand und drückt anschließend genau 4 Karten verdeckt ab. Die abgedrückten Karten zählen am Ende der Runde zu den Stichpunkten des Reizgewinners.
-
-### Abgehen
-
-Hat der Reizgewinner nach dem Aufnehmen des Dabbs das Gefühl, sein Gebot nicht erreichen zu können, darf er **abgehen** statt weiterzuspielen:
-
-- Er wählt eine Trumpffarbe zum Abgehen
-- Der **Reizgewinner verliert** Punkte in Höhe seines Gebots
-- Alle **Gegenspieler erhalten** ihre Meldpunkte + 40 Bonuspunkte
-- Die Runde endet sofort (es werden keine Stiche gespielt)
+Der Reizgewinner nimmt die 4 Dabb-Karten offen auf die Hand — alle am Tisch haben sie gesehen — und drückt anschließend genau 4 Karten verdeckt ab. Die abgedrückten Karten zählen am Ende der Runde zu den Stichpunkten des Reizgewinners.
 
 ## Trumpf ansagen
 
-Nach dem Abdrücken bestimmt der Reizgewinner eine der vier Farben als **Trumpf**. Trumpfkarten stechen im Stich alle Nicht-Trumpf-Karten.
+**Vor** dem Abdrücken bestimmt der Reizgewinner eine der vier Farben als **Trumpf**. Trumpfkarten stechen im Stich alle Nicht-Trumpf-Karten. Weil Trumpf zuerst feststeht, ist es eine echte Entscheidung, einen Trumpf abzudrücken — ein abgedrückter Trumpf muss angesagt werden und erscheint im Spielverlauf.
+
+### Abgehen
+
+Hat der Reizgewinner nach Dabb und Trumpfansage das Gefühl, sein Gebot nicht erreichen zu können, darf er **abgehen** statt abzudrücken:
+
+- Der **Reizgewinner verliert** Punkte in Höhe seines Gebots (einfach, nicht doppelt)
+- Die **Gegenseite erhält** ihre Meldpunkte + 40 Bonuspunkte; zu viert bekommt das gegnerische Team die 40 einmal
+- Die Runde endet sofort (es werden keine Stiche gespielt)
 
 ## Melden
 
@@ -84,7 +84,9 @@ Alle Spieler melden nun ihre **Kombinationen**. Meldpunkte werden zum Rundenerge
 
 **Doppelte Meldungen** (alle 8 Karten eines Rangs): Acht Asse (1000), Acht Könige (600), Acht Ober (400), Acht Buaben (200).
 
-Karten, die in einer Familie verwendet werden, zählen nicht gleichzeitig als Paar derselben Farbe.
+Karten, die in einer Familie verwendet werden, zählen nicht gleichzeitig als Paar derselben Farbe. Sonst darf eine Karte in mehreren _verschiedenen_ Meldungen zählen — der Kreuz-König zahlt im Kreuz-Paar und in Vier Könige.
+
+Hat man eine Meldung doppelt, zählt sie doppelt: beide Familien einer Farbe geben 200 (300 in Trumpf). Das Doppel-Binokel ist die Ausnahme — es **ersetzt** das einfache Binokel und gibt 300, nicht 340.
 
 ## Stiche
 
@@ -102,15 +104,15 @@ Die höchste Karte gewinnt den Stich. Trumpf sticht immer Nicht-Trumpf. Innerhal
 
 ## Wertung
 
-Nach allen Stichen ergibt sich das Rundenergebnis jedes Spielers aus: **Meldpunkte + Stichpunkte**.
+Nach allen Stichen ergibt sich das Rundenergebnis jedes Spielers aus: **Meldpunkte + Stichpunkte**. Der letzte Stich bringt 10 Punkte extra.
 
-Der Reizgewinner **muss** mit Meld- und Stichpunkten (inkl. abgedrückter Karten) mindestens sein Gebot erreichen. Schafft er das nicht, werden ihm stattdessen Punkte in Höhe seines Gebots abgezogen.
+Der Reizgewinner **muss** mit Meld- und Stichpunkten (inkl. abgedrückter Karten) mindestens sein Gebot erreichen. Schafft er das nicht, bekommt er für die Runde nichts und ihm werden **das Doppelte seines Gebots** abgezogen. Genau deshalb lohnt sich das Abgehen: dort kostet es nur das einfache Gebot.
 
 **Kein Stich, keine Meldung:** Wer in einer Runde keinen einzigen Stich macht, verliert seine Meldpunkte für diese Runde. Zu viert gilt das pro Team — macht der Partner einen Stich, zählen beide Meldungen. Die abgedrückten Karten des Reizgewinners sind kein Stich.
 
 ## Spielende
 
-Der erste Spieler (oder das erste Team), der **1000 Punkte** erreicht, gewinnt das Spiel.`;
+Gewonnen hat, wer **1000 Punkte** erreicht. Da jeder seine eigenen Meld- und Stichpunkte schreibt, können mehrere in derselben Runde über die 1000 kommen — dann gewinnt die höchste Punktzahl, und bei exaktem Gleichstand der Reizgewinner.`;
 
 export const rulesEN = `# Binokel Rules
 
@@ -140,7 +142,7 @@ Note: The Zehn is stronger than the König, even though it is a "lower" face val
 
 ## Dealing
 
-Cards are dealt to all players and 4 cards go face-down into the **Dabb** (a kitty/talon). The number of cards per player depends on the player count:
+Cards are dealt to all players and 4 cards go face-down into the **Dabb** (a kitty/talon) — they are turned face up for the whole table once the bidding is settled. The number of cards per player depends on the player count:
 
 | Players | Cards each | Dabb |
 | ------- | ---------- | ---- |
@@ -156,23 +158,23 @@ The player after the dealer starts the bidding. Players bid in increments of 10,
 
 1. Take the Dabb
 2. Choose the trump suit
+3. Lay four cards away
 
 ## The Dabb
 
-The bid winner picks up the 4 Dabb cards, adds them to their hand, and then discards exactly 4 cards face-down. Discarded cards count toward the bid winner's trick points at the end of the round.
-
-### Going Out (Abgehen)
-
-After taking the Dabb, if the bid winner doesn't think they can make their bid, they can choose to **go out** instead of continuing:
-
-- They choose a trump suit to "go out in"
-- The **bid winner loses** points equal to their bid
-- All **opponents get** their melds + 40 bonus points each
-- The round ends immediately (no tricks are played)
+The bid winner picks up the 4 Dabb cards face up — the whole table has seen them — adds them to their hand, and then discards exactly 4 cards face-down. Discarded cards count toward the bid winner's trick points at the end of the round.
 
 ## Declaring Trump
 
-After discarding, the bid winner declares one of the four suits as **trump**. Trump cards are stronger than all non-trump cards during tricks.
+**Before** laying away, the bid winner declares one of the four suits as **trump**. Trump cards are stronger than all non-trump cards during tricks. Because trump is settled first, burying a trump card is a real decision — and it has to be announced, so every trump laid away shows up in the game log.
+
+### Going Out (Abgehen)
+
+After taking the Dabb and declaring trump, if the bid winner doesn't think they can make their bid, they can choose to **go out** instead of laying away:
+
+- The **bid winner loses** points equal to their bid (once, not twice)
+- The **opposition gets** their melds + 40 bonus points; with 4 players the opposing team collects the 40 once
+- The round ends immediately (no tricks are played)
 
 ## Melding
 
@@ -191,7 +193,9 @@ All players now declare their **melds** (valuable card combinations). Meld point
 
 **Double melds** (all 8 cards of a rank): Acht Asse (1000), Acht Könige (600), Acht Ober (400), Acht Buaben (200).
 
-Cards used in a Familie cannot also count toward a Paar in the same suit.
+Cards used in a Familie cannot also count toward a Paar in the same suit. Otherwise a card may count in several _different_ melds — the König of Kreuz pays in a Kreuz-Paar and in Vier Könige.
+
+Hold a meld twice and it counts twice: both Familien of one suit score 200 (300 in trump). The Doppel-Binokel is the exception — it **replaces** the single Binokel and scores 300, not 340.
 
 ## Tricks
 
@@ -209,15 +213,15 @@ The highest card wins the trick. Trump always beats non-trump. Within the same s
 
 ## Scoring
 
-After all tricks are played, each player's round score is: **meld points + trick points**.
+After all tricks are played, each player's round score is: **meld points + trick points**. The last trick is worth 10 extra.
 
-The bid winner **must** reach at least their bid amount with their combined melds and tricks (including discarded cards). If they fall short, they lose points equal to their bid instead of gaining any.
+The bid winner **must** reach at least their bid amount with their combined melds and tricks (including discarded cards). If they fall short, they score nothing for the round and lose **twice their bid** — which is exactly why going out, at once the bid, is worth choosing.
 
 **No trick, no melds:** A player who wins no trick at all in a round forfeits their meld points for that round. In 4-player games this counts per team — if your partner wins a trick, both players' melds count. The bid winner's discarded cards are not a trick.
 
 ## Winning
 
-The first player (or team) to reach **1000 points** wins the game.`;
+Reaching **1000 points** wins the game. Since everyone scores their own melds and tricks, several players can cross 1000 in the same round — the highest total takes it, and on an exact tie the bid winner wins.`;
 
 const rulesMap: Record<SupportedLanguage, string> = {
   de: rulesDE,

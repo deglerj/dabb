@@ -218,6 +218,7 @@ export interface TranslationKeys {
     meldBinokel: string;
     meldDoppelBinokel: string;
     meldFour: string;
+    meldEight: string;
     trumpSuffix: string;
     sectionTricks: string;
     tricks: string;

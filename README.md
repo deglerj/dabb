@@ -88,13 +88,14 @@ else from the layaway.
 
 **Melding.** Everyone declares the melds in their hand.
 
-| Meld                                        | Points             |
-| ------------------------------------------- | ------------------ |
-| Paar (König + Ober, same suit)              | 20 (40 in trump)   |
-| Familie (Ass–Zehn–König–Ober–Buabe, 1 suit) | 100 (150 in trump) |
-| Binokel (Ober Schippe + Buabe Bollen)       | 40                 |
-| Doppel-Binokel                              | 300                |
-| Vier Asse / Könige / Ober / Buaben          | 100 / 80 / 60 / 40 |
+| Meld                                        | Points                 |
+| ------------------------------------------- | ---------------------- |
+| Paar (König + Ober, same suit)              | 20 (40 in trump)       |
+| Familie (Ass–Zehn–König–Ober–Buabe, 1 suit) | 100 (150 in trump)     |
+| Binokel (Ober Schippe + Buabe Bollen)       | 40                     |
+| Doppel-Binokel                              | 300                    |
+| Vier Asse / Könige / Ober / Buaben          | 100 / 80 / 60 / 40     |
+| Acht Asse / Könige / Ober / Buaben          | 1000 / 600 / 400 / 200 |
 
 A card can count towards several melds of different kinds — the König of Kreuz pays in a
 Kreuz-Paar _and_ in Vier Könige. The one exception: a Familie swallows the Paar of its own suit,
@@ -112,9 +113,10 @@ for the round and lose twice your bid.** **Win no trick at all and your melds ar
 melds and tricks, more than one player can get there in the same round. The highest total takes it,
 and if two are exactly level, the player who won the bidding wins.
 
-**Going out (Abgehen).** Instead of laying away, the bid winner can bail out. The round ends on the
-spot, they lose their bid **once** rather than twice, and every opponent scores their melds plus a
-40-point bonus.
+**Going out (Abgehen).** The bid winner takes the Dabb and declares trump as usual, and then,
+instead of laying away, can bail out. The round ends on the spot, they lose their bid **once**
+rather than twice, and the opposition scores their melds plus a 40-point bonus — in 4-player games
+that is one bonus for the opposing team, since everything there is scored per team.
 
 ---
 

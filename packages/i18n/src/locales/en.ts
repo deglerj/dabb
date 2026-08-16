@@ -196,13 +196,13 @@ const en: TranslationKeys = {
     goal: 'First to 1000 points wins. If several reach 1000 in the same round, the highest total takes it — and on an exact tie, the highest bidder. With 4 players, partners sit opposite each other.',
     sectionBidding: 'Bidding',
     bidding:
-      'Bidding starts at 150. The highest bidder takes the Dabb (hidden cards), picks the trump suit, and then lays away four cards. Any trump laid away must be announced — everyone sees it in the game log.',
+      'Bidding starts at 150 and rises in steps of 10. The highest bidder takes the Dabb — its four cards are face up for the whole table — picks the trump suit, and then lays away four cards. Any trump laid away must be announced — everyone sees it in the game log.',
     sectionScoring: 'Scoring',
     scoring:
-      'Meld points plus trick points count for you. The highest bidder\u2019s laid-away cards count towards their tricks, and the last trick is worth 10 extra. Make your bid and you keep everything. Miss it and you score nothing and lose twice your bid.',
+      'Meld points plus trick points count for you. The highest bidder\u2019s laid-away cards count towards their tricks, and the last trick is worth 10 extra. Make your bid and you keep everything. Miss it and you score nothing and lose twice your bid. Win no trick at all and your melds are forfeit — with 4 players that counts per team.',
     sectionGoOut: 'Going Out',
     goOut:
-      'Instead of laying away, the highest bidder can go out: the round ends immediately, they lose their bid once (not twice), and every opponent scores their melds plus a 40-point bonus.',
+      'After taking the Dabb and declaring trump, the highest bidder can go out instead of laying away: the round ends immediately, they lose their bid once (not twice), and the opposition scores their melds plus a 40-point bonus — with 4 players, one bonus for the opposing team.',
     melds: 'Melds',
     meldsIntro:
       'Declare your melds before the tricks. A card can count in several melds of different kinds — but a Familie takes the Paar of its own suit with it:',
@@ -211,10 +211,11 @@ const en: TranslationKeys = {
     meldBinokel: 'Binokel – Ober Schippe + Buabe Bollen',
     meldDoppelBinokel: 'Doppel-Binokel',
     meldFour: 'Four Asse / Könige / Ober / Buaben',
+    meldEight: 'Eight Asse / Könige / Ober / Buaben',
     trumpSuffix: 'in trump',
     sectionTricks: 'Tricks',
     tricks:
-      "You must play a card of the led suit if you have one. If you can follow suit, you must play higher than the winning card if possible. If you can't follow suit, you must play trump.",
+      "The player after the dealer leads the first card — the same one who opened the bidding, not the highest bidder. After that, whoever won the last trick leads. You must play a card of the led suit if you have one. If you can follow suit, you must play higher than the winning card if possible. If you can't follow suit, you must play trump. With 4 players, those last two are lifted while your own partner is winning the trick — you still have to follow suit.",
     cardValues: 'Card values: Ass 11 · Zehn 10 · König 4 · Ober 3 · Buabe 2.',
   },
   info: {

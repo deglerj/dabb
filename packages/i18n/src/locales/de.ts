@@ -197,13 +197,13 @@ const de: TranslationKeys = {
     goal: 'Wer zuerst 1000 Punkte erreicht, gewinnt. Erreichen mehrere die 1000 in derselben Runde, gewinnt die höhere Punktzahl – bei Gleichstand der Höchstbietende. Bei 4 Spielern spielen je zwei zusammen.',
     sectionBidding: 'Reizen',
     bidding:
-      'Geboten wird ab 150. Der Höchstbietende nimmt den Dabb (verdeckte Karten), wählt Trumpf und legt dann vier Karten ab. Abgelegte Trümpfe müssen angesagt werden – alle sehen sie im Spielverlauf.',
+      'Geboten wird ab 150, in Zehnerschritten. Der Höchstbietende nimmt den Dabb – die vier Karten liegen offen, alle am Tisch sehen sie –, wählt Trumpf und legt dann vier Karten ab. Abgelegte Trümpfe müssen angesagt werden – alle sehen sie im Spielverlauf.',
     sectionScoring: 'Punkte',
     scoring:
-      'Meldepunkte plus Stichpunkte zählen für dich. Die abgelegten Karten des Höchstbietenden zählen zu seinen Stichen, der letzte Stich bringt 10 Punkte extra. Wer sein Gebot erreicht, schreibt alles gut. Wer es verfehlt, bekommt nichts und verliert das Doppelte seines Gebots.',
+      'Meldepunkte plus Stichpunkte zählen für dich. Die abgelegten Karten des Höchstbietenden zählen zu seinen Stichen, der letzte Stich bringt 10 Punkte extra. Wer sein Gebot erreicht, schreibt alles gut. Wer es verfehlt, bekommt nichts und verliert das Doppelte seines Gebots. Wer die ganze Runde keinen einzigen Stich macht, verliert seine Meldepunkte – bei 4 Spielern gilt das pro Team.',
     sectionGoOut: 'Abgehen',
     goOut:
-      'Statt abzulegen kann der Höchstbietende abgehen: Die Runde endet sofort, er verliert sein Gebot einfach (nicht doppelt), und jeder Gegner kassiert seine Meldepunkte plus 40 Bonus.',
+      'Nach Dabb und Trumpfansage kann der Höchstbietende abgehen statt abzulegen: Die Runde endet sofort, er verliert sein Gebot einfach (nicht doppelt), und die Gegenseite kassiert ihre Meldepunkte plus 40 Bonus – bei 4 Spielern das gegnerische Team einmal.',
     melds: 'Melden',
     meldsIntro:
       'Vor den Stichen Meldungen ablegen. Eine Karte darf in mehreren verschiedenen Meldungen zählen – eine Familie nimmt aber das Paar ihrer Farbe mit:',
@@ -212,10 +212,11 @@ const de: TranslationKeys = {
     meldBinokel: 'Binokel (Ober Schippe + Buabe Bollen)',
     meldDoppelBinokel: 'Doppel-Binokel',
     meldFour: 'Vier Asse / Könige / Ober / Buaben',
+    meldEight: 'Acht Asse / Könige / Ober / Buaben',
     trumpSuffix: 'in Trumpf',
     sectionTricks: 'Stiche',
     tricks:
-      'Du musst die angespielte Farbe bedienen. Kannst du bedienen, musst du höher stechen, wenn möglich. Kannst du nicht bedienen, musst du Trumpf spielen.',
+      'Die erste Karte spielt der Spieler nach dem Geber aus – derselbe, der das Reizen eröffnet hat, nicht der Höchstbietende. Danach spielt aus, wer den letzten Stich gemacht hat. Du musst die angespielte Farbe bedienen. Kannst du bedienen, musst du höher stechen, wenn möglich. Kannst du nicht bedienen, musst du Trumpf spielen. Bei 4 Spielern entfallen Stich- und Trumpfzwang, solange dein Partner den Stich hält – bedienen musst du trotzdem.',
     cardValues: 'Kartenwerte: Ass 11 · Zehn 10 · König 4 · Ober 3 · Buabe 2.',
   },
   info: {

@@ -163,7 +163,13 @@ See `README.md` for full rules. Key points: 40-card deck (2 copies), bidding sta
 
 **Melds**: a card may pay in melds of different kinds (König in both a Paar and Vier Könige) — deliberate, and the common case in 2-player hands. The one exception is that a Familie absorbs the Paar of its own suit, and that rule exists _only_ because `detectPaar` is called last in `detectMelds` and receives the melds found so far. Do not reorder those pushes; `melds.test.ts` fails if you do.
 
-**Going Out (Abgehen)**: After taking the dabb and declaring trump, instead of laying away, the bid winner can go out. Bid winner loses their bid once; opponents each get melds + 40 bonus. Round ends immediately. `wentOut: boolean` in GameState.
+Doubles are counted, not upgraded to their own meld type, except where a type exists for them:
+
+- Both copies of a Familie in one suit score as **two Familien** (200, or 300 in trump) — there is no Doppel-Familie.
+- A Doppel-Binokel needs both copies of _both_ cards and **replaces** the single Binokel (300, not 300 + 40).
+- Four of a kind needs all four suits; the eight-of-a-kind melds (`acht-*`: 1000 / 600 / 400 / 200) need all eight cards, and only fit in a 2-player hand.
+
+**Going Out (Abgehen)**: After taking the dabb and declaring trump, instead of laying away, the bid winner can go out. Bid winner loses their bid once; the opposition gets melds + a 40 bonus — per scoring key, so in a 4-player game the opposing team collects the 40 once, not once per player. Round ends immediately. `wentOut: boolean` in GameState.
 
 **4-player teams**: Partners sit opposite each other — team is always `playerIndex % 2`. Scoring is per team; team lookups must read `state.players` (populated from `PLAYER_JOINED`), never a `PlayerInfo[]` from Firebase session meta, which has no team field.
 
