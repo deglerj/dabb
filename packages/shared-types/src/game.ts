@@ -130,11 +130,7 @@ export type MeldType =
   | 'vier-ass'
   | 'vier-koenig'
   | 'vier-ober'
-  | 'vier-unter'
-  | 'acht-ass'
-  | 'acht-koenig'
-  | 'acht-ober'
-  | 'acht-unter';
+  | 'vier-unter';
 
 export interface Meld {
   type: MeldType;
@@ -153,10 +149,6 @@ export const MELD_BASE_POINTS: Record<MeldType, number> = {
   'vier-koenig': 80,
   'vier-ober': 60,
   'vier-unter': 40,
-  'acht-ass': 1000,
-  'acht-koenig': 600,
-  'acht-ober': 400,
-  'acht-unter': 200,
 };
 
 // Meld display names (Swabian German - used in all languages)
@@ -169,10 +161,6 @@ export const MELD_NAMES: Record<MeldType, string> = {
   'vier-koenig': 'Vier Könige',
   'vier-ober': 'Vier Ober',
   'vier-unter': 'Vier Buaben',
-  'acht-ass': 'Acht Asse',
-  'acht-koenig': 'Acht Könige',
-  'acht-ober': 'Acht Ober',
-  'acht-unter': 'Acht Buaben',
 };
 
 // Melds that require a suit prefix in their display name

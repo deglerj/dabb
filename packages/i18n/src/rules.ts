@@ -82,11 +82,9 @@ Alle Spieler melden nun ihre **Kombinationen**. Meldpunkte werden zum Rundenerge
 | Vier Ober      | Je ein Ober aus jeder Farbe                   | 60                  |
 | Vier Buaben    | Je ein Buabe aus jeder Farbe                  | 40                  |
 
-**Doppelte Meldungen** (alle 8 Karten eines Rangs): Acht Asse (1000), Acht Könige (600), Acht Ober (400), Acht Buaben (200).
-
 Karten, die in einer Familie verwendet werden, zählen nicht gleichzeitig als Paar derselben Farbe. Sonst darf eine Karte in mehreren _verschiedenen_ Meldungen zählen — der Kreuz-König zahlt im Kreuz-Paar und in Vier Könige.
 
-Hat man eine Meldung doppelt, zählt sie doppelt: beide Familien einer Farbe geben 200 (300 in Trumpf). Das Doppel-Binokel ist die Ausnahme — es **ersetzt** das einfache Binokel und gibt 300, nicht 340.
+Hat man eine Meldung doppelt, zählt sie doppelt: alle acht Asse sind zwei Mal Vier Asse (200), beide Familien einer Farbe geben 200 (300 in Trumpf). Das Doppel-Binokel ist die Ausnahme — es **ersetzt** das einfache Binokel und gibt 300, nicht 340.
 
 ## Stiche
 
@@ -191,11 +189,9 @@ All players now declare their **melds** (valuable card combinations). Meld point
 | Vier Ober      | One Ober from each suit                       | 60                 |
 | Vier Buaben    | One Buabe from each suit                      | 40                 |
 
-**Double melds** (all 8 cards of a rank): Acht Asse (1000), Acht Könige (600), Acht Ober (400), Acht Buaben (200).
-
 Cards used in a Familie cannot also count toward a Paar in the same suit. Otherwise a card may count in several _different_ melds — the König of Kreuz pays in a Kreuz-Paar and in Vier Könige.
 
-Hold a meld twice and it counts twice: both Familien of one suit score 200 (300 in trump). The Doppel-Binokel is the exception — it **replaces** the single Binokel and scores 300, not 340.
+Hold a meld twice and it counts twice: all eight Asse are two Vier Asse (200), and both Familien of one suit score 200 (300 in trump). The Doppel-Binokel is the exception — it **replaces** the single Binokel and scores 300, not 340.
 
 ## Tricks
 

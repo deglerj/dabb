@@ -88,18 +88,18 @@ else from the layaway.
 
 **Melding.** Everyone declares the melds in their hand.
 
-| Meld                                        | Points                 |
-| ------------------------------------------- | ---------------------- |
-| Paar (König + Ober, same suit)              | 20 (40 in trump)       |
-| Familie (Ass–Zehn–König–Ober–Buabe, 1 suit) | 100 (150 in trump)     |
-| Binokel (Ober Schippe + Buabe Bollen)       | 40                     |
-| Doppel-Binokel                              | 300                    |
-| Vier Asse / Könige / Ober / Buaben          | 100 / 80 / 60 / 40     |
-| Acht Asse / Könige / Ober / Buaben          | 1000 / 600 / 400 / 200 |
+| Meld                                        | Points             |
+| ------------------------------------------- | ------------------ |
+| Paar (König + Ober, same suit)              | 20 (40 in trump)   |
+| Familie (Ass–Zehn–König–Ober–Buabe, 1 suit) | 100 (150 in trump) |
+| Binokel (Ober Schippe + Buabe Bollen)       | 40                 |
+| Doppel-Binokel                              | 300                |
+| Vier Asse / Könige / Ober / Buaben          | 100 / 80 / 60 / 40 |
 
 A card can count towards several melds of different kinds — the König of Kreuz pays in a
 Kreuz-Paar _and_ in Vier Könige. The one exception: a Familie swallows the Paar of its own suit,
-so a König and Ober already in the run don't pay again.
+so a König and Ober already in the run don't pay again. Hold a meld twice over and it scores
+twice: all eight Asse are two Vier Asse, 200.
 
 **Tricks.** The player after the dealer leads — the same one who opened the bidding, not the bid
 winner. You must follow suit; if you can follow you must beat the highest card of that suit if you

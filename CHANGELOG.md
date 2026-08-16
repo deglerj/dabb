@@ -15,7 +15,8 @@ All notable changes to Dabb are documented here.
 
 ### Geändert
 
-- Die Spielregeln in der App waren an mehreren Stellen falsch: Trumpf wird vor dem Ablegen angesagt, ein verfehltes Gebot kostet das Doppelte, der letzte Stich bringt 10 Punkte extra, und beim Abgehen bekommt zu viert das gegnerische Team den Bonus einmal. Dazu kommen die bisher fehlenden Regeln zu Acht Assen und Co., doppelten Meldungen, wer den ersten Stich ausspielt und wann Meldungen verfallen.
+- Alle acht Karten eines Rangs zählen jetzt als zwei normale Meldungen statt als eigene Meldung: acht Asse geben 200 statt 1000, acht Könige 160, acht Ober 120, acht Buaben 80.
+- Die Spielregeln in der App waren an mehreren Stellen falsch: Trumpf wird vor dem Ablegen angesagt, ein verfehltes Gebot kostet das Doppelte, der letzte Stich bringt 10 Punkte extra, und beim Abgehen bekommt zu viert das gegnerische Team den Bonus einmal. Dazu kommen die bisher fehlenden Regeln zu doppelten Meldungen, wer den ersten Stich ausspielt und wann Meldungen verfallen.
 
 ## [4.9.0] - 2026-08-15
 

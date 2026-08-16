@@ -170,7 +170,7 @@ describe('Meld Detection', () => {
       expect(vierUnter?.points).toBe(40);
     });
 
-    it('detects acht Ass', () => {
+    it('melds eight Asse as two Vier Asse, not a meld of their own', () => {
       const hand = [
         card('kreuz', 'ass', 0),
         card('kreuz', 'ass', 1),
@@ -182,11 +182,26 @@ describe('Meld Detection', () => {
         card('bollen', 'ass', 1),
       ];
 
-      const melds = detectMelds(hand, 'herz');
-      const achtAss = melds.find((m) => m.type === 'acht-ass');
+      const vierAss = detectMelds(hand, 'herz').filter((m) => m.type === 'vier-ass');
 
-      expect(achtAss).toBeDefined();
-      expect(achtAss?.points).toBe(1000);
+      expect(vierAss).toHaveLength(2);
+      expect(calculateMeldPoints(vierAss)).toBe(200);
+      // Each set is one card per suit, and no card pays in both.
+      expect(new Set(vierAss.flatMap((m) => m.cards)).size).toBe(8);
+    });
+
+    it('melds seven Asse only once — the fourth suit has a single copy', () => {
+      const hand = [
+        card('kreuz', 'ass', 0),
+        card('kreuz', 'ass', 1),
+        card('schippe', 'ass', 0),
+        card('schippe', 'ass', 1),
+        card('herz', 'ass', 0),
+        card('herz', 'ass', 1),
+        card('bollen', 'ass', 0),
+      ];
+
+      expect(detectMelds(hand, 'herz').filter((m) => m.type === 'vier-ass')).toHaveLength(1);
     });
   });
 

@@ -114,53 +114,38 @@ function detectBinokel(hand: Card[], config: MeldConfig): Meld[] {
 }
 
 /**
- * Detect four or eight of a kind (for Ass, Zehn, König, Ober, Unter)
+ * Detect four of a kind (for Ass, König, Ober, Buabe — the Zehn has no meld).
+ *
+ * One meld per complete set of four suits, so holding both copies of all four suits melds
+ * the four twice: eight Asse are 2 × Vier Asse, not a meld of their own.
  */
 function detectFourOfAKind(byRank: Map<Rank, Card[]>, config: MeldConfig): Meld[] {
   const melds: Meld[] = [];
 
-  const rankToMeldTypes: Record<Rank, { four: MeldType; eight: MeldType } | null> = {
-    ass: { four: 'vier-ass', eight: 'acht-ass' },
+  const rankToMeldType: Record<Rank, MeldType | null> = {
+    ass: 'vier-ass',
     '10': null,
-    koenig: { four: 'vier-koenig', eight: 'acht-koenig' },
-    ober: { four: 'vier-ober', eight: 'acht-ober' },
-    buabe: { four: 'vier-unter', eight: 'acht-unter' },
+    koenig: 'vier-koenig',
+    ober: 'vier-ober',
+    buabe: 'vier-unter',
   };
 
   for (const [rank, cards] of byRank) {
-    const meldTypes = rankToMeldTypes[rank];
-    if (!meldTypes) {
+    const meldType = rankToMeldType[rank];
+    if (!meldType) {
       continue;
     }
 
-    // Check for cards in all four suits
-    const suitCount = new Set(cards.map((c) => c.suit)).size;
+    const bySuit = SUITS.map((suit) => cards.filter((c) => c.suit === suit));
+    // 0, 1 or 2 — the suit with the fewest copies decides how many sets there are.
+    const sets = Math.min(...bySuit.map((cs) => cs.length));
 
-    if (suitCount === 4) {
-      if (cards.length === 8) {
-        // Eight of a kind (both copies of all four suits)
-        melds.push({
-          type: meldTypes.eight,
-          cards: cards.map((c) => c.id),
-          points: config.basePoints[meldTypes.eight],
-        });
-      } else if (cards.length >= 4) {
-        // Four of a kind (one from each suit)
-        // Take one card from each suit
-        const onePerSuit: Card[] = [];
-        const seenSuits = new Set<Suit>();
-        for (const card of cards) {
-          if (!seenSuits.has(card.suit)) {
-            onePerSuit.push(card);
-            seenSuits.add(card.suit);
-          }
-        }
-        melds.push({
-          type: meldTypes.four,
-          cards: onePerSuit.map((c) => c.id),
-          points: config.basePoints[meldTypes.four],
-        });
-      }
+    for (let i = 0; i < sets; i++) {
+      melds.push({
+        type: meldType,
+        cards: bySuit.map((cs) => cs[i]!.id),
+        points: config.basePoints[meldType],
+      });
     }
   }
 

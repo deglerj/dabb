@@ -11,7 +11,6 @@ export default function RulesScreen() {
     { desc: t('rules.meldBinokel'), points: '40' },
     { desc: t('rules.meldDoppelBinokel'), points: '300' },
     { desc: t('rules.meldFour'), points: '100 / 80 / 60 / 40' },
-    { desc: t('rules.meldEight'), points: '1000 / 600 / 400 / 200' },
   ];
 
   return (

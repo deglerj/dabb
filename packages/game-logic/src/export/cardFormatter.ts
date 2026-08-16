@@ -43,10 +43,6 @@ export function formatMeld(meld: Meld): string {
     'vier-koenig': 'Vier König',
     'vier-ober': 'Vier Ober',
     'vier-unter': 'Vier Buabe',
-    'acht-ass': 'Acht Ass',
-    'acht-koenig': 'Acht König',
-    'acht-ober': 'Acht Ober',
-    'acht-unter': 'Acht Buabe',
   };
 
   const name = meldNames[meld.type] ?? meld.type;

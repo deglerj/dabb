@@ -211,7 +211,6 @@ const en: TranslationKeys = {
     meldBinokel: 'Binokel – Ober Schippe + Buabe Bollen',
     meldDoppelBinokel: 'Doppel-Binokel',
     meldFour: 'Four Asse / Könige / Ober / Buaben',
-    meldEight: 'Eight Asse / Könige / Ober / Buaben',
     trumpSuffix: 'in trump',
     sectionTricks: 'Tricks',
     tricks:

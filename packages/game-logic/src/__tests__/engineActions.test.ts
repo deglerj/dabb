@@ -123,7 +123,7 @@ describe('createDiscardCardsEvents', () => {
 describe('createDeclareMeldsEvents', () => {
   it('derives melds from the hand instead of trusting the caller (regression)', () => {
     // Melds used to be passed in and stored verbatim: no check that the cards were in hand,
-    // that points matched, or that a card was not reused. A forged acht-ass (1000 points)
+    // that points matched, or that a card was not reused. A forged meld worth 1000 points
     // ended the game on the spot.
     const { state, next } = roundInMeldingPhase();
     expect(state.phase).toBe('melding');
