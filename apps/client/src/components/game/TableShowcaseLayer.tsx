@@ -1,15 +1,15 @@
 /**
- * MeldShowcaseLayer — lays one other player's declared melds out on the felt.
+ * TableShowcaseLayer — lays a row of cards out on the felt: one other player's declared melds,
+ * or the Dabb the bid winner just picked up.
  *
  * The flight in and out is CardView's own played-card animation: mounting with initialX/initialY
  * arcs every card from the owner's seat at once, and flipping the targets back to that seat when
  * `retracting` sweeps them all back on the normal target-change transition. No animation code of
- * its own, and nothing staggered — the whole meld moves as one.
+ * its own, and nothing staggered — the whole row moves as one.
  */
 import { View, Text, StyleSheet } from '@dabb/rn-compat';
 import { CardView, getFeltBounds, getTableScale } from '@dabb/game-canvas';
-import type { MeldShowcase } from '@dabb/ui-shared';
-import { useTranslation } from '@dabb/i18n';
+import type { TableShowcase } from '@dabb/ui-shared';
 import { useGameDimensions } from '../../hooks/useGameDimensions.js';
 
 const CARD_W = 70;
@@ -18,15 +18,15 @@ const GAP = 10;
 /** Fraction of the felt the row may span before the cards start overlapping instead. */
 const MAX_ROW_FRACTION = 0.9;
 
-export interface MeldShowcaseLayerProps {
-  showcase: MeldShowcase | null;
-  nickname: string;
+export interface TableShowcaseLayerProps {
+  showcase: TableShowcase | null;
+  /** Caption above the row, already translated — the caller knows what it is showing. */
+  label: string;
   /** Where the owner sits — the cards fly in from here and retract back to it. */
   seatPosition: { x: number; y: number } | undefined;
 }
 
-export function MeldShowcaseLayer({ showcase, nickname, seatPosition }: MeldShowcaseLayerProps) {
-  const { t } = useTranslation();
+export function TableShowcaseLayer({ showcase, label, seatPosition }: TableShowcaseLayerProps) {
   const { width, height } = useGameDimensions();
 
   if (!showcase || !seatPosition) {
@@ -59,7 +59,7 @@ export function MeldShowcaseLayer({ showcase, nickname, seatPosition }: MeldShow
         pointerEvents="none"
       >
         <Text style={styles.labelText} numberOfLines={1}>
-          {t('gameLog.meldsDeclared', { name: nickname, points: showcase.points })}
+          {label}
         </Text>
       </View>
       {showcase.cards.map((cardId, i) => (

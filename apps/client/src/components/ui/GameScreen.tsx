@@ -28,6 +28,7 @@ import {
 } from '@dabb/game-canvas';
 import {
   useGameLog,
+  useDabbShowcase,
   useMeldShowcase,
   useTrickAnimationState,
   useRoundHistory,
@@ -46,7 +47,7 @@ import { gameActivity } from '../../gameActivity.js';
 import { OpponentZone } from '../game/OpponentZone.js';
 import { PlayerHand } from '../game/PlayerHand.js';
 import { TrickAnimationLayer } from '../game/TrickAnimationLayer.js';
-import { MeldShowcaseLayer } from '../game/MeldShowcaseLayer.js';
+import { TableShowcaseLayer } from '../game/TableShowcaseLayer.js';
 import { ScoreboardStrip } from '../game/ScoreboardStrip.js';
 import { GameLogTab } from '../game/GameLogTab.js';
 import { CelebrationLayer } from '../game/CelebrationLayer.js';
@@ -133,6 +134,15 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
   // Game log
   const { entries: logEntries, collapsedSummary } = useGameLog(events, nicknames, t);
 
+  // A seat's display name, however it is known: live nickname, joined-event nickname, seat.
+  const nameOf = useCallback(
+    (seat: PlayerIndex) =>
+      nicknames.get(seat) ??
+      state.players.find((p) => p.playerIndex === seat)?.nickname ??
+      `P${seat}`,
+    [nicknames, state.players]
+  );
+
   // Opponent positions
   const opponentPositions = useMemo(
     () => computeOpponentPositions(state.playerCount, playerIndex, width, height),
@@ -196,6 +206,9 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
 
   // Other players' melds, laid out on the table one player at a time once melding completes.
   const meldShowcase = useMeldShowcase(events, playerIndex, replayedEventIds);
+
+  // The Dabb is face up: everyone but the bid winner sees it on the table as they take it.
+  const dabbShowcase = useDabbShowcase(events, playerIndex, replayedEventIds);
 
   // No turn buzz for a turn we are only being caught up on.
   const lastEventIsReplayed =
@@ -528,15 +541,29 @@ export default function GameScreen({ game, playerIndex }: GameScreenProps) {
               localPlayerDropOrigin={lastDropPos}
             />
 
+            {/* The Dabb the bid winner just took, shown to everyone else */}
+            <TableShowcaseLayer
+              // The melds come later in the round and take the felt back if they overlap.
+              showcase={meldShowcase ? null : dabbShowcase}
+              label={
+                dabbShowcase
+                  ? t('gameLog.dabbTaken', { name: nameOf(dabbShowcase.playerIndex) })
+                  : ''
+              }
+              seatPosition={
+                dabbShowcase ? opponentPositions.get(dabbShowcase.playerIndex) : undefined
+              }
+            />
+
             {/* Other players' melds on the table */}
-            <MeldShowcaseLayer
+            <TableShowcaseLayer
               showcase={meldShowcase}
-              nickname={
+              label={
                 meldShowcase
-                  ? (nicknames.get(meldShowcase.playerIndex) ??
-                    state.players.find((p) => p.playerIndex === meldShowcase.playerIndex)
-                      ?.nickname ??
-                    `P${meldShowcase.playerIndex}`)
+                  ? t('gameLog.meldsDeclared', {
+                      name: nameOf(meldShowcase.playerIndex),
+                      points: meldShowcase.points,
+                    })
                   : ''
               }
               seatPosition={

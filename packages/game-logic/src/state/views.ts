@@ -33,6 +33,11 @@ export function filterEventsForPlayer(events: GameEvent[], playerIndex: PlayerIn
  * `trump` is the suit declared in the current round, or null before it is declared. Without
  * it a CARDS_DISCARDED event is hidden in full — safe, but it withholds the buried trump
  * the bid winner is required to announce.
+ *
+ * BIDDING_WON is deliberately not filtered: the Dabb is turned face up for the whole table,
+ * so its cards stay in the event for everyone (the client shows them once the bid winner
+ * picks them up). Hiding it here never hid anything anyway — DABB_TAKEN carries the same
+ * four cards one event later, and that one has to stay readable to move them into the hand.
  */
 export function filterEventForPlayer(
   event: GameEvent,
@@ -42,9 +47,6 @@ export function filterEventForPlayer(
   switch (event.type) {
     case 'CARDS_DEALT':
       return filterCardsDealt(event, playerIndex);
-
-    case 'BIDDING_WON':
-      return filterBiddingWon(event, playerIndex);
 
     case 'CARDS_DISCARDED':
       return filterCardsDiscarded(event, playerIndex, trump);
@@ -81,23 +83,6 @@ function filterCardsDealt(
       // Hide dabb until revealed to bid winner
       dabb: createHiddenCards(event.payload.dabb.length),
     },
-  };
-}
-
-/**
- * Filter BIDDING_WON - reveal dabb only to the bid winner
- */
-function filterBiddingWon(
-  event: Extract<GameEvent, { type: 'BIDDING_WON' }>,
-  playerIndex: PlayerIndex
-): GameEvent {
-  if (event.payload.playerIndex === playerIndex) {
-    return event;
-  }
-  const { dabb: _dabb, ...rest } = event.payload;
-  return {
-    ...event,
-    payload: rest,
   };
 }
 

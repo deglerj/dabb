@@ -36,7 +36,7 @@ Game state is reconstructed by replaying all events via a reducer (`packages/gam
 `packages/game-logic/src/state/views.ts` — `filterEventForPlayer` is called by `useGameState` to hide opponents' cards in the UI. This is a UI-level concern only; raw events in Firebase are readable by all session participants. Firebase security rules (secretHash gating) prevent forging events.
 
 - `CARDS_DEALT`: each player sees only their own hand; other hands and the dabb are replaced with hidden card placeholders.
-- `BIDDING_WON`: the `dabb` field is stripped for non-winners (only the bid winner sees the dabb contents).
+- `BIDDING_WON`: not filtered — the Dabb is face up, so its cards stay readable for everyone. `useDabbShowcase` lays them on the table for the other players when `DABB_TAKEN` arrives. Filtering it never hid anything anyway: `DABB_TAKEN` carries the same four cards and cannot be filtered, because the reducer needs them to move the Dabb into the bid winner's hand.
 - `CARDS_DISCARDED`: only the discarding player sees the actual card IDs; others receive placeholder IDs of the same count.
 
 ### Emotes (the only player-to-player channel)

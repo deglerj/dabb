@@ -15,9 +15,11 @@ import { MELD_SHOWCASE_DURATION_MS } from '@dabb/shared-types';
 import type { CardId, GameEvent, Meld, PlayerIndex } from '@dabb/shared-types';
 
 /** Matches CardView's default animationDuration — the retraction is its normal target-change move. */
-const RETRACT_MS = 400;
+export const RETRACT_MS = 400;
 
-export interface MeldShowcase {
+/** One row of cards on the felt: a player's melds (here) or the Dabb (useDabbShowcase). */
+export interface TableShowcase {
+  /** Whose seat the cards fly in from and retract to. */
   playerIndex: PlayerIndex;
   /** Card ids across all of this player's melds, deduped — a König can pay in two melds. */
   cards: CardId[];
@@ -26,7 +28,7 @@ export interface MeldShowcase {
   retracting: boolean;
 }
 
-type QueueEntry = Omit<MeldShowcase, 'retracting'>;
+type QueueEntry = Omit<TableShowcase, 'retracting'>;
 
 /** Melds declared in the round that the event at `endIndex` completes, in seat order. */
 function meldsOfRound(events: GameEvent[], endIndex: number): Map<PlayerIndex, Meld[]> {
@@ -47,7 +49,7 @@ export function useMeldShowcase(
   playerIndex: PlayerIndex | null,
   /** Events already in the log when this client joined — those melds were shown without us. */
   replayedEventIds: Set<string>
-): MeldShowcase | null {
+): TableShowcase | null {
   const [queue, setQueue] = useState<QueueEntry[]>([]);
   const [retracting, setRetracting] = useState(false);
   const handledEventIdRef = useRef<string | null>(null);

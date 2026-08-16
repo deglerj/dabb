@@ -109,10 +109,13 @@ describe('filterEventForPlayer', () => {
       expect(payload.dabb).toEqual(dabbCards);
     });
 
-    it('strips dabb from BIDDING_WON for non-winners', () => {
+    it('reveals dabb to everyone else too — it is turned face up (regression)', () => {
+      // The dabb used to be stripped for non-winners, which only ever delayed the reveal by
+      // one event: DABB_TAKEN carries the same cards and cannot be filtered, because the
+      // reducer needs them to move the dabb into the bid winner's hand.
       const filtered = filterEventForPlayer(biddingWonEvent, 1 as PlayerIndex);
       const payload = (filtered as typeof biddingWonEvent).payload;
-      expect(payload.dabb).toBeUndefined();
+      expect(payload.dabb).toEqual(dabbCards);
     });
 
     it('preserves winningBid and playerIndex for all players', () => {
