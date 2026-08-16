@@ -183,7 +183,10 @@ export function createDiscardCardsEvents(
   }
 
   const dabbSize = DABB_SIZE[state.playerCount];
-  if (cardIds.length !== dabbSize) {
+  // Distinct, not just four entries: the same id four times passed the count and the
+  // in-hand check, and the reducer then trimmed three unrelated cards off the front of the
+  // hand (its placeholder-shortfall path) while only one card reached the layaway.
+  if (cardIds.length !== dabbSize || new Set(cardIds).size !== dabbSize) {
     throw new GameError(GAME_ERROR_CODES.MUST_DISCARD_EXACT_COUNT, { count: dabbSize });
   }
 

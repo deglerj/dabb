@@ -67,8 +67,8 @@ describe('createBidPlacedEvents', () => {
   });
 });
 
-/** Drives a 3-player round from the deal up to the start of the melding phase. */
-function roundInMeldingPhase(): { events: GameEvent[]; state: GameState; next: NextContext } {
+/** Drives a 3-player round from the deal up to the bid winner's layaway. */
+function roundInDiscardPhase(): { events: GameEvent[]; state: GameState; next: NextContext } {
   let events = createStartGameEvents(makeNext(), PLAYERS_3, 3, 1000);
   const next = makeNext(events.length);
   const push = (evts: GameEvent[]) => {
@@ -82,17 +82,43 @@ function roundInMeldingPhase(): { events: GameEvent[]; state: GameState; next: N
   act((s) => createPlayerPassedEvents(s, 2, next));
   act((s) => createTakeDabbEvents(s, 0, next));
   act((s) => createDeclareTrumpEvents(s, 0, 'herz', next));
-  act((s) =>
-    createDiscardCardsEvents(
-      s,
-      0,
-      (s.hands.get(0) ?? []).slice(0, 4).map((c) => c.id),
-      next
-    )
-  );
 
   return { events, state: applyEvents(events), next };
 }
+
+/** Drives a 3-player round from the deal up to the start of the melding phase. */
+function roundInMeldingPhase(): { events: GameEvent[]; state: GameState; next: NextContext } {
+  const { events, state, next } = roundInDiscardPhase();
+  const discarded = createDiscardCardsEvents(
+    state,
+    0,
+    (state.hands.get(0) ?? []).slice(0, 4).map((c) => c.id),
+    next
+  );
+  const all = [...events, ...discarded];
+
+  return { events: all, state: applyEvents(all), next };
+}
+
+describe('createDiscardCardsEvents', () => {
+  it('rejects the same card laid away four times (regression)', () => {
+    // Four copies of one id passed both the count check and the in-hand check. The reducer
+    // then removed a single card, saw a three-card shortfall and trimmed three unrelated
+    // cards off the front of the hand, none of which reached the layaway's trick points.
+    const { state, next } = roundInDiscardPhase();
+    const cardId = (state.hands.get(0) ?? [])[0]!.id;
+    expect(() => createDiscardCardsEvents(state, 0, [cardId, cardId, cardId, cardId], next)) //
+      .toThrow();
+  });
+
+  it('accepts four distinct cards from the hand', () => {
+    const { state, next } = roundInDiscardPhase();
+    const cardIds = (state.hands.get(0) ?? []).slice(0, 4).map((c) => c.id);
+    const events = createDiscardCardsEvents(state, 0, cardIds, next);
+    expect(events).toHaveLength(1);
+    expect(events[0].type).toBe('CARDS_DISCARDED');
+  });
+});
 
 describe('createDeclareMeldsEvents', () => {
   it('derives melds from the hand instead of trusting the caller (regression)', () => {
