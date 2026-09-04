@@ -18,10 +18,10 @@
     "@dabb/shared-types": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.4.0",
     "@vitest/coverage-v8": "^4.1.10",
     "tsx": "^4.23.5",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
