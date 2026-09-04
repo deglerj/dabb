@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@dabb/shared-types": "workspace:*",
-    "uuid": "^14.0.1"
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.11",
