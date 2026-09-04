@@ -21,7 +21,7 @@
   "devDependencies": {
     "firebase-tools": "^15.25.1",
     "lint-staged": "^17.3.0",
-    "oxfmt": "^0.62.0",
+    "oxfmt": "^0.65.0",
     "oxlint": "^1.76.0",
     "turbo": "^2.10.12",
     "typescript": "^7.0.2"
