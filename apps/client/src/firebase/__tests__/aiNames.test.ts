@@ -9,6 +9,7 @@ vi.mock('firebase/database', () => ({
   ref: (_db: unknown, path: string) => ({ path }),
   set: (r: { path: string }, value: unknown) => setMock(r.path, value),
   get: async () => ({ exists: () => true, val: () => meta }),
+  remove: vi.fn(),
   update: vi.fn(),
   onDisconnect: vi.fn(),
   onValue: vi.fn(),
@@ -83,6 +84,9 @@ describe('joinSession', () => {
 
     await joinSession('adjective-noun-7', 'Johannes');
 
-    expect(setMock).toHaveBeenCalledTimes(1);
+    expect(setMock).not.toHaveBeenCalledWith(
+      'sessions/adjective-noun-7/meta/players/1/nickname',
+      expect.anything()
+    );
   });
 });

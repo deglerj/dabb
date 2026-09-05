@@ -1,15 +1,23 @@
 {
   "rules": {
+    "lobby": {
+      ".read": "auth == null",
+      "$code": { ".write": "auth == null" }
+    },
     "sessions": {
       "$code": {
         ".read": "auth == null",
+        ".write": "!newData.exists() && data.child('meta/status').val() === 'waiting' && data.child('meta/createdAt').val() < now - 3600000",
         "meta": {
+          ".write": "!data.exists()",
           "status": { ".write": "auth == null" },
           "playerCount": { ".write": "!data.exists()" },
           "targetScore": { ".write": "!data.exists()" },
           "createdAt": { ".write": "!data.exists()" },
           "players": {
-            "$playerIndex": { ".write": "!data.exists()" }
+            "$playerIndex": {
+              ".write": "!data.exists() || (data.child('isAI').val() === true && root.child('sessions/' + $code + '/meta/status').val() === 'waiting')"
+            }
           }
         },
         "events": {

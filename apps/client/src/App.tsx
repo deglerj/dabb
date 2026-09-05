@@ -39,6 +39,7 @@ function RouteErrorScreen() {
 // rather than eagerly evaluating at the top of the module graph before
 // React mounts. Also code-splits Firebase out of the offline-only chunk.
 const HomeScreen = React.lazy(() => import('./components/ui/HomeScreen.js'));
+const LobbyScreen = React.lazy(() => import('./components/ui/LobbyScreen.js'));
 const RulesScreen = React.lazy(() => import('./app/rules.js'));
 const PrivacyScreen = React.lazy(() => import('./app/privacy.js'));
 const WaitingRoomRoute = React.lazy(() => import('./app/waiting-room/WaitingRoomRoute.js'));
@@ -98,6 +99,7 @@ const router = createBrowserRouter([
     errorElement: <RouteErrorScreen />,
     children: [
       { path: '/', element: <HomeScreen /> },
+      { path: '/lobby', element: <LobbyScreen /> },
       { path: '/rules', element: <RulesScreen /> },
       { path: '/privacy', element: <PrivacyScreen /> },
       { path: '/waiting-room/:code', element: <WaitingRoomRoute /> },
