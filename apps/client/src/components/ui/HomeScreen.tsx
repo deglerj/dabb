@@ -1,5 +1,5 @@
 /**
- * Home screen — three entry points: offline vs AI, create online, join online.
+ * Home screen — three entry points: offline vs AI, create online, browse the lobby.
  */
 import { useState, useEffect } from 'react';
 import {
@@ -16,30 +16,18 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@dabb/i18n';
 import type { PlayerCount } from '@dabb/shared-types';
-import { GameError } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import { Colors, Fonts, Shadows } from '../../theme.js';
 import { TableBackdrop } from './TableBackdrop.js';
-import { createSession, joinSession } from '../../firebase/session.js';
-import { APP_VERSION } from '../../constants.js';
+import { createSession } from '../../firebase/session.js';
+import { sessionErrorText } from '../../utils/sessionErrorText.js';
+import { APP_VERSION, DEFAULT_NICKNAME, MAX_NICKNAME_LENGTH } from '../../constants.js';
 import { OptionsButton } from './OptionsButton.js';
 import { Icon } from './Icon.js';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt.js';
 import { InstallInstructionsDialog } from './InstallInstructionsDialog.js';
 
-type Mode = 'menu' | 'create' | 'join' | 'offline';
-
-/**
- * Session failures carry a GAME_ERROR_CODES value, which has a `serverErrors.*` translation.
- * Anything else is a bug rather than a rejected action, so it falls back to the generic text
- * instead of putting a raw exception message on screen.
- */
-function sessionErrorText(err: unknown, t: (key: string) => string): string {
-  if (err instanceof GameError) {
-    return t(`serverErrors.${err.code}`);
-  }
-  return t('errors.unknownError');
-}
+type Mode = 'menu' | 'create' | 'offline';
 
 type GamePhaseString = string;
 
@@ -48,10 +36,9 @@ export default function HomeScreen() {
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<Mode>('menu');
-  const [nickname, setNickname] = useState('');
+  const [nickname, setNickname] = useState(DEFAULT_NICKNAME);
   const [playerCount, setPlayerCount] = useState<PlayerCount>(3);
   const [difficulty, setDifficulty] = useState<AIDifficulty>('medium');
-  const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [resumableGame, setResumableGame] = useState(false);
@@ -89,8 +76,8 @@ export default function HomeScreen() {
       setError(t('errors.enterNickname'));
       return;
     }
-    if (nickname.trim().length > 10) {
-      setError(t('errors.nicknameTooLong'));
+    if (nickname.trim().length > MAX_NICKNAME_LENGTH) {
+      setError(t('errors.nicknameTooLong', { max: MAX_NICKNAME_LENGTH }));
       return;
     }
     setLoading(true);
@@ -114,47 +101,13 @@ export default function HomeScreen() {
     }
   };
 
-  const handleJoin = async () => {
-    if (!nickname.trim()) {
-      setError(t('errors.enterNickname'));
-      return;
-    }
-    if (nickname.trim().length > 10) {
-      setError(t('errors.nicknameTooLong'));
-      return;
-    }
-    if (!joinCode.trim()) {
-      setError(t('errors.enterGameCode'));
-      return;
-    }
-    setLoading(true);
-    setError('');
-    try {
-      const result = await joinSession(joinCode.trim(), nickname.trim());
-      const code = joinCode.trim().toLowerCase();
-      localStorage.setItem(
-        `dabb-${code}`,
-        JSON.stringify({
-          secretId: result.secretId,
-          playerIndex: result.playerIndex,
-        })
-      );
-      localStorage.setItem('dabb-nickname', nickname.trim());
-      navigate(`/waiting-room/${code}`);
-    } catch (err) {
-      setError(sessionErrorText(err, t));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleStartOffline = async () => {
     if (!nickname.trim()) {
       setError(t('errors.enterNickname'));
       return;
     }
-    if (nickname.trim().length > 10) {
-      setError(t('errors.nicknameTooLong'));
+    if (nickname.trim().length > MAX_NICKNAME_LENGTH) {
+      setError(t('errors.nicknameTooLong', { max: MAX_NICKNAME_LENGTH }));
       return;
     }
     localStorage.setItem('dabb-nickname', nickname.trim());
@@ -213,7 +166,7 @@ export default function HomeScreen() {
 
               <Pressable
                 style={({ pressed }) => [styles.buttonSecondary, pressed && styles.buttonPressed]}
-                onPress={() => setMode('join')}
+                onPress={() => navigate('/lobby')}
                 testID="home-join-online-button"
               >
                 <Text style={styles.buttonSecondaryText}>{t('home.joinOnline')}</Text>
@@ -257,11 +210,7 @@ export default function HomeScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <Text style={styles.heading}>
-            {mode === 'create'
-              ? t('home.createOnline')
-              : mode === 'join'
-                ? t('home.joinOnline')
-                : t('home.playOffline')}
+            {mode === 'create' ? t('home.createOnline') : t('home.playOffline')}
           </Text>
 
           {/* Nickname field — always shown */}
@@ -273,18 +222,15 @@ export default function HomeScreen() {
               onChangeText={setNickname}
               placeholder={t('home.nicknamePlaceholder')}
               placeholderTextColor={Colors.inkFaint}
-              maxLength={10}
+              maxLength={MAX_NICKNAME_LENGTH}
               autoCapitalize="none"
               autoCorrect={false}
               testID="home-nickname-input"
             />
           </View>
 
-          {/* Player count — create and offline modes */}
-          <View
-            style={[styles.formGroup, { opacity: mode === 'join' ? 0 : 1 }]}
-            pointerEvents={mode === 'join' ? 'none' : 'auto'}
-          >
+          {/* Player count — both remaining modes need it */}
+          <View style={styles.formGroup}>
             <Text style={styles.label}>{t('home.playerCount')}</Text>
             <View style={styles.playerCountRow}>
               {([2, 3, 4] as PlayerCount[]).map((count) => (
@@ -349,24 +295,6 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Join code — join mode only */}
-          <View
-            style={[styles.formGroup, { opacity: mode === 'join' ? 1 : 0 }]}
-            pointerEvents={mode === 'join' ? 'auto' : 'none'}
-          >
-            <Text style={styles.label}>{t('home.gameCode')}</Text>
-            <TextInput
-              style={styles.input}
-              value={joinCode}
-              onChangeText={setJoinCode}
-              placeholder={t('home.gameCodePlaceholder')}
-              placeholderTextColor={Colors.inkFaint}
-              autoCapitalize="none"
-              autoCorrect={false}
-              testID="home-join-code-input"
-            />
-          </View>
-
           {/* Error message */}
           <Text style={[styles.errorText, { opacity: error ? 1 : 0 }]}>{error || ' '}</Text>
 
@@ -392,9 +320,7 @@ export default function HomeScreen() {
                 loading && styles.buttonDisabled,
                 pressed && !loading && styles.buttonPressed,
               ]}
-              onPress={
-                mode === 'create' ? handleCreate : mode === 'join' ? handleJoin : handleStartOffline
-              }
+              onPress={mode === 'create' ? handleCreate : handleStartOffline}
               disabled={loading}
               testID="home-submit-button"
             >
@@ -402,11 +328,7 @@ export default function HomeScreen() {
                 <ActivityIndicator color={Colors.inkDark} />
               ) : (
                 <Text style={styles.buttonPrimaryText}>
-                  {mode === 'create'
-                    ? t('home.create')
-                    : mode === 'join'
-                      ? t('home.join')
-                      : t('offline.startGame')}
+                  {mode === 'create' ? t('home.create') : t('offline.startGame')}
                 </Text>
               )}
             </Pressable>

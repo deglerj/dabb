@@ -25,7 +25,6 @@ import { OptionsButton } from './OptionsButton.js';
 import { TableBackdrop } from './TableBackdrop.js';
 
 interface WaitingRoomScreenProps {
-  sessionCode: string;
   players: Map<
     PlayerIndex,
     { nickname: string; connected: boolean; isAI: boolean; aiDifficulty?: AIDifficulty }
@@ -48,7 +47,6 @@ function PaperPanel({ children, style }: { children: React.ReactNode; style?: Vi
 }
 
 function WaitingRoomScreen({
-  sessionCode,
   players,
   playerCount,
   isHost,
@@ -65,19 +63,6 @@ function WaitingRoomScreen({
   const connectedPlayers = Array.from(players.values()).filter((p) => p.connected).length;
   const canStart = playerCount > 0 && connectedPlayers === playerCount;
 
-  const handleShare = async () => {
-    const message = `${t('waitingRoom.shareMessage')} Code: ${sessionCode}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ text: message });
-        return;
-      }
-      await navigator.clipboard.writeText(message);
-    } catch (error) {
-      console.error('Share failed:', error);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <TableBackdrop />
@@ -89,23 +74,6 @@ function WaitingRoomScreen({
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>{t('waitingRoom.title')}</Text>
-
-        {/* Game code */}
-        <PaperPanel style={styles.codePanel}>
-          <Text style={styles.codeLabel}>{t('waitingRoom.gameCode')}</Text>
-          <Text style={styles.code} testID="waiting-room-session-code">
-            {sessionCode}
-          </Text>
-          <Pressable
-            style={({ pressed }) => [styles.shareButton, pressed && styles.shareButtonPressed]}
-            onPress={handleShare}
-          >
-            <View style={styles.buttonContent}>
-              <Icon name="share-2" size={14} color={Colors.inkDark} />
-              <Text style={styles.shareButtonText}>{t('common.share')}</Text>
-            </View>
-          </Pressable>
-        </PaperPanel>
 
         {/* Player list */}
         <PaperPanel style={styles.playersPanel}>
@@ -287,48 +255,6 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.4)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
-  },
-  codePanel: {
-    alignItems: 'center',
-  },
-  codeLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.body,
-    color: Colors.inkFaint,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  code: {
-    fontSize: 28,
-    fontFamily: Fonts.handwritingBold,
-    color: Colors.inkDark,
-    marginBottom: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.inkFaint,
-    paddingBottom: 4,
-    paddingHorizontal: 8,
-  },
-  shareButton: {
-    backgroundColor: Colors.amber,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 4,
-    shadowColor: 'rgba(120,60,0,0.4)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  shareButtonPressed: {
-    transform: [{ translateY: 1 }],
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
-  },
-  shareButtonText: {
-    color: Colors.inkDark,
-    fontFamily: Fonts.bodyBold,
-    fontSize: 14,
   },
   playersPanel: {
     padding: 12,

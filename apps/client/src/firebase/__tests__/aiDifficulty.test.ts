@@ -6,7 +6,18 @@ const setMock = vi.fn(async (_path: string, _value: unknown) => undefined);
 vi.mock('firebase/database', () => ({
   ref: (_db: unknown, path: string) => ({ path }),
   set: (r: { path: string }, value: unknown) => setMock(r.path, value),
-  get: vi.fn(),
+  // Read back by syncLobbyEntry after every seat change.
+  get: async () => ({
+    exists: () => true,
+    val: () => ({
+      playerCount: 3,
+      targetScore: 1000,
+      status: 'waiting',
+      createdAt: 0,
+      players: {},
+    }),
+  }),
+  remove: vi.fn(),
   update: vi.fn(),
   onDisconnect: vi.fn(),
   onValue: vi.fn(),

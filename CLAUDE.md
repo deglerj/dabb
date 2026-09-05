@@ -23,9 +23,46 @@ All game state is stored as an append-only event log in Firebase RTDB per sessio
 
 `packages/game-logic/src/engine/` turns a player action into the events it produces, validating it first and expanding the whole cascade (a card play can finish a trick, a round and the game). All three drivers go through `createEventsForAction`: the online client (`useFirebaseGame`, `useAI`), offline play (`OfflineGameEngine`) and the simulation (`SimulationEngine`). They differ only in transport and pacing. Do not re-implement scoring, dealing or phase advancement in a driver — that is exactly what drifted before.
 
-Key client files: `apps/client/src/firebase/` (session, events, config, secretId) — transport only; the rules live in `packages/game-logic/src/engine/`
+Key client files: `apps/client/src/firebase/` (session, lobby, events, config, secretId) — transport only; the rules live in `packages/game-logic/src/engine/`
 
 Key events: `GameStartedEvent`, `CardsDealtEvent`, `BidPlacedEvent`, `PlayerPassedEvent`, `BiddingWonEvent`, `DabbTakenEvent`, `CardsDiscardedEvent`, `GoingOutEvent`, `TrumpDeclaredEvent`, `MeldsDeclaredEvent`, `MeldingCompleteEvent`, `CardPlayedEvent`, `TrickWonEvent`, `RoundScoredEvent`, `GameFinishedEvent`, `GameTerminatedEvent`, `PlayerJoinedEvent`, `PlayerLeftEvent`, `PlayerReconnectedEvent`, `NewRoundStartedEvent`.
+
+### The Lobby (a third side channel)
+
+There is no invite code. Every online session is listed at `lobby/<code>`
+(`apps/client/src/firebase/lobby.ts`) and anyone can join any of them from `LobbyScreen`.
+
+- **The listing is an index, not the session.** `sessions/$code` is readable only _by code_, and
+  that must stay so: view filtering is client-side (`views.ts`), so a `.read` on the `sessions`
+  root would hand every visitor every player's hand. `lobby/<code>` therefore carries only the
+  host's nickname, the seat counts and `createdAt`.
+- **`syncLobbyEntry` (`firebase/session.ts`) re-reads meta instead of trusting its caller.** Every
+  seat-changing function holds a snapshot from before its own write; mirroring a seat count by
+  hand is what drifts. `setSessionStatus` takes the listing down for start, finish and abort
+  alike, so no call site has to remember.
+- **Seat claims race by design.** `joinSession` reads the table, picks the lowest free seat and
+  writes it; `meta/players/$i` accepts exactly one write, so the database decides the winner and
+  the loser retries on the next seat. Do not "fix" that with a read-check — from a lobby, two
+  people tapping the same row is the normal case, not a freak race.
+- **Expiry is client-run.** There is no server, so whoever opens the lobby deletes waiting
+  sessions older than `LOBBY_TTL_MS` (1h). The matching rule in `database.rules.json` is
+  delete-only and requires `status === 'waiting'`, so a game that has been running for two hours
+  is untouchable. `LOBBY_TTL_MS` and the number in the rules file have to stay in sync.
+
+**`meta/players/$i` is write-once for humans, not for bots.** A seat may also be written while it
+holds an AI and the session is still `waiting` — that single clause is what lets `removeAIPlayer`
+delete a bot and `renameClashingBot` rename one; under the plain `!data.exists()` rule both were
+rejected by the database and only ever appeared to work in tests. A human seat stays untouchable,
+and so does every seat once the game starts.
+
+**Testing `database.rules.json`**: the Playwright run does _not_ cover it — `playwright.config.ts`
+points the emulator at `database.rules.dev.json`, which is wide open. A rules change has to be
+exercised against the real file: `pnpm exec firebase emulators:start --only database --project
+demo-dabb` and then a script that does the client's writes through the SDK. Two traps that costs
+nothing to remember: a rules file takes no comments (a `"//"` key makes the emulator refuse to
+load it, and it keeps serving the previous rules while saying so only in its log), and a write is
+authorised at its own path or an ancestor, never by its descendants — which is why `meta` needs
+its own `".write": "!data.exists()"` for `createSession`'s single `set()` of the whole object.
 
 ### Event Sourcing
 
