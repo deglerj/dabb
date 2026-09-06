@@ -16,3 +16,6 @@ onlyBuiltDependencies:
 overrides:
   undici: ^7.24.5
   picomatch: ^4.0.4
+  # express 4 (via firebase-tools) pins qs exactly, so nothing but an override moves it
+  # off the version carrying GHSA-4mjr-xmp4-gh2g and GHSA-x5fp-wj9c-mxmx.
+  qs: ^6.16.0
