@@ -13,6 +13,7 @@ import {
   getSessionMeta,
   setupPresence,
   setSessionStatus,
+  leaveSession,
 } from '../../firebase/session.js';
 import { pushEvents } from '../../firebase/events.js';
 import { hashSecretId } from '../../firebase/secretId.js';
@@ -87,7 +88,11 @@ export default function WaitingRoomRoute() {
         return;
       }
 
-      const infos: PlayerInfo[] = Object.entries(fbPlayers).map(([idx, p]) => ({
+      // A seat someone walked away from is kept in `meta` (it cannot be deleted) but marked.
+      // It is nobody's seat now, so it must not show at the table or be dealt into the game.
+      const seated = Object.entries(fbPlayers).filter(([, p]) => !p.left);
+
+      const infos: PlayerInfo[] = seated.map(([idx, p]) => ({
         playerIndex: Number(idx) as PlayerIndex,
         nickname: p.nickname,
         isAI: p.isAI,
@@ -96,7 +101,7 @@ export default function WaitingRoomRoute() {
       setFirebasePlayers(infos);
 
       const newMap = new Map<PlayerIndex, PlayerEntry>();
-      Object.entries(fbPlayers).forEach(([idx, p]) => {
+      seated.forEach(([idx, p]) => {
         newMap.set(Number(idx) as PlayerIndex, {
           nickname: p.nickname,
           connected: true,
@@ -174,6 +179,11 @@ export default function WaitingRoomRoute() {
           sequence: ++n,
         }));
         await pushEvents(code, termEvents, secretHash);
+      } else if (meta && meta.status === 'waiting') {
+        const seat = meta.players[String(playerIndex)];
+        if (seat) {
+          await leaveSession(code, playerIndex, seat);
+        }
       }
     } catch {
       // Ignore errors on leave

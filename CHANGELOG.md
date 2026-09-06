@@ -2,6 +2,13 @@
 
 All notable changes to Dabb are documented here.
 
+## [5.0.1] - 2026-09-06
+
+### Behoben
+
+- Wer einen Warteraum verlassen hat, saß für die anderen weiterhin am Tisch und blockierte den Platz. Der Platz wird jetzt sofort wieder frei, und das Spiel taucht wieder in der Liste auf. Verlässt der Gastgeber, verschwindet das Spiel aus der Liste — ohne ihn kann es niemand starten.
+- Der Knopf „Verlassen" war durchsichtig und auf dem Tisch kaum zu lesen. Er hat jetzt einen hellen Hintergrund.
+
 ## [5.0.0] - 2026-09-05
 
 ### Neu

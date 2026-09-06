@@ -16,7 +16,7 @@
           "createdAt": { ".write": "!data.exists()" },
           "players": {
             "$playerIndex": {
-              ".write": "!data.exists() || (data.child('isAI').val() === true && root.child('sessions/' + $code + '/meta/status').val() === 'waiting')"
+              ".write": "!data.exists() || (root.child('sessions/' + $code + '/meta/status').val() === 'waiting' && (data.child('isAI').val() === true || data.child('left').val() === true || newData.child('secretHash').val() === data.child('secretHash').val()))"
             }
           }
         },
