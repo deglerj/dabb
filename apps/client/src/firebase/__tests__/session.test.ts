@@ -21,7 +21,7 @@ vi.mock('firebase/database', () => ({
   off: vi.fn(),
 }));
 
-const { joinSession } = await import('../session.js');
+const { joinSession, leaveSession } = await import('../session.js');
 
 function metaSnapshot(players: Record<string, unknown>, playerCount = 3) {
   return {
@@ -32,6 +32,7 @@ function metaSnapshot(players: Record<string, unknown>, playerCount = 3) {
 
 const HOST = { nickname: 'Hans', secretHash: 'other', isAI: false };
 const RIVAL = { nickname: 'Klara', secretHash: 'rival', isAI: false };
+const LEFT = { nickname: 'Ute', secretHash: 'ute', isAI: false, left: true };
 
 describe('joinSession seat claiming', () => {
   beforeEach(() => {
@@ -62,6 +63,21 @@ describe('joinSession seat claiming', () => {
     });
   });
 
+  it('takes a seat its previous holder vacated (regression)', async () => {
+    // Leaving marks the seat rather than deleting it — the rules cannot allow a delete without
+    // letting anyone throw anyone out. A marked seat has to read as free, or the table stays
+    // full with a player who walked away.
+    getMock.mockResolvedValue(metaSnapshot({ '0': HOST, '1': LEFT, '2': RIVAL }));
+    setMock.mockResolvedValue(undefined);
+
+    const result = await joinSession('schnell-fuchs-42', 'Bea');
+
+    expect(result.playerIndex).toBe(1);
+    expect(setMock.mock.calls[0]?.[0]).toEqual({
+      path: 'sessions/schnell-fuchs-42/meta/players/1',
+    });
+  });
+
   it('reports a full table rather than retrying forever', async () => {
     getMock.mockResolvedValue(metaSnapshot({ '0': HOST, '1': RIVAL }, 2));
 
@@ -69,5 +85,33 @@ describe('joinSession seat claiming', () => {
       new GameError(GAME_ERROR_CODES.SESSION_FULL)
     );
     expect(setMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('leaveSession', () => {
+  beforeEach(() => {
+    getMock.mockReset();
+    setMock.mockReset();
+    removeMock.mockClear();
+    getMock.mockResolvedValue(metaSnapshot({ '0': HOST, '1': RIVAL }));
+    setMock.mockResolvedValue(undefined);
+  });
+
+  it('marks the seat with the secretHash it already carries', async () => {
+    // The echoed hash is the rules' proof of ownership: without it the write is rejected, and
+    // a rule that did not ask for it would let anyone vacate anyone's seat.
+    await leaveSession('schnell-fuchs-42', 1, RIVAL);
+
+    expect(setMock).toHaveBeenCalledWith(
+      { path: 'sessions/schnell-fuchs-42/meta/players/1' },
+      { ...RIVAL, left: true }
+    );
+  });
+
+  it('takes the lobby entry down when the host leaves', async () => {
+    // Only seat 0 can start the game, so a listing without it sends people to a dead table.
+    await leaveSession('schnell-fuchs-42', 0, HOST);
+
+    expect(removeMock).toHaveBeenCalledWith({ path: 'lobby/schnell-fuchs-42' });
   });
 });

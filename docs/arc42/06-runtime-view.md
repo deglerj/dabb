@@ -12,18 +12,22 @@ sequenceDiagram
 
     rect rgb(240, 240, 240)
         Note over playerA, firebase: Create Game
-        playerA->>appA: Click "New Game"
+        playerA->>appA: Click "Create Online Game"
         appA->>appA: Generate secretId, sessionCode
         appA->>firebase: Write session meta (playerCount, code, player A info)
+        appA->>firebase: Publish lobby/&lt;code&gt; (host, seats, createdAt)
         firebase-->>appA: Confirmed
         appA->>appA: Show waiting room
     end
 
     rect rgb(240, 240, 240)
         Note over playerB, firebase: Join Game
-        playerB->>appB: Enter code, click "Join"
-        appB->>firebase: Write player B info to session meta
+        playerB->>appB: Open lobby
+        firebase-->>appB: All waiting sessions (lobby index)
+        playerB->>appB: Tap a game
+        appB->>firebase: Claim lowest free seat (retried if lost)
         appB->>firebase: Subscribe to events
+        appB->>firebase: Update lobby/&lt;code&gt;, or remove it once full
         firebase-->>appA: Player joined notification (presence)
     end
 ```

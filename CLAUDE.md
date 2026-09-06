@@ -49,6 +49,14 @@ There is no invite code. Every online session is listed at `lobby/<code>`
   delete-only and requires `status === 'waiting'`, so a game that has been running for two hours
   is untouchable. `LOBBY_TTL_MS` and the number in the rules file have to stay in sync.
 
+**Leaving a waiting room marks the seat, it does not delete it.** `leaveSession` rewrites the
+seat with `left: true`, echoing the `secretHash` already there — that echo is what the rules check,
+so only the seat's owner can vacate it. A delete rule would have to let anyone write a seat holding
+someone else, which is a kick-anyone button in a lobby open to strangers. Everything that counts
+seats (`firstFreeSeat`, `syncLobbyEntry`, the waiting room's player list, the `PlayerInfo[]` the
+game starts from) treats a `left` seat as empty, and the next joiner overwrites it. Seat 0 leaving
+also takes the lobby entry down: nobody else can start that session.
+
 **`meta/players/$i` is write-once for humans, not for bots.** A seat may also be written while it
 holds an AI and the session is still `waiting` — that single clause is what lets `removeAIPlayer`
 delete a bot and `renameClashingBot` rename one; under the plain `!data.exists()` rule both were
@@ -182,7 +190,7 @@ Tests in `__tests__/` directories alongside source files. Run: `pnpm test` or `p
 
 **Regression tests**: Always add when fixing bugs. Document the scenario, use realistic values, name like `'does X correctly (regression)'`.
 
-**E2E smoke test**: `apps/client/e2e/startup-create-join.spec.ts` (Playwright) runs in CI against a real browser + Firebase RTDB Local Emulator — boots the app, creates a session in one browser context, joins by code from a second, catches startup/bundling breakage that `vitest`/`tsc` can't.
+**E2E smoke test**: `apps/client/e2e/startup-create-join.spec.ts` (Playwright) runs in CI against a real browser + Firebase RTDB Local Emulator — boots the app, creates a session in one browser context, joins it from the lobby in a second, catches startup/bundling breakage that `vitest`/`tsc` can't.
 
 Run locally from repo root: `pnpm exec firebase emulators:start --only database --project demo-dabb` (terminal 1), `./dev.sh` or `cd apps/client && EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true pnpm exec vite` (terminal 2), then `cd apps/client && pnpm exec playwright test`. Playwright's own `webServer` config can also boot both automatically — see `apps/client/playwright.config.ts`.
 

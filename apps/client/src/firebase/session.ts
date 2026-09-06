@@ -13,6 +13,12 @@ export interface SessionPlayer {
   isAI: boolean;
   /** Only set for AI players; absent for humans and for AI added before this was stored. */
   aiDifficulty?: AIDifficulty;
+  /**
+   * Set by a human who left the waiting room. The seat stays in `meta` — `meta/players/$i`
+   * cannot be deleted, and letting anyone delete it would let anyone throw anyone else out —
+   * so the record is kept and marked instead. Everything that counts seats treats it as free.
+   */
+  left?: boolean;
 }
 
 export interface SessionMeta {
@@ -75,7 +81,7 @@ async function syncLobbyEntry(sessionCode: string): Promise<void> {
     return;
   }
 
-  const taken = Object.keys(meta.players).length;
+  const taken = Object.values(meta.players).filter((player) => !player.left).length;
   if (taken >= meta.playerCount) {
     await removeLobbyEntry(sessionCode);
     return;
@@ -90,13 +96,14 @@ async function syncLobbyEntry(sessionCode: string): Promise<void> {
   });
 }
 
-/** The lowest seat nobody has taken, or null when the table is full. */
+/** The lowest seat nobody holds — never written, or vacated by the human who held it. */
 function firstFreeSeat(
-  players: Record<string, unknown>,
+  players: Record<string, SessionPlayer | undefined>,
   playerCount: PlayerCount
 ): PlayerIndex | null {
   for (let i = 0; i < playerCount; i++) {
-    if (!(String(i) in players)) {
+    const player = players[String(i)];
+    if (!player || player.left) {
       return i as PlayerIndex;
     }
   }
@@ -179,6 +186,33 @@ export async function joinSession(
   }
 
   throw new GameError(GAME_ERROR_CODES.SESSION_FULL);
+}
+
+/**
+ * Vacates a seat in a waiting room, so the table stops showing someone who walked away.
+ *
+ * The seat is marked rather than deleted, and the mark carries the same `secretHash` the seat
+ * already holds — that echo is the proof the rules check, so only the seat's own owner can
+ * vacate it. Deleting instead would need a rule anyone could use on anyone.
+ *
+ * The host leaving takes the listing down with it: nobody else can start that session, so a
+ * lobby entry for it would only send people to a table that can never begin.
+ */
+export async function leaveSession(
+  sessionCode: string,
+  playerIndex: PlayerIndex,
+  player: SessionPlayer
+): Promise<void> {
+  await set(ref(db, `sessions/${sessionCode}/meta/players/${playerIndex}`), {
+    ...player,
+    left: true,
+  });
+
+  if (playerIndex === 0) {
+    await removeLobbyEntry(sessionCode);
+    return;
+  }
+  await syncLobbyEntry(sessionCode);
 }
 
 export async function addAIPlayer(

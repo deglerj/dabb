@@ -418,18 +418,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: Fonts.bodyBold,
   },
+  // Paper, not transparent: the button sits straight on the felt, and red-on-green was barely
+  // legible. Same sheet as the other secondary buttons, with the red kept for border and label.
   leaveButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: Colors.paperFace,
     borderWidth: 1,
     borderColor: Colors.error,
     paddingVertical: 12,
     borderRadius: 4,
     alignItems: 'center',
+    shadowColor: 'rgba(120,60,0,0.25)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   leaveButtonText: {
     color: Colors.error,
     fontSize: 15,
-    fontFamily: Fonts.body,
+    fontFamily: Fonts.bodyBold,
   },
   optionsButtonContainer: {
     position: 'absolute',

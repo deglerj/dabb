@@ -128,16 +128,19 @@ Visit [dabb.degler.info](https://dabb.degler.info) to play instantly in your bro
 
 ### Join a Game
 
-1. Get a **game code** from the host (e.g., `schnell-fuchs-42`)
+1. Click **Join Online Game** to open the lobby
 2. Enter your **nickname**
-3. Click **Join Game**
+3. Tap any game that is still waiting for players
+
+Every online game is public: there is no code to pass around, and no private table.
+A game nobody starts within an hour disappears from the lobby by itself.
 
 ### Create a Game
 
-1. Click **New Game**
+1. Click **Create Online Game**
 2. Choose **player count** (2, 3, or 4)
 3. Enter your **nickname**
-4. Share the **game code** with friends
+4. Wait in the waiting room — your game is listed in the lobby for everyone
 
 ### AI Players
 
