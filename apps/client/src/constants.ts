@@ -20,3 +20,10 @@ export const TOP_RIGHT_CONTROLS_RIGHT = 13;
 /** Edge offset + two buttons + the gap between them, plus a little clearance. */
 export const TOP_RIGHT_CONTROLS_RESERVE =
   TOP_RIGHT_CONTROLS_RIGHT + 2 * TOP_RIGHT_CONTROLS_SIZE + 6 + 6;
+
+/**
+ * Prefilled nickname. Swabian for an incomer — the joke only works if it survives the length
+ * limit, which is why MAX_NICKNAME_LENGTH is exactly long enough to hold it.
+ */
+export const DEFAULT_NICKNAME = 'Neigschmeckter';
+export const MAX_NICKNAME_LENGTH = DEFAULT_NICKNAME.length;

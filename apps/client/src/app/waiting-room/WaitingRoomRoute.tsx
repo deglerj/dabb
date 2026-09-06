@@ -79,6 +79,14 @@ export default function WaitingRoomRoute() {
     const cleanupPresence = setupPresence(code, credentials.playerIndex);
 
     const unsubPlayers = subscribeToPlayers(code, (fbPlayers) => {
+      // No seats at all means the session is gone — an hour passed without anyone starting it
+      // and whichever client opened the lobby next collected it.
+      if (Object.keys(fbPlayers).length === 0) {
+        localStorage.removeItem(`dabb-${code}`);
+        navigate('/', { replace: true });
+        return;
+      }
+
       const infos: PlayerInfo[] = Object.entries(fbPlayers).map(([idx, p]) => ({
         playerIndex: Number(idx) as PlayerIndex,
         nickname: p.nickname,
@@ -209,7 +217,6 @@ export default function WaitingRoomRoute() {
 
   return (
     <WaitingRoomScreen
-      sessionCode={code ?? ''}
       players={players}
       playerCount={sessionPlayerCount || (playerCount ?? 0)}
       isHost={isHost}

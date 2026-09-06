@@ -28,6 +28,7 @@
 | `apps/client/src/firebase/config.ts`                         | Firebase app initialization                                                     |
 | `apps/client/src/firebase/events.ts`                         | Firebase RTDB event read/write (subscribeToEvents, pushEvents, getAllEvents)    |
 | `apps/client/src/firebase/session.ts`                        | Firebase RTDB session management (create, join, presence, status)               |
+| `apps/client/src/firebase/lobby.ts`                          | Public lobby index (listing, 1h TTL, stale-session pruning)                     |
 | `packages/game-logic/src/engine/actions.ts`                  | Action validation + event cascades (shared by all three engines)                |
 | `packages/game-logic/src/engine/scoring.ts`                  | Round scoring, game-over check, next deal                                       |
 | `apps/client/src/firebase/secretId.ts`                       | secretId generation and SHA-256 hashing                                         |
