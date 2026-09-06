@@ -56,14 +56,6 @@ id = "CVE-2026-54285"
 reason = "OpenTelemetry core (unbounded memory in W3C Baggage propagation) — transitive via firebase-tools, CLI-only."
 
 [[IgnoredVulns]]
-id = "CVE-2026-18446"
-reason = "fast-uri (host confusion via backslash authority) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-16221"
-reason = "fast-uri (host confusion via literal backslash delimiter) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
 id = "GHSA-5p4m-2wfm-xmqj"
 reason = "js-yaml (quadratic CPU in !!omap resolution) — transitive via firebase-tools, CLI-only."
 
@@ -71,3 +63,6 @@ reason = "js-yaml (quadratic CPU in !!omap resolution) — transitive via fireba
 id = "GHSA-r292-9mhp-454m"
 reason = "node-tar (recursion stack-overflow DoS) — transitive via firebase-tools, CLI-only."
 
+[[IgnoredVulns]]
+id = "CVE-2026-71429"
+reason = "stream-json (quadratic CPU on deeply nested JSON) — transitive via firebase-tools, CLI-only. The fix is stream-json 3.5.0; firebase-tools 15.29.0 still depends on the 1.x line, so this cannot be resolved from here."

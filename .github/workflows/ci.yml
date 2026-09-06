@@ -100,6 +100,8 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
+    # Kept: a genuinely new advisory should be visible without holding every merge hostage
+    # until someone triages it.
     continue-on-error: true
     permissions:
       actions: read
@@ -109,7 +111,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # The scanner exits 1 for every finding it *matched*, whether or not osv-scanner.toml
+      # then filters it out of the report ("Exit code: 1" under "Filtered 17 vulnerabilities
+      # from output", with nothing listed). Its own exit status therefore cannot tell an
+      # accepted advisory from a new one, so the verdict is taken from the SARIF below.
       - name: Run OSV Scanner
+        id: osv
+        continue-on-error: true
         uses: google/osv-scanner-action/osv-scanner-action@6e4298ebc4db23e847df9b2e2de2939d6f066c67 # v2.5.1
         with:
           scan-args: |-
@@ -123,6 +131,23 @@ jobs:
         if: always()
         with:
           sarif_file: osv-results.sarif
+
+      # The real gate: the SARIF holds what survived osv-scanner.toml, so an empty result set
+      # means every match is one we have already accepted. A missing file means the scan itself
+      # broke, which is a failure of a different kind and must not pass quietly.
+      - name: Fail on unfiltered findings
+        if: always()
+        run: |
+          if [ ! -f osv-results.sarif ]; then
+            echo "::error::OSV Scanner wrote no SARIF (step outcome: ${{ steps.osv.outcome }})"
+            exit 1
+          fi
+          count=$(jq '[.runs[].results[]?] | length' osv-results.sarif)
+          echo "Findings left after osv-scanner.toml: $count"
+          if [ "$count" -gt 0 ]; then
+            jq -r '.runs[].results[]? | "\(.ruleId): \(.message.text)"' osv-results.sarif
+            exit 1
+          fi
 
   bundle-web:
     name: Bundle Web Client
