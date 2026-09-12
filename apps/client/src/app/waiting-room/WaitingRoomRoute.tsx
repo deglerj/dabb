@@ -13,6 +13,7 @@ import {
   getSessionMeta,
   setupPresence,
   setSessionStatus,
+  leaveSession,
 } from '../../firebase/session.js';
 import { pushEvents } from '../../firebase/events.js';
 import { hashSecretId } from '../../firebase/secretId.js';
@@ -79,7 +80,19 @@ export default function WaitingRoomRoute() {
     const cleanupPresence = setupPresence(code, credentials.playerIndex);
 
     const unsubPlayers = subscribeToPlayers(code, (fbPlayers) => {
-      const infos: PlayerInfo[] = Object.entries(fbPlayers).map(([idx, p]) => ({
+      // No seats at all means the session is gone — an hour passed without anyone starting it
+      // and whichever client opened the lobby next collected it.
+      if (Object.keys(fbPlayers).length === 0) {
+        localStorage.removeItem(`dabb-${code}`);
+        navigate('/', { replace: true });
+        return;
+      }
+
+      // A seat someone walked away from is kept in `meta` (it cannot be deleted) but marked.
+      // It is nobody's seat now, so it must not show at the table or be dealt into the game.
+      const seated = Object.entries(fbPlayers).filter(([, p]) => !p.left);
+
+      const infos: PlayerInfo[] = seated.map(([idx, p]) => ({
         playerIndex: Number(idx) as PlayerIndex,
         nickname: p.nickname,
         isAI: p.isAI,
@@ -88,7 +101,7 @@ export default function WaitingRoomRoute() {
       setFirebasePlayers(infos);
 
       const newMap = new Map<PlayerIndex, PlayerEntry>();
-      Object.entries(fbPlayers).forEach(([idx, p]) => {
+      seated.forEach(([idx, p]) => {
         newMap.set(Number(idx) as PlayerIndex, {
           nickname: p.nickname,
           connected: true,
@@ -166,6 +179,11 @@ export default function WaitingRoomRoute() {
           sequence: ++n,
         }));
         await pushEvents(code, termEvents, secretHash);
+      } else if (meta && meta.status === 'waiting') {
+        const seat = meta.players[String(playerIndex)];
+        if (seat) {
+          await leaveSession(code, playerIndex, seat);
+        }
       }
     } catch {
       // Ignore errors on leave
@@ -209,7 +227,6 @@ export default function WaitingRoomRoute() {
 
   return (
     <WaitingRoomScreen
-      sessionCode={code ?? ''}
       players={players}
       playerCount={sessionPlayerCount || (playerCount ?? 0)}
       isHost={isHost}

@@ -35,38 +35,31 @@ No self-hosted server infrastructure. The game backend is Firebase Realtime Data
 
 The app is **serverless P2P**. All game state lives in Firebase RTDB as an append-only event log. Clients read and write events directly; no application server intermediary.
 
-| Concern         | How handled                                                      |
-| --------------- | ---------------------------------------------------------------- |
-| Game state      | Firebase RTDB — append-only event log per session                |
-| Auth / identity | `secretId` stored in `localStorage`; SHA-256 hash stored in RTDB |
-| Write access    | Firebase security rules — only registered players can push       |
-| Reconnection    | Replay all events from RTDB on reconnect                         |
-| Session cleanup | Firebase TTL rules / manual cleanup                              |
+| Concern         | How handled                                                       |
+| --------------- | ----------------------------------------------------------------- |
+| Game state      | Firebase RTDB — append-only event log per session                 |
+| Auth / identity | `secretId` stored in `localStorage`; SHA-256 hash stored in RTDB  |
+| Write access    | Firebase security rules — only registered players can push        |
+| Reconnection    | Replay all events from RTDB on reconnect                          |
+| Session cleanup | Whichever client opens the lobby deletes waiting sessions >1h old |
 
 ## 7.4 Firebase Security Rules
 
-Write access is gated by `secretHash` — only players who registered for a session can push events:
+There is no auth, so the rules are the whole access model. What they encode:
 
-```json
-{
-  "rules": {
-    "sessions": {
-      "$code": {
-        ".read": "auth == null",
-        "events": {
-          "$eventId": {
-            ".write": "root.child('sessions/' + $code + '/meta/players').forEach(function(p) {
-              return p.child('secretHash').val() === newData.child('authorHash').val()
-            })"
-          }
-        }
-      }
-    }
-  }
-}
-```
+| Path                  | Rule                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `sessions/$code`      | Readable **by code only** — never at the root, or any visitor could read every player's hand                        |
+| `sessions/$code`      | Deletable only while `status === 'waiting'` and older than 1h — this is the lobby's garbage collection              |
+| `.../meta`            | Writable as a whole only while absent, because `createSession` writes it in one `set()`                             |
+| `.../meta/players/$i` | Writable when free; while waiting also for a bot seat, a vacated seat, or by the owner echoing its own `secretHash` |
+| `.../events/$eventId` | Writable only when `authorHash` matches one of the seats' `secretHash`                                              |
+| `lobby/$code`         | World readable and writable — it holds no game state, only who is waiting for players                               |
 
-The full rules are also documented in `DEPLOYMENT.md` → Firebase Setup section.
+The authoritative copy is [`database.rules.json`](../../database.rules.json); do not keep a second
+one here. Note that the Playwright run does **not** exercise it — `playwright.config.ts` points the
+emulator at the wide-open `database.rules.dev.json`, so a rules change has to be tried against the
+real file by hand.
 
 > **Note:** Event data in Firebase is readable by all session participants. Client-side filtering (`filterEventForPlayer` in `useGameState.ts`) hides opponents' cards in the UI, but raw events are readable from RTDB. This is an accepted trade-off for the serverless architecture.
 

@@ -14,7 +14,7 @@ Dabb is a multiplayer implementation of the Swabian card game **Binokel** that a
 | F4  | Web browser support                           | Must     |
 | F5  | Installable PWA (mobile home-screen install)  | Should   |
 | F6  | Session persistence (rejoin after disconnect) | Must     |
-| F7  | Human-readable session codes                  | Should   |
+| F7  | Public lobby — join any waiting game, no code | Must     |
 
 ### Game Flow Requirements
 

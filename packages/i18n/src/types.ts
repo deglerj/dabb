@@ -23,7 +23,6 @@ export interface TranslationKeys {
     confirm: string;
     cancel: string;
     copy: string;
-    share: string;
     leave: string;
     retry: string;
     reload: string;
@@ -44,15 +43,19 @@ export interface TranslationKeys {
     nickname: string;
     nicknamePlaceholder: string;
     playerCount: string;
-    gameCode: string;
-    gameCodePlaceholder: string;
     create: string;
-    join: string;
     playOffline: string;
     createOnline: string;
     joinOnline: string;
     resumeGame: string;
     installApp: string;
+  };
+  lobby: {
+    title: string;
+    empty: string;
+    hostedBy: string;
+    seats: string;
+    join: string;
   };
   offline: {
     difficulty: string;
@@ -64,8 +67,6 @@ export interface TranslationKeys {
   };
   waitingRoom: {
     title: string;
-    gameCode: string;
-    shareMessage: string;
     waitingForPlayers: string;
     waitingForPlayersCount: string;
     waitingForHost: string;
@@ -174,7 +175,6 @@ export interface TranslationKeys {
   errors: {
     enterNickname: string;
     nicknameTooLong: string;
-    enterGameCode: string;
     createFailed: string;
     joinFailed: string;
     unknownError: string;

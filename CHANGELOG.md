@@ -2,6 +2,29 @@
 
 All notable changes to Dabb are documented here.
 
+## [5.0.1] - 2026-09-06
+
+### Behoben
+
+- Wer einen Warteraum verlassen hat, saß für die anderen weiterhin am Tisch und blockierte den Platz. Der Platz wird jetzt sofort wieder frei, und das Spiel taucht wieder in der Liste auf. Verlässt der Gastgeber, verschwindet das Spiel aus der Liste — ohne ihn kann es niemand starten.
+- Der Knopf „Verlassen" war durchsichtig und auf dem Tisch kaum zu lesen. Er hat jetzt einen hellen Hintergrund.
+
+## [5.0.0] - 2026-09-05
+
+### Neu
+
+- Online-Spiele haben keinen Spielcode mehr. Wer mitspielen will, tippt auf „Online-Spiel beitreten" und sieht alle Spiele, die gerade auf Mitspieler warten — Name des Gastgebers und freie Plätze inklusive. Ein Tipp auf ein Spiel, und man sitzt am Tisch.
+- Jedes Online-Spiel steht damit allen offen, die die App geöffnet haben. Ein Spiel nur für Freunde gibt es vorerst nicht mehr.
+- Spiele, die eine Stunde lang auf Mitspieler warten, ohne dass sie jemand startet, verschwinden von selbst aus der Liste.
+
+### Behoben
+
+- Im Warteraum ließ sich ein Computergegner nicht mehr entfernen — der Knopf meldete nur einen Fehler. Ebenso wurde ein Computergegner nicht umbenannt, wenn ein Mitspieler mit demselben Namen dazukam, sodass zweimal derselbe Name am Tisch stand.
+
+### Wichtig
+
+- Wer die App noch in einer älteren Version im Browser gespeichert hat, muss die Seite neu laden. Alte und neue Version finden einander nicht mehr: Die alte kennt die Liste nicht, die neue kennt den Spielcode nicht.
+
 ## [4.11.0] - 2026-08-16
 
 ### Neu
