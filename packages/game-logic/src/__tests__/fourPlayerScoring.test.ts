@@ -206,11 +206,14 @@ describe('4-player round scoring', () => {
 
     for (const team of [0, 1] as Team[]) {
       const indices = state.players.filter((p) => p.team === team).map((p) => p.playerIndex);
-      const expected = indices.reduce<number>(
+      const teamMelds = indices.reduce<number>(
         (sum, idx) => sum + calculateMeldPoints(state.declaredMelds.get(idx) ?? []),
         0
       );
-      expect(scores[team].melds).toBe(expected);
+      // A team that won no trick forfeits its melds — deals are unseeded, so that
+      // does happen here (regression: the test used to assert the raw sum and flaked).
+      const teamWonATrick = state.trickHistory.some((trick) => indices.includes(trick.winnerIndex));
+      expect(scores[team].melds).toBe(teamWonATrick ? teamMelds : 0);
     }
   });
 
