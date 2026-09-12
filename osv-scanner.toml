@@ -66,3 +66,7 @@ reason = "node-tar (recursion stack-overflow DoS) — transitive via firebase-to
 [[IgnoredVulns]]
 id = "CVE-2026-71429"
 reason = "stream-json (quadratic CPU on deeply nested JSON) — transitive via firebase-tools, CLI-only. The fix is stream-json 3.5.0; firebase-tools 15.29.0 still depends on the 1.x line, so this cannot be resolved from here."
+
+[[IgnoredVulns]]
+id = "CVE-2026-85063"
+reason = "csv-parse (prototype replacement via duplicate __proto__ header with columns + group_columns_by_name) — transitive via firebase-tools, CLI-only. The fix is csv-parse 7.0.2; firebase-tools 15.30.0 still depends on the 5.x line, so this cannot be resolved from here."
