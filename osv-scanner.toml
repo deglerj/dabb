@@ -3,65 +3,16 @@
 
 [[IgnoredVulns]]
 id = "CVE-2026-41907"
-reason = "Only affects uuid v3/v5/v6 with buf parameter. Project uses only v4 (generators.ts, OfflineGameEngine.ts, secretId.ts)."
+reason = "Only affects uuid v3/v5/v6 with buf parameter. Project uses only v4 (game-logic/src/events/generators.ts, game-ai/src/OfflineGameEngine.ts); the vulnerable uuid 9.0.1 in the tree is a transitive devDependency."
 
 # --- firebase-tools devDependency tree ---
-# All entries below are transitive deps of firebase-tools (CLI/emulator dev tool,
-# used only for local emulation and deploy). None of these packages are bundled
-# into the client production build. Latest firebase-tools (15.26.0) already in use;
-# no upstream fix available yet. Re-check on firebase-tools upgrade.
-
-[[IgnoredVulns]]
-id = "CVE-2026-69152"
-reason = "brace-expansion (DoS via unbounded arrays) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-69192"
-reason = "ip-address (octal/decimal octet SSRF bypass) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-69198"
-reason = "ip-address (CIDR suffix SSRF bypass) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-54272"
-reason = "ip-address (IPv4-mapped/NAT64 misclassification SSRF bypass) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-71498"
-reason = "node-re2 (OOB heap read via truncated UTF-8) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-71850"
-reason = "Hono (memo() cross-user SSR data disclosure) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-71849"
-reason = "Hono (Proxy Helper Connection-header leak) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-71848"
-reason = "Hono (ReDoS in Language Middleware) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
-
-[[IgnoredVulns]]
-id = "CVE-2026-69207"
-reason = "Hono (ReDoS in CORS middleware) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
-
-[[IgnoredVulns]]
-id = "GHSA-frvp-7c67-39w9"
-reason = "Hono Node adapter serve-static path traversal (Windows-only) — transitive via firebase-tools (@modelcontextprotocol/sdk), CLI-only."
+# The three entries below are transitive deps of firebase-tools (CLI/emulator dev tool,
+# used only for local emulation and deploy). None of these packages are bundled into the
+# client production build. Re-check on firebase-tools upgrade.
 
 [[IgnoredVulns]]
 id = "CVE-2026-54285"
 reason = "OpenTelemetry core (unbounded memory in W3C Baggage propagation) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "GHSA-5p4m-2wfm-xmqj"
-reason = "js-yaml (quadratic CPU in !!omap resolution) — transitive via firebase-tools, CLI-only."
-
-[[IgnoredVulns]]
-id = "GHSA-r292-9mhp-454m"
-reason = "node-tar (recursion stack-overflow DoS) — transitive via firebase-tools, CLI-only."
 
 [[IgnoredVulns]]
 id = "CVE-2026-71429"
