@@ -12,6 +12,7 @@ updates:
           - '@types/*'
           - 'typescript'
           - 'vitest'
+          - '@vitest/*'
           - 'turbo'
       react:
         patterns:
