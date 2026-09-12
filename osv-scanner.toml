@@ -6,9 +6,13 @@ id = "CVE-2026-41907"
 reason = "Only affects uuid v3/v5/v6 with buf parameter. Project uses only v4 (game-logic/src/events/generators.ts, game-ai/src/OfflineGameEngine.ts); the vulnerable uuid 9.0.1 in the tree is a transitive devDependency."
 
 # --- firebase-tools devDependency tree ---
-# Both entries below are transitive deps of firebase-tools (CLI/emulator dev tool,
-# used only for local emulation and deploy). Neither package is bundled into the
+# The three entries below are transitive deps of firebase-tools (CLI/emulator dev tool,
+# used only for local emulation and deploy). None of these packages are bundled into the
 # client production build. Re-check on firebase-tools upgrade.
+
+[[IgnoredVulns]]
+id = "CVE-2026-54285"
+reason = "OpenTelemetry core (unbounded memory in W3C Baggage propagation) — transitive via firebase-tools, CLI-only."
 
 [[IgnoredVulns]]
 id = "CVE-2026-71429"
