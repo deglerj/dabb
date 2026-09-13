@@ -1,6 +1,7 @@
 import { ref, push, update, onChildAdded, off, get } from 'firebase/database';
 import { db } from './config.js';
 import type { GameEvent } from '@dabb/shared-types';
+import { normalizeEventLog } from '@dabb/game-logic';
 
 export type StoredEvent = GameEvent & {
   authorHash: string;
@@ -60,7 +61,7 @@ export async function getAllEvents(sessionCode: string): Promise<GameEvent[]> {
     events.push(event as GameEvent);
   });
 
-  return events.sort((a, b) => a.sequence - b.sequence);
+  return normalizeEventLog(events);
 }
 
 export async function claimCascade(

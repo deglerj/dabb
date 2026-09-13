@@ -24,7 +24,11 @@ import {
   subscribeToSessionStatus,
 } from '../firebase/session.js';
 import type { AIDifficulty } from '@dabb/game-ai';
-import { createEventsForAction, createTerminateGameEvents } from '@dabb/game-logic';
+import {
+  createEventsForAction,
+  createTerminateGameEvents,
+  normalizeEventLog,
+} from '@dabb/game-logic';
 import type { NextContext, PlayerInfo } from '@dabb/game-logic';
 
 export interface UseFirebaseGameOptions {
@@ -198,9 +202,7 @@ export function useFirebaseGame({
       unsubEvents = subscribeToEvents(sessionCode, (event) => {
         const alreadyHave = rawEventsRef.current.some((e) => e.id === event.id);
         if (!alreadyHave) {
-          rawEventsRef.current = [...rawEventsRef.current, event].sort(
-            (a, b) => a.sequence - b.sequence
-          );
+          rawEventsRef.current = normalizeEventLog([...rawEventsRef.current, event]);
           fullStateRef.current = applyEvents(rawEventsRef.current);
           processEvents([event]);
         }
@@ -224,7 +226,7 @@ export function useFirebaseGame({
    * cascade, so the engine takes a factory and stamps each event it produces.
    */
   const makeNextContext = useCallback((): NextContext => {
-    let n = rawEventsRef.current.length;
+    let n = rawEventsRef.current.reduce((highest, event) => Math.max(highest, event.sequence), 0);
     return () => ({ sessionId: sessionCode, sequence: ++n });
   }, [sessionCode]);
 

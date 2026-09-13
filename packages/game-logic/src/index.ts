@@ -59,7 +59,10 @@ export {
   whoActsNext,
   isWaitingOn,
   determineGameWinner,
+  analyzeEventLog,
+  normalizeEventLog,
 } from './state/index.js';
+export type { EventLogAnalysis } from './state/index.js';
 
 // Export
 export { formatCard, formatSuit, formatEventLog } from './export/index.js';

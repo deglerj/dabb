@@ -177,6 +177,7 @@ See `docs/KEY_FILES.md` for the full list. Most important entry points:
 | -------------------------------------------------- | ------------------------------------------------ |
 | `packages/shared-types/src/`                       | All shared types (cards, game, events, errors)   |
 | `packages/game-logic/src/state/reducer.ts`         | Event sourcing reducer                           |
+| `packages/game-logic/src/state/eventLog.ts`        | Canonical event ordering and gap inspection      |
 | `packages/game-logic/src/__tests__/testHelpers.ts` | Integration test helpers                         |
 | `packages/game-logic/src/engine/`                  | Action validation, event cascades, round scoring |
 | `apps/client/src/hooks/useFirebaseGame.ts`         | Main game hook (Firebase subscriptions + state)  |
