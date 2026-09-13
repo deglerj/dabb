@@ -235,6 +235,20 @@ Doubles are counted twice, not upgraded to a meld of their own. Doppel-Binokel i
 
 **AI knowledge is derived, never accumulated.** `buildRoundMemory` (`packages/game-ai/src/knowledge.ts`) rebuilds everything the AI knows from `GameState` on each decision, because `useAI` constructs a fresh `BinokelAIPlayer` per decision and any instance field is discarded immediately. It is also the _only_ place in the AI allowed to read `GameState`: all three drivers pass an unfiltered state, so `state.hands` holds every opponent's cards and `tricksTaken` holds the bid winner's layaway. `knowledge.test.ts` scrambles the hidden parts and asserts the output is unchanged — read state elsewhere and that guard is bypassed.
 
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in GitHub Issues for `deglerj/dabb`; use the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the default canonical triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This is a multi-context repo: read root `CONTEXT-MAP.md`, relevant context `CONTEXT.md` files, and applicable ADRs. See `docs/agents/domain.md`.
+
 ## Available Agent Skills
 
 | Skill               | Purpose                                            |
