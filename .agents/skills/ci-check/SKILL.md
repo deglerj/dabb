@@ -1,3 +1,8 @@
+---
+name: ci-check
+description: Run the project build, lint, and test verification suite.
+---
+
 Run the full CI verification suite locally, exactly as GitHub CI does it.
 
 Execute these three commands **in sequence**, stopping and reporting clearly if any fails:

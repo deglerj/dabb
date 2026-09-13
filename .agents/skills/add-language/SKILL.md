@@ -1,4 +1,9 @@
-Add a new language to the Dabb i18n system. The language to add is: $ARGUMENTS
+---
+name: add-language
+description: Add a new language to the internationalization system.
+---
+
+Add the language specified in the user's request to the Dabb i18n system.
 
 Follow these steps in order:
 

@@ -202,7 +202,7 @@ Run locally from repo root: `pnpm exec firebase emulators:start --only database 
 4. **Swabian names** — Kreuz/Schippe/Herz/Bollen, Buabe not Unter
 5. **Strict mode** — TypeScript strict is enabled
 6. **Workspace imports** — use `@dabb/*` package imports
-7. **Update documentation** — after significant changes update `CLAUDE.md` for new key files; use `/update-docs` skill for automated review
+7. **Update documentation** — after significant changes update `AGENTS.md` for new key files; use `/update-docs` skill for automated review
 8. **Verify CI before committing** — always run `/ci-check` (build + lint + test must all pass)
 
 ## Game Rules Reference
@@ -235,7 +235,7 @@ Doubles are counted twice, not upgraded to a meld of their own. Doppel-Binokel i
 
 **AI knowledge is derived, never accumulated.** `buildRoundMemory` (`packages/game-ai/src/knowledge.ts`) rebuilds everything the AI knows from `GameState` on each decision, because `useAI` constructs a fresh `BinokelAIPlayer` per decision and any instance field is discarded immediately. It is also the _only_ place in the AI allowed to read `GameState`: all three drivers pass an unfiltered state, so `state.hands` holds every opponent's cards and `tricksTaken` holds the bid winner's layaway. `knowledge.test.ts` scrambles the hidden parts and asserts the output is unchanged — read state elsewhere and that guard is bypassed.
 
-## Available Skills / Slash Commands
+## Available Agent Skills
 
 | Skill               | Purpose                                            |
 | ------------------- | -------------------------------------------------- |

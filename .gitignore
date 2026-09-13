@@ -46,7 +46,7 @@ pnpm-debug.log*
 # pnpm store
 .pnpm-store/
 
-# Claude Code memory
+# Agent memory
 memory/
 
 # Misc
@@ -55,7 +55,7 @@ memory/
 # Simulation output
 simulation-results/
 
-# Claude Code sandbox artifacts
+# Agent harness sandbox artifacts
 .bashrc
 .bash_profile
 .zshrc
@@ -65,6 +65,4 @@ simulation-results/
 .gitmodules
 .mcp.json
 .ripgreprc
-.claude/*
-!.claude/commands/
 .vscode

@@ -165,6 +165,12 @@ Want to practice without a server connection? The app also supports a fully offl
 
 ## Development
 
+### AI coding agents
+
+`AGENTS.md` contains repository guidance for AI coding agents and is supported by
+pi, Codex, and other harnesses that follow the `AGENTS.md` convention. Reusable
+agent skills live in `.agents/skills/` as standard `SKILL.md` files.
+
 ### Tech Stack
 
 | Component | Technology                     |

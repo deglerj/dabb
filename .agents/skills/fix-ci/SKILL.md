@@ -1,3 +1,8 @@
+---
+name: fix-ci
+description: Diagnose and fix the current branch's failing CI run.
+---
+
 Fix the failing CI build on GitHub for the current branch.
 
 ## Step 1 — Find the failing run

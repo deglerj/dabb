@@ -1,6 +1,6 @@
 /**
  * CelebrationLayer — full-screen overlay announcing the end of a round or the game.
- * Always mounted; visibility controlled via opacity per CLAUDE.md rule 2.
+ * Always mounted; visibility controlled via opacity per AGENTS.md rule 2.
  *
  * - roundAnnouncement: how the round ended, for every player. Only the local win brings
  *   confetti along; the other outcomes are text only.

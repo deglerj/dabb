@@ -1,4 +1,9 @@
-Add a new server error code to the Dabb codebase. The error name/description is: $ARGUMENTS
+---
+name: add-error
+description: Add a new server error code end-to-end.
+---
+
+Add a new server error code to the Dabb codebase. The error name and description are specified in the user's request.
 
 Follow these steps in order:
 

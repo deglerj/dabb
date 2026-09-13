@@ -1,3 +1,8 @@
+---
+name: merge-dependabot
+description: Process open Dependabot pull requests sequentially.
+---
+
 Merge all open Dependabot PRs one at a time, waiting for CI after each merge and fixing any failures before proceeding.
 
 ## Step 1 — List open Dependabot PRs

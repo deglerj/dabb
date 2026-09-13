@@ -75,7 +75,7 @@ export function EmoteButton({ onSendEmote, activeEmote }: EmoteButtonProps) {
         <Text style={styles.glyph}>{activeEmote ? EMOTE_GLYPH[activeEmote] : '🙂'}</Text>
       </TouchableOpacity>
       {/* Kept mounted and merely transparent rather than conditionally rendered — see
-          convention 2 in CLAUDE.md. */}
+          convention 2 in AGENTS.md. */}
       <View
         style={[styles.menu, !open && styles.menuHidden]}
         pointerEvents={open ? 'auto' : 'none'}

@@ -1,3 +1,8 @@
+---
+name: housekeeping
+description: Perform project housekeeping across dependencies, documentation, lint, and tests.
+---
+
 Perform full project housekeeping: merge dependencies, review docs, audit stale dependencies, fix lint, and improve test coverage.
 
 ## Step 1 — Merge Dependabot PRs
@@ -8,13 +13,13 @@ Invoke `/merge-dependabot` and wait for it to complete before proceeding. This e
 
 ## Step 2 — Parallel checks
 
-Run steps 2a, 2b, 2c, 2d, and 2e **in parallel** using background agents (`Task` tool with `run_in_background: true`) or simultaneous tool calls where possible. Collect all results before moving to Step 3.
+Run steps 2a, 2b, 2c, 2d, and 2e **in parallel** using available background subagents or simultaneous tool calls where possible. Collect all results before moving to Step 3.
 
 ### 2a — Review and update documentation
 
 Do a full freshness audit of the project documentation — not just recent changes, but whether the docs reflect the current state of the codebase overall.
 
-1. Read `README.md`, `CLAUDE.md`, `docs/API.md`, `docs/SOCKET_EVENTS.md`, `docs/DATABASE.md`, and all files under `docs/arc42/` and `docs/adr/`.
+1. Read `README.md`, `AGENTS.md`, `docs/API.md`, `docs/SOCKET_EVENTS.md`, `docs/DATABASE.md`, and all files under `docs/arc42/` and `docs/adr/`.
 2. Cross-check each document against the actual codebase:
    - Do all mentioned file paths, commands, and config values still exist and work?
    - Are there features, patterns, or conventions documented that no longer exist?
@@ -98,13 +103,13 @@ Find all technical debt markers in the codebase and decide what to do with each.
 
 ### 2e — Self improvement
 
-Check for improvements and fixes in the Claude Code setup for this project.
+Check for improvements and fixes in the agent setup for this project.
 
-1. Check if CLAUDE.md is up-to-date and contain valid instructions
+1. Check if AGENTS.md is up-to-date and contain valid instructions
 
 2. Check if commands are up-to-date and contain valid instructions
 
-3. Check if the project's Claude Code setup matches current best practices and suggest improvements (if there are any)
+3. Check if the project's agent setup matches current best practices and suggest improvements (if there are any)
 
 ---
 

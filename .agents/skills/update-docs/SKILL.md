@@ -1,4 +1,9 @@
-Review recent changes and update documentation to match. Optional context hint: $ARGUMENTS
+---
+name: update-docs
+description: Review recent changes and update project documentation.
+---
+
+Review recent changes and update documentation to match. Use any context supplied in the user's request.
 
 ## Step 1 — Analyze what changed
 
@@ -8,9 +13,9 @@ Read the diff carefully and categorize the changes:
 
 - **User-facing feature changes**: new game phases, new major UI features, new language support, new commands
 - **Architectural changes**: new packages, new major patterns, new external dependencies, infrastructure changes, significant new design decisions
-- **CLAUDE.md-worthy changes**: new key files, new patterns or conventions that future AI assistants need to know
+- **AGENTS.md-worthy changes**: new key files, new patterns or conventions that future AI assistants need to know
 
-Also consider any context hint from `$ARGUMENTS` when categorizing.
+Also consider any context hint from `the request supplied by the user` when categorizing.
 
 ## Step 2 — Skip if no docs needed
 
@@ -111,11 +116,11 @@ YYYY-MM-DD
 
 Use today's date. Write in plain technical language — no jargon, no marketing speak.
 
-## Step 8 — Update CLAUDE.md if needed
+## Step 8 — Update AGENTS.md if needed
 
-If the changes introduce new key files that future AI assistants should know about, or establish new conventions that belong in the "Key Patterns" or "Conventions" sections, update `CLAUDE.md` accordingly.
+If the changes introduce new key files that future AI assistants should know about, or establish new conventions that belong in the "Key Patterns" or "Conventions" sections, update `AGENTS.md` accordingly.
 
-Only update CLAUDE.md for stable, established patterns — not for in-progress work.
+Only update AGENTS.md for stable, established patterns — not for in-progress work.
 
 ## Step 9 — Report what was done
 
