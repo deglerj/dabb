@@ -201,6 +201,13 @@ dabb/
 
 > **No application server.** The game backend is Firebase Realtime Database — clients connect directly. `apps/simulate` exists only for the `pnpm simulate` AI testing CLI.
 
+### Workspace build contract
+
+Workspace packages compile `src/` to generated `dist/` output with TypeScript. Package
+`main`, `types`, and `exports` entries point to `dist`; `dist/` is disposable and must
+never be committed. The client is built by Vite through the workspace `build` task, and
+`pnpm simulate` builds the simulation and its package dependencies before running it.
+
 ### Prerequisites
 
 - Node.js 22+

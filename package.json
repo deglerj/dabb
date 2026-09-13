@@ -15,7 +15,7 @@
     "format:check": "oxfmt --check",
     "clean": "turbo run clean && rm -rf node_modules",
     "typecheck": "turbo run typecheck",
-    "simulate": "pnpm --filter @dabb/simulate simulate",
+    "simulate": "turbo run build --filter=@dabb/simulate... && pnpm --filter @dabb/simulate simulate",
     "postinstall": "bash scripts/setup-hooks.sh"
   },
   "devDependencies": {

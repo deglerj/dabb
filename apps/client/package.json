@@ -6,6 +6,7 @@
     "start": "vite",
     "web": "vite",
     "dev": "vite",
+    "build": "vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
