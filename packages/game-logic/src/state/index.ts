@@ -1,4 +1,6 @@
 export { createInitialState, resetForNewRound } from './initial.js';
+export { EventStore, createEventStore } from './eventStore.js';
+export type { EventStoreResult, EventStoreStatus } from './eventStore.js';
 export { applyEvent, applyEvents } from './reducer.js';
 export { filterEventForPlayer, filterEventsForPlayer } from './views.js';
 export { whoActsNext, isWaitingOn } from './turn.js';

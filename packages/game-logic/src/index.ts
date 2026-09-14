@@ -61,8 +61,10 @@ export {
   determineGameWinner,
   analyzeEventLog,
   normalizeEventLog,
+  EventStore,
+  createEventStore,
 } from './state/index.js';
-export type { EventLogAnalysis } from './state/index.js';
+export type { EventLogAnalysis, EventStoreResult, EventStoreStatus } from './state/index.js';
 
 // Export
 export { formatCard, formatSuit, formatEventLog } from './export/index.js';

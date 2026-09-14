@@ -24,6 +24,9 @@ protocol ordering.
   the log.
 
 `normalizeEventLog` and `analyzeEventLog` in `@dabb/game-logic` encode the
-ordering, deduplication, and inspection rules. They deliberately do not change
-persisted event payloads or game rules. Incremental application and subscription
-recovery are layered on this contract.
+ordering, deduplication, and inspection rules. `EventStore` is the single
+acceptance point for snapshots and live deliveries: it incrementally reduces a
+contiguous event, buffers gaps, and reports when Firebase must resynchronize.
+The UI derives its filtered projection from the store's complete raw log, while
+actions and AI use its unfiltered state. None of these layers changes persisted
+event payloads or game rules.

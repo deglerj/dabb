@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGameState } from '@dabb/ui-shared';
 import type { GameInterface } from '@dabb/ui-shared';
-import { applyEvents } from '@dabb/game-logic';
 import type {
   AIAction,
   CardId,
@@ -24,11 +23,7 @@ import {
   subscribeToSessionStatus,
 } from '../firebase/session.js';
 import type { AIDifficulty } from '@dabb/game-ai';
-import {
-  createEventsForAction,
-  createTerminateGameEvents,
-  normalizeEventLog,
-} from '@dabb/game-logic';
+import { createEventsForAction, createTerminateGameEvents } from '@dabb/game-logic';
 import type { NextContext, PlayerInfo } from '@dabb/game-logic';
 
 export interface UseFirebaseGameOptions {
@@ -88,10 +83,16 @@ export function useFirebaseGame({
   const [aiSeats, setAiSeats] = useState<AISeat[]>([]);
   const [presence, setPresence] = useState<Map<PlayerIndex, boolean>>(new Map());
 
-  const rawEventsRef = useRef<GameEvent[]>([]);
-  const fullStateRef = useRef<GameState>(applyEvents([]));
-
-  const { state, events, processEvents } = useGameState({ playerIndex });
+  const nicknamesRef = useRef(nicknames);
+  nicknamesRef.current = nicknames;
+  const { state, fullState, events, rawEvents, processEvents, replaceEvents } = useGameState({
+    playerIndex,
+    resetKey: sessionCode,
+  });
+  const fullStateRef = useRef(fullState);
+  fullStateRef.current = fullState;
+  const rawEventsRef = useRef(rawEvents);
+  rawEventsRef.current = rawEvents;
   const [replayedEventIds, setReplayedEventIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
@@ -146,7 +147,7 @@ export function useFirebaseGame({
   }, [sessionCode, mergeEmotes]);
 
   const aiPlayerIndices = useMemo(() => aiSeats.map((seat) => seat.playerIndex), [aiSeats]);
-  useAIEmotes(events, state, aiPlayerIndices, postEmote);
+  useAIEmotes(events, fullState, aiPlayerIndices, postEmote);
 
   const onSendEmote = useCallback(
     (key: EmoteKey) => {
@@ -186,29 +187,56 @@ export function useFirebaseGame({
 
     let cancelled = false;
     let unsubEvents: (() => void) | null = null;
+    let reloadInFlight = false;
 
     // Subscribe only once the snapshot is in. `onChildAdded` replays every existing child on
     // attach, so subscribing first would deliver the backlog as if it were live play — which
     // is exactly what the replayed-id set has to be able to tell apart.
+    const reload = () => {
+      if (reloadInFlight || cancelled) {
+        return;
+      }
+      reloadInFlight = true;
+      void getAllEvents(sessionCode).then((snapshot) => {
+        reloadInFlight = false;
+        if (!cancelled) {
+          const result = replaceEvents(snapshot);
+          if (result.status === 'applied') {
+            setReplayedEventIds((previous) => {
+              const ids = new Set(previous);
+              snapshot.forEach((event) => ids.add(event.id));
+              return ids;
+            });
+          }
+        }
+      });
+    };
+
     void getAllEvents(sessionCode).then((existingEvents) => {
       if (cancelled) {
         return;
       }
-      rawEventsRef.current = existingEvents;
-      fullStateRef.current = applyEvents(existingEvents);
-      setReplayedEventIds(new Set(existingEvents.map((e) => e.id)));
-      processEvents(existingEvents);
+      const snapshotResult = replaceEvents(existingEvents);
+      if (snapshotResult.status === 'applied') {
+        setReplayedEventIds(new Set(existingEvents.map((e) => e.id)));
+      } else {
+        reload();
+      }
 
       unsubEvents = subscribeToEvents(sessionCode, (event) => {
-        const alreadyHave = rawEventsRef.current.some((e) => e.id === event.id);
-        if (!alreadyHave) {
-          rawEventsRef.current = normalizeEventLog([...rawEventsRef.current, event]);
-          fullStateRef.current = applyEvents(rawEventsRef.current);
-          processEvents([event]);
+        const result = processEvents([event]);
+        if (
+          result.status === 'buffered' ||
+          result.status === 'resync-required' ||
+          result.status === 'invalid'
+        ) {
+          reload();
         }
 
-        if (event.type === 'GAME_TERMINATED') {
-          setTerminatedBy({ nickname: nicknames.get(event.payload.terminatedBy) ?? null });
+        if (result.status === 'applied' && event.type === 'GAME_TERMINATED') {
+          setTerminatedBy({
+            nickname: nicknamesRef.current.get(event.payload.terminatedBy) ?? null,
+          });
         }
       });
     });
@@ -219,7 +247,7 @@ export function useFirebaseGame({
       unsubEvents?.();
       setConnected(false);
     };
-  }, [sessionCode, secretId, playerIndex, processEvents, nicknames]);
+  }, [sessionCode, secretId, playerIndex, processEvents, replaceEvents]);
 
   /**
    * Sequence numbers continue from the log we have. A single action can emit a whole
@@ -302,7 +330,7 @@ export function useFirebaseGame({
     onDeclareMelds,
     onPlayCard,
     onExit,
-    rawEvents: rawEventsRef.current,
+    rawEvents,
     players,
     aiSeats,
   };

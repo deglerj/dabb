@@ -2,58 +2,101 @@
  * Event-sourced game state hook
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { GameEvent, GameState, PlayerIndex } from '@dabb/shared-types';
-import { applyEvents, createInitialState, filterEventsForPlayer } from '@dabb/game-logic';
+import {
+  applyEvents,
+  createEventStore,
+  filterEventsForPlayer,
+  type EventStoreResult,
+} from '@dabb/game-logic';
 
 interface UseGameStateOptions {
   playerIndex: PlayerIndex;
   initialPlayerCount?: 2 | 3 | 4;
+  resetKey?: string;
 }
 
 interface UseGameStateReturn {
   state: GameState;
+  fullState: GameState;
   events: GameEvent[];
-  processEvents: (newEvents: GameEvent[]) => void;
+  rawEvents: GameEvent[];
+  processEvents: (newEvents: GameEvent[]) => EventStoreResult;
+  replaceEvents: (snapshot: GameEvent[]) => EventStoreResult;
 }
 
 export function useGameState(options: UseGameStateOptions): UseGameStateReturn {
-  const { playerIndex, initialPlayerCount = 4 } = options;
+  const { playerIndex, initialPlayerCount = 4, resetKey } = options;
+  const store = useMemo(() => createEventStore(initialPlayerCount), [initialPlayerCount, resetKey]);
+  const [projection, setProjection] = useState(() => {
+    const rawEvents = store.getEvents();
+    return {
+      rawEvents,
+      events: filterEventsForPlayer(rawEvents, playerIndex),
+      state: applyEvents(filterEventsForPlayer(rawEvents, playerIndex)),
+      fullState: store.getState(),
+    };
+  });
 
-  // Unfiltered log is kept because filtering is not incremental — see processEvents.
-  const [, setRawEvents] = useState<GameEvent[]>([]);
-  const [events, setEvents] = useState<GameEvent[]>([]);
-  const [state, setState] = useState<GameState>(() => createInitialState(initialPlayerCount));
+  useEffect(() => {
+    const rawEvents = store.getEvents();
+    setProjection({
+      rawEvents,
+      events: filterEventsForPlayer(rawEvents, playerIndex),
+      state: applyEvents(filterEventsForPlayer(rawEvents, playerIndex)),
+      fullState: store.getState(),
+    });
+  }, [playerIndex, store]);
 
-  const processEvents = useCallback(
-    (newEvents: GameEvent[]) => {
-      setRawEvents((prev) => {
-        // Deduplicate by event ID
-        const existingIds = new Set(prev.map((e) => e.id));
-        const uniqueNewEvents = newEvents.filter((e) => !existingIds.has(e.id));
-
-        if (uniqueNewEvents.length === 0) {
-          return prev;
-        }
-
-        const combined = [...prev, ...uniqueNewEvents].sort((a, b) => a.sequence - b.sequence);
-
-        // Filter the whole log, not just the new batch: revealing the bid winner's buried
-        // trump needs the trump suit from an earlier event, so a batch on its own is not
-        // enough context. Rebuilding state already walks every event anyway.
-        const filtered = filterEventsForPlayer(combined, playerIndex);
-        setEvents(filtered);
-        setState(applyEvents(filtered));
-
-        return combined;
-      });
+  const publish = useCallback(
+    (result: EventStoreResult): EventStoreResult => {
+      const rawEvents = result.events;
+      const events = filterEventsForPlayer(rawEvents, playerIndex);
+      setProjection({ rawEvents, events, state: applyEvents(events), fullState: result.state });
+      return result;
     },
     [playerIndex]
   );
 
+  const processEvents = useCallback(
+    (newEvents: GameEvent[]) => {
+      let result: EventStoreResult | undefined;
+      let appliedResult: EventStoreResult | undefined;
+      for (const event of newEvents) {
+        result = store.accept(event);
+        if (result.status === 'applied') {
+          appliedResult = result;
+        }
+      }
+      if (appliedResult) {
+        publish(appliedResult);
+      }
+      return (
+        result ?? {
+          status: 'duplicate',
+          events: store.getEvents(),
+          state: store.getState(),
+          newlyApplied: [],
+          missingSequences: [],
+          conflictingSequences: [],
+        }
+      );
+    },
+    [publish, store]
+  );
+
+  const replaceEvents = useCallback(
+    (snapshot: GameEvent[]) => publish(store.replaceSnapshot(snapshot)),
+    [publish, store]
+  );
+
   return {
-    state,
-    events,
+    state: projection.state,
+    fullState: projection.fullState,
+    events: projection.events,
+    rawEvents: projection.rawEvents,
     processEvents,
+    replaceEvents,
   };
 }
