@@ -1,6 +1,6 @@
 {
   "name": "dabb",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "private": true,
   "type": "module",
   "description": "Binokel card game - multiplayer installable PWA",

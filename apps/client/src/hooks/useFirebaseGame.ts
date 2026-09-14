@@ -17,8 +17,8 @@ import { useEmotes } from './useEmotes.js';
 import { useAIEmotes } from './useAIEmotes.js';
 import { hashSecretId } from '../firebase/secretId.js';
 import {
-  getSessionMeta,
   setupPresence,
+  subscribeToPlayers,
   subscribeToPresence,
   subscribeToSessionStatus,
 } from '../firebase/session.js';
@@ -103,11 +103,8 @@ export function useFirebaseGame({
     if (!sessionCode) {
       return;
     }
-    void getSessionMeta(sessionCode).then((meta) => {
-      if (!meta) {
-        return;
-      }
-      const infos: PlayerInfo[] = Object.entries(meta.players).map(([idx, p]) => ({
+    return subscribeToPlayers(sessionCode, (playerRecords) => {
+      const infos: PlayerInfo[] = Object.entries(playerRecords).map(([idx, p]) => ({
         playerIndex: Number(idx) as PlayerIndex,
         nickname: p.nickname,
         isAI: p.isAI,
@@ -117,7 +114,7 @@ export function useFirebaseGame({
       // Sessions created before the difficulty was stored have no aiDifficulty on the
       // player record; those AI seats keep the previous behaviour of playing at medium.
       setAiSeats(
-        Object.entries(meta.players)
+        Object.entries(playerRecords)
           .filter(([, p]) => p.isAI)
           .map(([idx, p]) => ({
             playerIndex: Number(idx) as PlayerIndex,

@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [5.0.3] - 2026-09-14
+
+### Behoben
+
+- Änderungen an Spielernamen und Computergegnern werden während eines laufenden Spiels zuverlässig übernommen, auch nach einer erneuten Verbindung.
+
 ## [5.0.2] - 2026-09-06
 
 ### Geändert
