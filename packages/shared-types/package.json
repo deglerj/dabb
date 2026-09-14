@@ -13,8 +13,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "dev": "tsc --watch",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "clean": "rm -rf dist coverage",
     "typecheck": "tsc --noEmit"
   },

@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "clean": "rm -rf dist coverage",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "simulate": "tsx src/simulation/runner.ts"
+    "simulate": "node dist/simulation/runner.js"
   },
   "dependencies": {
     "@dabb/game-ai": "workspace:*",

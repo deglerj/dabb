@@ -2,6 +2,12 @@
 
 All notable changes to Dabb are documented here.
 
+## [5.0.2] - 2026-09-06
+
+### Geändert
+
+- Workspace-Pakete und die Simulation verwenden jetzt beim Bauen und Entwickeln ein einheitliches `dist`-Verzeichnis. Die Simulation startet automatisch aus dem frisch erzeugten Build.
+
 ## [5.0.1] - 2026-09-06
 
 ### Behoben
