@@ -16,16 +16,17 @@ function ev<T extends GameEvent['type']>(
   return { ...base, id: `e${seq()}`, sequence: seq(), type, payload } as GameEvent;
 }
 
-const gameStarted = ev('GAME_STARTED', { playerCount: 3, targetScore: 1000, dealer: 0 });
+const gameStarted = ev('GAME_STARTED', { playerCount: 4, targetScore: 1000, dealer: 0 });
 const biddingWon = ev('BIDDING_WON', { playerIndex: 0, winningBid: 180 });
-const goingOut = ev('GOING_OUT', { playerIndex: 0, suit: 'HERZ' });
+const goingOut = ev('GOING_OUT', { playerIndex: 0, suit: 'herz' });
 const roundScored = ev('ROUND_SCORED', {
   scores: {
     0: { melds: 0, tricks: 0, total: -180, bidMet: false },
     1: { melds: 80, tricks: 0, total: 80, bidMet: false },
     2: { melds: 40, tricks: 0, total: 40, bidMet: false },
+    3: { melds: 0, tricks: 0, total: 0, bidMet: false },
   },
-  totalScores: { 0: -180, 1: 80, 2: 40 },
+  totalScores: { 0: -180, 1: 80, 2: 40, 3: 0 },
 });
 const newRound = ev('NEW_ROUND_STARTED', { round: 2, dealer: 1 });
 const biddingWon2 = ev('BIDDING_WON', { playerIndex: 1, winningBid: 160 });
@@ -34,8 +35,9 @@ const roundScored2 = ev('ROUND_SCORED', {
     0: { melds: 120, tricks: 90, total: 210, bidMet: false },
     1: { melds: 60, tricks: 100, total: 160, bidMet: true },
     2: { melds: 80, tricks: 30, total: 110, bidMet: false },
+    3: { melds: 0, tricks: 0, total: 0, bidMet: false },
   },
-  totalScores: { 0: 30, 1: 240, 2: 150 },
+  totalScores: { 0: 30, 1: 240, 2: 150, 3: 0 },
 });
 
 describe('useRoundHistory', () => {
