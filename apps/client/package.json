@@ -24,7 +24,7 @@
     "@dabb/rn-compat": "workspace:*",
     "@dabb/shared-types": "workspace:*",
     "@dabb/ui-shared": "workspace:*",
-    "firebase": "^12.18.0",
+    "firebase": "^12.19.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-router-dom": "^7.18.3"
