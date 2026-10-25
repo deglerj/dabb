@@ -47,7 +47,9 @@ Web client is deployed automatically by GitHub Actions on every push to `main` t
 
 ## Firebase Setup
 
-The Firebase project (`dabb`) must be configured once manually. Steps: create a Firebase project, enable Realtime Database (`europe-west1`), register the web app, copy the config values as environment variables, and apply the security rules below.
+The Firebase project (`dabb`) must be configured once manually. Steps: create a Firebase project, enable Anonymous sign-in under Authentication, enable Realtime Database (`europe-west1`), register the web app, copy the config values as environment variables, and apply the security rules below.
+
+The web client uses Firebase Auth's `browserLocalPersistence`: an anonymous identity survives reloads and is synchronized between same-origin tabs. Auth bootstrap failures are surfaced to the caller and the next operation retries bootstrap instead of caching a failed promise. Sessions created before authenticated ownership was deployed are intentionally unavailable; there is no legacy credential fallback.
 
 **Firebase security rules** live in [`database.rules.json`](database.rules.json) and are deployed
 with the project — do not maintain a second copy here or paste rules into the Firebase Console by
@@ -66,6 +68,14 @@ publish `".write": true` to production.
 ---
 
 ## Local Development
+
+After changing production rules, run the authenticated rules test against the production rules file:
+
+```bash
+pnpm --filter @dabb/client test:rules
+```
+
+The test covers rejection of legacy session/player authorization fields, legacy event authorization fields, cross-seat writes, and structural ownership checks. Legal game-transition validation remains in the shared rules engine, not in RTDB rules.
 
 No local server needed. Start the client directly:
 

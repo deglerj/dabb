@@ -20,7 +20,7 @@ import { useSocket } from '@dabb/ui-shared';
 const { socket, connected, connecting, error, emit } = useSocket({
   serverUrl: 'http://localhost:3000',
   sessionId: 'abc123',
-  secretId: 'secret-xyz',
+  // Online authentication is handled by the Firebase client transport.
   onEvents: (events) => processEvents(events),
   onError: (error) => showError(error.message),
   onPlayerJoined: (playerIndex, nickname) => updatePlayers(),
@@ -85,32 +85,9 @@ if (gameWinner !== null) {
 }
 ```
 
-### useSessionCredentials
+### Session identity
 
-Persists session credentials in local storage for reconnection:
-
-```typescript
-import { useSessionCredentials } from '@dabb/ui-shared';
-
-const { credentials, saveCredentials, clearCredentials, hasCredentials } =
-  useSessionCredentials('session-code');
-
-// Save credentials after joining
-saveCredentials({
-  secretId: 'abc',
-  playerId: 'player-xyz',
-  playerIndex: 0,
-  sessionId: 'session-id', // optional
-});
-
-// Access stored credentials for reconnection
-if (hasCredentials) {
-  connectToGame(credentials.secretId, credentials.sessionId);
-}
-
-// Clear on logout
-clearCredentials();
-```
+Online authentication is owned by the client Firebase transport, not this package. The client bootstraps an anonymous Firebase Auth identity with browser-local persistence; RTDB rules bind the authenticated UID to the session seat.
 
 ## Peer Dependencies
 

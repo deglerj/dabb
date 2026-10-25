@@ -9,10 +9,6 @@ vi.mock('../config.js', () => ({ db: {} }));
 vi.mock('../auth.js', () => ({
   ensureAuthenticated: vi.fn(() => Promise.resolve({ uid: 'anonymous-user' })),
 }));
-vi.mock('../secretId.js', () => ({
-  getOrCreateSecretId: vi.fn(() => Promise.resolve('secret')),
-  hashSecretId: vi.fn(() => Promise.resolve('hash')),
-}));
 vi.mock('firebase/database', () => ({
   ref: vi.fn((_db: unknown, path: string) => ({ path })),
   get: (...args: unknown[]) => getMock(...args),
@@ -24,7 +20,7 @@ vi.mock('firebase/database', () => ({
   off: vi.fn(),
 }));
 
-const { joinSession, leaveSession } = await import('../session.js');
+const { getSessionMeta, joinSession, leaveSession } = await import('../session.js');
 
 function metaSnapshot(players: Record<string, unknown>, playerCount = 3) {
   return {
@@ -97,6 +93,30 @@ describe('joinSession seat claiming', () => {
       new GameError(GAME_ERROR_CODES.SESSION_FULL)
     );
     expect(setMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('getSessionMeta', () => {
+  beforeEach(() => {
+    getMock.mockReset();
+  });
+
+  it('rejects a legacy session without authenticated human ownership', async () => {
+    getMock.mockResolvedValue(
+      metaSnapshot({ '0': { nickname: 'Hans', secretHash: 'legacy', isAI: false } })
+    );
+
+    await expect(getSessionMeta('legacy-room')).resolves.toBeNull();
+  });
+
+  it('rejects legacy authorization fields even when an owner UID is present', async () => {
+    getMock.mockResolvedValue(
+      metaSnapshot({
+        '0': { nickname: 'Hans', ownerUid: 'host', secretHash: 'legacy', isAI: false },
+      })
+    );
+
+    await expect(getSessionMeta('legacy-room')).resolves.toBeNull();
   });
 });
 

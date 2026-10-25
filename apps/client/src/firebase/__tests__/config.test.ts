@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const connectDatabaseEmulatorMock = vi.fn();
 const connectAuthEmulatorMock = vi.fn();
 const getDatabaseMock = vi.fn(() => ({}));
-const getAuthMock = vi.fn(() => ({}));
+const initializeAuthMock = vi.fn(() => ({}));
+const browserLocalPersistence = { type: 'LOCAL' };
 
 vi.mock('firebase/app', () => ({
   initializeApp: vi.fn(() => ({})),
@@ -16,7 +17,8 @@ vi.mock('firebase/database', () => ({
 }));
 
 vi.mock('firebase/auth', () => ({
-  getAuth: getAuthMock,
+  browserLocalPersistence,
+  initializeAuth: initializeAuthMock,
   connectAuthEmulator: connectAuthEmulatorMock,
 }));
 
@@ -26,11 +28,19 @@ describe('firebase config emulator connection', () => {
     connectDatabaseEmulatorMock.mockClear();
     connectAuthEmulatorMock.mockClear();
     getDatabaseMock.mockClear();
-    getAuthMock.mockClear();
+    initializeAuthMock.mockClear();
   });
 
   afterEach(() => {
     vi.unstubAllEnvs();
+  });
+
+  it('uses local Auth persistence for reloads and same-origin tabs', async () => {
+    vi.stubEnv('EXPO_PUBLIC_USE_FIREBASE_EMULATOR', undefined);
+    await import('../config.js');
+    expect(initializeAuthMock).toHaveBeenCalledWith(expect.anything(), {
+      persistence: browserLocalPersistence,
+    });
   });
 
   it('does not connect to the emulator by default', async () => {
@@ -49,7 +59,7 @@ describe('firebase config emulator connection', () => {
       9000
     );
     expect(connectAuthEmulatorMock).toHaveBeenCalledWith(
-      getAuthMock.mock.results[0]?.value,
+      initializeAuthMock.mock.results[0]?.value,
       'http://localhost:9099',
       { disableWarnings: true }
     );

@@ -32,7 +32,7 @@
 | `apps/client/src/firebase/lobby.ts`                          | Public lobby index (listing, 1h TTL, stale-session pruning)                     |
 | `packages/game-logic/src/engine/actions.ts`                  | Action validation + event cascades (shared by all three engines)                |
 | `packages/game-logic/src/engine/scoring.ts`                  | Round scoring, game-over check, next deal                                       |
-| `apps/client/src/firebase/secretId.ts`                       | secretId generation and SHA-256 hashing                                         |
+| `apps/client/src/firebase/auth.ts`                           | anonymous Auth bootstrap and retryable identity readiness                       |
 | `apps/client/src/hooks/useFirebaseGame.ts`                   | Main game hook (Firebase subscriptions, state, reconnection)                    |
 | `apps/client/e2e/startup-create-join.spec.ts`                | Playwright E2E smoke test (app startup, create/join session)                    |
 | `firebase.json`                                              | Firebase Local Emulator Suite config (RTDB emulator, port 9000)                 |

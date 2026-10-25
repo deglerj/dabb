@@ -11,8 +11,6 @@ export interface SessionPlayer {
   nickname: string;
   /** Firebase Auth identity of a human seat; AI seats have no owner. */
   ownerUid?: string;
-  /** Legacy field, accepted only when reading pre-cutover data. */
-  secretHash?: string | null;
   isAI: boolean;
   /** Only set for AI players; absent for humans and for AI added before this was stored. */
   aiDifficulty?: AIDifficulty;
@@ -303,10 +301,12 @@ export async function getSessionMeta(sessionCode: string): Promise<SessionMeta |
     return null;
   }
   const meta = snapshot.val() as SessionMeta;
-  const hasLegacyHuman = Object.values(meta.players).some(
-    (player) => !player.isAI && !player.ownerUid
+  const hasLegacyAuthorization = Object.values(meta.players).some(
+    (player) =>
+      (!player.isAI && !player.ownerUid) ||
+      Object.prototype.hasOwnProperty.call(player, 'secretHash')
   );
-  return hasLegacyHuman ? null : meta;
+  return hasLegacyAuthorization ? null : meta;
 }
 
 export async function setSessionStatus(

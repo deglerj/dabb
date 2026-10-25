@@ -37,9 +37,6 @@ vi.mock('@dabb/ui-shared', () => ({
 vi.mock('../useEmotes.js', () => ({ useEmotes: () => emoteResult }));
 vi.mock('../useAIEmotes.js', () => ({ useAIEmotes: vi.fn() }));
 vi.mock('../../firebase/config.js', () => ({ db: {} }));
-vi.mock('../../firebase/secretId.js', () => ({
-  hashSecretId: vi.fn(() => Promise.resolve('hash')),
-}));
 vi.mock('../../firebase/events.js', () => ({
   getAllEvents: vi.fn(() => Promise.resolve([])),
   pushEvents: vi.fn(),
@@ -77,7 +74,9 @@ vi.mock('../../firebase/session.js', () => ({
 const { useFirebaseGame } = await import('../useFirebaseGame.js');
 
 const options = { sessionCode: 'old', playerIndex: 0 as PlayerIndex };
-const players = (nickname: string) => ({ '0': { nickname, isAI: false, secretHash: null } });
+const players = (nickname: string) => ({
+  '0': { nickname, ownerUid: 'anonymous-user', isAI: false },
+});
 
 beforeEach(() => {
   vi.clearAllMocks();

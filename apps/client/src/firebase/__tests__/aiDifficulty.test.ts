@@ -52,7 +52,7 @@ describe('addAIPlayer', () => {
   it('keeps each AI seat on its own difficulty', async () => {
     await addAIPlayer(
       'adjective-noun-7',
-      { '0': { nickname: 'Alice', secretHash: 'h', isAI: false } },
+      { '0': { nickname: 'Alice', ownerUid: 'alice', isAI: false } },
       3 as PlayerCount,
       'Bot Hilde',
       'easy'
@@ -68,8 +68,8 @@ describe('addAIPlayer', () => {
     await addAIPlayer(
       'adjective-noun-7',
       {
-        '0': { nickname: 'Alice', secretHash: 'h', isAI: false },
-        '2': { nickname: 'Bot Klaus', secretHash: null, isAI: true, aiDifficulty: 'medium' },
+        '0': { nickname: 'Alice', ownerUid: 'alice', isAI: false },
+        '2': { nickname: 'Bot Klaus', isAI: true, aiDifficulty: 'medium' },
       },
       3 as PlayerCount,
       'Bot Liesel',
@@ -87,8 +87,8 @@ describe('addAIPlayer', () => {
       addAIPlayer(
         'adjective-noun-7',
         {
-          '0': { nickname: 'Alice', secretHash: 'h', isAI: false },
-          '1': { nickname: 'Bob', secretHash: 'h', isAI: false },
+          '0': { nickname: 'Alice', ownerUid: 'alice', isAI: false },
+          '1': { nickname: 'Bob', ownerUid: 'bob', isAI: false },
         },
         2 as PlayerCount,
         'Bot Fritz',

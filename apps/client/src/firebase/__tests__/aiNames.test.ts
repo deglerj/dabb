@@ -32,10 +32,6 @@ vi.mock('../config.js', () => ({ db: {} }));
 vi.mock('../auth.js', () => ({
   ensureAuthenticated: vi.fn(() => Promise.resolve({ uid: 'anonymous-user' })),
 }));
-vi.mock('../secretId.js', () => ({
-  getOrCreateSecretId: async () => 'secret',
-  hashSecretId: async () => 'hash',
-}));
 
 const { joinSession } = await import('../session.js');
 
@@ -68,8 +64,8 @@ describe('joinSession', () => {
       status: 'waiting',
       createdAt: 0,
       players: {
-        '0': { nickname: 'Alice', secretHash: 'h', isAI: false },
-        '1': { nickname: 'Hans', secretHash: null, isAI: true, aiDifficulty: 'medium' },
+        '0': { nickname: 'Alice', ownerUid: 'alice', isAI: false },
+        '1': { nickname: 'Hans', isAI: true, aiDifficulty: 'medium' },
       },
     };
 
@@ -92,8 +88,8 @@ describe('joinSession', () => {
       status: 'waiting',
       createdAt: 0,
       players: {
-        '0': { nickname: 'Alice', secretHash: 'h', isAI: false },
-        '1': { nickname: 'Hans', secretHash: null, isAI: true, aiDifficulty: 'medium' },
+        '0': { nickname: 'Alice', ownerUid: 'alice', isAI: false },
+        '1': { nickname: 'Hans', isAI: true, aiDifficulty: 'medium' },
       },
     };
 

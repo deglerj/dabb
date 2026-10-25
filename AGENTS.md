@@ -23,7 +23,7 @@ All game state is stored as an append-only event log in Firebase RTDB per sessio
 
 `packages/game-logic/src/engine/` turns a player action into the events it produces, validating it first and expanding the whole cascade (a card play can finish a trick, a round and the game). All three drivers go through `createEventsForAction`: the online client (`useFirebaseGame`, `useAI`), offline play (`OfflineGameEngine`) and the simulation (`SimulationEngine`). They differ only in transport and pacing. Do not re-implement scoring, dealing or phase advancement in a driver — that is exactly what drifted before.
 
-Key client files: `apps/client/src/firebase/` (session, lobby, events, config, secretId) — transport only; the rules live in `packages/game-logic/src/engine/`
+Key client files: `apps/client/src/firebase/` (auth, session, lobby, events, config) — transport only; the rules live in `packages/game-logic/src/engine/`
 
 Key events: `GameStartedEvent`, `CardsDealtEvent`, `BidPlacedEvent`, `PlayerPassedEvent`, `BiddingWonEvent`, `DabbTakenEvent`, `CardsDiscardedEvent`, `GoingOutEvent`, `TrumpDeclaredEvent`, `MeldsDeclaredEvent`, `MeldingCompleteEvent`, `CardPlayedEvent`, `TrickWonEvent`, `RoundScoredEvent`, `GameFinishedEvent`, `GameTerminatedEvent`, `PlayerJoinedEvent`, `PlayerLeftEvent`, `PlayerReconnectedEvent`, `NewRoundStartedEvent`.
 
@@ -50,7 +50,7 @@ There is no invite code. Every online session is listed at `lobby/<code>`
   is untouchable. `LOBBY_TTL_MS` and the number in the rules file have to stay in sync.
 
 **Leaving a waiting room marks the seat, it does not delete it.** `leaveSession` rewrites the
-seat with `left: true`, preserving its `ownerUid` — that identity is what the rules check,
+seat with `left: true`, preserving its `ownerUid` — that authenticated identity is what the rules check,
 so only the seat's owner can vacate it. A delete rule would have to let anyone write a seat holding
 someone else, which is a kick-anyone button in a lobby open to strangers. Everything that counts
 seats (`firstFreeSeat`, `syncLobbyEntry`, the waiting room's player list, the `PlayerInfo[]` the
@@ -101,7 +101,7 @@ After a regular finish every human is asked whether to play again; a unanimous y
 
 - **The vote is not an event.** It lives at `sessions/<code>/rematch/votes/<playerIndex>` (`apps/client/src/firebase/rematch.ts`), next to `emotes` and `presence` and for the same reason: in the log it would replay on reconnect and travel through the reducer, the view filter and the game log.
 - **Bots agree without voting.** `resolveRematchStatus` (`apps/client/src/components/game/rematch.ts`) is only given the human seats; everyone missing from that list counts as yes. Same principle as `pickAIEmote`: an AI answer is derived on each client, never transported. An **empty** seat list is `pending`, not `agreed` — the seats arrive with the session meta a moment after the game screen mounts, and treating "nobody known" as "nobody objected" started a rematch before anyone was asked.
-- **A rematch is a new session, not a restart.** Seat 0 (always the human who created the original session) creates it, deals it and publishes its code at `sessions/<old>/rematch/code`; every client then claims _its own_ seat there. That is forced by the rules: `meta/players/$i` is writable exactly once and only the seat's owner can hash its own secret, so the host cannot seat the other humans. The new session is born `status: 'active'` so a stranger guessing the fresh code cannot `joinSession` into a seat still on its way. The finished game's log is left untouched.
+- **A rematch is a new session, not a restart.** Seat 0 (always the human who created the original session) creates it, deals it and publishes its code at `sessions/<old>/rematch/code`; every client then claims _its own_ seat there. That is forced by the rules: `meta/players/$i` is writable exactly once and only the authenticated seat owner can claim its own seat, so the host cannot seat the other humans. The new session is born `status: 'active'` so a stranger guessing the fresh code cannot `joinSession` into a seat still on its way. The finished game's log is left untouched.
 - **`GameRoute` keys `GameSession` by session code.** Navigating from one session to the next does not unmount the route, and every hook below it (`useGameState`, `useRoundHistory`, `useGameLog`) accumulates events for one session — without the key the two logs merge. Offline, `offline.tsx` keys on a `seed` query param for the same reason: `useOfflineGame` builds its engine once per mount.
 
 ### Replay Guard: `replayedEventIds`

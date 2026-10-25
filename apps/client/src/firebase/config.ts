@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getDatabase, connectDatabaseEmulator } from 'firebase/database';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { browserLocalPersistence, connectAuthEmulator, initializeAuth } from 'firebase/auth';
 
 const useFirebaseEmulator = import.meta.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true';
 
@@ -17,7 +17,10 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getDatabase(app);
-export const auth = getAuth(app);
+// Local persistence keeps the anonymous identity across reloads and synchronizes it between
+// same-origin tabs. Explicit initialization prevents a browser-only default from changing the
+// ownership contract when this module is used in another Firebase runtime.
+export const auth = initializeAuth(app, { persistence: browserLocalPersistence });
 
 if (useFirebaseEmulator) {
   connectDatabaseEmulator(db, 'localhost', 9000);

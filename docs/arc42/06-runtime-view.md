@@ -13,8 +13,8 @@ sequenceDiagram
     rect rgb(240, 240, 240)
         Note over playerA, firebase: Create Game
         playerA->>appA: Click "Create Online Game"
-        appA->>appA: Generate secretId, sessionCode
-        appA->>firebase: Write session meta (playerCount, code, player A info)
+        appA->>appA: Resolve anonymous Firebase Auth identity, generate sessionCode
+        appA->>firebase: Write session meta (playerCount, code, player A owner UID)
         appA->>firebase: Publish lobby/&lt;code&gt; (host, seats, createdAt)
         firebase-->>appA: Confirmed
         appA->>appA: Show waiting room
@@ -144,7 +144,7 @@ sequenceDiagram
     participant firebase as Firebase RTDB
 
     player->>app: Reopen app
-    app->>storage: Load secretId + sessionCode
+    app->>firebase: Restore anonymous Auth identity and load sessionCode
     app->>firebase: Subscribe to session events (getAllEvents)
     firebase-->>app: All events from the beginning
     app->>app: Replay all events via reducer

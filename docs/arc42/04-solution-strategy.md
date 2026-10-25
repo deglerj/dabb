@@ -29,8 +29,8 @@ The system is decomposed into:
 ### Security
 
 - Client-side event filtering prevents players from seeing others' cards
-- Secret IDs (`secretId`) stored locally; SHA-256 hash stored in Firebase
-- Firebase security rules gate writes to registered session players only
+- Anonymous Firebase Auth identities persist locally and are synchronized across same-origin tabs
+- Firebase security rules bind writes to authenticated session players and short-lived AI claims
 
 ### Performance
 

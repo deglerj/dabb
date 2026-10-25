@@ -28,7 +28,7 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
 
 ```typescript
 const socket = io(serverUrl, {
-  auth: { secretId, sessionId },
+  auth: { sessionId },
   reconnection: true,
 });
 ```

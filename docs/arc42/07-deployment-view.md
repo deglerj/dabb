@@ -35,13 +35,13 @@ No self-hosted server infrastructure. The game backend is Firebase Realtime Data
 
 The app is **serverless P2P**. All game state lives in Firebase RTDB as an append-only event log. Clients read and write events directly; no application server intermediary.
 
-| Concern         | How handled                                                       |
-| --------------- | ----------------------------------------------------------------- |
-| Game state      | Firebase RTDB — append-only event log per session                 |
-| Auth / identity | `secretId` stored in `localStorage`; SHA-256 hash stored in RTDB  |
-| Write access    | Firebase security rules — only registered players can push        |
-| Reconnection    | Replay all events from RTDB on reconnect                          |
-| Session cleanup | Whichever client opens the lobby deletes waiting sessions >1h old |
+| Concern         | How handled                                                                                         |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| Game state      | Firebase RTDB — append-only event log per session                                                   |
+| Auth / identity | Anonymous Firebase Auth identity with browser-local persistence and same-origin tab synchronization |
+| Write access    | Firebase security rules — only registered players can push                                          |
+| Reconnection    | Replay all events from RTDB on reconnect                                                            |
+| Session cleanup | Whichever client opens the lobby deletes waiting sessions >1h old                                   |
 
 ## 7.4 Firebase Security Rules
 
@@ -55,7 +55,7 @@ Firebase Auth supplies an anonymous identity for every connected member. The rul
 | `.../meta/players/$i`   | Writable when free; while waiting also for a bot seat, a vacated seat, or by its authenticated owner             |
 | `.../events/$eventId`   | Writable once when `actor` is the authenticated human seat, or with a current AI `claimId` bound to that AI seat |
 | `.../aiClaims/$claimId` | Writable by any authenticated session member for an AI seat, replacing only an absent or expired claim           |
-| `lobby/$code`           | World readable and writable — it holds no game state, only who is waiting for players                            |
+| `lobby/$code`           | World readable; authenticated host writes listings and authenticated clients may remove stale waiting entries    |
 
 The authoritative copy is [`database.rules.json`](../../database.rules.json); do not keep a second
 one here. Note that the Playwright run does **not** exercise it — `playwright.config.ts` points the

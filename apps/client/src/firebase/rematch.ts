@@ -67,7 +67,7 @@ function credentialsKey(sessionCode: string): string {
 /**
  * Creates the rematch session, seated with the host and every bot.
  *
- * The other humans are left out on purpose — only they can hash their own secret, and
+ * The other humans are left out on purpose — only they can claim their own authenticated seat, and
  * `claimRematchSeat` is what puts them in. The session is born `active` rather than
  * `waiting`: those seats stand empty for a moment, and an outsider who guessed the fresh
  * code could otherwise `joinSession` into one before its owner arrives.

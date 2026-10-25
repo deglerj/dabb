@@ -51,7 +51,7 @@ Format: {adjective}-{noun}-{number}
 Examples: schnell-fuchs-42, blau-adler-7
 ```
 
-Players authenticate with a `secretId` stored in localStorage/AsyncStorage.
+Players receive an anonymous Firebase Auth identity. The web client uses browser-local persistence, so reloads and same-origin tabs reuse that identity; session ownership is bound to its Firebase UID.
 
 ## 8.4 State Synchronization
 

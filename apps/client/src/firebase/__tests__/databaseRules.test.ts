@@ -87,7 +87,8 @@ describe.skipIf(process.env.DABB_RULES_TEST !== 'true')('database ownership rule
     const human = testEnv.authenticatedContext('human').database();
 
     await assertSucceeds(host.ref('sessions/room/meta/status').set('active'));
-    await assertFails(human.ref('sessions/room/meta/status').set('finished'));
+    await assertSucceeds(host.ref('sessions/room/meta/status').set('finished'));
+    await assertFails(human.ref('sessions/room/meta/status').set('terminated'));
     await assertFails(host.ref('sessions/room/meta/players/2').remove());
     await assertFails(
       host.ref('sessions/room/meta/players/1').set({
@@ -198,6 +199,27 @@ describe.skipIf(process.env.DABB_RULES_TEST !== 'true')('database ownership rule
     await assertFails(human.ref('lobby/new-room').set(lobbyEntry()));
     await assertSucceeds(human.ref('lobby/room').remove());
     await assertSucceeds(human.ref('sessions/room').remove());
+  });
+
+  it('rejects legacy authorization fields in new metadata and player writes', async () => {
+    const host = testEnv.authenticatedContext('host').database();
+
+    await assertFails(
+      host.ref('sessions/legacy/meta').set({
+        ...waitingSession().meta,
+        players: {
+          ...waitingSession().meta.players,
+          '0': { nickname: 'Hans', ownerUid: 'host', isAI: false, secretHash: 'legacy' },
+        },
+      })
+    );
+    await assertFails(
+      host.ref('sessions/room/meta/players/2').set({
+        nickname: 'Bot Legacy',
+        isAI: true,
+        secretHash: 'legacy',
+      })
+    );
   });
 
   it('authorizes events by human seat and rejects bearer or cross-seat writes', async () => {
