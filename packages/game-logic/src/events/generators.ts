@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import {
+  BaseEvent,
   BidPlacedEvent,
   BiddingWonEvent,
   Card,
@@ -12,7 +13,6 @@ import {
   CardsDealtEvent,
   CardsDiscardedEvent,
   DabbTakenEvent,
-  GameEvent,
   GameFinishedEvent,
   GameStartedEvent,
   GameTerminatedEvent,
@@ -34,14 +34,18 @@ import {
 interface EventContext {
   sessionId: string;
   sequence: number;
+  actor?: PlayerIndex;
+  claimId?: string;
 }
 
-function createBaseEvent(ctx: EventContext): Omit<GameEvent, 'type' | 'payload'> {
+function createBaseEvent(ctx: EventContext): Omit<BaseEvent, 'type' | 'payload'> {
   return {
     id: uuidv4(),
     sessionId: ctx.sessionId,
     sequence: ctx.sequence,
     timestamp: Date.now(),
+    actor: ctx.actor ?? (0 as PlayerIndex),
+    ...(ctx.claimId ? { claimId: ctx.claimId } : {}),
   };
 }
 

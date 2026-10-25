@@ -65,6 +65,7 @@ export class OfflineGameEngine {
   private events: GameEvent[] = [];
   private state!: GameState;
   private sequence = 0;
+  private actor: PlayerIndex = 0 as PlayerIndex;
   private aiPlayers: Map<PlayerIndex, AIPlayer> = new Map();
   private pendingEvents: GameEvent[] = [];
 
@@ -115,7 +116,11 @@ export class OfflineGameEngine {
     };
   }
 
-  private next: NextContext = () => ({ sessionId: 'offline', sequence: ++this.sequence });
+  private next: NextContext = () => ({
+    sessionId: 'offline',
+    sequence: ++this.sequence,
+    actor: this.actor,
+  });
 
   private emit(event: GameEvent): void {
     this.events.push(event);
@@ -128,6 +133,7 @@ export class OfflineGameEngine {
    * sees each card arrive before the next player answers.
    */
   private async act(playerIndex: PlayerIndex, action: AIAction): Promise<void> {
+    this.actor = playerIndex;
     const isTrickCardPlay = this.state.phase === 'tricks' && action.type === 'playCard';
     const lastTrickBefore = this.state.lastCompletedTrick;
     let meldingCompleted = false;

@@ -35,7 +35,7 @@ See the [Architecture Decision Records](../adr/) for detailed decisions:
 - Serverless P2P — no application server to maintain
 - All game events stored as append-only log per session
 - Clients subscribe directly; reconnection handled by replaying all events
-- Write access gated by secretHash security rules
+- Write access gated by Firebase Auth, actor-seat ownership, and expiring AI claims
 
 ### Swabian Terminology
 

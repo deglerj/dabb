@@ -61,6 +61,7 @@ export class SimulationEngine {
   private events: GameEvent[] = [];
   private state!: GameState;
   private sequence = 0;
+  private actor: PlayerIndex = 0 as PlayerIndex;
   private aiPlayers: Map<PlayerIndex, AIPlayer> = new Map();
   private actionCount = 0;
   private seatDifficulties: AIDifficulty[] = [];
@@ -70,6 +71,7 @@ export class SimulationEngine {
   private next: NextContext = () => ({
     sessionId: this.options.sessionId,
     sequence: ++this.sequence,
+    actor: this.actor,
   });
 
   private emit(event: GameEvent): void {
@@ -156,6 +158,7 @@ export class SimulationEngine {
       throw new Error(`No AI player for index ${playerIndex}`);
     }
 
+    this.actor = playerIndex;
     const action = await ai.decide({
       gameState: this.state,
       playerIndex,

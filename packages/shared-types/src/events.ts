@@ -11,6 +11,10 @@ export interface BaseEvent {
   sessionId: string;
   sequence: number;
   timestamp: number;
+  /** Non-secret seat that caused this event. */
+  actor?: PlayerIndex;
+  /** Authenticated AI execution grant used for this cascade. */
+  claimId?: string;
 }
 
 // Game lifecycle events

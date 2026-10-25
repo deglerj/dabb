@@ -1,30 +1,30 @@
-import { ref, push, update, onChildAdded, off, get } from 'firebase/database';
+import { ref, push, update, onChildAdded, off, get, runTransaction } from 'firebase/database';
 import { db } from './config.js';
-import type { GameEvent } from '@dabb/shared-types';
+import { ensureAuthenticated } from './auth.js';
+import type { GameEvent, PlayerIndex } from '@dabb/shared-types';
 import { normalizeEventLog } from '@dabb/game-logic';
 
-export type StoredEvent = GameEvent & {
-  authorHash: string;
-};
+export interface AIClaim {
+  playerIndex: PlayerIndex;
+  claimedBy: string;
+  claimedAt: number;
+}
 
-export async function pushEvents(
-  sessionCode: string,
-  events: GameEvent[],
-  authorHash: string
-): Promise<void> {
+export async function pushEvents(sessionCode: string, events: GameEvent[]): Promise<void> {
   if (events.length === 0) {
     return;
   }
+  await ensureAuthenticated();
 
-  const updates: Record<string, StoredEvent> = {};
+  const updates: Record<string, GameEvent> = {};
   for (const event of events) {
     const newKey = push(ref(db, `sessions/${sessionCode}/events`)).key;
     if (!newKey) {
       throw new Error('Failed to generate Firebase key');
     }
     updates[`sessions/${sessionCode}/events/${newKey}`] = JSON.parse(
-      JSON.stringify({ ...event, authorHash })
-    ) as StoredEvent;
+      JSON.stringify(event)
+    ) as GameEvent;
   }
 
   await update(ref(db), updates);
@@ -37,18 +37,17 @@ export function subscribeToEvents(
   const eventsRef = ref(db, `sessions/${sessionCode}/events`);
 
   const handler = onChildAdded(eventsRef, (snap) => {
-    const stored = snap.val() as StoredEvent | null;
-    if (!stored) {
-      return;
+    const event = snap.val() as GameEvent | null;
+    if (event) {
+      onEvent(event);
     }
-    const { authorHash: _a, ...event } = stored;
-    onEvent(event as GameEvent);
   });
 
   return () => off(eventsRef, 'child_added', handler);
 }
 
 export async function getAllEvents(sessionCode: string): Promise<GameEvent[]> {
+  await ensureAuthenticated();
   const snapshot = await get(ref(db, `sessions/${sessionCode}/events`));
   if (!snapshot.exists()) {
     return [];
@@ -56,33 +55,35 @@ export async function getAllEvents(sessionCode: string): Promise<GameEvent[]> {
 
   const events: GameEvent[] = [];
   snapshot.forEach((child) => {
-    const stored = child.val() as StoredEvent;
-    const { authorHash: _a, ...event } = stored;
-    events.push(event as GameEvent);
+    events.push(child.val() as GameEvent);
   });
 
   return normalizeEventLog(events);
 }
 
+/**
+ * Atomically claim one AI decision. Any authenticated member may win a free or expired claim;
+ * the database rules bind the eventual events to the same AI seat and claim id.
+ */
 export async function claimCascade(
   sessionCode: string,
-  claimKey: string,
-  claimerHash: string
+  claimId: string,
+  playerIndex: PlayerIndex
 ): Promise<boolean> {
-  const claimRef = ref(db, `sessions/${sessionCode}/aiClaims/${claimKey}`);
-  const existing = await get(claimRef);
+  const user = await ensureAuthenticated();
+  const claimRef = ref(db, `sessions/${sessionCode}/aiClaims/${claimId}`);
+  const now = Date.now();
 
-  if (existing.exists()) {
-    const data = existing.val() as { claimedBy: string; claimedAt: number };
-    const isExpired = Date.now() - data.claimedAt > 10_000;
-    if (!isExpired) {
-      return false;
+  const result = await runTransaction(claimRef, (value) => {
+    const existing = value as AIClaim | null;
+    if (existing && existing.claimedBy !== user.uid && now - existing.claimedAt <= 10_000) {
+      return;
     }
-  }
+    return { playerIndex, claimedBy: user.uid, claimedAt: Date.now() } satisfies AIClaim;
+  });
 
-  await update(claimRef, { claimedBy: claimerHash, claimedAt: Date.now() });
-
-  const confirm = await get(claimRef);
-  const winner = (confirm.val() as { claimedBy: string }).claimedBy;
-  return winner === claimerHash;
+  const claim = result.snapshot.val() as AIClaim | null;
+  return (
+    result.committed === true && claim?.claimedBy === user.uid && claim.playerIndex === playerIndex
+  );
 }

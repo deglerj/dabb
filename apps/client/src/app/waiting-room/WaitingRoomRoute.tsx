@@ -28,7 +28,7 @@ type PlayerEntry = {
 };
 
 type StoredSession = {
-  secretId: string;
+  ownerUid: string;
   playerIndex: PlayerIndex;
   playerCount?: number;
 };
@@ -138,7 +138,7 @@ export default function WaitingRoomRoute() {
     );
   }
 
-  const { playerIndex, playerCount, secretId: credentialsSecretId } = credentials;
+  const { playerIndex, playerCount } = credentials;
   const isHost = playerIndex === 0;
 
   const handleStartGame = async () => {
@@ -152,7 +152,7 @@ export default function WaitingRoomRoute() {
       }
 
       let seq = 0;
-      const next = () => ({ sessionId: code, sequence: ++seq });
+      const next = () => ({ sessionId: code, sequence: ++seq, actor: playerIndex });
 
       const events = createStartGameEvents(
         next,
@@ -160,7 +160,7 @@ export default function WaitingRoomRoute() {
         meta.playerCount,
         meta.targetScore
       );
-      await pushEvents(code, events, credentialsSecretId);
+      await pushEvents(code, events);
       await setSessionStatus(code, 'active');
     } catch (err) {
       window.alert(err instanceof Error ? err.message : 'Failed to start game');
@@ -178,8 +178,9 @@ export default function WaitingRoomRoute() {
         const termEvents = createTerminateGameEvents(applyEvents([]), playerIndex, () => ({
           sessionId: code,
           sequence: ++n,
+          actor: playerIndex,
         }));
-        await pushEvents(code, termEvents, credentialsSecretId);
+        await pushEvents(code, termEvents);
       } else if (meta && meta.status === 'waiting') {
         const seat = meta.players[String(playerIndex)];
         if (seat) {

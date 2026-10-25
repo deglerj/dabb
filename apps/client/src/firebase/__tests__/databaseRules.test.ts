@@ -48,6 +48,18 @@ function lobbyEntry() {
   };
 }
 
+function event(actor: number, sessionId = 'room', claimId?: string) {
+  return {
+    id: `${sessionId}-${actor}`,
+    sessionId,
+    sequence: 1,
+    timestamp: Date.now(),
+    actor,
+    type: 'BID_PLACED',
+    ...(claimId ? { claimId } : {}),
+  };
+}
+
 describe.skipIf(process.env.DABB_RULES_TEST !== 'true')('database ownership rules', () => {
   let testEnv: RulesTestEnvironment;
 
@@ -186,6 +198,68 @@ describe.skipIf(process.env.DABB_RULES_TEST !== 'true')('database ownership rule
     await assertFails(human.ref('lobby/new-room').set(lobbyEntry()));
     await assertSucceeds(human.ref('lobby/room').remove());
     await assertSucceeds(human.ref('sessions/room').remove());
+  });
+
+  it('authorizes events by human seat and rejects bearer or cross-seat writes', async () => {
+    const host = testEnv.authenticatedContext('host').database();
+    const human = testEnv.authenticatedContext('human').database();
+
+    await assertSucceeds(host.ref('sessions/room/meta/status').set('active'));
+    await assertSucceeds(human.ref('sessions/room/events/human').set(event(1)));
+    await assertFails(human.ref('sessions/room/events/host-seat').set(event(0)));
+    await assertFails(
+      human.ref('sessions/room/events/secret').set({ ...event(1), authorHash: 'human' })
+    );
+    await assertFails(
+      human.ref('sessions/room/events/missing-actor').set({ ...event(1, 'room'), actor: null })
+    );
+    await assertFails(human.ref('sessions/room/events/wrong-session').set(event(1, 'other')));
+  });
+
+  it('authorizes an AI cascade only through a current claim for that AI seat', async () => {
+    const host = testEnv.authenticatedContext('host').database();
+    const human = testEnv.authenticatedContext('human').database();
+    const rival = testEnv.authenticatedContext('rival').database();
+
+    await assertSucceeds(host.ref('sessions/room/meta/status').set('active'));
+    await assertSucceeds(
+      human.ref('sessions/room/aiClaims/turn-1').set({
+        playerIndex: 2,
+        claimedBy: 'human',
+        claimedAt: Date.now(),
+      })
+    );
+    await assertSucceeds(
+      human.ref('sessions/room/events/ai-action').set(event(2, 'room', 'turn-1'))
+    );
+    await assertFails(
+      human.ref('sessions/room/events/ai-cross-seat').set(event(1, 'room', 'turn-1'))
+    );
+    await assertFails(human.ref('sessions/room/events/ai-missing-claim').set(event(2, 'room')));
+    await assertFails(
+      human.ref('sessions/room/events/ai-null-claim').set({ ...event(2), claimId: null })
+    );
+    await assertFails(
+      rival.ref('sessions/room/aiClaims/outsider').set({
+        playerIndex: 2,
+        claimedBy: 'rival',
+        claimedAt: Date.now(),
+      })
+    );
+
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context
+        .database()
+        .ref('sessions/room/aiClaims/expired')
+        .set({
+          playerIndex: 2,
+          claimedBy: 'human',
+          claimedAt: Date.now() - 10_001,
+        });
+    });
+    await assertFails(
+      human.ref('sessions/room/events/ai-expired').set(event(2, 'room', 'expired'))
+    );
   });
 
   it('does not let cleanup remove active or finished sessions', async () => {

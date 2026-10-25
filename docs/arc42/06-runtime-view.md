@@ -46,7 +46,7 @@ sequenceDiagram
         Note over playerA, firebase: Player A Bids
         playerA->>appA: Enter bid amount
         appA->>appA: Validate bid (gameEventFactory)
-        appA->>firebase: Push BID_PLACED event (signed with secretHash)
+        appA->>firebase: Push BID_PLACED event (actor seat, Firebase Auth)
         firebase-->>appA: New event
         firebase-->>appB: New event
         appA->>appA: Apply event via reducer
@@ -76,13 +76,13 @@ sequenceDiagram
     app->>logic: getValidPlays(state)
     app->>app: Check card validity
     app->>logic: createCardPlayedEvent(cardId)
-    app->>firebase: Push CARD_PLAYED event (signed with secretHash)
+    app->>firebase: Push CARD_PLAYED event (actor seat, Firebase Auth)
     firebase-->>app: Event confirmed + broadcast to all players
     app->>logic: applyEvent(state, event)
     app->>app: Update UI
 ```
 
-**Event signing:** Each event push includes `authorHash` (SHA-256 of the player's `secretId`). Firebase security rules verify that only registered players can push events.
+**Event authorization:** Each event carries a non-secret `actor` seat. Firebase Auth binds human writes to that seat's `ownerUid`; AI actions carry a short-lived `claimId` granted to any authenticated session member and bound to the AI seat by the rules.
 
 ## 6.4 Going Out (Forfeit Round)
 
@@ -196,11 +196,11 @@ sequenceDiagram
 
 **Key differences from live P2P flow:**
 
-| Aspect          | Live P2P                             | Simulation                        |
-| --------------- | ------------------------------------ | --------------------------------- |
-| State storage   | Firebase RTDB (all events persisted) | In-memory only                    |
-| AI timing       | 500–4000ms delays for natural feel   | Instant (no delays)               |
-| Concurrency     | Firebase subscription callbacks      | `Promise.allSettled` batches      |
-| Event signing   | secretHash required for writes       | No auth (all-knowing)             |
-| Error handling  | Error shown to player in UI          | Partial result with error log     |
-| Stuck detection | None (connection loss shows banner)  | Action limit + wall-clock timeout |
+| Aspect              | Live P2P                             | Simulation                        |
+| ------------------- | ------------------------------------ | --------------------------------- |
+| State storage       | Firebase RTDB (all events persisted) | In-memory only                    |
+| AI timing           | 500–4000ms delays for natural feel   | Instant (no delays)               |
+| Concurrency         | Firebase subscription callbacks      | `Promise.allSettled` batches      |
+| Event authorization | Firebase Auth + actor/AI claim       | No auth (all-knowing)             |
+| Error handling      | Error shown to player in UI          | Partial result with error log     |
+| Stuck detection     | None (connection loss shows banner)  | Action limit + wall-clock timeout |

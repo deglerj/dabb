@@ -1,7 +1,7 @@
 import { ref, set, onValue, off } from 'firebase/database';
 import { db } from './config.js';
+import { ensureAuthenticated } from './auth.js';
 import { generateSessionCode } from './sessionCode.js';
-import { getOrCreateSecretId, hashSecretId } from './secretId.js';
 import type { SessionMeta, SessionPlayer } from './session.js';
 import type { PlayerCount, PlayerIndex } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
@@ -16,7 +16,7 @@ import type { AIDifficulty } from '@dabb/game-ai';
  * The rematch itself is a *new* session with the same seats rather than a restart of this
  * one. That leaves the finished game's log intact, needs no rule that lets anyone overwrite
  * `events`, and gets seat preservation for free: `meta/players/$i` is writable exactly once,
- * so every player claims their own seat with their own secret hash.
+ * so every player claims their own seat with their authenticated Firebase identity.
  */
 
 export interface RematchSignal {
@@ -75,17 +75,15 @@ export async function createRematchSession(
   hostIndex: PlayerIndex,
   playerCount: PlayerCount,
   targetScore: number
-): Promise<{ code: string; secretHash: string }> {
+): Promise<{ code: string }> {
+  const user = await ensureAuthenticated();
   const code = generateSessionCode();
-  const secretId = await getOrCreateSecretId(code);
-  const secretHash = await hashSecretId(secretId);
 
   const players: Record<string, SessionPlayer> = {};
   for (const seat of seats) {
     if (seat.isAI) {
       players[String(seat.playerIndex)] = {
         nickname: seat.nickname,
-        secretHash: null,
         isAI: true,
         ...(seat.aiDifficulty ? { aiDifficulty: seat.aiDifficulty } : {}),
       };
@@ -94,7 +92,7 @@ export async function createRematchSession(
   const host = seats.find((seat) => seat.playerIndex === hostIndex);
   players[String(hostIndex)] = {
     nickname: host?.nickname ?? '',
-    secretHash,
+    ownerUid: user.uid,
     isAI: false,
   };
 
@@ -109,10 +107,10 @@ export async function createRematchSession(
 
   localStorage.setItem(
     credentialsKey(code),
-    JSON.stringify({ secretId, playerIndex: hostIndex, playerCount })
+    JSON.stringify({ ownerUid: user.uid, playerIndex: hostIndex, playerCount })
   );
 
-  return { code, secretHash };
+  return { code };
 }
 
 /**
@@ -130,14 +128,16 @@ export async function claimRematchSeat(
     return;
   }
 
-  const secretId = await getOrCreateSecretId(rematchCode);
-  const secretHash = await hashSecretId(secretId);
+  const user = await ensureAuthenticated();
 
   await set(ref(db, `sessions/${rematchCode}/meta/players/${playerIndex}`), {
     nickname,
-    secretHash,
+    ownerUid: user.uid,
     isAI: false,
   });
 
-  localStorage.setItem(credentialsKey(rematchCode), JSON.stringify({ secretId, playerIndex }));
+  localStorage.setItem(
+    credentialsKey(rematchCode),
+    JSON.stringify({ ownerUid: user.uid, playerIndex })
+  );
 }

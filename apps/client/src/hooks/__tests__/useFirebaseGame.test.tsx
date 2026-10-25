@@ -76,7 +76,7 @@ vi.mock('../../firebase/session.js', () => ({
 
 const { useFirebaseGame } = await import('../useFirebaseGame.js');
 
-const options = { sessionCode: 'old', secretId: 'secret', playerIndex: 0 as PlayerIndex };
+const options = { sessionCode: 'old', playerIndex: 0 as PlayerIndex };
 const players = (nickname: string) => ({ '0': { nickname, isAI: false, secretHash: null } });
 
 beforeEach(() => {

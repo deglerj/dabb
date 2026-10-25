@@ -2,9 +2,15 @@
  * How the engine stamps the events it produces.
  */
 
+import type { PlayerIndex } from '@dabb/shared-types';
+
 export interface EventContext {
   sessionId: string;
   sequence: number;
+  /** Non-secret seat that caused this event. */
+  actor?: PlayerIndex;
+  /** Authenticated AI execution grant used for this cascade. */
+  claimId?: string;
 }
 
 /**

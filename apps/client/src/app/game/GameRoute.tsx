@@ -8,8 +8,7 @@ import GameScreen from '../../components/ui/GameScreen.js';
 import type { PlayerIndex } from '@dabb/shared-types';
 
 type StoredSession = {
-  secretId: string;
-  playerId: string;
+  ownerUid: string;
   playerIndex: PlayerIndex;
 };
 
@@ -34,15 +33,13 @@ function GameSession({ code }: { code: string }) {
     credentials
       ? {
           sessionCode: code,
-          secretId: credentials.secretId,
           playerIndex: credentials.playerIndex,
         }
-      : { sessionCode: '', secretId: '', playerIndex: 0 as PlayerIndex }
+      : { sessionCode: '', playerIndex: 0 as PlayerIndex }
   );
 
   useAI({
     sessionCode: code,
-    secretId: credentials?.secretId ?? '',
     rawEvents: game.rawEvents ?? [],
     aiSeats: game.aiSeats ?? [],
   });

@@ -45,16 +45,17 @@ The app is **serverless P2P**. All game state lives in Firebase RTDB as an appen
 
 ## 7.4 Firebase Security Rules
 
-There is no auth, so the rules are the whole access model. What they encode:
+Firebase Auth supplies an anonymous identity for every connected member. The rules bind that identity to human seats and short-lived AI execution claims. What they encode:
 
-| Path                  | Rule                                                                                                                |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `sessions/$code`      | Readable **by code only** — never at the root, or any visitor could read every player's hand                        |
-| `sessions/$code`      | Deletable only while `status === 'waiting'` and older than 1h — this is the lobby's garbage collection              |
-| `.../meta`            | Writable as a whole only while absent, because `createSession` writes it in one `set()`                             |
-| `.../meta/players/$i` | Writable when free; while waiting also for a bot seat, a vacated seat, or by the owner echoing its own `secretHash` |
-| `.../events/$eventId` | Writable only when `authorHash` matches one of the seats' `secretHash`                                              |
-| `lobby/$code`         | World readable and writable — it holds no game state, only who is waiting for players                               |
+| Path                    | Rule                                                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `sessions/$code`        | Readable **by code only** — never at the root, or any visitor could read every player's hand                     |
+| `sessions/$code`        | Deletable only while `status === 'waiting'` and older than 1h — this is the lobby's garbage collection           |
+| `.../meta`              | Writable as a whole only while absent, because `createSession` writes it in one `set()`                          |
+| `.../meta/players/$i`   | Writable when free; while waiting also for a bot seat, a vacated seat, or by its authenticated owner             |
+| `.../events/$eventId`   | Writable once when `actor` is the authenticated human seat, or with a current AI `claimId` bound to that AI seat |
+| `.../aiClaims/$claimId` | Writable by any authenticated session member for an AI seat, replacing only an absent or expired claim           |
+| `lobby/$code`           | World readable and writable — it holds no game state, only who is waiting for players                            |
 
 The authoritative copy is [`database.rules.json`](../../database.rules.json); do not keep a second
 one here. Note that the Playwright run does **not** exercise it — `playwright.config.ts` points the

@@ -84,7 +84,7 @@ export function useRematch({ sessionCode, playerIndex, game }: UseRematchOptions
 
     void (async () => {
       try {
-        const { code, secretHash } = await createRematchSession(
+        const { code } = await createRematchSession(
           seats,
           HOST_SEAT,
           game.state.playerCount,
@@ -92,12 +92,12 @@ export function useRematch({ sessionCode, playerIndex, game }: UseRematchOptions
         );
         let seq = 0;
         const events = createStartGameEvents(
-          () => ({ sessionId: code, sequence: ++seq }),
+          () => ({ sessionId: code, sequence: ++seq, actor: HOST_SEAT }),
           game.players,
           game.state.playerCount,
           game.state.targetScore
         );
-        await pushEvents(code, events, secretHash);
+        await pushEvents(code, events);
         await publishRematchCode(sessionCode, code);
       } catch (err) {
         // Let the others keep waiting on a host that can try again rather than stranding

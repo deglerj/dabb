@@ -27,7 +27,6 @@ import type { NextContext, PlayerInfo } from '@dabb/game-logic';
 
 export interface UseFirebaseGameOptions {
   sessionCode: string;
-  secretId: string;
   playerIndex: PlayerIndex;
 }
 
@@ -71,7 +70,6 @@ export function resolveConnectedPlayers(
 
 export function useFirebaseGame({
   sessionCode,
-  secretId,
   playerIndex,
 }: UseFirebaseGameOptions): FirebaseGameResult {
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
@@ -169,7 +167,7 @@ export function useFirebaseGame({
   }, [sessionCode]);
 
   useEffect(() => {
-    if (!sessionCode || !secretId) {
+    if (!sessionCode) {
       return;
     }
 
@@ -238,7 +236,7 @@ export function useFirebaseGame({
       unsubEvents?.();
       setConnected(false);
     };
-  }, [sessionCode, secretId, playerIndex, processEvents, replaceEvents]);
+  }, [sessionCode, playerIndex, processEvents, replaceEvents]);
 
   /**
    * Sequence numbers continue from the log we have. A single action can emit a whole
@@ -246,18 +244,15 @@ export function useFirebaseGame({
    */
   const makeNextContext = useCallback((): NextContext => {
     let n = rawEventsRef.current.reduce((highest, event) => Math.max(highest, event.sequence), 0);
-    return () => ({ sessionId: sessionCode, sequence: ++n });
-  }, [sessionCode]);
+    return () => ({ sessionId: sessionCode, sequence: ++n, actor: playerIndex });
+  }, [sessionCode, playerIndex]);
 
   const push = useCallback(
     async (build: (state: GameState, next: NextContext) => GameEvent[]) => {
-      if (!secretId) {
-        return;
-      }
       try {
         const evts = build(fullStateRef.current, makeNextContext());
         if (evts.length > 0) {
-          await pushEvents(sessionCode, evts, secretId);
+          await pushEvents(sessionCode, evts);
         }
       } catch (err) {
         if (err instanceof GameError) {
@@ -269,7 +264,7 @@ export function useFirebaseGame({
         }
       }
     },
-    [secretId, sessionCode, makeNextContext]
+    [sessionCode, makeNextContext]
   );
 
   const dispatch = useCallback(

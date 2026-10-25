@@ -91,7 +91,7 @@ export default function LobbyScreen() {
       localStorage.setItem(
         `dabb-${entry.code}`,
         JSON.stringify({
-          secretId: result.ownerUid,
+          ownerUid: result.ownerUid,
           playerIndex: result.playerIndex,
         })
       );

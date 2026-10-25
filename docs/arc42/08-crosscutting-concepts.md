@@ -40,7 +40,7 @@ function filterEventForPlayer(event: GameEvent, playerIndex: PlayerIndex): GameE
 }
 ```
 
-> **Note:** In the P2P architecture, all events are stored unfiltered in Firebase RTDB and are technically readable by all session participants. Filtering is a UI-level concern only. Write access is controlled by Firebase security rules (secretHash gating) to prevent forging events.
+> **Note:** In the P2P architecture, all events are stored unfiltered in Firebase RTDB and are technically readable by all session participants. Filtering is a UI-level concern only. Write access is controlled by Firebase Auth and Firebase security rules: human events are bound to the actor seat, and AI events require a short-lived claim.
 
 ## 8.3 Session Management
 

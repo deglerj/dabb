@@ -87,7 +87,7 @@ export default function HomeScreen() {
       localStorage.setItem(
         `dabb-${result.sessionCode}`,
         JSON.stringify({
-          secretId: result.ownerUid,
+          ownerUid: result.ownerUid,
           playerIndex: result.playerIndex,
           playerCount,
         })

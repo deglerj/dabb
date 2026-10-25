@@ -9,12 +9,10 @@ import {
 import type { GameEvent } from '@dabb/shared-types';
 import { MELD_SHOWCASE_DURATION_MS } from '@dabb/shared-types';
 import { pushEvents, claimCascade } from '../firebase/events.js';
-import { hashSecretId } from '../firebase/secretId.js';
 import type { AISeat } from './useFirebaseGame.js';
 
 interface UseAIOptions {
   sessionCode: string;
-  secretId: string;
   rawEvents: GameEvent[];
   aiSeats: AISeat[];
 }
@@ -63,7 +61,7 @@ function meldShowcaseDelayMs(rawEvents: GameEvent[]): number {
   return Math.max(0, withMelds - 1) * MELD_SHOWCASE_DURATION_MS;
 }
 
-export function useAI({ sessionCode, secretId, rawEvents, aiSeats }: UseAIOptions): void {
+export function useAI({ sessionCode, rawEvents, aiSeats }: UseAIOptions): void {
   /**
    * The decision currently in flight, keyed the same way the Firebase claim is.
    *
@@ -99,8 +97,7 @@ export function useAI({ sessionCode, secretId, rawEvents, aiSeats }: UseAIOption
     activeClaimRef.current = claimKey;
     void (async () => {
       try {
-        const secretHash = await hashSecretId(secretId);
-        const won = await claimCascade(sessionCode, claimKey, secretHash);
+        const won = await claimCascade(sessionCode, claimKey, currentPlayer);
         if (!won) {
           return;
         }
@@ -129,10 +126,12 @@ export function useAI({ sessionCode, secretId, rawEvents, aiSeats }: UseAIOption
         const evts = createEventsForAction(fullState, currentPlayer, action, () => ({
           sessionId: sessionCode,
           sequence: ++n,
+          actor: currentPlayer,
+          claimId: claimKey,
         }));
 
         if (evts.length > 0 && !cancelled) {
-          await pushEvents(sessionCode, evts, secretId);
+          await pushEvents(sessionCode, evts);
         }
       } finally {
         if (activeClaimRef.current === claimKey) {
@@ -146,5 +145,5 @@ export function useAI({ sessionCode, secretId, rawEvents, aiSeats }: UseAIOption
     return () => {
       cancelled = true;
     };
-  }, [rawEvents.length, aiSeats, sessionCode, secretId]);
+  }, [rawEvents.length, aiSeats, sessionCode]);
 }
