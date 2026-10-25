@@ -6,7 +6,7 @@ import {
 } from '@firebase/rules-unit-testing';
 import fs from 'node:fs';
 import path from 'node:path';
-import { beforeAll, afterAll, beforeEach, describe, it } from 'vitest';
+import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 const projectId = 'demo-dabb';
 const rules = fs.readFileSync(path.resolve(process.cwd(), '../../database.rules.json'), 'utf8');
@@ -326,6 +326,70 @@ describe.skipIf(process.env.DABB_RULES_TEST !== 'true')('database ownership rule
       human.ref('sessions/rematch/meta/players/2').set({ ...seat, ownerUid: 'human' })
     );
     await assertFails(unauthenticated.ref('sessions/rematch/meta/players/1').set(seat));
+  });
+
+  it('secures the complete authenticated rematch handoff', async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.database().ref('sessions/room/meta/status').set('finished');
+    });
+
+    const host = testEnv.authenticatedContext('host').database();
+    const human = testEnv.authenticatedContext('human').database();
+    const rival = testEnv.authenticatedContext('rival').database();
+    const unauthenticated = testEnv.unauthenticatedContext().database();
+    const rematchMeta = {
+      playerCount: 3,
+      targetScore: 1000,
+      status: 'active',
+      createdAt: Date.now(),
+      rematchOf: 'room',
+      players: {
+        '0': { nickname: 'Hans', ownerUid: 'host', isAI: false },
+        '2': { nickname: 'Bot Fritz', isAI: true, aiDifficulty: 'medium' },
+      },
+    };
+
+    // Seat 0 creates the active rematch with bots delegated to the authenticated members.
+    await assertSucceeds(host.ref('sessions/rematch/meta').set(rematchMeta));
+    const aiSnapshot = await host.ref('sessions/rematch/meta/players/2').get();
+    expect(aiSnapshot.val()).toEqual({
+      nickname: 'Bot Fritz',
+      isAI: true,
+      aiDifficulty: 'medium',
+    });
+
+    // Only the original host may publish, and the one-time publication must point to this
+    // finished source rather than giving a member a bearer code for an unrelated session.
+    await assertFails(human.ref('sessions/room/rematch/code').set('rematch'));
+    await assertSucceeds(host.ref('sessions/room/rematch/code').set('rematch'));
+    await assertFails(human.ref('sessions/room/rematch/code').set('other-rematch'));
+    await assertFails(host.ref('sessions/room/rematch/code').set('overwritten'));
+    await assertFails(unauthenticated.ref('sessions/room/rematch/code').set('forged'));
+
+    // Each original human can claim only the corresponding empty seat. A stranger cannot join
+    // the active handoff, and an active rematch never exposes the waiting-room join channel.
+    await assertSucceeds(
+      human.ref('sessions/rematch/meta/players/1').set({
+        nickname: 'Klara',
+        ownerUid: 'human',
+        isAI: false,
+      })
+    );
+    await assertFails(
+      human.ref('sessions/rematch/meta/players/2').set({
+        nickname: 'Imposter',
+        ownerUid: 'human',
+        isAI: false,
+      })
+    );
+    await assertFails(
+      rival.ref('sessions/rematch/meta/players/1').set({
+        nickname: 'Rival',
+        ownerUid: 'rival',
+        isAI: false,
+      })
+    );
+    await assertFails(unauthenticated.ref('sessions/rematch/join').set({ schemaVersion: 2 }));
   });
 
   it('does not let cleanup remove active or finished sessions', async () => {

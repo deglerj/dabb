@@ -34,16 +34,18 @@ export interface RematchSeat {
   aiDifficulty?: AIDifficulty;
 }
 
-export function sendRematchVote(
+export async function sendRematchVote(
   sessionCode: string,
   playerIndex: PlayerIndex,
   agree: boolean
 ): Promise<void> {
-  return set(ref(db, `sessions/${sessionCode}/rematch/votes/${playerIndex}`), agree);
+  await ensureAuthenticated();
+  await set(ref(db, `sessions/${sessionCode}/rematch/votes/${playerIndex}`), agree);
 }
 
-export function publishRematchCode(sessionCode: string, rematchCode: string): Promise<void> {
-  return set(ref(db, `sessions/${sessionCode}/rematch/code`), rematchCode);
+export async function publishRematchCode(sessionCode: string, rematchCode: string): Promise<void> {
+  await ensureAuthenticated();
+  await set(ref(db, `sessions/${sessionCode}/rematch/code`), rematchCode);
 }
 
 export function subscribeToRematch(

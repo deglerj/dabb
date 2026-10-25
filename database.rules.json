@@ -13,7 +13,7 @@
         "meta": {
           ".read": "auth != null && (data.child('players').child('0/ownerUid').val() === auth.uid || data.child('players').child('1/ownerUid').val() === auth.uid || data.child('players').child('2/ownerUid').val() === auth.uid || data.child('players').child('3/ownerUid').val() === auth.uid)",
           ".write": "auth != null && !data.exists() && newData.child('players/0/ownerUid').val() === auth.uid && !newData.child('players/0/secretHash').exists() && (!newData.child('rematchOf').exists() || (newData.child('rematchOf').isString() && root.child('sessions/' + newData.child('rematchOf').val() + '/meta/status').val() === 'finished' && root.child('sessions/' + newData.child('rematchOf').val() + '/meta/players/0/ownerUid').val() === auth.uid))",
-          ".validate": "newData.hasChildren(['playerCount', 'targetScore', 'status', 'createdAt', 'players']) && newData.child('playerCount').val() >= 2 && newData.child('playerCount').val() <= 4 && newData.child('targetScore').isNumber() && ((!data.exists() && newData.child('status').val() === 'waiting') || (data.exists() && (newData.child('status').val() === 'waiting' || newData.child('status').val() === 'active' || newData.child('status').val() === 'finished' || newData.child('status').val() === 'terminated'))) && newData.child('createdAt').isNumber() && (!newData.child('rematchOf').exists() || (newData.child('rematchOf').isString() && root.child('sessions/' + newData.child('rematchOf').val() + '/meta/status').val() === 'finished' && root.child('sessions/' + newData.child('rematchOf').val() + '/meta/players/0/ownerUid').val() === newData.child('players/0/ownerUid').val()))",
+          ".validate": "newData.hasChildren(['playerCount', 'targetScore', 'status', 'createdAt', 'players']) && newData.child('playerCount').val() >= 2 && newData.child('playerCount').val() <= 4 && newData.child('targetScore').isNumber() && ((!data.exists() && (newData.child('status').val() === 'waiting' || (newData.child('status').val() === 'active' && newData.child('rematchOf').isString()))) || (data.exists() && (newData.child('status').val() === 'waiting' || newData.child('status').val() === 'active' || newData.child('status').val() === 'finished' || newData.child('status').val() === 'terminated'))) && newData.child('createdAt').isNumber() && (!newData.child('rematchOf').exists() || (newData.child('rematchOf').isString() && root.child('sessions/' + newData.child('rematchOf').val() + '/meta/status').val() === 'finished' && root.child('sessions/' + newData.child('rematchOf').val() + '/meta/players/0/ownerUid').val() === newData.child('players/0/ownerUid').val()))",
           "status": {
             ".write": "auth != null && root.child('sessions/' + $code + '/meta/players/0/ownerUid').val() === auth.uid && data.val() === 'waiting' && newData.val() === 'active'"
           },
@@ -61,7 +61,9 @@
               ".write": "auth != null && root.child('sessions/' + $code + '/meta/players/' + $playerIndex + '/ownerUid').val() === auth.uid"
             }
           },
-          "code": { ".write": "auth != null" }
+          "code": {
+            ".write": "auth != null && !data.exists() && newData.isString() && root.child('sessions/' + $code + '/meta/players/0/ownerUid').val() === auth.uid && root.child('sessions/' + newData.val() + '/meta/rematchOf').val() === $code && root.child('sessions/' + newData.val() + '/meta/status').val() === 'active' && root.child('sessions/' + newData.val() + '/meta/players/0/ownerUid').val() === auth.uid"
+          }
         }
       }
     }
