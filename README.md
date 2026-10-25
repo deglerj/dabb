@@ -206,7 +206,8 @@ dabb/
 Workspace packages compile `src/` to generated `dist/` output with TypeScript. Package
 `main`, `types`, and `exports` entries point to `dist`; `dist/` is disposable and must
 never be committed. The client is built by Vite through the workspace `build` task, and
-`pnpm simulate` builds the simulation and its package dependencies, then runs the generated `dist/` entrypoint.
+`pnpm simulate` builds the simulation and its package dependencies, then runs the generated `dist/` entrypoint. See
+[`docs/design/WORKSPACE_PACKAGE_CONTRACT.md`](docs/design/WORKSPACE_PACKAGE_CONTRACT.md) for the complete contract.
 
 ### Prerequisites
 

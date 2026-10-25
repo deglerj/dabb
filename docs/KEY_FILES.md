@@ -53,3 +53,5 @@
 | `packages/i18n/src/config.ts`                                | i18next initialization                                                          |
 | `packages/i18n/src/components/I18nProvider.tsx`              | React i18n provider                                                             |
 | `docs/AI_STRATEGY.md`                                        | AI decision strategy docs                                                       |
+| `docs/design/EVENT_ORDERING.md`                              | Event ordering, replay, and Firebase recovery contract                          |
+| `docs/design/WORKSPACE_PACKAGE_CONTRACT.md`                  | Workspace source/dist and clean-build contract                                  |

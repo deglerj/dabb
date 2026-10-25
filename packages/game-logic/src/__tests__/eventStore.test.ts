@@ -52,6 +52,23 @@ describe('EventStore', () => {
     expect(store.getEvents()).toEqual([first, second, third]);
   });
 
+  it('replaces local state with the canonical snapshot after reconnect', () => {
+    const store = new EventStore();
+    const first = event(1, 'a');
+    const second = event(2, 'b');
+    const third = event(3, 'c');
+
+    store.replaceSnapshot([first]);
+    expect(store.accept(third).status).toBe('buffered');
+    expect(store.accept(second).status).toBe('applied');
+
+    const result = store.replaceSnapshot([third, first, second, second]);
+
+    expect(result.status).toBe('applied');
+    expect(store.getEvents()).toEqual([first, second, third]);
+    expect(store.getState()).toEqual(applyEvents([first, second, third]));
+  });
+
   it('rejects incomplete or conflicting snapshots', () => {
     const store = new EventStore();
     const first = event(1, 'a');

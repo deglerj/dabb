@@ -30,3 +30,19 @@ contiguous event, buffers gaps, and reports when Firebase must resynchronize.
 The UI derives its filtered projection from the store's complete raw log, while
 actions and AI use its unfiltered state. None of these layers changes persisted
 event payloads or game rules.
+
+## Client recovery lifecycle
+
+`useFirebaseGame` establishes the event stream in this order:
+
+1. Read the complete event snapshot.
+2. Replace the `EventStore` snapshot and mark those IDs as replayed.
+3. Subscribe to child events only after the snapshot resolves.
+4. Feed each live child through `EventStore.accept`.
+5. Re-read the complete snapshot when a gap, conflict, or invalid event is reported.
+
+The snapshot and subscription belong to the session identity. Changing the session or
+unmounting cancels an in-flight read and removes the active listener exactly once. Player
+metadata, presence, and emotes have independent subscriptions: metadata updates replace
+nickname and AI-seat projections without restarting the event stream. This keeps
+termination events live while still resolving their display name from the latest metadata.
