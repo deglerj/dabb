@@ -9,6 +9,7 @@
     "dev": "turbo run dev",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
+    "test:production-rules": "pnpm --filter @dabb/client test:production-rules",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt",

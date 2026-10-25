@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:rules": "DABB_RULES_TEST=true pnpm exec firebase emulators:exec --only database --project demo-dabb \"pnpm exec vitest run src/firebase/__tests__/databaseRules.test.ts\"",
+    "test:production-rules": "DABB_PRODUCTION_RULES_TEST=true pnpm exec firebase emulators:exec --config ../../firebase.json --only database,auth --project demo-dabb \"pnpm exec vitest run src/firebase/__tests__/productionRulesFlow.test.ts\"",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage --passWithNoTests",
     "test:e2e": "playwright test",

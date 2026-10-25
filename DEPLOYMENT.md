@@ -59,11 +59,32 @@ hand, or the two drift apart:
 pnpm exec firebase deploy --only database
 ```
 
-The emulator uses a separate, wide-open ruleset (`database.rules.dev.json`, selected by
-`firebase.dev.json`) so local dev and the Playwright smoke test never trip over auth. `dev.sh` and
+### Non-authoritative development rules
+
+The emulator configuration used by local development and the Playwright smoke test selects a
+separate, wide-open ruleset (`database.rules.dev.json`) through `firebase.dev.json`. This is test
+convenience only, not a security check and never a production ruleset. `dev.sh` and
 `apps/client/playwright.config.ts` pass `--config firebase.dev.json` for exactly that reason. Never
 point `firebase.json` at the dev rules — `firebase deploy` reads `firebase.json`, so that would
 publish `".write": true` to production.
+
+### Production-rules fresh-flow verification
+
+Run the black-box verification before changing `database.rules.json` or the Firebase transport:
+
+```bash
+pnpm test:production-rules
+```
+
+This command starts both the Realtime Database and Auth emulators with the default
+`firebase.json`. The test uses anonymous Auth-emulator identities and the deployed rules file to
+exercise fresh session creation, lobby and waiting-room ownership, seat reclamation, activation,
+human event writes, delegated AI claims and events, presence, emotes, rematch votes, rematch code
+publication, and rematch seat claims. It also asserts rejection of unauthenticated, non-member,
+cross-seat, stale-claim, null-authorization, legacy-field, and one-time-publication writes.
+
+The same command runs in CI in the `production-rules` job. It intentionally does not use
+`firebase.dev.json` or `database.rules.dev.json`.
 
 ---
 
