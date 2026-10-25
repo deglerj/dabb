@@ -21,6 +21,7 @@ import { TableBackdrop } from './TableBackdrop.js';
 import { OptionsButton } from './OptionsButton.js';
 import { subscribeToLobby, pruneStaleSessions, type LobbyEntry } from '../../firebase/lobby.js';
 import { joinSession } from '../../firebase/session.js';
+import { ensureAuthenticated } from '../../firebase/auth.js';
 import { sessionErrorText } from '../../utils/sessionErrorText.js';
 import { DEFAULT_NICKNAME, MAX_NICKNAME_LENGTH } from '../../constants.js';
 
@@ -45,14 +46,33 @@ export default function LobbyScreen() {
   }, []);
 
   useEffect(() => {
-    return subscribeToLobby((fresh, staleCodes) => {
-      setEntries(fresh);
-      const unhandled = staleCodes.filter((code) => !pruned.current.has(code));
-      if (unhandled.length > 0) {
-        unhandled.forEach((code) => pruned.current.add(code));
-        void pruneStaleSessions(unhandled);
-      }
-    });
+    let cancelled = false;
+    let unsubscribe: () => void = () => undefined;
+
+    void ensureAuthenticated()
+      .then(() => {
+        if (cancelled) {
+          return;
+        }
+        unsubscribe = subscribeToLobby((fresh, staleCodes) => {
+          setEntries(fresh);
+          const unhandled = staleCodes.filter((code) => !pruned.current.has(code));
+          if (unhandled.length > 0) {
+            unhandled.forEach((code) => pruned.current.add(code));
+            void pruneStaleSessions(unhandled);
+          }
+        });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setEntries([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   const handleJoin = async (entry: LobbyEntry) => {
@@ -71,7 +91,7 @@ export default function LobbyScreen() {
       localStorage.setItem(
         `dabb-${entry.code}`,
         JSON.stringify({
-          secretId: result.secretId,
+          secretId: result.ownerUid,
           playerIndex: result.playerIndex,
         })
       );

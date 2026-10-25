@@ -1,44 +1,50 @@
 {
   "rules": {
     "lobby": {
-      ".read": "auth == null",
-      "$code": { ".write": "auth == null" }
+      ".read": "auth != null",
+      "$code": { ".write": "auth != null" }
     },
     "sessions": {
       "$code": {
-        ".read": "auth == null",
-        ".write": "!newData.exists() && data.child('meta/status').val() === 'waiting' && data.child('meta/createdAt').val() < now - 3600000",
+        ".write": "auth != null && !newData.exists() && data.child('meta/status').val() === 'waiting' && data.child('meta/createdAt').val() < now - 3600000",
         "meta": {
-          ".write": "!data.exists()",
-          "status": { ".write": "auth == null" },
-          "playerCount": { ".write": "!data.exists()" },
-          "targetScore": { ".write": "!data.exists()" },
-          "createdAt": { ".write": "!data.exists()" },
+          ".read": "auth != null && (data.child('players').child('0/ownerUid').val() === auth.uid || data.child('players').child('1/ownerUid').val() === auth.uid || data.child('players').child('2/ownerUid').val() === auth.uid || data.child('players').child('3/ownerUid').val() === auth.uid)",
+          ".write": "auth != null && !data.exists() && newData.child('players/0/ownerUid').val() === auth.uid && !newData.child('players/0/secretHash').exists()",
+          "status": {
+            ".write": "auth != null && root.child('sessions/' + $code + '/meta/players/0/ownerUid').val() === auth.uid"
+          },
+          "playerCount": { ".write": "auth != null && !data.exists()" },
+          "targetScore": { ".write": "auth != null && !data.exists()" },
+          "createdAt": { ".write": "auth != null && !data.exists()" },
           "players": {
             "$playerIndex": {
-              ".write": "!data.exists() || (root.child('sessions/' + $code + '/meta/status').val() === 'waiting' && (data.child('isAI').val() === true || data.child('left').val() === true || newData.child('secretHash').val() === data.child('secretHash').val()))"
+              ".write": "auth != null && root.child('sessions/' + $code + '/meta/status').val() === 'waiting' && ((!data.exists() && (newData.child('ownerUid').val() === auth.uid || (newData.child('isAI').val() === true && root.child('sessions/' + $code + '/meta/players/0/ownerUid').val() === auth.uid))) || (data.child('ownerUid').val() === auth.uid && root.child('sessions/' + $code + '/meta/status').val() === 'waiting') || (data.child('isAI').val() === true && root.child('sessions/' + $code + '/meta/players/0/ownerUid').val() === auth.uid)) && !newData.child('secretHash').exists()"
             }
           }
         },
+        "join": {
+          ".read": "auth != null",
+          ".write": "auth != null && ((!data.exists() && root.child('sessions/' + $code + '/meta/players/0/ownerUid').val() === auth.uid) || (data.exists() && (root.child('sessions/' + $code + '/meta/players/0/ownerUid').val() === auth.uid || root.child('sessions/' + $code + '/meta/players/1/ownerUid').val() === auth.uid || root.child('sessions/' + $code + '/meta/players/2/ownerUid').val() === auth.uid || root.child('sessions/' + $code + '/meta/players/3/ownerUid').val() === auth.uid)) ) && (!newData.exists() || newData.child('schemaVersion').val() === 2)"
+        },
         "events": {
           "$eventId": {
-            ".write": "root.child('sessions/' + $code + '/meta/players').child('0/secretHash').val() === newData.child('authorHash').val() || root.child('sessions/' + $code + '/meta/players').child('1/secretHash').val() === newData.child('authorHash').val() || root.child('sessions/' + $code + '/meta/players').child('2/secretHash').val() === newData.child('authorHash').val() || root.child('sessions/' + $code + '/meta/players').child('3/secretHash').val() === newData.child('authorHash').val()"
+            ".write": "auth != null && newData.child('authorHash').exists() && (root.child('sessions/' + $code + '/meta/players').child('0/secretHash').val() === newData.child('authorHash').val() || root.child('sessions/' + $code + '/meta/players').child('1/secretHash').val() === newData.child('authorHash').val() || root.child('sessions/' + $code + '/meta/players').child('2/secretHash').val() === newData.child('authorHash').val() || root.child('sessions/' + $code + '/meta/players').child('3/secretHash').val() === newData.child('authorHash').val())"
           }
         },
         "presence": {
-          "$playerIndex": { ".write": "auth == null" }
+          "$playerIndex": { ".write": "auth != null" }
         },
         "emotes": {
-          "$playerIndex": { ".write": "auth == null" }
+          "$playerIndex": { ".write": "auth != null" }
         },
         "aiClaims": {
-          "$claimId": { ".write": "auth == null" }
+          "$claimId": { ".write": "auth != null" }
         },
         "rematch": {
           "votes": {
-            "$playerIndex": { ".write": "auth == null" }
+            "$playerIndex": { ".write": "auth != null" }
           },
-          "code": { ".write": "auth == null" }
+          "code": { ".write": "auth != null" }
         }
       }
     }

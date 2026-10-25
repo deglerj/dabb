@@ -10,8 +10,9 @@ import type { PlayerCount } from '@dabb/shared-types';
  * instead would hand every visitor every session's event log — and with it every player's
  * hand, since view filtering (`game-logic/src/state/views.ts`) is client-side only.
  *
- * So this node carries only what the list needs to render. It is writable by anyone, the
- * same trust level `presence` and `emotes` already sit at.
+ * So this node carries only what the list needs to render. Reads and writes require Firebase
+ * Auth; ownership restrictions for individual lobby entries are tightened in the waiting-room
+ * hardening ticket.
  */
 
 /** Keep in sync with the stale-session delete rule in `database.rules.json`. */

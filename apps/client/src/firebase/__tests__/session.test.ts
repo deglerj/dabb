@@ -6,6 +6,9 @@ const setMock = vi.fn();
 const removeMock = vi.fn(() => Promise.resolve());
 
 vi.mock('../config.js', () => ({ db: {} }));
+vi.mock('../auth.js', () => ({
+  ensureAuthenticated: vi.fn(() => Promise.resolve({ uid: 'anonymous-user' })),
+}));
 vi.mock('../secretId.js', () => ({
   getOrCreateSecretId: vi.fn(() => Promise.resolve('secret')),
   hashSecretId: vi.fn(() => Promise.resolve('hash')),
@@ -30,6 +33,13 @@ function metaSnapshot(players: Record<string, unknown>, playerCount = 3) {
   };
 }
 
+function joinSnapshot(players: Record<string, unknown>, playerCount = 3) {
+  return {
+    exists: () => true,
+    val: () => ({ schemaVersion: 2, playerCount, status: 'waiting', createdAt: 0, players }),
+  };
+}
+
 const HOST = { nickname: 'Hans', secretHash: 'other', isAI: false };
 const RIVAL = { nickname: 'Klara', secretHash: 'rival', isAI: false };
 const LEFT = { nickname: 'Ute', secretHash: 'ute', isAI: false, left: true };
@@ -45,8 +55,8 @@ describe('joinSession seat claiming', () => {
     // Two players tap the same lobby row: both read the table with seat 1 free, and the
     // rules let exactly one of them write it. The loser must land on seat 2, not fail.
     getMock
-      .mockResolvedValueOnce(metaSnapshot({ '0': HOST }))
-      .mockResolvedValueOnce(metaSnapshot({ '0': HOST, '1': RIVAL }))
+      .mockResolvedValueOnce(joinSnapshot({ '0': HOST }))
+      .mockResolvedValueOnce(joinSnapshot({ '0': HOST, '1': RIVAL }))
       .mockResolvedValueOnce(metaSnapshot({ '0': HOST, '1': RIVAL, '2': RIVAL }));
     setMock
       .mockRejectedValueOnce(new Error('PERMISSION_DENIED: Permission denied'))
@@ -67,7 +77,9 @@ describe('joinSession seat claiming', () => {
     // Leaving marks the seat rather than deleting it — the rules cannot allow a delete without
     // letting anyone throw anyone out. A marked seat has to read as free, or the table stays
     // full with a player who walked away.
-    getMock.mockResolvedValue(metaSnapshot({ '0': HOST, '1': LEFT, '2': RIVAL }));
+    getMock
+      .mockResolvedValueOnce(joinSnapshot({ '0': HOST, '1': LEFT, '2': RIVAL }))
+      .mockResolvedValueOnce(metaSnapshot({ '0': HOST, '1': LEFT, '2': RIVAL }));
     setMock.mockResolvedValue(undefined);
 
     const result = await joinSession('schnell-fuchs-42', 'Bea');
@@ -79,7 +91,7 @@ describe('joinSession seat claiming', () => {
   });
 
   it('reports a full table rather than retrying forever', async () => {
-    getMock.mockResolvedValue(metaSnapshot({ '0': HOST, '1': RIVAL }, 2));
+    getMock.mockResolvedValue(joinSnapshot({ '0': HOST, '1': RIVAL }, 2));
 
     await expect(joinSession('schnell-fuchs-42', 'Ute')).rejects.toThrow(
       new GameError(GAME_ERROR_CODES.SESSION_FULL)

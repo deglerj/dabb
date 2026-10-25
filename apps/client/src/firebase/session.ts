@@ -1,7 +1,7 @@
 import { ref, get, set, update, onDisconnect, onValue, off } from 'firebase/database';
 import { db } from './config.js';
+import { ensureAuthenticated } from './auth.js';
 import { generateSessionCode } from './sessionCode.js';
-import { getOrCreateSecretId, hashSecretId } from './secretId.js';
 import { writeLobbyEntry, removeLobbyEntry, removeLobbyEntryOnDisconnect } from './lobby.js';
 import type { PlayerCount, PlayerIndex } from '@dabb/shared-types';
 import { GameError, GAME_ERROR_CODES, availableAINames, sameNickname } from '@dabb/shared-types';
@@ -9,7 +9,10 @@ import type { AIDifficulty } from '@dabb/game-ai';
 
 export interface SessionPlayer {
   nickname: string;
-  secretHash: string | null;
+  /** Firebase Auth identity of a human seat; AI seats have no owner. */
+  ownerUid?: string;
+  /** Legacy field, accepted only when reading pre-cutover data. */
+  secretHash?: string | null;
   isAI: boolean;
   /** Only set for AI players; absent for humans and for AI added before this was stored. */
   aiDifficulty?: AIDifficulty;
@@ -31,12 +34,12 @@ export interface SessionMeta {
 
 export interface CreateSessionResult {
   sessionCode: string;
-  secretId: string;
+  ownerUid: string;
   playerIndex: PlayerIndex;
 }
 
 export interface JoinSessionResult {
-  secretId: string;
+  ownerUid: string;
   playerIndex: PlayerIndex;
 }
 
@@ -45,9 +48,8 @@ export async function createSession(
   playerCount: PlayerCount,
   targetScore = 1000
 ): Promise<CreateSessionResult> {
+  const user = await ensureAuthenticated();
   const sessionCode = generateSessionCode();
-  const secretId = await getOrCreateSecretId(sessionCode);
-  const secretHash = await hashSecretId(secretId);
 
   const meta: SessionMeta = {
     playerCount,
@@ -55,15 +57,46 @@ export async function createSession(
     status: 'waiting',
     createdAt: Date.now(),
     players: {
-      '0': { nickname, secretHash, isAI: false },
+      '0': { nickname, ownerUid: user.uid, isAI: false },
     },
   };
 
   await set(ref(db, `sessions/${sessionCode}/meta`), meta);
+  await writeJoinProjection(sessionCode, meta);
   await removeLobbyEntryOnDisconnect(sessionCode);
   await syncLobbyEntry(sessionCode);
 
-  return { sessionCode, secretId, playerIndex: 0 as PlayerIndex };
+  return { sessionCode, ownerUid: user.uid, playerIndex: 0 as PlayerIndex };
+}
+
+interface SessionJoinProjection {
+  schemaVersion: 2;
+  playerCount: PlayerCount;
+  status: SessionMeta['status'];
+  createdAt: number;
+  players: Record<string, Pick<SessionPlayer, 'nickname' | 'isAI' | 'left'>>;
+}
+
+function toJoinProjection(meta: SessionMeta): SessionJoinProjection {
+  const players: SessionJoinProjection['players'] = {};
+  for (const [index, player] of Object.entries(meta.players)) {
+    players[index] = {
+      nickname: player.nickname,
+      isAI: player.isAI,
+      ...(player.left ? { left: true } : {}),
+    };
+  }
+  return {
+    schemaVersion: 2,
+    playerCount: meta.playerCount,
+    status: meta.status,
+    createdAt: meta.createdAt,
+    players,
+  };
+}
+
+async function writeJoinProjection(sessionCode: string, meta: SessionMeta): Promise<void> {
+  await set(ref(db, `sessions/${sessionCode}/join`), toJoinProjection(meta));
 }
 
 /**
@@ -80,6 +113,8 @@ async function syncLobbyEntry(sessionCode: string): Promise<void> {
     await removeLobbyEntry(sessionCode);
     return;
   }
+
+  await writeJoinProjection(sessionCode, meta);
 
   const taken = Object.values(meta.players).filter((player) => !player.left).length;
   if (taken >= meta.playerCount) {
@@ -147,23 +182,25 @@ export async function joinSession(
   nickname: string
 ): Promise<JoinSessionResult> {
   const code = sessionCode.trim().toLowerCase();
-  const secretId = await getOrCreateSecretId(code);
-  const secretHash = await hashSecretId(secretId);
+  const user = await ensureAuthenticated();
 
   for (let attempt = 0; attempt < MAX_SEAT_CLAIM_ATTEMPTS; attempt++) {
-    const snapshot = await get(ref(db, `sessions/${code}/meta`));
+    const snapshot = await get(ref(db, `sessions/${code}/join`));
 
     if (!snapshot.exists()) {
       throw new GameError(GAME_ERROR_CODES.SESSION_NOT_FOUND);
     }
 
-    const meta = snapshot.val() as SessionMeta;
+    const projection = snapshot.val() as SessionJoinProjection;
+    if (projection.schemaVersion !== 2) {
+      throw new GameError(GAME_ERROR_CODES.SESSION_NOT_FOUND);
+    }
 
-    if (meta.status !== 'waiting') {
+    if (projection.status !== 'waiting') {
       throw new GameError(GAME_ERROR_CODES.GAME_ALREADY_STARTED);
     }
 
-    const playerIndex = firstFreeSeat(meta.players, meta.playerCount);
+    const playerIndex = firstFreeSeat(projection.players, projection.playerCount);
     if (playerIndex === null) {
       throw new GameError(GAME_ERROR_CODES.SESSION_FULL);
     }
@@ -171,7 +208,7 @@ export async function joinSession(
     try {
       await set(ref(db, `sessions/${code}/meta/players/${playerIndex}`), {
         nickname,
-        secretHash,
+        ownerUid: user.uid,
         isAI: false,
       });
     } catch {
@@ -179,10 +216,10 @@ export async function joinSession(
       continue;
     }
 
-    await renameClashingBot(code, meta.players, nickname);
+    await renameClashingBot(code, projection.players, nickname);
     await syncLobbyEntry(code);
 
-    return { secretId, playerIndex };
+    return { ownerUid: user.uid, playerIndex };
   }
 
   throw new GameError(GAME_ERROR_CODES.SESSION_FULL);
@@ -191,9 +228,9 @@ export async function joinSession(
 /**
  * Vacates a seat in a waiting room, so the table stops showing someone who walked away.
  *
- * The seat is marked rather than deleted, and the mark carries the same `secretHash` the seat
- * already holds — that echo is the proof the rules check, so only the seat's own owner can
- * vacate it. Deleting instead would need a rule anyone could use on anyone.
+ * The seat is marked rather than deleted. The authenticated seat owner is the proof the rules
+ * check, so only that owner can vacate it. Deleting instead would need a rule anyone could use
+ * on anyone.
  *
  * The host leaving takes the listing down with it: nobody else can start that session, so a
  * lobby entry for it would only send people to a table that can never begin.
@@ -229,7 +266,6 @@ export async function addAIPlayer(
 
   await set(ref(db, `sessions/${sessionCode}/meta/players/${playerIndex}`), {
     nickname: aiNickname,
-    secretHash: null,
     isAI: true,
     aiDifficulty,
   });
@@ -244,11 +280,16 @@ export async function removeAIPlayer(sessionCode: string, playerIndex: PlayerInd
 }
 
 export async function getSessionMeta(sessionCode: string): Promise<SessionMeta | null> {
+  await ensureAuthenticated();
   const snapshot = await get(ref(db, `sessions/${sessionCode}/meta`));
   if (!snapshot.exists()) {
     return null;
   }
-  return snapshot.val() as SessionMeta;
+  const meta = snapshot.val() as SessionMeta;
+  const hasLegacyHuman = Object.values(meta.players).some(
+    (player) => !player.isAI && !player.ownerUid
+  );
+  return hasLegacyHuman ? null : meta;
 }
 
 export async function setSessionStatus(
@@ -260,6 +301,7 @@ export async function setSessionStatus(
   // here rather than at the call sites so no future one has to remember.
   if (status !== 'waiting') {
     await removeLobbyEntry(sessionCode);
+    await set(ref(db, `sessions/${sessionCode}/join`), null);
   }
 }
 

@@ -8,7 +8,19 @@ let meta: SessionMeta;
 vi.mock('firebase/database', () => ({
   ref: (_db: unknown, path: string) => ({ path }),
   set: (r: { path: string }, value: unknown) => setMock(r.path, value),
-  get: async () => ({ exists: () => true, val: () => meta }),
+  get: async (_ref: { path: string }) => ({
+    exists: () => true,
+    val: () =>
+      _ref.path.endsWith('/join')
+        ? {
+            schemaVersion: 2,
+            playerCount: meta.playerCount,
+            status: meta.status,
+            createdAt: meta.createdAt,
+            players: meta.players,
+          }
+        : meta,
+  }),
   remove: vi.fn(),
   update: vi.fn(),
   onDisconnect: vi.fn(),
@@ -17,6 +29,9 @@ vi.mock('firebase/database', () => ({
 }));
 
 vi.mock('../config.js', () => ({ db: {} }));
+vi.mock('../auth.js', () => ({
+  ensureAuthenticated: vi.fn(() => Promise.resolve({ uid: 'anonymous-user' })),
+}));
 vi.mock('../secretId.js', () => ({
   getOrCreateSecretId: async () => 'secret',
   hashSecretId: async () => 'hash',

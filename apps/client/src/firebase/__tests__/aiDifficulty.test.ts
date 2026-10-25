@@ -25,6 +25,9 @@ vi.mock('firebase/database', () => ({
 }));
 
 vi.mock('../config.js', () => ({ db: {} }));
+vi.mock('../auth.js', () => ({
+  ensureAuthenticated: vi.fn(() => Promise.resolve({ uid: 'anonymous-user' })),
+}));
 
 const { addAIPlayer } = await import('../session.js');
 

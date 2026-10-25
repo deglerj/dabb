@@ -1,5 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getDatabase, connectDatabaseEmulator } from 'firebase/database';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? '',
@@ -13,7 +14,9 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getDatabase(app);
+export const auth = getAuth(app);
 
 if (import.meta.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
   connectDatabaseEmulator(db, 'localhost', 9000);
+  connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
 }
