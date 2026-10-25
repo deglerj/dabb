@@ -7,6 +7,7 @@ import type { PlayerIndex } from '@dabb/shared-types';
 import type { AIDifficulty } from '@dabb/game-ai';
 import {
   subscribeToPlayers,
+  syncLobbyEntry,
   subscribeToSessionStatus,
   addAIPlayer,
   removeAIPlayer,
@@ -16,7 +17,6 @@ import {
   leaveSession,
 } from '../../firebase/session.js';
 import { pushEvents } from '../../firebase/events.js';
-import { hashSecretId } from '../../firebase/secretId.js';
 import { applyEvents, createStartGameEvents, createTerminateGameEvents } from '@dabb/game-logic';
 import type { PlayerInfo } from '@dabb/game-logic';
 
@@ -110,6 +110,9 @@ export default function WaitingRoomRoute() {
         });
       });
       setPlayers(newMap);
+      if (credentials.playerIndex === 0) {
+        void syncLobbyEntry(code);
+      }
     });
 
     const unsubStatus = subscribeToSessionStatus(code, (status) => {
@@ -143,7 +146,6 @@ export default function WaitingRoomRoute() {
       return;
     }
     try {
-      const secretHash = await hashSecretId(credentialsSecretId);
       const meta = await getSessionMeta(code);
       if (!meta) {
         return;
@@ -158,7 +160,7 @@ export default function WaitingRoomRoute() {
         meta.playerCount,
         meta.targetScore
       );
-      await pushEvents(code, events, secretHash);
+      await pushEvents(code, events, credentialsSecretId);
       await setSessionStatus(code, 'active');
     } catch (err) {
       window.alert(err instanceof Error ? err.message : 'Failed to start game');
@@ -170,7 +172,6 @@ export default function WaitingRoomRoute() {
       return;
     }
     try {
-      const secretHash = await hashSecretId(credentialsSecretId);
       const meta = await getSessionMeta(code);
       if (meta && meta.status === 'active') {
         let n = 0;
@@ -178,7 +179,7 @@ export default function WaitingRoomRoute() {
           sessionId: code,
           sequence: ++n,
         }));
-        await pushEvents(code, termEvents, secretHash);
+        await pushEvents(code, termEvents, credentialsSecretId);
       } else if (meta && meta.status === 'waiting') {
         const seat = meta.players[String(playerIndex)];
         if (seat) {

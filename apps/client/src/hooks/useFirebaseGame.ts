@@ -15,7 +15,6 @@ import { subscribeToEvents, pushEvents, getAllEvents } from '../firebase/events.
 import { sendEmote, subscribeToEmotes } from '../firebase/emotes.js';
 import { useEmotes } from './useEmotes.js';
 import { useAIEmotes } from './useAIEmotes.js';
-import { hashSecretId } from '../firebase/secretId.js';
 import {
   setupPresence,
   subscribeToPlayers,
@@ -78,7 +77,6 @@ export function useFirebaseGame({
   const [nicknames, setNicknames] = useState<Map<PlayerIndex, string>>(new Map());
   const [terminatedBy, setTerminatedBy] = useState<{ nickname: string | null } | null>(null);
   const [connected, setConnected] = useState(false);
-  const [secretHash, setSecretHash] = useState<string>('');
   const [players, setPlayers] = useState<PlayerInfo[]>([]);
   const [aiSeats, setAiSeats] = useState<AISeat[]>([]);
   const [presence, setPresence] = useState<Map<PlayerIndex, boolean>>(new Map());
@@ -94,10 +92,6 @@ export function useFirebaseGame({
   const rawEventsRef = useRef(rawEvents);
   rawEventsRef.current = rawEvents;
   const [replayedEventIds, setReplayedEventIds] = useState<Set<string>>(() => new Set());
-
-  useEffect(() => {
-    void hashSecretId(secretId).then(setSecretHash);
-  }, [secretId]);
 
   useEffect(() => {
     if (!sessionCode) {
@@ -257,13 +251,13 @@ export function useFirebaseGame({
 
   const push = useCallback(
     async (build: (state: GameState, next: NextContext) => GameEvent[]) => {
-      if (!secretHash) {
+      if (!secretId) {
         return;
       }
       try {
         const evts = build(fullStateRef.current, makeNextContext());
         if (evts.length > 0) {
-          await pushEvents(sessionCode, evts, secretHash);
+          await pushEvents(sessionCode, evts, secretId);
         }
       } catch (err) {
         if (err instanceof GameError) {
@@ -275,7 +269,7 @@ export function useFirebaseGame({
         }
       }
     },
-    [secretHash, sessionCode, makeNextContext]
+    [secretId, sessionCode, makeNextContext]
   );
 
   const dispatch = useCallback(

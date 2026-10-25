@@ -50,7 +50,7 @@ There is no invite code. Every online session is listed at `lobby/<code>`
   is untouchable. `LOBBY_TTL_MS` and the number in the rules file have to stay in sync.
 
 **Leaving a waiting room marks the seat, it does not delete it.** `leaveSession` rewrites the
-seat with `left: true`, echoing the `secretHash` already there — that echo is what the rules check,
+seat with `left: true`, preserving its `ownerUid` — that identity is what the rules check,
 so only the seat's owner can vacate it. A delete rule would have to let anyone write a seat holding
 someone else, which is a kick-anyone button in a lobby open to strangers. Everything that counts
 seats (`firstFreeSeat`, `syncLobbyEntry`, the waiting room's player list, the `PlayerInfo[]` the
@@ -78,7 +78,7 @@ Game state is reconstructed by replaying all events via a reducer (`packages/gam
 
 ### View Filtering (Client-Side)
 
-`packages/game-logic/src/state/views.ts` — `filterEventForPlayer` is called by `useGameState` to hide opponents' cards in the UI. This is a UI-level concern only; raw events in Firebase are readable by all session participants. Firebase security rules (secretHash gating) prevent forging events.
+`packages/game-logic/src/state/views.ts` — `filterEventForPlayer` is called by `useGameState` to hide opponents' cards in the UI. This is a UI-level concern only; raw events in Firebase are readable by all session participants. Firebase security rules (authenticated seat-owner gating) prevent forging events.
 
 - `CARDS_DEALT`: each player sees only their own hand; other hands and the dabb are replaced with hidden card placeholders.
 - `BIDDING_WON`: not filtered — the Dabb is face up, so its cards stay readable for everyone. `useDabbShowcase` lays them on the table for the other players when `DABB_TAKEN` arrives. Filtering it never hid anything anyway: `DABB_TAKEN` carries the same four cards and cannot be filtered, because the reducer needs them to move the Dabb into the bid winner's hand.

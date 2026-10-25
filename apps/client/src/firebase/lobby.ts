@@ -10,9 +10,9 @@ import type { PlayerCount } from '@dabb/shared-types';
  * instead would hand every visitor every session's event log — and with it every player's
  * hand, since view filtering (`game-logic/src/state/views.ts`) is client-side only.
  *
- * So this node carries only what the list needs to render. Reads and writes require Firebase
- * Auth; ownership restrictions for individual lobby entries are tightened in the waiting-room
- * hardening ticket.
+ * So this node carries only what the list needs to render. Reads are public; writes require
+ * Firebase Auth. Only the session host may publish or remove its waiting listing, except that
+ * any authenticated client may remove a stale waiting entry during expiry cleanup.
  */
 
 /** Keep in sync with the stale-session delete rule in `database.rules.json`. */
@@ -86,12 +86,12 @@ export async function pruneStaleSessions(codes: string[]): Promise<void> {
   await Promise.all(
     codes.map(async (code) => {
       try {
-        await remove(ref(db, `sessions/${code}`));
+        await removeLobbyEntry(code);
       } catch {
         // Rule rejected it, or someone else already removed it.
       }
       try {
-        await removeLobbyEntry(code);
+        await remove(ref(db, `sessions/${code}`));
       } catch {
         // Same.
       }

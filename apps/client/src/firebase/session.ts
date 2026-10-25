@@ -107,14 +107,22 @@ async function writeJoinProjection(sessionCode: string, meta: SessionMeta): Prom
  * from *before* its own seat write, and mirroring a seat count by hand is exactly the kind of
  * bookkeeping that drifts.
  */
-async function syncLobbyEntry(sessionCode: string): Promise<void> {
+export async function syncLobbyEntry(sessionCode: string): Promise<void> {
+  const user = await ensureAuthenticated();
   const meta = await getSessionMeta(sessionCode);
-  if (!meta || meta.status !== 'waiting') {
-    await removeLobbyEntry(sessionCode);
+  const isHost = meta?.players['0']?.ownerUid === user.uid;
+  if (!meta || meta.status !== 'waiting' || meta.players['0']?.left) {
+    if (isHost) {
+      await removeLobbyEntry(sessionCode);
+    }
     return;
   }
 
   await writeJoinProjection(sessionCode, meta);
+
+  if (!isHost) {
+    return;
+  }
 
   const taken = Object.values(meta.players).filter((player) => !player.left).length;
   if (taken >= meta.playerCount) {
@@ -173,7 +181,11 @@ async function renameClashingBot(
   const taken = [nickname, ...Object.values(players).map((p) => p.nickname)];
   const [freeName] = availableAINames(taken);
   if (freeName) {
-    await set(ref(db, `sessions/${code}/meta/players/${clashingSeat[0]}/nickname`), freeName);
+    try {
+      await set(ref(db, `sessions/${code}/meta/players/${clashingSeat[0]}/nickname`), freeName);
+    } catch {
+      // Only the host may rename bots; a guest's successful seat claim must not be rolled back.
+    }
   }
 }
 
@@ -198,6 +210,9 @@ export async function joinSession(
 
     if (projection.status !== 'waiting') {
       throw new GameError(GAME_ERROR_CODES.GAME_ALREADY_STARTED);
+    }
+    if (projection.players['0']?.left) {
+      throw new GameError(GAME_ERROR_CODES.SESSION_NOT_FOUND);
     }
 
     const playerIndex = firstFreeSeat(projection.players, projection.playerCount);
@@ -296,11 +311,13 @@ export async function setSessionStatus(
   sessionCode: string,
   status: SessionMeta['status']
 ): Promise<void> {
-  await update(ref(db, `sessions/${sessionCode}/meta`), { status });
-  // Started, finished or aborted — either way it has no business in the lobby any more. Done
-  // here rather than at the call sites so no future one has to remember.
+  // Remove while the session is still waiting: lobby deletion is intentionally restricted to
+  // waiting entries, while the status write below closes the room to further seat changes.
   if (status !== 'waiting') {
     await removeLobbyEntry(sessionCode);
+  }
+  await update(ref(db, `sessions/${sessionCode}/meta`), { status });
+  if (status !== 'waiting') {
     await set(ref(db, `sessions/${sessionCode}/join`), null);
   }
 }

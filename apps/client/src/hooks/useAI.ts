@@ -132,7 +132,7 @@ export function useAI({ sessionCode, secretId, rawEvents, aiSeats }: UseAIOption
         }));
 
         if (evts.length > 0 && !cancelled) {
-          await pushEvents(sessionCode, evts, secretHash);
+          await pushEvents(sessionCode, evts, secretId);
         }
       } finally {
         if (activeClaimRef.current === claimKey) {

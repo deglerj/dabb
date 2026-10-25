@@ -40,9 +40,9 @@ function joinSnapshot(players: Record<string, unknown>, playerCount = 3) {
   };
 }
 
-const HOST = { nickname: 'Hans', secretHash: 'other', isAI: false };
-const RIVAL = { nickname: 'Klara', secretHash: 'rival', isAI: false };
-const LEFT = { nickname: 'Ute', secretHash: 'ute', isAI: false, left: true };
+const HOST = { nickname: 'Hans', ownerUid: 'host', isAI: false };
+const RIVAL = { nickname: 'Klara', ownerUid: 'rival', isAI: false };
+const LEFT = { nickname: 'Ute', ownerUid: 'ute', isAI: false, left: true };
 
 describe('joinSession seat claiming', () => {
   beforeEach(() => {
@@ -109,9 +109,9 @@ describe('leaveSession', () => {
     setMock.mockResolvedValue(undefined);
   });
 
-  it('marks the seat with the secretHash it already carries', async () => {
-    // The echoed hash is the rules' proof of ownership: without it the write is rejected, and
-    // a rule that did not ask for it would let anyone vacate anyone's seat.
+  it('marks the seat with its authenticated owner identity', async () => {
+    // The echoed owner UID is the rules' proof of ownership: without it the write is rejected,
+    // and a rule that did not bind it would let anyone vacate anyone's seat.
     await leaveSession('schnell-fuchs-42', 1, RIVAL);
 
     expect(setMock).toHaveBeenCalledWith(

@@ -19,6 +19,7 @@
     "postinstall": "bash scripts/setup-hooks.sh"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
     "firebase-tools": "^15.30.0",
     "lint-staged": "^17.5.1",
     "oxfmt": "^0.67.0",
