@@ -74,7 +74,8 @@ export async function createRematchSession(
   seats: RematchSeat[],
   hostIndex: PlayerIndex,
   playerCount: PlayerCount,
-  targetScore: number
+  targetScore: number,
+  sourceSessionCode: string
 ): Promise<{ code: string }> {
   const user = await ensureAuthenticated();
   const code = generateSessionCode();
@@ -101,6 +102,7 @@ export async function createRematchSession(
     targetScore,
     status: 'active',
     createdAt: Date.now(),
+    rematchOf: sourceSessionCode,
     players,
   };
   await set(ref(db, `sessions/${code}/meta`), meta);

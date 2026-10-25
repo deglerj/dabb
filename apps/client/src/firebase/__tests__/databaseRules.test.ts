@@ -262,6 +262,72 @@ describe.skipIf(process.env.DABB_RULES_TEST !== 'true')('database ownership rule
     );
   });
 
+  it('restricts presence, emotes, and rematch votes to the owning human seat', async () => {
+    const host = testEnv.authenticatedContext('host').database();
+    const human = testEnv.authenticatedContext('human').database();
+    const unauthenticated = testEnv.unauthenticatedContext().database();
+
+    await assertSucceeds(host.ref('sessions/room/presence/0').set({ connected: true }));
+    await assertFails(human.ref('sessions/room/presence/0').set({ connected: true }));
+    await assertSucceeds(human.ref('sessions/room/presence/1').set({ connected: true }));
+    await assertFails(unauthenticated.ref('sessions/room/presence/1').set({ connected: true }));
+
+    await assertSucceeds(host.ref('sessions/room/emotes/0').set({ key: 'laugh', at: Date.now() }));
+    await assertFails(human.ref('sessions/room/emotes/0').set({ key: 'laugh', at: Date.now() }));
+    await assertSucceeds(human.ref('sessions/room/emotes/1').set({ key: 'laugh', at: Date.now() }));
+    await assertFails(
+      unauthenticated.ref('sessions/room/emotes/1').set({ key: 'laugh', at: Date.now() })
+    );
+
+    await assertSucceeds(host.ref('sessions/room/rematch/votes/0').set(true));
+    await assertFails(human.ref('sessions/room/rematch/votes/0').set(true));
+    await assertSucceeds(human.ref('sessions/room/rematch/votes/1').set(true));
+    await assertFails(unauthenticated.ref('sessions/room/rematch/votes/1').set(true));
+    await assertFails(human.ref('sessions/room/presence/2').set({ connected: true }));
+    await assertFails(human.ref('sessions/room/emotes/2').set({ key: 'laugh', at: Date.now() }));
+    await assertFails(human.ref('sessions/room/rematch/votes/2').set(true));
+  });
+
+  it('lets each original human claim only their own rematch seat', async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.database().ref('sessions/room/meta/status').set('finished');
+      await context
+        .database()
+        .ref('sessions/rematch')
+        .set({
+          meta: {
+            playerCount: 3,
+            targetScore: 1000,
+            status: 'active',
+            createdAt: Date.now(),
+            rematchOf: 'room',
+            players: {
+              '0': { nickname: 'Hans', ownerUid: 'host', isAI: false },
+              '2': { nickname: 'Bot Fritz', isAI: true },
+            },
+          },
+        });
+    });
+
+    const host = testEnv.authenticatedContext('host').database();
+    const human = testEnv.authenticatedContext('human').database();
+    const unauthenticated = testEnv.unauthenticatedContext().database();
+    const seat = {
+      nickname: 'Klara',
+      ownerUid: 'human',
+      isAI: false,
+    };
+
+    await assertSucceeds(human.ref('sessions/rematch/meta/players/1').set(seat));
+    await assertFails(
+      host.ref('sessions/rematch/meta/players/1').set({ ...seat, ownerUid: 'host' })
+    );
+    await assertFails(
+      human.ref('sessions/rematch/meta/players/2').set({ ...seat, ownerUid: 'human' })
+    );
+    await assertFails(unauthenticated.ref('sessions/rematch/meta/players/1').set(seat));
+  });
+
   it('does not let cleanup remove active or finished sessions', async () => {
     const host = testEnv.authenticatedContext('host').database();
     const human = testEnv.authenticatedContext('human').database();

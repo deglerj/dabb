@@ -88,7 +88,8 @@ export function useRematch({ sessionCode, playerIndex, game }: UseRematchOptions
           seats,
           HOST_SEAT,
           game.state.playerCount,
-          game.state.targetScore
+          game.state.targetScore,
+          sessionCode
         );
         let seq = 0;
         const events = createStartGameEvents(

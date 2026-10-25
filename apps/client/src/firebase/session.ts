@@ -29,6 +29,8 @@ export interface SessionMeta {
   targetScore: number;
   status: 'waiting' | 'active' | 'finished' | 'terminated';
   createdAt: number;
+  /** Original finished session for an active rematch; absent on regular sessions. */
+  rematchOf?: string;
   players: Record<string, SessionPlayer>;
 }
 
