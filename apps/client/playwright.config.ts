@@ -29,7 +29,7 @@ export default defineConfig({
       // run time rather than pinned by the lockfile, and the current one rejects any other
       // top-level key outright ("Expected 'rules' property"), which takes CI down with it.
       command:
-        'pnpm exec firebase emulators:start --only database --project demo-dabb --config firebase.dev.json',
+        'pnpm exec firebase emulators:start --only database,auth --project demo-dabb --config firebase.dev.json',
       cwd: '../..',
       port: 9000,
       reuseExistingServer: !process.env.CI,
